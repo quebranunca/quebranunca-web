@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
+import { register as registerService } from "../../services/AuthService";
 
 export default function Register() {
   const [email, setEmail] = useState("");
@@ -13,11 +13,8 @@ export default function Register() {
     setError("");
 
     try {
-      const response = await axios.post("http://18.215.124.246/api/auth/register", {
-        email,
-        password,
-      });
-      console.log("Conta criada com sucesso:", response.data);
+      const result = await registerService(email, password);
+      console.log("Conta criada com sucesso:", result);
       alert("Conta criada com sucesso! Faça login para continuar.");
       navigate("/login");
     } catch (err) {
