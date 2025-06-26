@@ -33,8 +33,8 @@ Frontend oficial da plataforma **QuebraNunca** – Interface web para gestão co
   /services
   /styles
   /utils
-  main.tsx
-  App.tsx
+  main.jsx
+  App.jsx
 ```
 
 ## 🧪 Como rodar localmente
