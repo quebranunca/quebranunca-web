@@ -2,7 +2,9 @@ import axios from "axios";
 
 // Permite configurar a URL da API via variável de ambiente.
 export const API_URL =
-  import.meta.env.VITE_API_URL ?? "http://18.215.124.246/api";
+  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL) ||
+  process.env.VITE_API_URL ||
+  "http://18.215.124.246/api";
 
 export async function login(email, password) {
   try {
