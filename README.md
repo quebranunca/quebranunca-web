@@ -59,11 +59,13 @@ A aplicação estará disponível em `http://localhost:5173`.
 
 ## ⚙️ Variáveis de Ambiente
 
-Crie um `.env` baseado no [`.env.example`](./.env.example):
+Crie um arquivo `.env` e defina a variável `VITE_API_URL`:
 
 ```env
 VITE_API_URL=http://localhost:5001/api
 ```
+
+Se desejar compartilhar a configuração, você pode incluir um arquivo `.env.example` como referência.
 
 ## 🐳 Docker
 
