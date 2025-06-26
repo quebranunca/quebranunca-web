@@ -62,7 +62,7 @@ A aplicação estará disponível em `http://localhost:5173`.
 Crie um `.env` baseado no [`.env.example`](./.env.example):
 
 ```env
-VITE_API_URL=https://localhost:5001
+VITE_API_URL=http://localhost:5001/api
 ```
 
 ## 🐳 Docker
