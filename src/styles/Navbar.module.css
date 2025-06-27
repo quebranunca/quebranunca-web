@@ -1,0 +1,57 @@
+.navbar {
+  background-color: rgb(0, 0, 0);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  padding: 0.75rem 1rem;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 10;
+  font-family: 'Inter', sans-serif;
+}
+
+.container {
+  max-width: 430px; /* ou use 768px, 1024px, conforme seu layout */
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #2563eb;
+}
+
+.links {
+  display: flex;
+  gap: 1rem;
+}
+
+.link {
+  color: #374151;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease-in-out;
+}
+
+.link:hover {
+  color: #ffb400;
+}
+
+.logout {
+  color: #374151;
+  font-weight: 500;
+  background: none;
+  border: none;
+}
+
+.logout:hover {
+  text-decoration: underline;
+}
+
+.logo {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+}

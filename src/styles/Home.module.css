@@ -1,0 +1,69 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100vw;
+  height: 100vh;
+  padding: 2rem 1rem;
+  background: black;
+  color: white;
+  overflow-y: auto;
+}
+
+.title {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  text-align: center;
+  font-family: verdana;
+}
+
+.rankingList {
+  background: white;
+  color: black;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  width: 100%;
+  max-width: 400px;
+  max-height: 200px;
+  overflow-y: auto;
+  margin-bottom: 2rem;
+}
+
+.subtitle {
+  font-size: 1rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  font-family: verdana;
+}
+
+.lastGameBox {
+  background: white;
+  color: black;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 2rem;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.button {
+  padding: 0.75rem;
+  background: #ffb400;
+  color: black;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  width: 100%;
+  max-width: 400px;
+  transition: background 0.3s ease;
+}
+
+.button:hover {
+  background: black;
+  color: #ffb400;
+}
