@@ -744,14 +744,18 @@ code {
 }
 
 .home-usuario-card {
-  gap: 0.8rem;
+  gap: 0.85rem;
 }
 
 .home-usuario-card-conteudo {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
+  display: grid;
+  grid-template-columns: minmax(150px, 0.7fr) minmax(0, 1.3fr);
+  gap: 0.9rem;
   align-items: flex-start;
+}
+
+.home-usuario-identidade {
+  min-width: 0;
 }
 
 .home-usuario-card h3,
@@ -759,13 +763,19 @@ code {
   margin: 0;
 }
 
+.home-usuario-card h3 {
+  font-size: clamp(1.05rem, 2vw, 1.35rem);
+  line-height: 1.12;
+}
+
 .home-usuario-eyebrow {
   margin-bottom: 0.45rem;
   border-color: var(--cor-borda);
   color: #7a5a00;
+  letter-spacing: 0;
+  white-space: nowrap;
 }
 
-.home-usuario-infos,
 .home-usuario-pendencias {
   display: flex;
   gap: 0.45rem;
@@ -774,14 +784,44 @@ code {
 }
 
 .home-usuario-infos {
-  justify-content: flex-end;
-  color: var(--cor-texto-suave);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.home-usuario-info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.14rem;
+  min-width: 0;
+  padding: 0.62rem 0.7rem;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-sm);
+  background: var(--cor-superficie-suave);
+}
+
+.home-usuario-info-item span {
+  color: #7a5a00;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.home-usuario-info-item strong {
+  color: var(--cor-texto);
   font-size: 0.9rem;
-  font-weight: 700;
+  line-height: 1.18;
+  overflow-wrap: anywhere;
 }
 
 .home-usuario-pendencias {
   padding-top: 0.15rem;
+}
+
+.home-usuario-acoes {
+  justify-content: flex-end;
 }
 
 .home-hero {
@@ -2997,6 +3037,26 @@ code {
 
   .cartao-lista {
     padding: 0.85rem;
+  }
+
+  .home-usuario-card-conteudo {
+    grid-template-columns: 1fr;
+  }
+
+  .home-usuario-infos {
+    grid-template-columns: 1fr;
+  }
+
+  .home-usuario-info-item {
+    padding: 0.58rem 0.65rem;
+  }
+
+  .home-usuario-acoes {
+    justify-content: stretch;
+  }
+
+  .home-usuario-acoes a {
+    flex: 1 1 130px;
   }
 
   .dashboard-hero,

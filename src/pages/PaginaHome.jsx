@@ -306,23 +306,34 @@ export function PaginaHome() {
 
     const nomeAtleta = atletaPerfil?.nome || usuario?.atleta?.nome || '';
     const rotaPendenciaPrincipal = pendenciasUsuario.length > 0 ? '/app/pendencias' : '/app/perfil';
+    const statusAcesso = estadoAcesso ? nomeEstadoAcesso(estadoAcesso) : 'Ativo';
 
     return (
       <article className="cartao-lista home-usuario-card">
         <div className="home-usuario-card-conteudo">
-          <div>
+          <div className="home-usuario-identidade">
             <span className="home-eyebrow home-usuario-eyebrow">Acesso logado</span>
             <h3>{usuario?.nome ? `Olá, ${usuario.nome}` : 'Bem-vindo'}</h3>
-            <p>
-              {nomePerfil(usuario?.perfil)}
-              {estadoAcesso ? ` · ${nomeEstadoAcesso(estadoAcesso)}` : ''}
-            </p>
+            <p>{nomePerfil(usuario?.perfil)}</p>
           </div>
 
           <div className="home-usuario-infos">
-            <span>E-mail: {usuario?.email || '-'}</span>
-            <span>Atleta: {nomeAtleta || 'Não vinculado'}</span>
-            <span>Pendências: {totalPendenciasHome}</span>
+            <div className="home-usuario-info-item">
+              <span>E-mail</span>
+              <strong>{usuario?.email || '-'}</strong>
+            </div>
+            <div className="home-usuario-info-item">
+              <span>Atleta</span>
+              <strong>{nomeAtleta || 'Não vinculado'}</strong>
+            </div>
+            <div className="home-usuario-info-item">
+              <span>Status</span>
+              <strong>{statusAcesso}</strong>
+            </div>
+            <div className="home-usuario-info-item">
+              <span>Pendências</span>
+              <strong>{totalPendenciasHome}</strong>
+            </div>
           </div>
         </div>
 
@@ -341,13 +352,16 @@ export function PaginaHome() {
           </div>
         )}
 
-        {totalPendenciasHome > 0 && (
-          <div className="acoes-item">
+        <div className="acoes-item home-usuario-acoes">
+          <Link to="/app/perfil" className="botao-secundario botao-compacto">
+            Meu perfil
+          </Link>
+          {totalPendenciasHome > 0 && (
             <Link to={rotaPendenciaPrincipal} className="botao-primario">
               {pendenciasUsuario.length > 0 ? 'Ver pendências' : 'Completar perfil'}
             </Link>
-          </div>
-        )}
+          )}
+        </div>
       </article>
     );
   }
