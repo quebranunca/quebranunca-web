@@ -312,7 +312,6 @@ export function PaginaHome() {
       <article className="cartao-lista home-usuario-card">
         <div className="home-usuario-card-conteudo">
           <div className="home-usuario-identidade">
-            <span className="home-eyebrow home-usuario-eyebrow">Acesso logado</span>
             <h3>{usuario?.nome ? `Olá, ${usuario.nome}` : 'Bem-vindo'}</h3>
             <p>{nomePerfil(usuario?.perfil)}</p>
           </div>
