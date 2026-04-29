@@ -8,15 +8,25 @@ function normalizarUrlBase(url) {
   return url.trim().replace(/\/+$/, '');
 }
 
+function normalizarApiBaseUrl(url) {
+  const urlNormalizada = normalizarUrlBase(url);
+
+  if (!urlNormalizada || urlNormalizada.endsWith('/api')) {
+    return urlNormalizada;
+  }
+
+  return `${urlNormalizada}/api`;
+}
+
 const apiUrl = import.meta.env.VITE_API_URL;
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 
 let baseURL = '/api';
 
 if (apiBaseUrl) {
-  baseURL = normalizarUrlBase(apiBaseUrl);
+  baseURL = normalizarApiBaseUrl(apiBaseUrl);
 } else if (apiUrl) {
-  baseURL = `${normalizarUrlBase(apiUrl)}/api`;
+  baseURL = normalizarApiBaseUrl(apiUrl);
 }
 
 export const http = axios.create({
