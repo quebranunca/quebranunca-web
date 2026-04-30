@@ -376,7 +376,8 @@ export function PaginaHome() {
         <h3>{competicao.nome}</h3>
         {competicao.descricao && <p>{competicao.descricao}</p>} 
         <div className="home-card-detalhes">
-          <span>Início: {formatarData(competicao.dataInicio)}</span>          
+          <span>Início: {formatarData(competicao.dataInicio)}</span>
+          
           <span>Local: {nomeLocal || 'A definir'}</span>
         </div>
         {renderizarCategoriasCampeonato(competicao)}
@@ -395,7 +396,7 @@ export function PaginaHome() {
               Acompanhe os próximos campeonatos, entre nas inscrições abertas e consulte os rankings dos torneios já realizados.
             </p>
             <div className="home-hero-acoes">
-              <Link to="/ranking" className="botao-secundario home-botao">
+              <Link to="/ranking" className="botao-primario home-botao">
                 Ver rankings
               </Link>            
             </div>
