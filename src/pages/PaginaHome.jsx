@@ -324,18 +324,9 @@ export function PaginaHome() {
     const statusAcesso = estadoAcesso ? nomeEstadoAcesso(estadoAcesso) : 'Ativo';
 
     return (
-      <article className="cartao-lista home-usuario-card">
+      <article className="cartao home-hero">
         <div className="home-usuario-card-conteudo">
-          <div className="home-usuario-identidade">
-            <h3>{usuario?.nome ? `Olá, ${usuario.nome}` : 'Bem-vindo'}</h3>
-            <p>{nomePerfil(usuario?.perfil)}</p>
-          </div>
-
-          <div className="home-usuario-infos">
-            <div className="home-usuario-info-item">
-              <span>Perfil</span>
-              <strong>{nomePerfil(usuario?.perfil)}</strong>
-            </div>
+          <div className="home-usuario-infos">            
             <div className="home-usuario-info-item">
               <span>Nome</span>
               <strong>{nomeAtleta || 'Não vinculado'}</strong>
