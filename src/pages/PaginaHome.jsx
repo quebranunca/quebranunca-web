@@ -341,31 +341,12 @@ export function PaginaHome() {
               <strong>{nomeAtleta || 'Não vinculado'}</strong>
             </div>
             <div className="home-usuario-info-item">
-              <span>Status</span>
-              <strong>{statusAcesso}</strong>
-            </div>
-            <div className="home-usuario-info-item">
               <span>Pendências</span>
               <strong>{totalPendenciasHome}</strong>
             </div>
           </div>
         </div>
-
-        {pendenciasPerfil.length > 0 && (
-          <div className="home-usuario-pendencias">
-            {pendenciasPerfil.slice(0, 4).map((pendencia) => (
-              <span key={pendencia.id} className="tag-status tag-status-alerta">
-                {pendencia.titulo}
-              </span>
-            ))}
-            {pendenciasPerfil.length > 4 && (
-              <span className="tag-status tag-status-alerta">
-                +{pendenciasPerfil.length - 4}
-              </span>
-            )}
-          </div>
-        )}
-
+       
         <div className="acoes-item home-usuario-acoes">
           <Link to="/app/perfil" className="botao-secundario botao-compacto">
             Meu perfil
