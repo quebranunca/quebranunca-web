@@ -13,11 +13,6 @@ export const competicoesServico = {
     return resposta.data;
   },
 
-  async obterResumoPublico() {
-    const resposta = await http.get('/competicoes/resumo-publico');
-    return resposta.data;
-  },
-
   async criar(dados) {
     const resposta = await http.post('/competicoes', dados);
     return resposta.data;

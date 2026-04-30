@@ -7,7 +7,6 @@ import { competicoesServico } from '../services/competicoesServico';
 import { pendenciasServico } from '../services/pendenciasServico';
 import { rankingServico } from '../services/rankingServico';
 import { nomeEstadoAcesso } from '../utils/acesso';
-import { extrairMensagemErro } from '../utils/erros';
 import { formatarData } from '../utils/formatacao';
 import { obterLinkHttp } from '../utils/links';
 import { criarPendenciasPerfil } from '../utils/pendenciasPerfil';
@@ -83,7 +82,7 @@ function obterNomeLocal(competicao) {
     (competicao?.localId ? 'Local cadastrado' : '');
 }
 
-function montarResumoPlataforma(competicoes, ranking, resumoPublico) {
+function montarResumoPlataforma(competicoes, ranking) {
   const atletas = new Set();
   const jogos = new Set();
   const totalGruposLista = (competicoes || []).filter(ehCompeticaoGrupo).length;
@@ -105,7 +104,7 @@ function montarResumoPlataforma(competicoes, ranking, resumoPublico) {
   return {
     atletas: atletas.size,
     jogos: jogos.size,
-    grupos: resumoPublico?.totalGrupos ?? totalGruposLista
+    grupos: totalGruposLista
   };
 }
 
@@ -116,13 +115,7 @@ export function PaginaHome() {
   const [rankingGeral, setRankingGeral] = useState([]);
   const [pendenciasUsuario, setPendenciasUsuario] = useState([]);
   const [atletaPerfil, setAtletaPerfil] = useState(null);
-  const [resumoPublico, setResumoPublico] = useState(null);
   const [carregando, setCarregando] = useState(true);
-  const [erro, setErro] = useState('');
-
-  useEffect(() => {
-    carregarHome();
-  }, [token, usuario?.atletaId]);
 
   const hoje = useMemo(() => {
     const data = new Date();
@@ -143,14 +136,6 @@ export function PaginaHome() {
     [campeonatos, hoje]
   );
 
-  const inscricoesAbertas = useMemo(
-    () => campeonatos
-      .filter((competicao) => competicao.inscricoesAbertas)
-      .sort(ordenarPorInicio)
-      .slice(0, 4),
-    [campeonatos]
-  );
-
   const campeonatosRealizados = useMemo(
     () => campeonatos
       .filter((competicao) => competicao.dataFim && obterTimestamp(competicao.dataFim, 0) < hoje)
@@ -161,8 +146,8 @@ export function PaginaHome() {
 
   const destaqueRanking = useMemo(() => selecionarTopRanking(rankingGeral), [rankingGeral]);
   const resumoPlataforma = useMemo(
-    () => montarResumoPlataforma(competicoes, rankingGeral, resumoPublico),
-    [competicoes, rankingGeral, resumoPublico]
+    () => montarResumoPlataforma(competicoes, rankingGeral),
+    [competicoes, rankingGeral]
   );
   const pendenciasPerfil = useMemo(
     () => criarPendenciasPerfil({ estadoAcesso, usuario, atletaDetalhe: atletaPerfil }),
@@ -170,70 +155,100 @@ export function PaginaHome() {
   );
   const totalPendenciasHome = pendenciasUsuario.length + pendenciasPerfil.length;
 
-  async function carregarHome() {
-    setCarregando(true);
-    setErro('');
+  useEffect(() => {
+    let ativo = true;
 
-    const [resultadoCompeticoes, resultadoRanking, resultadoResumo] = await Promise.allSettled([
-      competicoesServico.listar(),
-      rankingServico.listarAtletasGeral(),
-      competicoesServico.obterResumoPublico()
-    ]);
+    async function carregarDadosPublicos() {
+      setCarregando(true);
 
-    if (resultadoCompeticoes.status === 'fulfilled') {
-      const listaCompeticoes = resultadoCompeticoes.value;
-      setCompeticoes(listaCompeticoes);
-      await carregarCategoriasCampeonatos(listaCompeticoes);
-    } else {
-      setCompeticoes([]);
-      setCategoriasPorCompeticao({});
-      setErro(extrairMensagemErro(resultadoCompeticoes.reason));
+      const [resultadoCompeticoes, resultadoRanking] = await Promise.allSettled([
+        competicoesServico.listar(),
+        rankingServico.listarAtletasGeral()
+      ]);
+
+      if (!ativo) {
+        return;
+      }
+
+      if (resultadoCompeticoes.status === 'fulfilled') {
+        const listaCompeticoes = resultadoCompeticoes.value;
+        setCompeticoes(listaCompeticoes);
+
+        const categoriasCampeonatos = await obterCategoriasCampeonatosExibidos(listaCompeticoes);
+        if (!ativo) {
+          return;
+        }
+
+        setCategoriasPorCompeticao(categoriasCampeonatos);
+      } else {
+        setCompeticoes([]);
+        setCategoriasPorCompeticao({});
+      }
+
+      if (resultadoRanking.status === 'fulfilled') {
+        setRankingGeral(resultadoRanking.value);
+      } else {
+        setRankingGeral([]);
+      }
+
+      setCarregando(false);
     }
 
-    if (resultadoRanking.status === 'fulfilled') {
-      setRankingGeral(resultadoRanking.value);
-    } else {
-      setRankingGeral([]);
-    }
+    carregarDadosPublicos();
 
-    if (resultadoResumo.status === 'fulfilled') {
-      setResumoPublico(resultadoResumo.value);
-    } else {
-      setResumoPublico(null);
-    }
+    return () => {
+      ativo = false;
+    };
+  }, [hoje]);
 
-    if (token) {
-      try {
-        const listaPendencias = await pendenciasServico.listar();
-        setPendenciasUsuario((listaPendencias || []).filter(pendenciaAindaVisivel));
-      } catch {
+  useEffect(() => {
+    let ativo = true;
+
+    async function carregarDadosUsuario() {
+      if (!token) {
+        setPendenciasUsuario([]);
+        setAtletaPerfil(null);
+        return;
+      }
+
+      const [resultadoPendencias, resultadoAtleta] = await Promise.allSettled([
+        pendenciasServico.listar(),
+        usuario?.atletaId ? atletasServico.obterMeu() : Promise.resolve(null)
+      ]);
+
+      if (!ativo) {
+        return;
+      }
+
+      if (resultadoPendencias.status === 'fulfilled') {
+        setPendenciasUsuario((resultadoPendencias.value || []).filter(pendenciaAindaVisivel));
+      } else {
         setPendenciasUsuario([]);
       }
 
-      if (usuario?.atletaId) {
-        try {
-          setAtletaPerfil(await atletasServico.obterMeu());
-        } catch {
-          setAtletaPerfil(null);
-        }
+      if (resultadoAtleta.status === 'fulfilled') {
+        setAtletaPerfil(resultadoAtleta.value);
       } else {
         setAtletaPerfil(null);
       }
-    } else {
-      setPendenciasUsuario([]);
-      setAtletaPerfil(null);
     }
 
-    setCarregando(false);
-  }
+    carregarDadosUsuario();
 
-  async function carregarCategoriasCampeonatos(listaCompeticoes) {
+    return () => {
+      ativo = false;
+    };
+  }, [token, usuario?.atletaId]);
+
+  async function obterCategoriasCampeonatosExibidos(listaCompeticoes) {
     const campeonatosHome = (listaCompeticoes || [])
-      .filter((competicao) => Number(competicao.tipo) === TIPO_CAMPEONATO);
+      .filter((competicao) => Number(competicao.tipo) === TIPO_CAMPEONATO)
+      .filter((competicao) => obterTimestamp(competicao.dataFim, obterTimestamp(competicao.dataInicio)) >= hoje)
+      .sort(ordenarPorInicio)
+      .slice(0, 3);
 
     if (campeonatosHome.length === 0) {
-      setCategoriasPorCompeticao({});
-      return;
+      return {};
     }
 
     const resultados = await Promise.allSettled(
@@ -250,7 +265,7 @@ export function PaginaHome() {
       }
     });
 
-    setCategoriasPorCompeticao(mapa);
+    return mapa;
   }
 
   function renderizarCategoriasCampeonato(competicao) {

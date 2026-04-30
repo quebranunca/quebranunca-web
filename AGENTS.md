@@ -29,6 +29,8 @@ Seguir o `AGENTS.md` da raiz. Neste diretório, além disso:
 - `Ranking` deve exibir atletas sem usuário como pendentes no mesmo ranking, sem tela ou cálculo paralelo de pontos
 - `Pendências` centraliza aprovar/contestar partidas e completar contato de atleta pendente; o frontend só reflete as pendências e ações retornadas pela API
 - `Modelos de importação` já oferece download e upload CSV por tipo de cadastro
+- Aceite de convite deve tratar o código no formato curto `000-000`, sem depender do frontend para definir perfil, validade ou regras de uso do convite
+- E-mail e WhatsApp são canais do mesmo convite; a interface não deve sugerir que reenviar por outro canal cria convite ou código diferente
 
 ## Acesso no frontend
 - Centralizar guardas de rota, landing page e menu a partir de perfil e estado do usuário
