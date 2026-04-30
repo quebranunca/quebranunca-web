@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { atletasServico } from '../services/atletasServico';
 import { categoriasServico } from '../services/categoriasServico';
 import { competicoesServico } from '../services/competicoesServico';
@@ -164,6 +164,7 @@ function mapearGrupoAtletaParaAtleta(item) {
 export function PaginaRegistrarPartidas() {
   const { usuario } = useAutenticacao();
   const [params, setParams] = useSearchParams();
+  const navegar = useNavigate();
   const usuarioAtleta = ehAtleta(usuario);
   const atletaUsuarioId = usuario?.atletaId || '';
   const atletaUsuarioNome = usuario?.atleta?.nome || usuario?.nome || '';
@@ -621,6 +622,7 @@ export function PaginaRegistrarPartidas() {
       );
       setFeedbackPendencias(pendenciasSemContato);
       limparFormularioAposSalvar();
+      navegar('/');
     } catch (error) {
       setErro(extrairMensagemErro(error));
     } finally {
