@@ -324,8 +324,8 @@ export function PaginaHome() {
     const statusAcesso = estadoAcesso ? nomeEstadoAcesso(estadoAcesso) : 'Ativo';
 
     return (
-      <article className="cartao home-hero">
-        <div className="home-usuario-card-conteudo">
+      <article className="cartao home-hero">       
+        <div className="home-hero-conteudo">
           <div className="home-usuario-infos">            
             <div className="home-usuario-info-item">
               <span>Nome</span>
@@ -336,13 +336,18 @@ export function PaginaHome() {
               <strong>{totalPendenciasHome}</strong>
             </div>
           </div>
-        </div>
-       
-        <div className="acoes-item home-usuario-acoes">
-          <Link to="/app/perfil" className="botao-secundario botao-compacto">
-            Meu perfil
-          </Link>          
-        </div>
+          <div className="acoes-item home-usuario-acoes">
+            <Link to="/app/perfil" className="botao-secundario botao-compacto">
+              Meu perfil
+            </Link>     
+            <Link to="/partidas/registrar" className="botao-primario home-botao">
+              Registrar partida
+            </Link>
+            <Link to="/ranking" className="botao-secundario home-botao">
+              Ver rankings
+            </Link>         
+          </div>
+        </div>   
       </article>
     );
   }
@@ -400,24 +405,7 @@ export function PaginaHome() {
       );
     }
 
-    const nomeAtleta = atletaPerfil?.nome || usuario?.atleta?.nome || '';
-    const rotaPendenciaPrincipal = pendenciasUsuario.length > 0 ? '/app/pendencias' : '/app/perfil';
-    const statusAcesso = estadoAcesso ? nomeEstadoAcesso(estadoAcesso) : 'Ativo';
-
-    return (
-      <article className="cartao home-hero">
-        <div className="home-hero-conteudo">
-          <div className="acoes-item home-usuario-acoes">
-            <Link to="/partidas/registrar" className="botao-primario home-botao">
-              Registrar partida
-            </Link>
-            <Link to="/ranking" className="botao-secundario home-botao">
-              Ver rankings
-            </Link>         
-          </div>
-        </div>        
-      </article>
-    );
+    return null;
   }
 
   return (
