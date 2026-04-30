@@ -430,7 +430,7 @@ export function PaginaHome() {
     return (
       <article className="cartao home-hero">
         <div className="home-hero-conteudo">
-          <h3>Registre seus jogos, crie o grupo e monte seu ranking.</h3>
+          <h3>Confira alguns dados da plataforma! Atletas, Jogos e Grupos!</h3>
           <div className="home-hero-resumo" aria-label="Resumo da plataforma">
             <div>
               <span>{resumoPlataforma.atletas}</span>
@@ -445,13 +445,13 @@ export function PaginaHome() {
               <small>Grupos</small>
             </div>
           </div>
-          <div className="home-hero-acoes">
+          <div className="acoes-item home-usuario-acoes">
             <Link to="/partidas/registrar" className="botao-primario home-botao">
               Registrar partida
             </Link>
             <Link to="/ranking" className="botao-secundario home-botao">
               Ver rankings
-            </Link>            
+            </Link>         
           </div>
         </div>        
       </article>
