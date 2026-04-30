@@ -376,8 +376,7 @@ export function PaginaHome() {
         <h3>{competicao.nome}</h3>
         {competicao.descricao && <p>{competicao.descricao}</p>} 
         <div className="home-card-detalhes">
-          <span>Início: {formatarData(competicao.dataInicio)}</span>
-          <span>Fim: {formatarData(competicao.dataFim)}</span>
+          <span>Início: {formatarData(competicao.dataInicio)}</span>          
           <span>Local: {nomeLocal || 'A definir'}</span>
         </div>
         {renderizarCategoriasCampeonato(competicao)}
@@ -391,15 +390,11 @@ export function PaginaHome() {
       return (
         <article className="cartao home-hero">
           <div className="home-hero-conteudo">
-            <span className="home-eyebrow">Plataforma Futevôlei</span>
             <h2>Registre seus jogos, crie o grupo e monte seu ranking.</h2>
             <p>
               Acompanhe os próximos campeonatos, entre nas inscrições abertas e consulte os rankings dos torneios já realizados.
             </p>
             <div className="home-hero-acoes">
-              <Link to="/partidas/registrar" className="botao-primario home-botao">
-                Registrar partida
-              </Link>
               <Link to="/ranking" className="botao-secundario home-botao">
                 Ver rankings
               </Link>            
