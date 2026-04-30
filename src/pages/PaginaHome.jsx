@@ -330,20 +330,16 @@ export function PaginaHome() {
             <div className="home-usuario-info-item">
               <span>Nome</span>
               <strong>{nomeAtleta || 'Não vinculado'}</strong>
-            </div>
-            <div className="home-usuario-info-item">
-              <span>Pendências</span>
-              <strong>{totalPendenciasHome}</strong>
-            </div>
+            </div>            
           </div>
           <div className="acoes-item home-usuario-acoes">
-            <Link to="/app/perfil" className="botao-secundario botao-compacto">
+            <Link to="/app/perfil" className="botao-primario home-botao">
               Meu perfil
             </Link>     
             <Link to="/partidas/registrar" className="botao-primario home-botao">
               Registrar partida
             </Link>
-            <Link to="/ranking" className="botao-secundario home-botao">
+            <Link to="/ranking" className="botao-primario home-botao">
               Ver rankings
             </Link>         
           </div>
@@ -427,7 +423,7 @@ export function PaginaHome() {
                     <p>
                       {totalPendenciasHome === 1
                         ? 'Você tem 1 pendência aguardando.'
-                        : `Você tem ${totalPendenciasHome} pendências aguardando ação.`}
+                        : `Você tem ${totalPendenciasHome} pendências aguardando.`}
                     </p>
                   </div>
                   <span className="tag-status tag-status-alerta">Ação necessária</span>
