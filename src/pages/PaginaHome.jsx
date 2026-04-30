@@ -333,11 +333,11 @@ export function PaginaHome() {
 
           <div className="home-usuario-infos">
             <div className="home-usuario-info-item">
-              <span>E-mail</span>
-              <strong>{usuario?.email || '-'}</strong>
+              <span>Perfil</span>
+              <strong>{nomePerfil(usuario?.perfil)}</strong>
             </div>
             <div className="home-usuario-info-item">
-              <span>Atleta</span>
+              <span>Nome</span>
               <strong>{nomeAtleta || 'Não vinculado'}</strong>
             </div>
             <div className="home-usuario-info-item">
@@ -386,17 +386,65 @@ export function PaginaHome() {
     );
   }
 
-  return (
-    <section className="pagina pagina-home">
-      {renderizarCardUsuarioLogado()}
+  function renderizarCardHome() {
+    if (!token) {
+      return (
+        <article className="cartao home-hero">
+          <div className="home-hero-conteudo">
+            <span className="home-eyebrow">Plataforma Futevôlei</span>
+            <h2>Registre seus jogos, crie o grupo e monte seu ranking.</h2>
+            <p>
+              Acompanhe os próximos campeonatos, entre nas inscrições abertas e consulte os rankings dos torneios já realizados.
+            </p>
+            <div className="home-hero-acoes">
+              <Link to="/partidas/registrar" className="botao-primario home-botao">
+                Registrar partida
+              </Link>
+              <Link to="/ranking" className="botao-secundario home-botao">
+                Ver rankings
+              </Link>            
+            </div>
+          </div>
+          <div className="home-hero-resumo" aria-label="Resumo da plataforma">
+            <div>
+              <span>{resumoPlataforma.atletas}</span>
+              <small>Atletas</small>
+            </div>
+            <div>
+              <span>{resumoPlataforma.jogos}</span>
+              <small>Jogos</small>
+            </div>
+            <div>
+              <span>{resumoPlataforma.grupos}</span>
+              <small>Grupos</small>
+            </div>
+          </div>
+        </article>
+      );
+    }
 
+    const nomeAtleta = atletaPerfil?.nome || usuario?.atleta?.nome || '';
+    const rotaPendenciaPrincipal = pendenciasUsuario.length > 0 ? '/app/pendencias' : '/app/perfil';
+    const statusAcesso = estadoAcesso ? nomeEstadoAcesso(estadoAcesso) : 'Ativo';
+
+    return (
       <article className="cartao home-hero">
         <div className="home-hero-conteudo">
-          <span className="home-eyebrow">Plataforma Futevôlei</span>
-          <h2>Registre seus jogos, crie o grupo e monte seu ranking.</h2>
-          <p>
-            Acompanhe os próximos campeonatos, entre nas inscrições abertas e consulte os rankings dos torneios já realizados.
-          </p>
+          <h3>Registre seus jogos, crie o grupo e monte seu ranking.</h3>
+          <div className="home-hero-acoes">
+            <div>
+              <span>{resumoPlataforma.atletas}</span>
+              <small>Atletas</small>
+            </div>    
+            <div>
+              <span>{resumoPlataforma.jogos}</span>
+              <small>Jogos</small>
+            </div>
+            <div>
+              <span>{resumoPlataforma.grupos}</span>
+              <small>Grupos</small>
+            </div>     
+          </div>
           <div className="home-hero-acoes">
             <Link to="/partidas/registrar" className="botao-primario home-botao">
               Registrar partida
@@ -405,22 +453,16 @@ export function PaginaHome() {
               Ver rankings
             </Link>            
           </div>
-        </div>
-        <div className="home-hero-resumo" aria-label="Resumo da plataforma">
-          <div>
-            <span>{resumoPlataforma.atletas}</span>
-            <small>Atletas</small>
-          </div>
-          <div>
-            <span>{resumoPlataforma.jogos}</span>
-            <small>Jogos</small>
-          </div>
-          <div>
-            <span>{resumoPlataforma.grupos}</span>
-            <small>Grupos</small>
-          </div>
-        </div>
+        </div>        
       </article>
+    );
+  }
+
+  return (
+    <section className="pagina pagina-home">
+      {renderizarCardUsuarioLogado()}
+
+      {renderizarCardHome()}     
 
       {carregando ? (
         <p>Carregando informações públicas...</p>
