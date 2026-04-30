@@ -394,12 +394,7 @@ export function PaginaHome() {
             <h2>Registre seus jogos, crie o grupo e monte seu ranking.</h2>
             <p>
               Acompanhe os próximos campeonatos, entre nas inscrições abertas e consulte os rankings dos torneios já realizados.
-            </p>
-            <div className="home-hero-acoes">
-              <Link to="/ranking" className="botao-primario home-botao">
-                Ver rankings
-              </Link>            
-            </div>
+            </p>            
           </div>
           <div className="home-hero-resumo" aria-label="Resumo da plataforma">
             <div>
