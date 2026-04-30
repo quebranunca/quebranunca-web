@@ -350,12 +350,7 @@ export function PaginaHome() {
         <div className="acoes-item home-usuario-acoes">
           <Link to="/app/perfil" className="botao-secundario botao-compacto">
             Meu perfil
-          </Link>
-          {totalPendenciasHome > 0 && (
-            <Link to={rotaPendenciaPrincipal} className="botao-primario">
-              {pendenciasUsuario.length > 0 ? 'Ver pendências' : 'Completar perfil'}
-            </Link>
-          )}
+          </Link>          
         </div>
       </article>
     );

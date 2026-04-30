@@ -3056,7 +3056,9 @@ code {
   }
 
   .home-usuario-acoes a {
-    flex: 1 1 130px;
+    flex: 1 1 100%;
+    display: flex;
+    justify-content: center;
   }
 
   .dashboard-hero,
