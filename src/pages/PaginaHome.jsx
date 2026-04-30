@@ -416,21 +416,6 @@ export function PaginaHome() {
     return (
       <article className="cartao home-hero">
         <div className="home-hero-conteudo">
-          <h3>Confira alguns dados da plataforma! Atletas, Jogos e Grupos!</h3>
-          <div className="home-hero-resumo" aria-label="Resumo da plataforma">
-            <div>
-              <span>{resumoPlataforma.atletas}</span>
-              <small>Atletas</small>
-            </div>
-            <div>
-              <span>{resumoPlataforma.jogos}</span>
-              <small>Jogos</small>
-            </div>
-            <div>
-              <span>{resumoPlataforma.grupos}</span>
-              <small>Grupos</small>
-            </div>
-          </div>
           <div className="acoes-item home-usuario-acoes">
             <Link to="/partidas/registrar" className="botao-primario home-botao">
               Registrar partida
@@ -462,24 +447,15 @@ export function PaginaHome() {
                     <h3>Pendências</h3>
                     <p>
                       {totalPendenciasHome === 1
-                        ? 'Você tem 1 pendência aguardando ação.'
+                        ? 'Você tem 1 pendência aguardando.'
                         : `Você tem ${totalPendenciasHome} pendências aguardando ação.`}
                     </p>
                   </div>
                   <span className="tag-status tag-status-alerta">Ação necessária</span>
                 </div>
-                {pendenciasPerfil.length > 0 && (
-                  <div className="home-usuario-pendencias">
-                    {pendenciasPerfil.map((pendencia) => (
-                      <span key={pendencia.id} className="tag-status tag-status-alerta">
-                        {pendencia.titulo}
-                      </span>
-                    ))}
-                  </div>
-                )}
-                <div className="acoes-item">
-                  <Link to={pendenciasUsuario.length > 0 ? '/app/pendencias' : '/app/perfil'} className="botao-primario">
-                    {pendenciasUsuario.length > 0 ? 'Ver pendências' : 'Completar perfil'}
+                <div className="acoes-item home-usuario-acoes">
+                  <Link to='/app/pendencias' className="botao-primario">
+                    Ver pendências
                   </Link>
                 </div>
               </article>
