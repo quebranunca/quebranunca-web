@@ -6,6 +6,7 @@ import { partidasServico } from '../services/partidasServico';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { extrairMensagemErro } from '../utils/erros';
 import { formatarDataHora } from '../utils/formatacao';
+import { ehAdministrador } from '../utils/perfis';
 
 const TIPOS_COMPETICAO = {
   campeonato: 1,
@@ -291,7 +292,7 @@ function compararPartidasChave(a, b) {
 
 export function PaginaConsultaPartidas() {
   const { usuario } = useAutenticacao();
-  const usuarioAtleta = Boolean(usuario) && Number(usuario?.perfil) === 3;
+  const administradorLogado = ehAdministrador(usuario);
   const [params, setParams] = useSearchParams();
   const [competicoes, setCompeticoes] = useState([]);
   const [categorias, setCategorias] = useState([]);
@@ -304,6 +305,7 @@ export function PaginaConsultaPartidas() {
   const [filtroChaveamento, setFiltroChaveamento] = useState('completa');
   const [erro, setErro] = useState('');
   const [carregando, setCarregando] = useState(true);
+  const [excluindoPartidaIds, setExcluindoPartidaIds] = useState({});
 
   const competicoesDisponiveis = useMemo(
     () => competicoes.filter((competicao) => !ehCompeticaoPartidasAvulsas(competicao)),
@@ -875,6 +877,39 @@ export function PaginaConsultaPartidas() {
     }
   }
 
+  async function removerPartida(partida) {
+    if (!administradorLogado || !partida?.id) {
+      return;
+    }
+
+    if (!window.confirm('Deseja remover esta partida?')) {
+      return;
+    }
+
+    setErro('');
+    setExcluindoPartidaIds((ids) => ({ ...ids, [partida.id]: true }));
+
+    try {
+      await partidasServico.remover(partida.id);
+
+      if (categoriaId) {
+        await carregarPartidasPorCategoria(categoriaId);
+      } else if (grupoSelecionado && competicaoSelecionada?.id) {
+        await carregarPartidasPorCompeticao(competicaoSelecionada.id);
+      } else {
+        setPartidas((lista) => lista.filter((item) => item.id !== partida.id));
+      }
+    } catch (error) {
+      setErro(extrairMensagemErro(error));
+    } finally {
+      setExcluindoPartidaIds((ids) => {
+        const proximosIds = { ...ids };
+        delete proximosIds[partida.id];
+        return proximosIds;
+      });
+    }
+  }
+
   function renderizarColunaChave(coluna, indiceColuna, totalColunas, lado, conectar = true) {
     const primeiraColuna = indiceColuna === 0;
     const ultimaColuna = indiceColuna === totalColunas - 1;
@@ -905,6 +940,7 @@ export function PaginaConsultaPartidas() {
           {coluna.partidas.map((partida, indicePartida) => {
             const duplaAVenceu = partida.duplaVencedoraId === partida.duplaAId;
             const duplaBVenceu = partida.duplaVencedoraId === partida.duplaBId;
+            const excluindoPartida = Boolean(excluindoPartidaIds[partida.id]);
             const statusExibicao = !partida.ativa
               ? 'Aguardando definição'
               : obterNomeStatus(partida.status);
@@ -933,6 +969,19 @@ export function PaginaConsultaPartidas() {
                   <span className="chave-jogo-pontuacao-texto">{partida.status === 2 ? partida.placarDuplaB : '-'}</span>
                   <strong>{partida.nomeDuplaB}</strong>
                 </div>
+
+                {administradorLogado && (
+                  <div className="chave-jogo-rodape">
+                    <button
+                      type="button"
+                      className="botao-perigo botao-compacto"
+                      onClick={() => removerPartida(partida)}
+                      disabled={excluindoPartida}
+                    >
+                      {excluindoPartida ? 'Excluindo...' : 'Excluir'}
+                    </button>
+                  </div>
+                )}
               </article>
             );
           })}
@@ -946,6 +995,7 @@ export function PaginaConsultaPartidas() {
       const partida = partidasPorId.get(jogo.partidaId);
       const duplaAVenceu = jogo.duplaVencedoraId === jogo.duplaAId;
       const duplaBVenceu = jogo.duplaVencedoraId === jogo.duplaBId;
+      const excluindoPartida = Boolean(partida && excluindoPartidaIds[partida.id]);
 
       return (
         <article key={jogo.partidaId} className="jogo-grupo-card">
@@ -972,6 +1022,19 @@ export function PaginaConsultaPartidas() {
           </div>
 
           {partida?.faseCampeonato && <p className="jogo-grupo-fase">{partida.faseCampeonato}</p>}
+
+          {partida && administradorLogado && (
+            <div className="acoes-item acoes-item-compactas">
+              <button
+                type="button"
+                className="botao-perigo botao-compacto"
+                onClick={() => removerPartida(partida)}
+                disabled={excluindoPartida}
+              >
+                {excluindoPartida ? 'Excluindo...' : 'Excluir'}
+              </button>
+            </div>
+          )}
         </article>
       );
     }
@@ -1243,45 +1306,62 @@ export function PaginaConsultaPartidas() {
           </div>
 
           <div className="lista-cartoes">
-          {partidas.map((partida) => (
-            <article key={partida.id} className="cartao-lista partida-lista-card">
-              <div className="partida-lista-topo">
-                <h3 className="partida-confronto">
-                  <span>{partida.nomeDuplaA}</span>
-                  <span className="partida-placar-valor">
-                    {partida.status === 2 ? `${partida.placarDuplaA} x ${partida.placarDuplaB}` : 'x'}
-                  </span>
-                  <span>{partida.nomeDuplaB}</span>
-                </h3>
-                <span className={`tag-status ${partida.status === 2 ? 'tag-status-sucesso' : 'tag-status-alerta'}`}>
-                  {obterNomeStatus(partida.status)}
-                </span>
-              </div>
+            {partidas.map((partida) => {
+              const excluindoPartida = Boolean(excluindoPartidaIds[partida.id]);
 
-              <div className="partida-lista-detalhes">
-                <p>Categoria: {partida.nomeCategoria}</p>
-                <p>Data: {partida.dataPartida ? formatarDataHora(partida.dataPartida) : 'A definir'}</p>
-                <p>Dupla A · Direita: {partida.nomeDuplaAAtleta1}</p>
-                <p>Dupla A · Esquerda: {partida.nomeDuplaAAtleta2}</p>
-                <p>Dupla B · Direita: {partida.nomeDuplaBAtleta1}</p>
-                <p>Dupla B · Esquerda: {partida.nomeDuplaBAtleta2}</p>
-                <p className="partida-status-linha">
-                  Validação:
-                  <span className={`tag-status ${obterClasseStatusAprovacao(partida.statusAprovacao)}`}>
-                    {obterNomeStatusAprovacao(partida.statusAprovacao)}
-                  </span>
-                </p>
-                <p>Registrada por: {partida.nomeCriadoPorUsuario || 'Não informado'}</p>
-                {partida.faseCampeonato && <p>Fase: {partida.faseCampeonato}</p>}
-                {partida.status === 2 ? (
-                  <p>Vencedora: {partida.nomeDuplaVencedora || 'Empate'}</p>
-                ) : (
-                  <p>Resultado: jogo ainda não encerrado</p>
-                )}
-                <p className="campo-largo">Obs: {partida.observacoes || '-'}</p>
-              </div>
-            </article>
-          ))}
+              return (
+                <article key={partida.id} className="cartao-lista partida-lista-card">
+                  <div className="partida-lista-topo">
+                    <h3 className="partida-confronto">
+                      <span>{partida.nomeDuplaA}</span>
+                      <span className="partida-placar-valor">
+                        {partida.status === 2 ? `${partida.placarDuplaA} x ${partida.placarDuplaB}` : 'x'}
+                      </span>
+                      <span>{partida.nomeDuplaB}</span>
+                    </h3>
+                    <span className={`tag-status ${partida.status === 2 ? 'tag-status-sucesso' : 'tag-status-alerta'}`}>
+                      {obterNomeStatus(partida.status)}
+                    </span>
+                  </div>
+
+                  <div className="partida-lista-detalhes">
+                    <p>Categoria: {partida.nomeCategoria}</p>
+                    <p>Data: {partida.dataPartida ? formatarDataHora(partida.dataPartida) : 'A definir'}</p>
+                    <p>Dupla A · Direita: {partida.nomeDuplaAAtleta1}</p>
+                    <p>Dupla A · Esquerda: {partida.nomeDuplaAAtleta2}</p>
+                    <p>Dupla B · Direita: {partida.nomeDuplaBAtleta1}</p>
+                    <p>Dupla B · Esquerda: {partida.nomeDuplaBAtleta2}</p>
+                    <p className="partida-status-linha">
+                      Validação:
+                      <span className={`tag-status ${obterClasseStatusAprovacao(partida.statusAprovacao)}`}>
+                        {obterNomeStatusAprovacao(partida.statusAprovacao)}
+                      </span>
+                    </p>
+                    <p>Registrada por: {partida.nomeCriadoPorUsuario || 'Não informado'}</p>
+                    {partida.faseCampeonato && <p>Fase: {partida.faseCampeonato}</p>}
+                    {partida.status === 2 ? (
+                      <p>Vencedora: {partida.nomeDuplaVencedora || 'Empate'}</p>
+                    ) : (
+                      <p>Resultado: jogo ainda não encerrado</p>
+                    )}
+                    <p className="campo-largo">Obs: {partida.observacoes || '-'}</p>
+                  </div>
+
+                  {administradorLogado && (
+                    <div className="acoes-item">
+                      <button
+                        type="button"
+                        className="botao-perigo botao-compacto"
+                        onClick={() => removerPartida(partida)}
+                        disabled={excluindoPartida}
+                      >
+                        {excluindoPartida ? 'Excluindo...' : 'Excluir'}
+                      </button>
+                    </div>
+                  )}
+                </article>
+              );
+            })}
 
           {partidas.length === 0 && (
             <p>{grupoSelecionado && !categoriaId ? 'Nenhuma partida cadastrada para este grupo.' : 'Nenhuma partida cadastrada para esta categoria.'}</p>

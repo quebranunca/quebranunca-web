@@ -161,37 +161,45 @@ export function PaginaHome() {
     async function carregarDadosPublicos() {
       setCarregando(true);
 
-      const [resultadoCompeticoes, resultadoRanking] = await Promise.allSettled([
-        competicoesServico.listar(),
-        rankingServico.listarAtletasGeral()
-      ]);
+      try {
+        const [resultadoCompeticoes, resultadoRanking] = await Promise.allSettled([
+          competicoesServico.listarVisiveis(),
+          rankingServico.listarAtletasGeral()
+        ]);
 
-      if (!ativo) {
-        return;
-      }
-
-      if (resultadoCompeticoes.status === 'fulfilled') {
-        const listaCompeticoes = resultadoCompeticoes.value;
-        setCompeticoes(listaCompeticoes);
-
-        const categoriasCampeonatos = await obterCategoriasCampeonatosExibidos(listaCompeticoes);
         if (!ativo) {
           return;
         }
 
-        setCategoriasPorCompeticao(categoriasCampeonatos);
-      } else {
+        if (resultadoCompeticoes.status === 'fulfilled') {
+          const listaCompeticoes = resultadoCompeticoes.value;
+          setCompeticoes(listaCompeticoes);
+
+          const categoriasCampeonatos = await obterCategoriasCampeonatosExibidos(listaCompeticoes);
+          if (!ativo) {
+            return;
+          }
+
+          setCategoriasPorCompeticao(categoriasCampeonatos);
+        } else {
+          setCompeticoes([]);
+          setCategoriasPorCompeticao({});
+        }
+
+        if (resultadoRanking.status === 'fulfilled') {
+          setRankingGeral(resultadoRanking.value);
+        } else {
+          setRankingGeral([]);
+        }
+      } catch {
         setCompeticoes([]);
         setCategoriasPorCompeticao({});
-      }
-
-      if (resultadoRanking.status === 'fulfilled') {
-        setRankingGeral(resultadoRanking.value);
-      } else {
         setRankingGeral([]);
+      } finally {
+        if (ativo) {
+          setCarregando(false);
+        }
       }
-
-      setCarregando(false);
     }
 
     carregarDadosPublicos();
