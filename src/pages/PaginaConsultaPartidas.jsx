@@ -308,13 +308,15 @@ export function PaginaConsultaPartidas() {
   const [excluindoPartidaIds, setExcluindoPartidaIds] = useState({});
 
   const competicoesDisponiveis = useMemo(
-    () => competicoes.filter((competicao) => !ehCompeticaoPartidasAvulsas(competicao)),
+    () => competicoes,
     [competicoes]
   );
 
   const competicaoSelecionada = competicoesDisponiveis.find((competicao) => competicao.id === competicaoId) || null;
   const categoriaSelecionada = categorias.find((categoria) => categoria.id === categoriaId) || null;
   const grupoSelecionado = ehCompeticaoGrupo(competicaoSelecionada);
+  const partidasAvulsasSelecionadas = ehCompeticaoPartidasAvulsas(competicaoSelecionada);
+  const consultaPorCompeticao = grupoSelecionado || partidasAvulsasSelecionadas;
   const competicaoComInscricoes = ehCompeticaoComInscricoes(competicaoSelecionada);
 
   const partidasPorId = useMemo(
@@ -619,7 +621,7 @@ export function PaginaConsultaPartidas() {
 
   const podeVisualizarGrupo = partidas.length > 0 && (grupoSelecionado || formatoComFaseDeGrupos || possuiJogosNomeadosPorGrupo);
   const exibirVisaoGrupo = podeVisualizarGrupo;
-  const podeExibirAbaChaveamento = competicaoComInscricoes && !grupoSelecionado;
+  const podeExibirAbaChaveamento = competicaoComInscricoes && !consultaPorCompeticao;
   const podeExibirAbaLista = !grupoSelecionado;
   const exibirChaveVisual = podeExibirAbaChaveamento && partidas.length > 0 && colunasEmVisualizacao.length > 0;
   const exibirListaDetalhada = true;
@@ -691,10 +693,10 @@ export function PaginaConsultaPartidas() {
   }, [abaAtiva]);
 
   useEffect(() => {
-    if (grupoSelecionado && abaAtiva === 'chaveamento') {
+    if (consultaPorCompeticao && abaAtiva === 'chaveamento') {
       setAbaAtiva('lista');
     }
-  }, [grupoSelecionado, abaAtiva]);
+  }, [consultaPorCompeticao, abaAtiva]);
 
   useEffect(() => {
     if (competicaoId && !competicoesDisponiveis.some((competicao) => competicao.id === competicaoId)) {
@@ -713,8 +715,15 @@ export function PaginaConsultaPartidas() {
       return;
     }
 
+    const competicao = competicoesDisponiveis.find((item) => item.id === competicaoId);
+    if (ehCompeticaoGrupo(competicao) || ehCompeticaoPartidasAvulsas(competicao)) {
+      setCategorias([]);
+      setCategoriaId('');
+      return;
+    }
+
     carregarCategorias(competicaoId);
-  }, [competicaoId]);
+  }, [competicaoId, competicoesDisponiveis]);
 
   useEffect(() => {
     if (!competicaoSelecionada) {
@@ -724,7 +733,7 @@ export function PaginaConsultaPartidas() {
       return;
     }
 
-    if (grupoSelecionado) {
+    if (consultaPorCompeticao) {
       if (categoriaId) {
         setCategoriaId('');
         atualizarParametrosUrl(competicaoSelecionada.id, '', 'lista');
@@ -742,7 +751,7 @@ export function PaginaConsultaPartidas() {
     setPartidas([]);
     setEstruturaRodadas([]);
     setDadosChaveamento(null);
-  }, [competicaoSelecionada, categoriaId, grupoSelecionado]);
+  }, [competicaoSelecionada, categoriaId, consultaPorCompeticao]);
 
   function atualizarParametrosUrl(proximoCompeticaoId, proximaCategoriaId = '', proximaAba = abaAtiva) {
     const parametros = {};
@@ -780,9 +789,9 @@ export function PaginaConsultaPartidas() {
         const competicaoCategoria = listaCompeticoes.find((competicao) => competicao.id === categoria.competicaoId);
 
         if (ehCompeticaoPartidasAvulsas(competicaoCategoria) || categoria.nomeCompeticao === NOME_COMPETICAO_PARTIDAS_AVULSAS) {
-          setCompeticaoId('');
+          setCompeticaoId(categoria.competicaoId);
           setCategoriaId('');
-          atualizarParametrosUrl('', '', abaUrl === 'lista' ? 'lista' : 'chaveamento');
+          atualizarParametrosUrl(categoria.competicaoId, '', 'lista');
           return;
         }
 
@@ -794,17 +803,13 @@ export function PaginaConsultaPartidas() {
 
       if (competicaoUrl) {
         const competicaoSelecionadaUrl = listaCompeticoes.find((competicao) => competicao.id === competicaoUrl);
-
-        if (ehCompeticaoPartidasAvulsas(competicaoSelecionadaUrl)) {
-          setCompeticaoId('');
-          setCategoriaId('');
-          atualizarParametrosUrl('', '', abaUrl === 'lista' ? 'lista' : 'chaveamento');
-          return;
-        }
+        const abaInicial = ehCompeticaoGrupo(competicaoSelecionadaUrl) || ehCompeticaoPartidasAvulsas(competicaoSelecionadaUrl)
+          ? 'lista'
+          : abaUrl === 'lista' ? 'lista' : 'chaveamento';
 
         setCompeticaoId(competicaoUrl);
         setCategoriaId('');
-        atualizarParametrosUrl(competicaoUrl, '', abaUrl === 'lista' ? 'lista' : 'chaveamento');
+        atualizarParametrosUrl(competicaoUrl, '', abaInicial);
         return;
       }
 
@@ -894,7 +899,7 @@ export function PaginaConsultaPartidas() {
 
       if (categoriaId) {
         await carregarPartidasPorCategoria(categoriaId);
-      } else if (grupoSelecionado && competicaoSelecionada?.id) {
+      } else if (consultaPorCompeticao && competicaoSelecionada?.id) {
         await carregarPartidasPorCompeticao(competicaoSelecionada.id);
       } else {
         setPartidas((lista) => lista.filter((item) => item.id !== partida.id));
@@ -1178,7 +1183,7 @@ export function PaginaConsultaPartidas() {
           </select>
         </label>
 
-        {competicaoId && !grupoSelecionado && categorias.length > 0 && (
+        {competicaoId && !consultaPorCompeticao && categorias.length > 0 && (
           <label>
             Categoria
             <select
@@ -1363,9 +1368,13 @@ export function PaginaConsultaPartidas() {
               );
             })}
 
-          {partidas.length === 0 && (
-            <p>{grupoSelecionado && !categoriaId ? 'Nenhuma partida cadastrada para este grupo.' : 'Nenhuma partida cadastrada para esta categoria.'}</p>
-          )}
+            {partidas.length === 0 && (
+              <p>
+                {consultaPorCompeticao && !categoriaId
+                  ? `Nenhuma partida cadastrada para ${partidasAvulsasSelecionadas ? 'partidas avulsas' : 'este grupo'}.`
+                  : 'Nenhuma partida cadastrada para esta categoria.'}
+              </p>
+            )}
           </div>
         </section>
       ) : null}
