@@ -134,12 +134,6 @@ const ITENS_NAVEGACAO = [
     visivel: ({ administrador }) => administrador
   },
   {
-    caminho: '/partidas/consulta',
-    nome: 'Consultar Partidas',
-    descricao: 'Consulte tabela, grupos e resultados das partidas.',
-    visivel: ({ gestorCompeticao, atleta, estadoAtivo }) => estadoAtivo && (gestorCompeticao || atleta)
-  },
-  {
     caminho: '/usuarios',
     nome: 'Usuários',
     descricao: 'Gerencie perfis, status e vínculo com atletas.',
