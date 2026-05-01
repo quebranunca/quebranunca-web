@@ -338,17 +338,24 @@ export function PaginaRegistrarPartidas() {
           return;
         }
 
-        const sugestoesLocais = buscarSugestoesAtleta(
-          atletasBaseCadastroAssistido,
-          campo.nome || '',
-          campo.id,
-          campo.idsBloqueados
-        );
+        const termo = (campo.nome || '').trim();
+        const sugestoesLocais = !competicaoId || termo.length >= 3
+          ? buscarSugestoesAtleta(
+              atletasBaseCadastroAssistido,
+              campo.nome || '',
+              campo.id,
+              campo.idsBloqueados
+            )
+          : [];
 
         let sugestoesRemotas = [];
-        if ((campo.nome || '').trim() && !campo.id) {
+        if (termo && !campo.id) {
           try {
-            sugestoesRemotas = await atletasServico.buscar(campo.nome.trim());
+            sugestoesRemotas = competicaoId
+              ? termo.length >= 3
+                ? await competicoesServico.buscarSugestoesAtletas(competicaoId, termo)
+                : []
+              : await atletasServico.buscar(termo);
           } catch {
             sugestoesRemotas = [];
           }
@@ -383,6 +390,7 @@ export function PaginaRegistrarPartidas() {
     formulario.duplaBAtleta1Nome,
     formulario.duplaBAtleta2Id,
     formulario.duplaBAtleta2Nome,
+    competicaoId,
     usandoCadastroPorAtletas
   ]);
 

@@ -13,6 +13,13 @@ export const competicoesServico = {
     return resposta.data;
   },
 
+  async buscarSugestoesAtletas(id, termo) {
+    const resposta = await http.get(`/competicoes/${id}/atletas/sugestoes`, {
+      params: { termo }
+    });
+    return resposta.data;
+  },
+
   async criar(dados) {
     const resposta = await http.post('/competicoes', dados);
     return resposta.data;
