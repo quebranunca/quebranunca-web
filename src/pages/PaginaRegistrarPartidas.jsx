@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { atletasServico } from '../services/atletasServico';
 import { categoriasServico } from '../services/categoriasServico';
 import { competicoesServico } from '../services/competicoesServico';
@@ -905,9 +905,6 @@ export function PaginaRegistrarPartidas() {
             <button type="submit" className="botao-primario botao-compacto" disabled={!podeSalvar}>
               {salvando ? 'Salvando...' : 'Registrar partida'}
             </button>
-            <Link to="/partidas/consulta" className="botao-secundario botao-compacto">
-              Consultar partidas
-            </Link>
           </div>
         </form>
       )}
