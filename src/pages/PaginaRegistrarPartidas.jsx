@@ -505,6 +505,11 @@ export function PaginaRegistrarPartidas() {
     setFeedbackPendencias([]);
     setFormulario((anterior) => ({
       ...criarEstadoInicial(),
+      modoCadastro: anterior.modoCadastro,
+      duplaAAtleta1Id: anterior.duplaAAtleta1Id,
+      duplaAAtleta1Nome: anterior.duplaAAtleta1Nome,
+      duplaAAtleta2Id: anterior.duplaAAtleta2Id,
+      duplaAAtleta2Nome: anterior.duplaAAtleta2Nome,
       dataPartida: anterior.dataPartida,
       status: '2'
     }));
@@ -860,23 +865,6 @@ export function PaginaRegistrarPartidas() {
             </p>
           )}
 
-          {!grupoSelecionado && (
-            <label>
-              Status
-              <select
-                value={formulario.status}
-                onChange={(evento) => atualizarCampo('status', evento.target.value)}
-                disabled={competicaoComInscricoes && !tabelaJogosAprovada}
-              >
-                {opcoesStatusPartida.map((opcao) => (
-                  <option key={opcao.valor} value={opcao.valor}>
-                    {opcao.rotulo}
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
-
           {obterTipoCompeticao(competicaoSelecionada) === TIPOS_COMPETICAO.campeonato && (
             <label>
               Fase
@@ -900,15 +888,6 @@ export function PaginaRegistrarPartidas() {
               type="datetime-local"
               value={formulario.dataPartida}
               onChange={(evento) => atualizarCampo('dataPartida', evento.target.value)}
-            />
-          </label>
-
-          <label className="campo-largo">
-            Observações
-            <textarea
-              value={formulario.observacoes}
-              onChange={(evento) => atualizarCampo('observacoes', evento.target.value)}
-              rows={3}
             />
           </label>
 
