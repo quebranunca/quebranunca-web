@@ -85,41 +85,27 @@ export function HomeResumoUsuario({ nomeAtleta = '' }) {
         {carregando ? (
           <p>Carregando desempenho...</p>
         ) : (
-          <>
-            {possuiDadosDesempenho ? (
-              <>                
-                <div className="home-resumo-usuario-metricas" aria-label="Resumo do desempenho">
-                  <div>
-                    <span>Jogos</span>
-                    <strong>{resumo.totalPartidas}</strong>
-                  </div>
-                  <div>
-                    <span>Vitórias</span>
-                    <strong>{resumo.totalVitorias}</strong>
-                  </div>
-                  <div>
-                    <span>Derrotas</span>
-                    <strong>{resumo.totalDerrotas}</strong>
-                  </div>                  
+          <>                 
+              <div className="home-resumo-usuario-metricas" aria-label="Resumo do desempenho">
+                <div>
+                  <span>Jogos</span>
+                  <strong>{resumo.totalPartidas}</strong>
                 </div>
-                <p className="home-resumo-usuario-aproveitamento">
-                  Aproveitamento: <strong>{formatarPercentual(resumo.percentualAproveitamento)}</strong>
-                </p>
-              </>
-            ) : (
-              <div className="home-resumo-usuario-vazio">
-                <p>Você ainda não possui partidas aprovadas.</p>
-                <p>Registre uma partida para começar a acompanhar seu desempenho.</p>
+                <div>
+                  <span>Vitórias</span>
+                  <strong>{resumo.totalVitorias}</strong>
+                </div>
+                <div>
+                  <span>Derrotas</span>
+                  <strong>{resumo.totalDerrotas}</strong>
+                </div>                  
               </div>
-            )}
-
-            {possuiPendencias && (              
-              <div className="home-resumo-usuario-pendencias">
-                <Link to="/partidas/registrar" className="botao-primario home-botao">
+              <p className="home-resumo-usuario-aproveitamento">
+                Aproveitamento: <strong>{formatarPercentual(resumo.percentualAproveitamento)}</strong>
+              </p>                         
+              <Link to="/partidas/registrar" className="botao-primario home-botao">
                   Registrar partida
-                </Link>                   
-              </div>
-            )}
+              </Link>                                      
           </>
         )}
       </article>
