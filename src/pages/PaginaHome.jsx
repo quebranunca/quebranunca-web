@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { HomeResumoUsuario } from '../components/HomeResumoUsuario';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { atletasServico } from '../services/atletasServico';
 import { categoriasServico } from '../services/categoriasServico';
@@ -417,6 +418,8 @@ export function PaginaHome() {
       {renderizarCardUsuarioLogado()}
 
       {renderizarCardHome()}     
+
+      {token && <HomeResumoUsuario />}
 
       {carregando ? (
         <p>Carregando informações públicas...</p>

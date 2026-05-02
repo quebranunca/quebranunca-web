@@ -6,6 +6,11 @@ export const usuariosServico = {
     return resposta.data;
   },
 
+  async obterResumo() {
+    const resposta = await http.get('/usuarios/resumo');
+    return resposta.data;
+  },
+
   async atualizarMeu(dados) {
     const resposta = await http.put('/usuarios/me', dados);
     return resposta.data;

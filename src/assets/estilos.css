@@ -977,6 +977,77 @@ code {
   align-items: start;
 }
 
+.home-resumo-usuario {
+  gap: 0.95rem;
+}
+
+.home-resumo-usuario-topo h3 {
+  margin: 0;
+}
+
+.home-resumo-usuario-metricas {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.home-resumo-usuario-metricas div {
+  min-width: 0;
+  padding: 0.75rem;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-sm);
+  background: var(--cor-superficie-suave);
+}
+
+.home-resumo-usuario-metricas span {
+  display: block;
+  color: #7a5a00;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.home-resumo-usuario-metricas strong {
+  display: block;
+  margin-top: 0.22rem;
+  color: var(--cor-texto);
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
+.home-resumo-usuario-aproveitamento {
+  color: var(--cor-texto);
+  font-weight: 700;
+}
+
+.home-resumo-usuario-aproveitamento strong {
+  color: #7a5a00;
+}
+
+.home-resumo-usuario-vazio {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.home-resumo-usuario-pendencias {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  padding: 0.75rem;
+  border: 1px solid #f0d27a;
+  border-radius: var(--raio-sm);
+  background: #fff8df;
+}
+
+.home-resumo-usuario-pendencias span {
+  color: #6e5200;
+  font-weight: 800;
+}
+
 .home-card-campeonato {
   min-height: 230px;
 }
@@ -3092,6 +3163,19 @@ code {
   .home-secao-cabecalho,
   .home-grid-duas-colunas {
     grid-template-columns: 1fr;
+  }
+
+  .home-resumo-usuario-metricas {
+    grid-template-columns: 1fr;
+  }
+
+  .home-resumo-usuario-pendencias {
+    align-items: stretch;
+  }
+
+  .home-resumo-usuario-pendencias a {
+    width: 100%;
+    justify-content: center;
   }
 
   .home-secao-cabecalho {
