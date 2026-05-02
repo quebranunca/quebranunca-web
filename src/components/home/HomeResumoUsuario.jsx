@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { usuariosServico } from '../services/usuariosServico';
+import { usuariosServico } from '../../services/usuariosServico';
 
 const RESUMO_ZERADO = {
   totalPartidas: 0,
@@ -20,7 +20,7 @@ function formatarPercentual(valor) {
   return `${Number.isInteger(numero) ? numero : numero.toFixed(1)}%`;
 }
 
-export function HomeResumoUsuario() {
+export function HomeResumoUsuario({ nomeAtleta = '' }) {
   const [resumo, setResumo] = useState(RESUMO_ZERADO);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState(false);
@@ -64,15 +64,20 @@ export function HomeResumoUsuario() {
     };
   }, []);
 
-  const possuiPartidasAprovadas = resumo.totalPartidas > 0;
+  const possuiDadosDesempenho = resumo.totalPartidas > 0 || resumo.totalPartidasPendentes > 0;
   const possuiPendencias = resumo.totalPartidasPendentes > 0;
 
   return (
     <section className="home-secao">
       <article className="cartao-lista home-resumo-usuario">
-        <div className="linha-entre home-resumo-usuario-topo">
+        <div className="home-usuario-infos">
           <div>
-            <h3>Seu desempenho</h3>
+            <div className="home-usuario-infos">
+              <div className="home-usuario-info-item">
+                <span>Nome</span>
+                <strong>{nomeAtleta || 'Não vinculado'}</strong>
+              </div>
+            </div>            
             {erro && <p>Não foi possível carregar seu desempenho agora.</p>}
           </div>
         </div>
@@ -81,8 +86,8 @@ export function HomeResumoUsuario() {
           <p>Carregando desempenho...</p>
         ) : (
           <>
-            {possuiPartidasAprovadas ? (
-              <>
+            {possuiDadosDesempenho ? (
+              <>                
                 <div className="home-resumo-usuario-metricas" aria-label="Resumo do desempenho">
                   <div>
                     <span>Jogos</span>
@@ -95,7 +100,7 @@ export function HomeResumoUsuario() {
                   <div>
                     <span>Derrotas</span>
                     <strong>{resumo.totalDerrotas}</strong>
-                  </div>
+                  </div>                  
                 </div>
                 <p className="home-resumo-usuario-aproveitamento">
                   Aproveitamento: <strong>{formatarPercentual(resumo.percentualAproveitamento)}</strong>
@@ -108,16 +113,11 @@ export function HomeResumoUsuario() {
               </div>
             )}
 
-            {possuiPendencias && (
+            {possuiPendencias && (              
               <div className="home-resumo-usuario-pendencias">
-                <span>
-                  {resumo.totalPartidasPendentes === 1
-                    ? '1 partida aguardando aprovação'
-                    : `${resumo.totalPartidasPendentes} partidas aguardando aprovação`}
-                </span>
-                <Link to="/app/pendencias" className="botao-secundario botao-compacto">
-                  Ver pendências
-                </Link>
+                <Link to="/partidas/registrar" className="botao-primario home-botao">
+                  Registrar partida
+                </Link>                   
               </div>
             )}
           </>

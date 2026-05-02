@@ -24,20 +24,22 @@ function obterDataAtualInput() {
   return `${ano}-${mes}-${dia}`;
 }
 
-function criarEstadoInicialCompeticao(usuarioAtleta = false) {
+function criarEstadoInicialCompeticao(usuarioAtleta = false, forcarGrupo = false) {
+  const tipoGrupo = usuarioAtleta || forcarGrupo;
+
   return {
     nome: '',
-    tipo: usuarioAtleta ? '3' : '1',
+    tipo: tipoGrupo ? '3' : '1',
     descricao: '',
     link: '',
-    dataInicio: usuarioAtleta ? obterDataAtualInput() : '',
+    dataInicio: tipoGrupo ? obterDataAtualInput() : '',
     dataFim: '',
     ligaId: '',
     localId: '',
     formatoCampeonatoId: '',
     regraCompeticaoId: '',
-    inscricoesAbertas: !usuarioAtleta,
-    possuiFinalReset: !usuarioAtleta
+    inscricoesAbertas: !tipoGrupo,
+    possuiFinalReset: !tipoGrupo
   };
 }
 
@@ -99,7 +101,13 @@ const filtrosIniciais = {
   categoria: ''
 };
 
-export function PaginaCompeticoes() {
+function criarFiltrosIniciais(apenasGrupos = false) {
+  return apenasGrupos
+    ? { ...filtrosIniciais, tipo: String(TIPOS_COMPETICAO.grupo) }
+    : filtrosIniciais;
+}
+
+export function PaginaCompeticoes({ apenasGrupos = false }) {
   const { token, usuario, estadoAcesso, atualizarUsuarioLocal } = useAutenticacao();
   const visitante = !token;
   const gestorCompeticao = ehGestorCompeticao(usuario);
@@ -107,13 +115,15 @@ export function PaginaCompeticoes() {
   const usuarioAdministrador = Number(usuario?.perfil) === PERFIS_USUARIO.administrador;
   const usuarioAtivo = estadoAcesso === ESTADOS_ACESSO.ativo;
   const podeCriarCompeticao = usuarioAtivo && (gestorCompeticao || usuarioAtleta);
+  const paginaDeGrupos = apenasGrupos || usuarioAtleta;
+  const filtrosIniciaisPagina = useMemo(() => criarFiltrosIniciais(apenasGrupos), [apenasGrupos]);
   const [competicoes, setCompeticoes] = useState([]);
   const [ligas, setLigas] = useState([]);
   const [locais, setLocais] = useState([]);
   const [formatosCampeonato, setFormatosCampeonato] = useState([]);
   const [regras, setRegras] = useState([]);
   const [regrasDisponiveis, setRegrasDisponiveis] = useState(true);
-  const [formulario, setFormulario] = useState(() => criarEstadoInicialCompeticao(usuarioAtleta));
+  const [formulario, setFormulario] = useState(() => criarEstadoInicialCompeticao(usuarioAtleta, apenasGrupos));
   const [formularioCompeticaoAberto, setFormularioCompeticaoAberto] = useState(false);
   const [deveRolarParaFormularioCompeticao, setDeveRolarParaFormularioCompeticao] = useState(false);
   const [competicaoEdicaoId, setCompeticaoEdicaoId] = useState(null);
@@ -128,7 +138,7 @@ export function PaginaCompeticoes() {
   const [grupoAtletas, setGrupoAtletas] = useState([]);
   const [formularioGrupoAtleta, setFormularioGrupoAtleta] = useState(estadoInicialGrupoAtleta);
   const [grupoAtletaSelecionadoId, setGrupoAtletaSelecionadoId] = useState('');
-  const [filtros, setFiltros] = useState(filtrosIniciais);
+  const [filtros, setFiltros] = useState(() => filtrosIniciaisPagina);
   const [erro, setErro] = useState('');
   const [aviso, setAviso] = useState('');
   const [carregando, setCarregando] = useState(true);
@@ -139,13 +149,13 @@ export function PaginaCompeticoes() {
   const [assumindoNomeGrupo, setAssumindoNomeGrupo] = useState(false);
   const formularioCompeticaoRef = useRef(null);
   const navegar = useNavigate();
-  const tipoGrupoSelecionado = usuarioAtleta || Number(formulario.tipo) === 3;
+  const tipoGrupoSelecionado = paginaDeGrupos || Number(formulario.tipo) === 3;
   const totalCompeticoes = competicoes.length;
   const totalComInscricoesAbertas = competicoes.filter((competicao) => (
     competicao.tipo !== 3 && competicao.inscricoesAbertas
   )).length;
   const totalGrupos = competicoes.filter((competicao) => competicao.tipo === 3).length;
-  const filtroAtivo = Boolean(filtros.tipo || filtros.competicaoId || filtros.categoria);
+  const filtroAtivo = Boolean((!apenasGrupos && filtros.tipo) || filtros.competicaoId || filtros.categoria);
   const tiposFiltroDisponiveis = visitante
     ? tiposCompeticao.filter((tipo) => tipo.valor !== TIPOS_COMPETICAO.grupo)
     : tiposCompeticao;
@@ -191,7 +201,7 @@ export function PaginaCompeticoes() {
 
   useEffect(() => {
     carregarCompeticoes();
-  }, [gestorCompeticao, usuarioAtleta, usuarioAtivo]);
+  }, [apenasGrupos, gestorCompeticao, usuarioAtleta, usuarioAtivo]);
 
   useEffect(() => {
     if (!competicaoEdicaoId || Number(formulario.tipo) === 3) {
@@ -293,7 +303,7 @@ export function PaginaCompeticoes() {
   }
 
   function limparFiltros() {
-    setFiltros(filtrosIniciais);
+    setFiltros(filtrosIniciaisPagina);
   }
 
   async function carregarCompeticoes() {
@@ -304,7 +314,9 @@ export function PaginaCompeticoes() {
     try {
       const avisos = [];
       const listaCompeticoes = await competicoesServico.listarVisiveis();
-      const competicoesVisiveis = listaCompeticoes.filter((competicao) => !ehCompeticaoPartidasAvulsas(competicao));
+      const competicoesVisiveis = listaCompeticoes
+        .filter((competicao) => !ehCompeticaoPartidasAvulsas(competicao))
+        .filter((competicao) => !apenasGrupos || Number(competicao.tipo) === TIPOS_COMPETICAO.grupo);
       setCompeticoes(competicoesVisiveis);
       await carregarCategoriasCompeticoes(competicoesVisiveis);
 
@@ -477,14 +489,14 @@ export function PaginaCompeticoes() {
     setCompeticaoEdicaoId(null);
     setCategoriasFormulario([]);
     setCarregandoCategoriasFormulario(false);
-    setFormulario(criarEstadoInicialCompeticao(usuarioAtleta));
+    setFormulario(criarEstadoInicialCompeticao(usuarioAtleta, apenasGrupos));
   }
 
   function abrirFormularioCompeticao() {
     setCompeticaoEdicaoId(null);
     setCategoriasFormulario([]);
     setCarregandoCategoriasFormulario(false);
-    setFormulario(criarEstadoInicialCompeticao(usuarioAtleta));
+    setFormulario(criarEstadoInicialCompeticao(usuarioAtleta, apenasGrupos));
     setFormularioCompeticaoAberto(true);
     setDeveRolarParaFormularioCompeticao(true);
   }
@@ -647,7 +659,7 @@ export function PaginaCompeticoes() {
     setErro('');
     setSalvando(true);
 
-    const tipo = usuarioAtleta ? 3 : Number(formulario.tipo);
+    const tipo = paginaDeGrupos ? 3 : Number(formulario.tipo);
     const dados = {
       nome: formulario.nome,
       tipo,
@@ -707,7 +719,7 @@ export function PaginaCompeticoes() {
       {podeCriarCompeticao && !carregando && !formularioCompeticaoAberto && (
         <div className="acoes-item campo-largo">
           <button type="button" className="botao-primario" onClick={abrirFormularioCompeticao}>
-            {usuarioAtleta ? 'Novo grupo' : 'Nova competição'}
+            {paginaDeGrupos ? 'Novo grupo' : 'Nova competição'}
           </button>
         </div>
       )}
@@ -725,11 +737,11 @@ export function PaginaCompeticoes() {
           <div className="formulario-competicao-cabecalho campo-largo">
             <h3>
               {competicaoEdicaoId
-                ? usuarioAtleta ? 'Editar grupo' : 'Editar competição'
-                : usuarioAtleta ? 'Novo grupo' : 'Nova competição'}
+                ? paginaDeGrupos ? 'Editar grupo' : 'Editar competição'
+                : paginaDeGrupos ? 'Novo grupo' : 'Nova competição'}
             </h3>
             <p>
-              {usuarioAtleta
+              {paginaDeGrupos
                 ? 'Crie um grupo simples para organizar e lançar jogos rapidamente.'
                 : 'Defina o básico agora e ajuste categorias, inscrições e jogos depois.'}
             </p>
@@ -745,7 +757,7 @@ export function PaginaCompeticoes() {
             />
           </label>
 
-          {!usuarioAtleta && (
+          {!usuarioAtleta && !apenasGrupos && (
             <label>
               Tipo
               <select
@@ -803,7 +815,7 @@ export function PaginaCompeticoes() {
                 onChange={(evento) => atualizarCampo('formatoCampeonatoId', evento.target.value)}
               >
                 <option value="">Usar padrão do tipo</option>
-                {obterFormatosDisponiveisParaTipo(usuarioAtleta ? 3 : formulario.tipo).map((formato) => (
+                {obterFormatosDisponiveisParaTipo(paginaDeGrupos ? 3 : formulario.tipo).map((formato) => (
                   <option key={formato.id} value={formato.id}>
                     {formato.nome}
                   </option>
@@ -915,7 +927,7 @@ export function PaginaCompeticoes() {
             </label>
           )}
 
-          {usuarioAtleta && (
+          {paginaDeGrupos && (
             <p className="campo-largo">
               O grupo criado por atleta permite lançar jogos sem categoria e também organizar partidas por categoria quando você quiser.
             </p>
@@ -926,8 +938,8 @@ export function PaginaCompeticoes() {
               {salvando
                 ? 'Salvando...'
                 : competicaoEdicaoId
-                  ? usuarioAtleta ? 'Atualizar grupo' : 'Atualizar competição'
-                  : usuarioAtleta ? 'Criar grupo' : 'Cadastrar competição'}
+                  ? paginaDeGrupos ? 'Atualizar grupo' : 'Atualizar competição'
+                  : paginaDeGrupos ? 'Criar grupo' : 'Cadastrar competição'}
             </button>
 
             {competicaoEdicaoId && (
@@ -950,28 +962,30 @@ export function PaginaCompeticoes() {
           <section className="formulario-grid filtro-competicoes barra-selecao-fixa">
             <div className="partidas-filtro-cabecalho campo-largo">
               <div>
-                <strong>Filtrar competições</strong>
+                <strong>{apenasGrupos ? 'Filtrar grupos' : 'Filtrar competições'}</strong>
               </div>
             </div>
 
-            <label>
-              Tipo de competição
-              <select
-                value={filtros.tipo}
-                onChange={(evento) => atualizarFiltro('tipo', evento.target.value)}
-              >
-                <option value="">Todos os tipos</option>
-                {tiposFiltroDisponiveis.map((tipo) => (
-                  <option key={tipo.valor} value={tipo.valor}>
-                    {tipo.rotulo}
-                  </option>
-                ))}
-              </select>
-            </label>
+            {!apenasGrupos && (
+              <label>
+                Tipo de competição
+                <select
+                  value={filtros.tipo}
+                  onChange={(evento) => atualizarFiltro('tipo', evento.target.value)}
+                >
+                  <option value="">Todos os tipos</option>
+                  {tiposFiltroDisponiveis.map((tipo) => (
+                    <option key={tipo.valor} value={tipo.valor}>
+                      {tipo.rotulo}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
 
             {filtros.tipo && (
               <label>
-                Competição
+                {apenasGrupos ? 'Grupo' : 'Competição'}
                 <select
                   value={filtros.competicaoId}
                   onChange={(evento) => atualizarFiltro('competicaoId', evento.target.value)}
@@ -1353,8 +1367,12 @@ export function PaginaCompeticoes() {
             {competicoesFiltradas.length === 0 && (
               <p>
                 {filtroAtivo
-                  ? 'Nenhuma competição corresponde aos filtros informados.'
-                  : 'Nenhuma competição encontrada.'}
+                  ? apenasGrupos
+                    ? 'Nenhum grupo corresponde aos filtros informados.'
+                    : 'Nenhuma competição corresponde aos filtros informados.'
+                  : apenasGrupos
+                    ? 'Nenhum grupo encontrado.'
+                    : 'Nenhuma competição encontrada.'}
               </p>
             )}
           </div>

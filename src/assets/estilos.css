@@ -987,7 +987,7 @@ code {
 
 .home-resumo-usuario-metricas {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.65rem;
 }
 
@@ -3166,7 +3166,16 @@ code {
   }
 
   .home-resumo-usuario-metricas {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.45rem;
+  }
+
+  .home-resumo-usuario-metricas div {
+    padding: 0.6rem 0.45rem;
+  }
+
+  .home-resumo-usuario-metricas strong {
+    font-size: 1.2rem;
   }
 
   .home-resumo-usuario-pendencias {

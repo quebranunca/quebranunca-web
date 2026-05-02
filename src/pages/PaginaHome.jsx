@@ -1,17 +1,19 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { HomeResumoUsuario } from '../components/HomeResumoUsuario';
+import {
+  HomeDestaqueRanking,
+  HomeHeroVisitante,
+  HomePendencias,
+  HomeProximosCampeonatos,
+  HomeRankingsRealizados,
+  HomeResumoUsuario
+} from '../components/home';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { atletasServico } from '../services/atletasServico';
 import { categoriasServico } from '../services/categoriasServico';
 import { competicoesServico } from '../services/competicoesServico';
 import { pendenciasServico } from '../services/pendenciasServico';
 import { rankingServico } from '../services/rankingServico';
-import { nomeEstadoAcesso } from '../utils/acesso';
-import { formatarData } from '../utils/formatacao';
-import { obterLinkHttp } from '../utils/links';
 import { criarPendenciasPerfil } from '../utils/pendenciasPerfil';
-import { nomePerfil } from '../utils/perfis';
 
 const TIPO_CAMPEONATO = 1;
 const TIPO_GRUPO = 3;
@@ -74,13 +76,6 @@ function selecionarTopRanking(ranking) {
       .sort((a, b) => (a.posicao || 0) - (b.posicao || 0))
       .slice(0, 3)
   };
-}
-
-function obterNomeLocal(competicao) {
-  return competicao?.nomeLocal ||
-    competicao?.localNome ||
-    competicao?.local?.nome ||
-    (competicao?.localId ? 'Local cadastrado' : '');
 }
 
 function montarResumoPlataforma(competicoes, ranking) {
@@ -155,6 +150,7 @@ export function PaginaHome() {
     [atletaPerfil, estadoAcesso, usuario]
   );
   const totalPendenciasHome = pendenciasUsuario.length + pendenciasPerfil.length;
+  const nomeAtleta = atletaPerfil?.nome || usuario?.atleta?.nome || '';
 
   useEffect(() => {
     let ativo = true;
@@ -277,252 +273,23 @@ export function PaginaHome() {
     return mapa;
   }
 
-  function renderizarCategoriasCampeonato(competicao) {
-    const categorias = categoriasPorCompeticao[competicao.id] || [];
-    const linkInscricao = obterLinkHttp(competicao.link);
-    const inscricoesAbertas = Boolean(competicao.inscricoesAbertas);
-
-    if (categorias.length === 0) {
-      return null;
-    }
-
-    return (
-      <div className="home-card-categorias" aria-label={`Categorias de ${competicao.nome}`}>
-        {categorias.map((categoria) => (
-          <div key={categoria.id} className="home-card-categoria-item">
-            <span>{categoria.nome}</span>
-            {!inscricoesAbertas ? (
-              <button
-                type="button"
-                className="botao-secundario botao-compacto home-card-categoria-acao"
-                disabled
-                title="As inscrições deste campeonato estão fechadas."
-              >
-                Inscrever dupla
-              </button>
-            ) : linkInscricao ? (
-              <a
-                href={linkInscricao}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="botao-secundario botao-compacto home-card-categoria-acao"
-              >
-                Inscrever dupla
-              </a>
-            ) : (
-              <Link
-                to={`/inscricoes?campeonatoId=${competicao.id}&categoriaId=${categoria.id}`}
-                className="botao-secundario botao-compacto home-card-categoria-acao"
-              >
-                Inscrever dupla
-              </Link>
-            )}
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  function renderizarCardUsuarioLogado() {
-    if (!token) {
-      return null;
-    }
-
-    const nomeAtleta = atletaPerfil?.nome || usuario?.atleta?.nome || '';
-    const rotaPendenciaPrincipal = pendenciasUsuario.length > 0 ? '/app/pendencias' : '/app/perfil';
-    const statusAcesso = estadoAcesso ? nomeEstadoAcesso(estadoAcesso) : 'Ativo';
-
-    return (
-      <article className="cartao home-hero">       
-        <div className="home-hero-conteudo">
-          <div className="home-usuario-infos">            
-            <div className="home-usuario-info-item">
-              <span>Nome</span>
-              <strong>{nomeAtleta || 'Não vinculado'}</strong>
-            </div>            
-          </div>
-          <div className="acoes-item home-usuario-acoes">
-            <Link to="/app/perfil" className="botao-primario home-botao">
-              Meu perfil
-            </Link>     
-            <Link to="/partidas/registrar" className="botao-primario home-botao">
-              Registrar partida
-            </Link>
-            <Link to="/ranking" className="botao-primario home-botao">
-              Ver rankings
-            </Link>         
-          </div>
-        </div>   
-      </article>
-    );
-  }
-
-  function renderizarCardCampeonato(competicao, acao) {
-    const nomeLocal = obterNomeLocal(competicao);
-
-    return (
-      <article key={competicao.id} className="cartao-lista home-card-campeonato">
-        <div className="home-card-topo">
-          <div className="home-card-topo-resumo">
-            <span className={`tag-status ${competicao.inscricoesAbertas ? 'tag-status-sucesso' : 'tag-status-alerta'}`}>
-              {competicao.inscricoesAbertas ? 'Inscrições abertas' : 'Inscrições fechadas'}
-            </span>           
-          </div>
-        </div>
-        <h3>{competicao.nome}</h3>
-        {competicao.descricao && <p>{competicao.descricao}</p>} 
-        <div className="home-card-detalhes">
-          <span>Início: {formatarData(competicao.dataInicio)}</span>
-          
-          <span>Local: {nomeLocal || 'A definir'}</span>
-        </div>
-        {renderizarCategoriasCampeonato(competicao)}
-        {acao}
-      </article>
-    );
-  }
-
-  function renderizarCardHome() {
-    if (!token) {
-      return (
-        <article className="cartao home-hero">
-          <div className="home-hero-conteudo">
-            <h2>Registre seus jogos, crie o grupo e monte seu ranking.</h2>
-            <p>
-              Acompanhe os próximos campeonatos, entre nas inscrições abertas e consulte os rankings dos torneios já realizados.
-            </p>            
-          </div>
-          <div className="home-hero-resumo" aria-label="Resumo da plataforma">
-            <div>
-              <span>{resumoPlataforma.atletas}</span>
-              <small>Atletas</small>
-            </div>
-            <div>
-              <span>{resumoPlataforma.jogos}</span>
-              <small>Jogos</small>
-            </div>
-            <div>
-              <span>{resumoPlataforma.grupos}</span>
-              <small>Grupos</small>
-            </div>
-          </div>
-        </article>
-      );
-    }
-
-    return null;
-  }
-
   return (
     <section className="pagina pagina-home">
-      {renderizarCardUsuarioLogado()}
+      {!token && <HomeHeroVisitante resumoPlataforma={resumoPlataforma} />}
 
-      {renderizarCardHome()}     
-
-      {token && <HomeResumoUsuario />}
+      {token && <HomeResumoUsuario nomeAtleta={nomeAtleta} />}
 
       {carregando ? (
         <p>Carregando informações públicas...</p>
       ) : (
         <>
-          {token && totalPendenciasHome > 0 && (
-            <section className="home-secao">
-              <article className="cartao-lista">
-                <div className="linha-entre">
-                  <div>
-                    <h3>Pendências</h3>
-                    <p>
-                      {totalPendenciasHome === 1
-                        ? 'Você tem 1 pendência aguardando.'
-                        : `Você tem ${totalPendenciasHome} pendências aguardando.`}
-                    </p>
-                  </div>
-                  <span className="tag-status tag-status-alerta">Ação necessária</span>
-                </div>
-                <div className="acoes-item home-usuario-acoes">
-                  <Link to='/app/pendencias' className="botao-primario">
-                    Ver pendências
-                  </Link>
-                </div>
-              </article>
-            </section>
-          )}
-
-          <section className="home-secao">
-            <div className="home-secao-cabecalho">
-              <div>
-                <h3>Próximos campeonatos</h3>
-                <p>Eventos programados ou em andamento.</p>
-              </div>             
-            </div>
-
-            <div className="grade-cartoes home-grade">
-              {proximosCampeonatos.map((competicao) => renderizarCardCampeonato(
-                competicao                
-              ))}
-              {proximosCampeonatos.length === 0 && (
-                <article className="cartao-lista">
-                  <h3>Nenhum campeonato próximo</h3>
-                  <p>Assim que houver campeonato cadastrado, ele aparecerá aqui.</p>
-                </article>
-              )}
-            </div>
-          </section>
-
-          <section className="home-grid-duas-colunas">
-            <div className="home-secao">
-              <div className="home-secao-cabecalho">
-                <div>
-                  <h3>Destaque do ranking</h3>
-                  <p>{destaqueRanking.titulo}</p>
-                </div>
-                <Link to="/ranking" className="link-acao">Ranking completo</Link>
-              </div>
-
-              <div className="cartao-lista home-ranking-card">
-                {destaqueRanking.atletas.length > 0 ? (
-                  destaqueRanking.atletas.map((atleta) => (
-                    <div key={atleta.atletaId} className="home-ranking-linha">
-                      <span>{atleta.posicao}º</span>
-                      <strong>{atleta.nomeAtleta}</strong>
-                      <small>{atleta.pontos} pts</small>
-                    </div>
-                  ))
-                ) : (
-                  <p>Nenhuma pontuação publicada ainda.</p>
-                )}
-              </div>
-            </div>
-          </section>
-
-          <section className="home-secao">
-            <div className="home-secao-cabecalho">
-              <div>
-                <h3>Rankings de campeonatos realizados</h3>
-                <p>Consulte a classificação dos campeonatos encerrados.</p>
-              </div>
-              <Link to="/ranking?tipo=competicao" className="link-acao">Ver todos</Link>
-            </div>
-
-            <div className="grade-cartoes home-grade">
-              {campeonatosRealizados.map((competicao) => (
-                <Link
-                  key={competicao.id}
-                  to={`/ranking?tipo=competicao&competicaoId=${competicao.id}`}
-                  className="cartao-lista home-lista-link home-ranking-link"
-                >
-                  <strong>{competicao.nome}</strong>
-                  <span>Encerrado em {formatarData(competicao.dataFim)}</span>
-                  <small>Ver ranking do campeonato</small>
-                </Link>
-              ))}
-              {campeonatosRealizados.length === 0 && (
-                <article className="cartao-lista">
-                  <p>Nenhum campeonato realizado com ranking disponível ainda.</p>
-                </article>
-              )}
-            </div>
-          </section>
+          {token && <HomePendencias totalPendencias={totalPendenciasHome} />}
+          <HomeProximosCampeonatos
+            campeonatos={proximosCampeonatos}
+            categoriasPorCompeticao={categoriasPorCompeticao}
+          />
+          <HomeDestaqueRanking destaqueRanking={destaqueRanking} />
+          <HomeRankingsRealizados campeonatos={campeonatosRealizados} />
         </>
       )}
     </section>

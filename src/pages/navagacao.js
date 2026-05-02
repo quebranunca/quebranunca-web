@@ -122,6 +122,12 @@ const ITENS_NAVEGACAO = [
     visivel: ({ estadoAtivo }) => estadoAtivo
   },
   {
+    caminho: '/grupos',
+    nome: 'Grupos',
+    descricao: 'Crie grupos, organize atletas e acompanhe os jogos lançados.',
+    visivel: ({ gestorCompeticao, atleta, estadoAtivo }) => estadoAtivo && (gestorCompeticao || atleta)
+  },
+  {
     caminho: '/categorias',
     nome: 'Categorias',
     descricao: 'Defina gênero e nível técnico por competição.',
