@@ -427,6 +427,12 @@ a:focus-visible {
   max-width: 100%;
 }
 
+.rodape-pagina {
+  display: flex;
+  justify-content: flex-start;
+  padding-top: var(--espaco-md);
+}
+
 button {
   display: inline-flex;
   align-items: center;

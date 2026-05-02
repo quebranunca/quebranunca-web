@@ -4,7 +4,6 @@ import { useAutenticacao } from '../hooks/useAutenticacao';
 import { categoriasServico } from '../services/categoriasServico';
 import { competicoesServico } from '../services/competicoesServico';
 import { formatosCampeonatoServico } from '../services/formatosCampeonatoServico';
-import { grupoAtletasServico } from '../services/grupoAtletasServico';
 import { inscricoesCampeonatoServico } from '../services/inscricoesCampeonatoServico';
 import { ligasServico } from '../services/ligasServico';
 import { locaisServico } from '../services/locaisServico';
@@ -75,11 +74,6 @@ function normalizarTipoCompeticaoFormulario(tipo) {
   return Number(tipo) === 3 ? '3' : '1';
 }
 
-const estadoInicialGrupoAtleta = {
-  nomeAtleta: '',
-  apelidoAtleta: ''
-};
-
 const opcoesGenero = [
   { valor: 1, rotulo: 'Masculino' },
   { valor: 2, rotulo: 'Feminino' },
@@ -108,7 +102,7 @@ function criarFiltrosIniciais(apenasGrupos = false) {
 }
 
 export function PaginaCompeticoes({ apenasGrupos = false }) {
-  const { token, usuario, estadoAcesso, atualizarUsuarioLocal } = useAutenticacao();
+  const { token, usuario, estadoAcesso } = useAutenticacao();
   const visitante = !token;
   const gestorCompeticao = ehGestorCompeticao(usuario);
   const usuarioAtleta = ehAtleta(usuario);
@@ -134,19 +128,13 @@ export function PaginaCompeticoes({ apenasGrupos = false }) {
   const [quantidadeInscricoesPorCategoria, setQuantidadeInscricoesPorCategoria] = useState({});
   const [categoriaInscricoesAbertaId, setCategoriaInscricoesAbertaId] = useState(null);
   const [inscricoesCategoria, setInscricoesCategoria] = useState([]);
-  const [competicaoGrupoAtletasId, setCompeticaoGrupoAtletasId] = useState(null);
-  const [grupoAtletas, setGrupoAtletas] = useState([]);
-  const [formularioGrupoAtleta, setFormularioGrupoAtleta] = useState(estadoInicialGrupoAtleta);
-  const [grupoAtletaSelecionadoId, setGrupoAtletaSelecionadoId] = useState('');
   const [filtros, setFiltros] = useState(() => filtrosIniciaisPagina);
   const [erro, setErro] = useState('');
   const [aviso, setAviso] = useState('');
   const [carregando, setCarregando] = useState(true);
   const [carregandoInscricoesCategoria, setCarregandoInscricoesCategoria] = useState(false);
   const [salvando, setSalvando] = useState(false);
-  const [salvandoGrupoAtleta, setSalvandoGrupoAtleta] = useState(false);
   const [sorteandoCategoriaId, setSorteandoCategoriaId] = useState(null);
-  const [assumindoNomeGrupo, setAssumindoNomeGrupo] = useState(false);
   const formularioCompeticaoRef = useRef(null);
   const navegar = useNavigate();
   const tipoGrupoSelecionado = paginaDeGrupos || Number(formulario.tipo) === 3;
@@ -524,54 +512,6 @@ export function PaginaCompeticoes({ apenasGrupos = false }) {
     }
   }
 
-  async function abrirGrupoAtletas(competicaoId) {
-    setGrupoAtletaSelecionadoId('');
-    setFormularioGrupoAtleta(estadoInicialGrupoAtleta);
-
-    if (competicaoGrupoAtletasId === competicaoId) {
-      setCompeticaoGrupoAtletasId(null);
-      setGrupoAtletas([]);
-      return;
-    }
-
-    setCompeticaoGrupoAtletasId(competicaoId);
-
-    try {
-      const lista = await grupoAtletasServico.listarPorCompeticao(competicaoId);
-      setGrupoAtletas(lista);
-    } catch (error) {
-      setErro(extrairMensagemErro(error));
-      setGrupoAtletas([]);
-    }
-  }
-
-  function atualizarCampoGrupoAtleta(campo, valor) {
-    setFormularioGrupoAtleta((anterior) => ({ ...anterior, [campo]: valor }));
-  }
-
-  async function aoSubmeterGrupoAtleta(evento, competicaoId) {
-    evento.preventDefault();
-    setErro('');
-    setAviso('');
-    setSalvandoGrupoAtleta(true);
-
-    try {
-      await grupoAtletasServico.criar(competicaoId, {
-        nomeAtleta: formularioGrupoAtleta.nomeAtleta,
-        apelidoAtleta: formularioGrupoAtleta.apelidoAtleta || null
-      });
-
-      setFormularioGrupoAtleta(estadoInicialGrupoAtleta);
-      const lista = await grupoAtletasServico.listarPorCompeticao(competicaoId);
-      setGrupoAtletas(lista);
-      rolarParaTopo();
-    } catch (error) {
-      setErro(extrairMensagemErro(error));
-    } finally {
-      setSalvandoGrupoAtleta(false);
-    }
-  }
-
   async function removerCategoria(id) {
     if (!window.confirm('Deseja remover esta categoria?')) {
       return;
@@ -614,43 +554,6 @@ export function PaginaCompeticoes({ apenasGrupos = false }) {
       setErro(mensagemErro);
     } finally {
       setSorteandoCategoriaId(null);
-    }
-  }
-
-  async function removerGrupoAtleta(competicaoId, id) {
-    if (!window.confirm('Deseja remover este atleta do grupo?')) {
-      return;
-    }
-
-    try {
-      await grupoAtletasServico.remover(competicaoId, id);
-      const lista = await grupoAtletasServico.listarPorCompeticao(competicaoId);
-      setGrupoAtletas(lista);
-    } catch (error) {
-      setErro(extrairMensagemErro(error));
-    }
-  }
-
-  async function assumirMeuNomeNoGrupo(competicaoId) {
-    if (!grupoAtletaSelecionadoId) {
-      setErro('Selecione o seu nome na lista do grupo.');
-      return;
-    }
-
-    setErro('');
-    setAviso('');
-    setAssumindoNomeGrupo(true);
-
-    try {
-      const usuarioAtualizado = await grupoAtletasServico.assumirMeuNome(competicaoId, grupoAtletaSelecionadoId);
-      atualizarUsuarioLocal(usuarioAtualizado);
-      setAviso('Seu usuário foi vinculado ao nome selecionado neste grupo.');
-      const lista = await grupoAtletasServico.listarPorCompeticao(competicaoId);
-      setGrupoAtletas(lista);
-    } catch (error) {
-      setErro(extrairMensagemErro(error));
-    } finally {
-      setAssumindoNomeGrupo(false);
     }
   }
 
@@ -1000,7 +903,7 @@ export function PaginaCompeticoes({ apenasGrupos = false }) {
               </label>
             )}
 
-            {filtros.competicaoId && (
+            {!apenasGrupos && filtros.competicaoId && (
               <label>
                 Categoria
                 <select
@@ -1024,14 +927,9 @@ export function PaginaCompeticoes({ apenasGrupos = false }) {
           <div className="lista-cartoes">
             {competicoesFiltradas.map((competicao) => {
               const gerenciavel = podeGerenciarCompeticao(competicao);
-              const grupoAberto = competicaoGrupoAtletasId === competicao.id;
               const categoriasCadastradasCompeticao = categoriasPorCompeticao[competicao.id] || [];
               const categoriasCompeticao = categoriasVisiveisPorCompeticao[competicao.id] || [];
               const competicaoSemCategoriasCadastradas = categoriasCadastradasCompeticao.length === 0;
-              const usuarioJaNoGrupo = grupoAberto && grupoAtletas.some((item) => item.atletaId === usuario?.atletaId);
-              const nomesDisponiveisParaAssumir = grupoAberto
-                ? grupoAtletas.filter((item) => !item.vinculadoAUsuario || item.atletaId === usuario?.atletaId)
-                : [];
 
               return (
                 <article
@@ -1087,9 +985,9 @@ export function PaginaCompeticoes({ apenasGrupos = false }) {
                     <button
                       type="button"
                       className="botao-terciario"
-                      onClick={() => abrirGrupoAtletas(competicao.id)}
+                      onClick={() => navegar(`/grupos/${competicao.id}/atletas`)}
                     >
-                      {grupoAberto ? 'Fechar grupo' : 'Atletas do grupo'}
+                      Atletas do grupo
                     </button>
                   )}
 
@@ -1253,114 +1151,6 @@ export function PaginaCompeticoes({ apenasGrupos = false }) {
                   </div>
                 )}
 
-                {grupoAberto && (
-                  <div className="campo-largo">
-                    <h3>Atletas do grupo</h3>
-                    <p>
-                      Os jogos deste grupo só podem ser registrados com atletas listados aqui. Você pode lançar nomes mesmo que a pessoa ainda não tenha usuário no sistema.
-                    </p>
-
-                    {gerenciavel && (
-                      <form className="formulario-grid" onSubmit={(evento) => aoSubmeterGrupoAtleta(evento, competicao.id)}>
-                        <label>
-                          Nome completo do atleta
-                          <input
-                            type="text"
-                            value={formularioGrupoAtleta.nomeAtleta}
-                            onChange={(evento) => atualizarCampoGrupoAtleta('nomeAtleta', evento.target.value)}
-                            required
-                          />
-                        </label>
-
-                        <label>
-                          Apelido ou complemento
-                          <input
-                            type="text"
-                            value={formularioGrupoAtleta.apelidoAtleta}
-                            onChange={(evento) => atualizarCampoGrupoAtleta('apelidoAtleta', evento.target.value)}
-                          />
-                        </label>
-
-                        <div className="acoes-formulario">
-                          <button type="submit" className="botao-primario" disabled={salvandoGrupoAtleta}>
-                            {salvandoGrupoAtleta ? 'Salvando...' : 'Adicionar atleta ao grupo'}
-                          </button>
-                        </div>
-                      </form>
-                    )}
-
-                    {usuarioAtleta && !gerenciavel && !usuarioJaNoGrupo && (
-                      <div className="formulario-grid">
-                        <p className="campo-largo">
-                          Seu nome já foi lançado neste grupo? Selecione abaixo para vincular este usuário ao nome existente.
-                        </p>
-
-                        <label>
-                          Meu nome no grupo
-                          <select
-                            value={grupoAtletaSelecionadoId}
-                            onChange={(evento) => setGrupoAtletaSelecionadoId(evento.target.value)}
-                          >
-                            <option value="">Selecione</option>
-                            {nomesDisponiveisParaAssumir.map((item) => (
-                              <option key={item.id} value={item.id}>
-                                {item.nomeAtleta}{item.apelidoAtleta ? ` (${item.apelidoAtleta})` : ''}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
-
-                        <div className="acoes-formulario">
-                          <button
-                            type="button"
-                            className="botao-primario"
-                            onClick={() => assumirMeuNomeNoGrupo(competicao.id)}
-                            disabled={assumindoNomeGrupo || nomesDisponiveisParaAssumir.length === 0}
-                          >
-                            {assumindoNomeGrupo ? 'Vinculando...' : 'Este nome sou eu'}
-                          </button>
-                        </div>
-                      </div>
-                    )}
-
-                    {usuarioAtleta && !gerenciavel && usuarioJaNoGrupo && (
-                      <p className="texto-sucesso">Seu atleta já está vinculado a este grupo.</p>
-                    )}
-
-                    <div className="lista-cartoes">
-                      {grupoAtletas.map((item) => {
-                        const atletaEhUsuarioAtual = Boolean(usuario?.atletaId && item.atletaId === usuario.atletaId);
-
-                        return (
-                          <article key={item.id} className="cartao-lista">
-                            <div>
-                              <h3>{item.nomeAtleta}</h3>
-                              <p>Apelido/complemento: {item.apelidoAtleta || '-'}</p>
-                              <p>Cadastro no sistema: {item.cadastroPendente ? 'Pendente' : 'Completo'}</p>
-                              <p>Usuário vinculado: {item.vinculadoAUsuario ? 'Sim' : 'Não'}</p>
-                            </div>
-
-                            {gerenciavel && (
-                              <div className="acoes-item">
-                                {atletaEhUsuarioAtual ? (
-                                  <span className="texto-aviso">Você não pode remover seu próprio atleta do grupo.</span>
-                                ) : (
-                                  <button
-                                    type="button"
-                                    className="botao-perigo"
-                                    onClick={() => removerGrupoAtleta(competicao.id, item.id)}
-                                  >
-                                    Remover
-                                  </button>
-                                )}
-                              </div>
-                            )}
-                          </article>
-                        );
-                      })}                     
-                    </div>
-                  </div>
-                )}
               </article>
               );
             })}

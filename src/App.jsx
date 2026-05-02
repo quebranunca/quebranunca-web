@@ -13,6 +13,7 @@ import { PaginaRegrasCompeticao } from './pages/PaginaRegrasCompeticao';
 import { PaginaModelosImportacao } from './pages/PaginaModelosImportacao';
 import { PaginaCompeticoes } from './pages/PaginaCompeticoes';
 import { PaginaGrupos } from './pages/PaginaGrupos';
+import { PaginaGrupoAtletas } from './pages/PaginaGrupoAtletas';
 import { PaginaRanking } from './pages/PaginaRanking';
 import { PaginaCategorias } from './pages/PaginaCategorias';
 import { PaginaInscricoesCampeonato } from './pages/PaginaInscricoesCampeonato';
@@ -232,6 +233,17 @@ export default function App() {
               estadosPermitidos={[ESTADOS_ACESSO.ativo]}
             >
               <PaginaGrupos />
+            </RotaProtegida>
+          }
+        />
+        <Route
+          path="/grupos/:competicaoId/atletas"
+          element={
+            <RotaProtegida
+              perfisPermitidos={[PERFIS_USUARIO.administrador, PERFIS_USUARIO.organizador, PERFIS_USUARIO.atleta]}
+              estadosPermitidos={[ESTADOS_ACESSO.ativo]}
+            >
+              <PaginaGrupoAtletas />
             </RotaProtegida>
           }
         />
