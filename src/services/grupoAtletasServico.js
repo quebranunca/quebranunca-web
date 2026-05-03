@@ -11,6 +11,11 @@ export const grupoAtletasServico = {
     return resposta.data;
   },
 
+  async completarEmail(competicaoId, id, email) {
+    const resposta = await http.put(`/competicoes/${competicaoId}/grupo-atletas/${id}/email`, { email });
+    return resposta.data;
+  },
+
   async remover(competicaoId, id) {
     await http.delete(`/competicoes/${competicaoId}/grupo-atletas/${id}`);
   },

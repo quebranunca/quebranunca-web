@@ -11,8 +11,14 @@ import { rolarParaTopo } from '../utils/rolagem';
 
 const estadoInicialGrupoAtleta = {
   nomeAtleta: '',
-  apelidoAtleta: ''
+  email: ''
 };
+
+const CODIGO_POSSIVEL_DUPLICIDADE_ATLETA_GRUPO = 'PossivelDuplicidadeAtletaGrupo';
+const MENSAGEM_ATLETA_SEM_EMAIL = 'Atleta adicionado, mas ficou pendente preencher o email.';
+const MENSAGEM_ATLETA_COM_EMAIL = 'Atleta adicionado ao grupo.';
+const MENSAGEM_BLOQUEIO_NOME_DUPLICADO = 'Já existe um atleta com esse nome ou apelido e sem email. Se for outro atleta, altere o nome ou apelido para diferenciar.';
+const MENSAGEM_MESMO_ATLETA_SEM_EMAIL = 'Esse atleta já está no grupo sem email. Preencha o email quando tiver essa informação.';
 
 export function PaginaGrupoAtletas() {
   const { competicaoId } = useParams();
@@ -27,6 +33,7 @@ export function PaginaGrupoAtletas() {
   const [carregando, setCarregando] = useState(true);
   const [salvandoGrupoAtleta, setSalvandoGrupoAtleta] = useState(false);
   const [assumindoNomeGrupo, setAssumindoNomeGrupo] = useState(false);
+  const [conflitoNome, setConflitoNome] = useState(null);
   const [erro, setErro] = useState('');
   const [aviso, setAviso] = useState('');
 
@@ -90,15 +97,57 @@ export function PaginaGrupoAtletas() {
     evento.preventDefault();
     setErro('');
     setAviso('');
+    setConflitoNome(null);
     setSalvandoGrupoAtleta(true);
 
     try {
       await grupoAtletasServico.criar(competicaoId, {
         nomeAtleta: formularioGrupoAtleta.nomeAtleta,
-        apelidoAtleta: formularioGrupoAtleta.apelidoAtleta || null
+        email: formularioGrupoAtleta.email || null
       });
 
+      setAviso(formularioGrupoAtleta.email.trim() ? MENSAGEM_ATLETA_COM_EMAIL : MENSAGEM_ATLETA_SEM_EMAIL);
       setFormularioGrupoAtleta(estadoInicialGrupoAtleta);
+      const lista = await grupoAtletasServico.listarPorCompeticao(competicaoId);
+      setGrupoAtletas(lista);
+      rolarParaTopo();
+    } catch (error) {
+      if (error?.response?.data?.codigo === CODIGO_POSSIVEL_DUPLICIDADE_ATLETA_GRUPO) {
+        setConflitoNome({
+          grupoAtletaId: error.response.data.grupoAtletaId,
+          mensagem: error.response.data.erro
+        });
+        return;
+      }
+
+      setErro(extrairMensagemErro(error));
+    } finally {
+      setSalvandoGrupoAtleta(false);
+    }
+  }
+
+  async function confirmarMesmoAtleta() {
+    if (!conflitoNome?.grupoAtletaId) {
+      setConflitoNome(null);
+      return;
+    }
+
+    const email = formularioGrupoAtleta.email.trim();
+    if (!email) {
+      setAviso(MENSAGEM_MESMO_ATLETA_SEM_EMAIL);
+      setConflitoNome(null);
+      return;
+    }
+
+    setErro('');
+    setAviso('');
+    setSalvandoGrupoAtleta(true);
+
+    try {
+      await grupoAtletasServico.completarEmail(competicaoId, conflitoNome.grupoAtletaId, email);
+      setAviso('Email do atleta atualizado no grupo.');
+      setFormularioGrupoAtleta(estadoInicialGrupoAtleta);
+      setConflitoNome(null);
       const lista = await grupoAtletasServico.listarPorCompeticao(competicaoId);
       setGrupoAtletas(lista);
       rolarParaTopo();
@@ -107,6 +156,11 @@ export function PaginaGrupoAtletas() {
     } finally {
       setSalvandoGrupoAtleta(false);
     }
+  }
+
+  function bloquearNovoAtletaComMesmoNome() {
+    setErro(MENSAGEM_BLOQUEIO_NOME_DUPLICADO);
+    setConflitoNome(null);
   }
 
   async function removerGrupoAtleta(id) {
@@ -170,7 +224,7 @@ export function PaginaGrupoAtletas() {
           {gerenciavel && (
             <form className="formulario-grid" onSubmit={aoSubmeterGrupoAtleta}>
               <label>
-                Nome completo do atleta
+                Nome ou apelido
                 <input
                   type="text"
                   value={formularioGrupoAtleta.nomeAtleta}
@@ -180,11 +234,11 @@ export function PaginaGrupoAtletas() {
               </label>
 
               <label>
-                Apelido ou complemento
+                Email
                 <input
-                  type="text"
-                  value={formularioGrupoAtleta.apelidoAtleta}
-                  onChange={(evento) => atualizarCampoGrupoAtleta('apelidoAtleta', evento.target.value)}
+                  type="email"
+                  value={formularioGrupoAtleta.email}
+                  onChange={(evento) => atualizarCampoGrupoAtleta('email', evento.target.value)}
                 />
               </label>
 
@@ -242,7 +296,8 @@ export function PaginaGrupoAtletas() {
                 <article key={item.id} className="cartao-lista">
                   <div>
                     <h3>{item.nomeAtleta}</h3>
-                    <p>Apelido/complemento: {item.apelidoAtleta || '-'}</p>
+                    <p>Apelido: {item.apelidoAtleta || '-'}</p>
+                    <p>Email: {item.emailAtleta || 'Pendente'}</p>
                     <p>Cadastro no sistema: {item.cadastroPendente ? 'Pendente' : 'Completo'}</p>
                     <p>Usuário vinculado: {item.vinculadoAUsuario ? 'Sim' : 'Não'}</p>
                   </div>
@@ -265,6 +320,26 @@ export function PaginaGrupoAtletas() {
             {grupoAtletas.length === 0 && <p>Nenhum atleta cadastrado neste grupo.</p>}
           </div>
         </>
+      )}
+
+      {conflitoNome && (
+        <div className="modal-sobreposicao" role="presentation" onClick={() => setConflitoNome(null)}>
+          <div className="modal-conteudo" role="dialog" aria-modal="true" aria-labelledby="modal-duplicidade-atleta-titulo" onClick={(evento) => evento.stopPropagation()}>
+            <div className="modal-cabecalho">
+              <h3 id="modal-duplicidade-atleta-titulo">Possível duplicidade</h3>
+              <p>{conflitoNome.mensagem}</p>
+            </div>
+            <p>Esse atleta já parece existir no grupo. É o mesmo atleta ou deseja cadastrar como novo?</p>
+            <div className="acoes-formulario">
+              <button type="button" className="botao-primario" onClick={confirmarMesmoAtleta} disabled={salvandoGrupoAtleta}>
+                É o mesmo atleta
+              </button>
+              <button type="button" className="botao-secundario" onClick={bloquearNovoAtletaComMesmoNome} disabled={salvandoGrupoAtleta}>
+                Cadastrar como novo
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       <footer className="rodape-pagina">
