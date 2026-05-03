@@ -110,8 +110,8 @@ textarea {
 
 .topo-app {
   flex: 0 0 auto;
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: var(--espaco-lg);
   padding: 0.72rem 0.95rem;
@@ -120,6 +120,13 @@ textarea {
   border-radius: var(--raio-lg);
   box-shadow: var(--sombra-suave);
   color: var(--cor-texto);
+}
+
+.topo-app-acao-esquerda {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-width: 2.75rem;
 }
 
 .marca-topo {
@@ -194,14 +201,30 @@ textarea {
 }
 
 .botao-menu-mobile {
-  display: none;
   min-width: 2.75rem;
   padding: 0.55rem 0.65rem;
 }
 
+.botao-topo-icone {
+  flex-shrink: 0;
+  min-width: 2.75rem;
+  min-height: 2.55rem;
+  padding: 0.55rem 0.65rem;
+}
+
+.botao-topo-icone svg,
 .botao-menu-mobile svg {
   width: 1.15rem;
   height: 1.15rem;
+}
+
+.app-header-icone {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.15rem;
+  font-size: 1.25rem;
+  line-height: 1;
 }
 
 .rotulo-menu-mobile {
@@ -210,11 +233,15 @@ textarea {
 
 .menu-principal {
   flex: 0 0 auto;
-  display: flex;
+  display: none;
   gap: 0.5rem;
   overflow-x: auto;
   padding: 0.25rem;
   scrollbar-width: thin;
+}
+
+.menu-principal.aberto {
+  display: flex;
 }
 
 .item-menu {
@@ -3550,8 +3577,7 @@ a.botao-terciario:active {
   }
 
   .topo-app {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: stretch;
     gap: var(--espaco-sm);
     padding: 0.62rem;
@@ -3587,7 +3613,7 @@ a.botao-terciario:active {
 
   .usuario-topo {
     display: grid;
-    grid-template-columns: auto auto;
+    grid-template-columns: auto auto auto;
     width: auto;
     justify-content: stretch;
     align-items: center;
@@ -3614,6 +3640,19 @@ a.botao-terciario:active {
     min-height: 2.25rem;
     padding: 0.48rem;
     border-radius: var(--raio-sm);
+  }
+
+  .botao-topo-icone {
+    min-width: 2.25rem;
+    min-height: 2.25rem;
+    padding: 0.48rem;
+    border-radius: var(--raio-sm);
+  }
+
+  .botao-topo-icone svg,
+  .botao-menu-mobile svg {
+    width: 1.05rem;
+    height: 1.05rem;
   }
 
   .botao-mobile-icone {

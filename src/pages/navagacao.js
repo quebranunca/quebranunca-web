@@ -23,7 +23,7 @@ const ITENS_NAVEGACAO_PUBLICA = [
 
 const ITENS_NAVEGACAO = [
   {
-    caminho: '/',
+    caminho: '/app',
     nome: 'Home',
     mostrarNoDashboard: false,
     descricao: 'Veja campeonatos, inscrições abertas e rankings públicos.',
@@ -151,6 +151,45 @@ const ITENS_NAVEGACAO = [
     descricao: 'Crie e acompanhe convites fechados para novos organizadores.',
     visivel: ({ administrador, estadoAtivo }) => administrador && estadoAtivo
   }
+];
+
+export const TIPOS_TELA = {
+  raiz: 'raiz',
+  acao: 'acao',
+  contexto: 'contexto'
+};
+
+export const ROTAS_APP_HEADER = [
+  { path: '/', title: 'Home', tipoTela: TIPOS_TELA.raiz },
+  { path: '/app', title: 'Home', tipoTela: TIPOS_TELA.raiz },
+  { path: '/app/inicio', title: 'Painel', tipoTela: TIPOS_TELA.raiz },
+  { path: '/app/organizacao', title: 'Painel', tipoTela: TIPOS_TELA.raiz },
+  { path: '/admin', title: 'Painel Admin', tipoTela: TIPOS_TELA.raiz },
+  { path: '/dashboard', title: 'Painel', tipoTela: TIPOS_TELA.raiz },
+  { path: '/app/perfil', title: 'Meu Perfil', tipoTela: TIPOS_TELA.raiz },
+  { path: '/perfil-usuario', title: 'Perfil Usuário', tipoTela: TIPOS_TELA.raiz },
+  { path: '/app/pendencias', title: 'Pendências', tipoTela: TIPOS_TELA.acao },
+  { path: '/atletas', title: 'Atletas', tipoTela: TIPOS_TELA.raiz },
+  { path: '/duplas', title: 'Duplas', tipoTela: TIPOS_TELA.raiz },
+  { path: '/ligas', title: 'Ligas', tipoTela: TIPOS_TELA.raiz },
+  { path: '/locais', title: 'Locais', tipoTela: TIPOS_TELA.raiz },
+  { path: '/formatos-campeonato', title: 'Formatos', tipoTela: TIPOS_TELA.raiz },
+  { path: '/regras', title: 'Regras', tipoTela: TIPOS_TELA.raiz },
+  { path: '/modelos-importacao', title: 'Modelos', tipoTela: TIPOS_TELA.raiz },
+  { path: '/competicoes', title: 'Competições', tipoTela: TIPOS_TELA.raiz },
+  { path: '/competicoes/:id', title: 'Competição', tipoTela: TIPOS_TELA.contexto },
+  { path: '/grupos', title: 'Grupos', tipoTela: TIPOS_TELA.raiz },
+  { path: '/grupos/:competicaoId/atletas', title: 'Atletas do Grupo', tipoTela: TIPOS_TELA.contexto },
+  { path: '/categorias', title: 'Categorias', tipoTela: TIPOS_TELA.raiz },
+  { path: '/inscricoes', title: 'Inscrições', tipoTela: TIPOS_TELA.acao },
+  { path: '/partidas/registrar', title: 'Registrar Partida', tipoTela: TIPOS_TELA.acao },
+  { path: '/app/registrar-partida', title: 'Registrar Partida', tipoTela: TIPOS_TELA.acao },
+  { path: '/partidas/consulta', title: 'Consultar Partidas', tipoTela: TIPOS_TELA.acao },
+  { path: '/partidas/campeonato', title: 'Partidas de Campeonato', tipoTela: TIPOS_TELA.contexto },
+  { path: '/usuarios', title: 'Usuários', tipoTela: TIPOS_TELA.raiz },
+  { path: '/convites-cadastro', title: 'Convites', tipoTela: TIPOS_TELA.raiz },
+  { path: '/ranking', title: 'Ranking', tipoTela: TIPOS_TELA.raiz },
+  { path: '/login', title: 'Entrar', tipoTela: TIPOS_TELA.raiz }
 ];
 
 export function obterItensNavegacao(usuario, estadoAcesso, opcoes = {}) {

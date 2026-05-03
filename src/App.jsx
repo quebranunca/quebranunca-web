@@ -50,6 +50,8 @@ export default function App() {
           </RotaProtegida>
         }
       >
+        <Route path="/app" element={<PaginaHome />} />
+        <Route path="/app/registrar-partida" element={<Navigate to="/partidas/registrar" replace />} />
         <Route
           path="/app/inicio"
           element={

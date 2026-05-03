@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { BotaoVoltar } from '../components/BotaoVoltar';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { competicoesServico } from '../services/competicoesServico';
 import { grupoAtletasServico } from '../services/grupoAtletasServico';
@@ -341,10 +340,6 @@ export function PaginaGrupoAtletas() {
           </div>
         </div>
       )}
-
-      <footer className="rodape-pagina">
-        <BotaoVoltar fallback="/grupos" />
-      </footer>
     </section>
   );
 }

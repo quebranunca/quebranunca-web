@@ -52,7 +52,7 @@ export function temEstadoAcesso(estadoAcesso, estadosPermitidos = []) {
 }
 
 export function obterRotaPainelPorPerfil() {
-  return '/';
+  return '/app';
 }
 
 export function obterRotaPadraoEstado(usuario, estadoAcesso) {

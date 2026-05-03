@@ -7,7 +7,6 @@ import { duplasServico } from '../services/duplasServico';
 import { grupoAtletasServico } from '../services/grupoAtletasServico';
 import { inscricoesCampeonatoServico } from '../services/inscricoesCampeonatoServico';
 import { partidasServico } from '../services/partidasServico';
-import { BotaoVoltar } from '../components/BotaoVoltar';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { extrairMensagemErro } from '../utils/erros';
 import { ehAtleta, ehGestorCompeticao, PERFIS_USUARIO } from '../utils/perfis';
@@ -667,9 +666,6 @@ export function PaginaRegistrarPartidas() {
   return (
     <section className="pagina">
       <div className="cabecalho-pagina">
-        <div className="cabecalho-pagina-voltar">
-          <BotaoVoltar />
-        </div>
         <h2>Registrar Partidas</h2>
         <p>Informe o contexto, as duplas e o resultado para enviar o registro da partida.</p>
       </div>
