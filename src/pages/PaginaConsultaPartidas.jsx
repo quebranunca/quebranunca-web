@@ -495,6 +495,9 @@ export function PaginaConsultaPartidas() {
         tipoJogo: grupoSelecionado ? 'Grupo' : 'Fase de grupos',
         nomeFase: partida.faseCampeonato,
         status: partida.status,
+        statusAprovacao: partida.statusAprovacao,
+        pontosClassificacaoDuplaA: partida.duplaVencedoraId === partida.duplaAId ? partida.pontosRankingVitoria : 0,
+        pontosClassificacaoDuplaB: partida.duplaVencedoraId === partida.duplaBId ? partida.pontosRankingVitoria : 0,
         duplaAId: partida.duplaAId,
         nomeDuplaA: partida.nomeDuplaA,
         duplaBId: partida.duplaBId,
@@ -513,8 +516,6 @@ export function PaginaConsultaPartidas() {
   const estruturaGrupoCopa = useMemo(() => {
     const gruposMap = new Map();
     const rodadasEliminatorias = [];
-    const pontosVitoria = Number(competicaoSelecionada?.pontosVitoria ?? 3);
-    const pontosDerrota = Number(competicaoSelecionada?.pontosDerrota ?? 0);
 
     rodadasGrupoExibicao.forEach((rodada) => {
       const jogosEliminatorios = [];
@@ -576,12 +577,12 @@ export function PaginaConsultaPartidas() {
 
           if (jogo.duplaVencedoraId === jogo.duplaAId) {
             linhaA.vitorias += 1;
-            linhaA.pontos += pontosVitoria;
-            linhaB.pontos += pontosDerrota;
+            linhaA.pontos += Number(jogo.pontosClassificacaoDuplaA || 0);
+            linhaB.pontos += Number(jogo.pontosClassificacaoDuplaB || 0);
           } else if (jogo.duplaVencedoraId === jogo.duplaBId) {
             linhaB.vitorias += 1;
-            linhaB.pontos += pontosVitoria;
-            linhaA.pontos += pontosDerrota;
+            linhaB.pontos += Number(jogo.pontosClassificacaoDuplaB || 0);
+            linhaA.pontos += Number(jogo.pontosClassificacaoDuplaA || 0);
           }
         }
       });
@@ -619,7 +620,7 @@ export function PaginaConsultaPartidas() {
       grupos,
       rodadasEliminatorias
     };
-  }, [competicaoSelecionada?.pontosDerrota, competicaoSelecionada?.pontosVitoria, rodadasGrupoExibicao]);
+  }, [rodadasGrupoExibicao]);
 
   const podeVisualizarGrupo = partidas.length > 0 && (grupoSelecionado || formatoComFaseDeGrupos || possuiJogosNomeadosPorGrupo);
   const exibirVisaoGrupo = podeVisualizarGrupo;

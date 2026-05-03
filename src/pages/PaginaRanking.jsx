@@ -706,7 +706,7 @@ export function PaginaRanking() {
                       {tipoConsulta === 'regiao' && <th>Região</th>}
                       <th>Status</th>
                       <th>Pontuação</th>
-                      <th>Pendentes</th>
+                      <th>Bônus pendente</th>
                       <th>Jogos</th>
                       <th>Vitórias</th>
                       <th>Derrotas</th>
@@ -785,7 +785,7 @@ export function PaginaRanking() {
 
                       <div className="ranking-mobile-metricas">
                         <div className="ranking-mobile-metrica">
-                          <span>Pendentes</span>
+                          <span>Bônus pendente</span>
                           <strong>{formatarPontuacao(item.pontosPendentes)}</strong>
                         </div>
                         <div className="ranking-mobile-metrica">

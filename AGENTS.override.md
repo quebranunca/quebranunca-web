@@ -14,6 +14,7 @@
 - Em páginas de ranking e competição, preservar a navegação já simplificada e evitar filtros ou blocos extras sem ganho claro
 - Em telas de campeonato, refletir a fase da partida quando existir e não esconder campos que já são obrigatórios no backend para esse tipo de competição
 - Autocomplete no registro de partidas só deve consultar sugestões da competição quando houver competição selecionada e termo com ao menos 3 caracteres; sem competição, preservar o fluxo atual
+- Banner rotativo reutilizável deve aceitar slides de imagem e componente
 
 ## NAVIGATION_RULES
 - O header global deve ser centralizado no `AppHeader`.

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
+  HomeBannerRotativo,
   HomeDestaqueRanking,
   HomeHeroVisitante,
   HomePendencias,
@@ -8,6 +9,7 @@ import {
   HomeResumoUsuario
 } from '../components/home';
 import { GrupoResumoCard } from '../components/grupos/GrupoResumoCard';
+import bannerHomeConvite from '../assets/banner-home-convite.svg';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { atletasServico } from '../services/atletasServico';
 import { categoriasServico } from '../services/categoriasServico';
@@ -147,6 +149,22 @@ export function PaginaHome() {
     () => montarResumoPlataforma(competicoes, rankingGeral),
     [competicoes, rankingGeral]
   );
+  const slidesBannerVisitante = useMemo(
+    () => [
+      {
+        id: 'hero-atual',
+        tipo: 'componente',
+        render: () => <HomeHeroVisitante resumoPlataforma={resumoPlataforma} />
+      },
+      {
+        id: 'convite-futevolei',
+        tipo: 'imagem',
+        src: bannerHomeConvite,
+        alt: 'QuebraNunca Futevôlei: campeonatos, grupos e ranking.'
+      }
+    ],
+    [resumoPlataforma]
+  );
   const pendenciasPerfil = useMemo(
     () => criarPendenciasPerfil({ estadoAcesso, usuario, atletaDetalhe: atletaPerfil }),
     [atletaPerfil, estadoAcesso, usuario]
@@ -281,7 +299,7 @@ export function PaginaHome() {
 
   return (
     <section className="pagina pagina-home">
-      {!token && <HomeHeroVisitante resumoPlataforma={resumoPlataforma} />}
+      {!token && <HomeBannerRotativo slides={slidesBannerVisitante} />}
 
       {token && <HomeResumoUsuario nomeAtleta={nomeAtleta} />}
 

@@ -1,3 +1,4 @@
+export { HomeBannerRotativo } from './HomeBannerRotativo';
 export { HomeDestaqueRanking } from './HomeDestaqueRanking';
 export { HomeHeroVisitante } from './HomeHeroVisitante';
 export { HomePendencias } from './HomePendencias';

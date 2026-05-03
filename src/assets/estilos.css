@@ -1252,6 +1252,116 @@ code {
   letter-spacing: 0.08em;
 }
 
+.home-banner-rotativo {
+  position: relative;
+  min-width: 0;
+}
+
+.home-banner-slides {
+  position: relative;
+  min-height: 330px;
+  overflow: hidden;
+  border-radius: var(--raio-lg);
+}
+
+.home-banner-slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.36s ease;
+}
+
+.home-banner-slide.ativo {
+  position: relative;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.home-banner-slide > .cartao {
+  min-height: 330px;
+}
+
+.home-banner-imagem {
+  position: relative;
+  overflow: hidden;
+  padding: 0;
+  background: #08090b;
+  border-color: var(--color-border-highlight);
+  box-shadow: var(--sombra);
+}
+
+.home-banner-imagem img {
+  display: block;
+  width: 100%;
+  min-height: 330px;
+  aspect-ratio: 1440 / 620;
+  object-fit: cover;
+  object-position: center;
+}
+
+.home-banner-seta {
+  position: absolute;
+  top: 50%;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  padding: 0;
+  border: 1px solid rgba(255, 179, 0, 0.42);
+  border-radius: 999px;
+  color: #fff;
+  background: rgba(8, 9, 11, 0.58);
+  line-height: 1;
+  transform: translateY(-50%);
+  cursor: pointer;
+}
+
+.home-banner-seta:hover,
+.home-banner-seta:focus-visible {
+  color: #08090b;
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.home-banner-seta.anterior {
+  left: 0.75rem;
+}
+
+.home-banner-seta.proximo {
+  right: 0.75rem;
+}
+
+.home-banner-indicadores {
+  position: absolute;
+  left: 50%;
+  bottom: 0.85rem;
+  z-index: 3;
+  display: flex;
+  gap: 0.42rem;
+  padding: 0.32rem 0.42rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: rgba(8, 9, 11, 0.56);
+  transform: translateX(-50%);
+}
+
+.home-banner-indicadores button {
+  width: 0.52rem;
+  height: 0.52rem;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.46);
+  cursor: pointer;
+}
+
+.home-banner-indicadores button.ativo {
+  width: 1.25rem;
+  background: var(--color-primary);
+}
+
 .home-secao {
   display: flex;
   flex-direction: column;
@@ -3984,6 +4094,22 @@ a.botao-terciario:active {
   .home-hero {
     grid-template-columns: 1fr;
     min-height: auto;
+  }
+
+  .home-banner-slides,
+  .home-banner-slide > .cartao,
+  .home-banner-imagem img {
+    min-height: 420px;
+  }
+
+  .home-banner-imagem img {
+    aspect-ratio: 4 / 5;
+    object-fit: contain;
+    background: #08090b;
+  }
+
+  .home-banner-seta {
+    display: none;
   }
 
   .home-hero-resumo {
