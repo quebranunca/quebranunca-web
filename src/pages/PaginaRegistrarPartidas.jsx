@@ -170,7 +170,6 @@ export function PaginaRegistrarPartidas() {
   const atletaUsuarioId = usuario?.atletaId || '';
   const atletaUsuarioNome = usuario?.atleta?.nome || usuario?.nome || '';
   const atletaUsuarioLado = Number(usuario?.atleta?.lado || LADOS_ATLETA.direito);
-  const campoBaseAtletaUsuarioPrimeiraDupla = obterCampoBaseAtletaUsuarioPrimeiraDupla(atletaUsuarioLado);
 
   const [competicoes, setCompeticoes] = useState([]);
   const [categorias, setCategorias] = useState([]);
@@ -236,7 +235,6 @@ export function PaginaRegistrarPartidas() {
   const opcoesDuplaA = duplasDisponiveis.filter((dupla) => dupla.id !== formulario.duplaBId);
   const opcoesDuplaB = duplasDisponiveis.filter((dupla) => dupla.id !== formulario.duplaAId);
   const atletasBaseCadastroAssistido = grupoSelecionado ? grupoAtletas.map(mapearGrupoAtletaParaAtleta) : [];
-  const bloquearCampoAtletaUsuarioGrupo = contextoGrupo && usuarioAtleta && Boolean(atletaUsuarioId);
   const podeSalvar = !salvando && podeRegistrarNaCompeticao && !(contextoGrupo && usuarioAtleta && !atletaUsuarioId);
 
   useEffect(() => {
@@ -302,15 +300,13 @@ export function PaginaRegistrarPartidas() {
         chave: 'duplaAAtleta1',
         id: formulario.duplaAAtleta1Id,
         nome: formulario.duplaAAtleta1Nome,
-        idsBloqueados: [formulario.duplaAAtleta2Id, formulario.duplaBAtleta1Id, formulario.duplaBAtleta2Id],
-        bloqueado: bloquearCampoAtletaUsuarioGrupo && campoBaseAtletaUsuarioPrimeiraDupla === 'duplaAAtleta1'
+        idsBloqueados: [formulario.duplaAAtleta2Id, formulario.duplaBAtleta1Id, formulario.duplaBAtleta2Id]
       },
       {
         chave: 'duplaAAtleta2',
         id: formulario.duplaAAtleta2Id,
         nome: formulario.duplaAAtleta2Nome,
-        idsBloqueados: [formulario.duplaAAtleta1Id, formulario.duplaBAtleta1Id, formulario.duplaBAtleta2Id],
-        bloqueado: bloquearCampoAtletaUsuarioGrupo && campoBaseAtletaUsuarioPrimeiraDupla === 'duplaAAtleta2'
+        idsBloqueados: [formulario.duplaAAtleta1Id, formulario.duplaBAtleta1Id, formulario.duplaBAtleta2Id]
       },
       {
         chave: 'duplaBAtleta1',
@@ -335,10 +331,6 @@ export function PaginaRegistrarPartidas() {
       };
 
       await Promise.all(campos.map(async (campo) => {
-        if (campo.bloqueado) {
-          return;
-        }
-
         const termo = (campo.nome || '').trim();
         const sugestoesLocais = !competicaoId || termo.length >= 3
           ? buscarSugestoesAtleta(
@@ -381,8 +373,6 @@ export function PaginaRegistrarPartidas() {
     return () => clearTimeout(timeout);
   }, [
     atletasBaseCadastroAssistido,
-    bloquearCampoAtletaUsuarioGrupo,
-    campoBaseAtletaUsuarioPrimeiraDupla,
     formulario.duplaAAtleta1Id,
     formulario.duplaAAtleta1Nome,
     formulario.duplaAAtleta2Id,
@@ -650,22 +640,20 @@ export function PaginaRegistrarPartidas() {
     }
   }
 
-  function renderizarCampoAtleta(campoBase, rotulo, bloqueado = false) {
+  function renderizarCampoAtleta(campoBase, rotulo) {
     return (
       <>
         <label>
-          {rotulo}
+          {rotulo} - Apelido ou nome
           <input
             type="text"
             value={formulario[`${campoBase}Nome`]}
             onChange={(evento) => atualizarAtleta(campoBase, evento.target.value)}
-            disabled={bloqueado}
-            readOnly={bloqueado}
-            placeholder="Nome completo"
+            placeholder="Digite o apelido ou nome"
             required
           />
         </label>
-        {!bloqueado && renderizarSugestoesAtleta(campoBase)}
+        {renderizarSugestoesAtleta(campoBase)}
       </>
     );
   }
@@ -755,16 +743,8 @@ export function PaginaRegistrarPartidas() {
                   <strong>Dupla 1</strong>
                 </div>
                 <div className="secao-dupla-partida-grid">
-                  {renderizarCampoAtleta(
-                    'duplaAAtleta1',
-                    'Jogador Direito',
-                    bloquearCampoAtletaUsuarioGrupo && campoBaseAtletaUsuarioPrimeiraDupla === 'duplaAAtleta1'
-                  )}
-                  {renderizarCampoAtleta(
-                    'duplaAAtleta2',
-                    'Jogador Esquerdo',
-                    bloquearCampoAtletaUsuarioGrupo && campoBaseAtletaUsuarioPrimeiraDupla === 'duplaAAtleta2'
-                  )}
+                  {renderizarCampoAtleta('duplaAAtleta1', 'Jogador Direito')}
+                  {renderizarCampoAtleta('duplaAAtleta2', 'Jogador Esquerdo')}
                   {exibirCamposPlacar && (
                     <label>
                       Pontos

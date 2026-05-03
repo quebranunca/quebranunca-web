@@ -3863,13 +3863,13 @@ a.botao-terciario:active {
   }
 
   .usuario-topo {
-    display: grid;
-    grid-template-columns: auto auto auto;
+    display: flex;
     width: auto;
-    justify-content: stretch;
+    justify-content: flex-end;
     align-items: center;
     gap: var(--espaco-xs);
     font-size: 0.82rem;
+    flex-wrap: nowrap;
   }
 
   .usuario-identidade {

@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { gruposServico } from '../services/gruposServico';
-import { locaisServico } from '../services/locaisServico';
 import { ESTADOS_ACESSO } from '../utils/acesso';
 import { extrairMensagemErro } from '../utils/erros';
 import { formatarData, paraInputData } from '../utils/formatacao';
@@ -28,9 +27,9 @@ export function PaginaGrupos() {
   const podeCriarGrupo = usuarioAtivo && (usuarioAdministrador || usuarioOrganizador || usuarioAtleta);
 
   const [grupos, setGrupos] = useState([]);
-  const [locais, setLocais] = useState([]);
   const [formulario, setFormulario] = useState(estadoInicial);
   const [grupoEdicaoId, setGrupoEdicaoId] = useState(null);
+  const [formularioAberto, setFormularioAberto] = useState(false);
   const [carregando, setCarregando] = useState(true);
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState('');
@@ -50,12 +49,8 @@ export function PaginaGrupos() {
     setCarregando(true);
     setErro('');
     try {
-      const [listaGrupos, listaLocais] = await Promise.all([
-        gruposServico.listar(),
-        locaisServico.listar()
-      ]);
+      const listaGrupos = await gruposServico.listar();
       setGrupos(listaGrupos);
-      setLocais(listaLocais);
     } catch (error) {
       setErro(extrairMensagemErro(error));
     } finally {
@@ -79,6 +74,14 @@ export function PaginaGrupos() {
     return grupo.usuarioOrganizadorId === usuario?.id;
   }
 
+  function abrirNovoGrupo() {
+    setGrupoEdicaoId(null);
+    setFormulario(estadoInicial);
+    setFormularioAberto(true);
+    setAviso('');
+    setErro('');
+  }
+
   function iniciarEdicao(grupo) {
     setGrupoEdicaoId(grupo.id);
     setFormulario({
@@ -89,6 +92,7 @@ export function PaginaGrupos() {
       dataFim: paraInputData(grupo.dataFim),
       localId: grupo.localId || ''
     });
+    setFormularioAberto(true);
     setAviso('');
     setErro('');
   }
@@ -96,6 +100,7 @@ export function PaginaGrupos() {
   function limparFormulario() {
     setGrupoEdicaoId(null);
     setFormulario(estadoInicial);
+    setFormularioAberto(false);
   }
 
   async function aoSubmeter(evento) {
@@ -155,7 +160,15 @@ export function PaginaGrupos() {
       {erro && <p className="texto-erro">{erro}</p>}
       {aviso && <p className="texto-sucesso">{aviso}</p>}
 
-      {podeCriarGrupo && (
+      {podeCriarGrupo && !formularioAberto && (
+        <div className="acoes-formulario">
+          <button type="button" className="botao-primario" onClick={abrirNovoGrupo}>
+            Novo grupo
+          </button>
+        </div>
+      )}
+
+      {podeCriarGrupo && formularioAberto && (
         <article className="cartao">
           <form className="formulario-grid" onSubmit={aoSubmeter}>
             <div className="campo-largo">
@@ -165,16 +178,6 @@ export function PaginaGrupos() {
             <label>
               Nome
               <input value={formulario.nome} onChange={(evento) => atualizarCampo('nome', evento.target.value)} required />
-            </label>
-
-            <label>
-              Local
-              <select value={formulario.localId} onChange={(evento) => atualizarCampo('localId', evento.target.value)}>
-                <option value="">Sem local vinculado</option>
-                {locais.map((local) => (
-                  <option key={local.id} value={local.id}>{local.nome}</option>
-                ))}
-              </select>
             </label>
 
             <label>
@@ -201,11 +204,9 @@ export function PaginaGrupos() {
               <button type="submit" className="botao-primario" disabled={salvando}>
                 {salvando ? 'Salvando...' : grupoEdicaoId ? 'Atualizar grupo' : 'Criar grupo'}
               </button>
-              {grupoEdicaoId && (
-                <button type="button" className="botao-secundario" onClick={limparFormulario}>
-                  Cancelar
-                </button>
-              )}
+              <button type="button" className="botao-secundario" onClick={limparFormulario}>
+                Cancelar
+              </button>
             </div>
           </form>
         </article>
@@ -233,7 +234,6 @@ export function PaginaGrupos() {
                 <div className="competicao-card-detalhes">
                   <p>Início: {formatarData(grupo.dataInicio)}</p>
                   <p>Fim: {formatarData(grupo.dataFim)}</p>
-                  <p>Local: {grupo.nomeLocal || '-'}</p>
                   <p>Responsável: {grupo.nomeUsuarioOrganizador || 'Não informado'}</p>
                   {obterLinkHttp(grupo.link) && (
                     <p>

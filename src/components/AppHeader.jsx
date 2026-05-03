@@ -29,7 +29,7 @@ export function AppHeader({
   const telaContexto = configuracao.tipoTela === TIPOS_TELA.contexto;
   const mostrarMenu = telaRaiz || telaAcao;
   const mostrarVoltar = telaContexto;
-  const mostrarHome = !telaRaiz && location.pathname !== ROTA_HOME_APP;
+  const rotaHome = autenticado ? ROTA_HOME_APP : '/';
 
   function aoVoltar() {
     const indiceHistorico = window.history.state?.idx;
@@ -43,22 +43,8 @@ export function AppHeader({
   }
 
   return (
-    <header className={`topo-app ${mostrarVoltar ? 'topo-app-com-voltar' : ''}`}>
-      {mostrarVoltar && (
-        <div className="topo-app-acao-esquerda">
-          <button
-            type="button"
-            className="botao-terciario botao-topo-icone"
-            onClick={aoVoltar}
-            aria-label="Voltar"
-            title="Voltar"
-          >
-            <span className="app-header-icone" aria-hidden="true">&larr;</span>
-          </button>
-        </div>
-      )}
-
-      <NavLink to={autenticado ? ROTA_HOME_APP : '/'} className="marca-topo" aria-label="Ir para a home">
+    <header className="topo-app">
+      <NavLink to={rotaHome} className="marca-topo" aria-label="Ir para a home">
         <img className="logo-interno" src={logoLiga} alt="Liga" />
         <div className="marca-texto">
           <p className="marca-subtitulo">Plataforma</p>
@@ -84,22 +70,32 @@ export function AppHeader({
           )}
         </span>
 
-        {mostrarHome && (
+        {mostrarVoltar && (
           <button
             type="button"
             className="botao-terciario botao-topo-icone"
-            onClick={() => navegar(ROTA_HOME_APP)}
-            aria-label="Ir para a home"
-            title="Ir para a home"
+            onClick={aoVoltar}
+            aria-label="Voltar"
+            title="Voltar"
           >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path
-                d="M4 10.6 12 4l8 6.6V20h-5v-5.2H9V20H4Z"
-                fill="currentColor"
-              />
-            </svg>
+            <span className="app-header-icone" aria-hidden="true">&larr;</span>
           </button>
         )}
+
+        <button
+          type="button"
+          className="botao-terciario botao-topo-icone"
+          onClick={() => navegar(rotaHome)}
+          aria-label="Ir para a home"
+          title="Ir para a home"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M4 10.6 12 4l8 6.6V20h-5v-5.2H9V20H4Z"
+              fill="currentColor"
+            />
+          </svg>
+        </button>
 
         {mostrarMenu && (
           <button
