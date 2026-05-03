@@ -893,7 +893,7 @@ export function PaginaCompeticoes({ apenasGrupos = false }) {
                   value={filtros.competicaoId}
                   onChange={(evento) => atualizarFiltro('competicaoId', evento.target.value)}
                 >
-                  <option value="">Todas</option>
+                  <option value="">Todos</option>
                   {competicoesDoTipoSelecionado.map((competicao) => (
                     <option key={competicao.id} value={competicao.id}>
                       {competicao.nome}

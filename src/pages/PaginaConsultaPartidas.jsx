@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { competicoesServico } from '../services/competicoesServico';
+import { gruposServico } from '../services/gruposServico';
 import { categoriasServico } from '../services/categoriasServico';
 import { partidasServico } from '../services/partidasServico';
 import { useAutenticacao } from '../hooks/useAutenticacao';
@@ -774,7 +775,12 @@ export function PaginaConsultaPartidas() {
     const parametros = {};
 
     if (proximoCompeticaoId) {
-      parametros.competicaoId = proximoCompeticaoId;
+      const proximaCompeticao = competicoes.find((competicao) => competicao.id === proximoCompeticaoId);
+      if (ehCompeticaoGrupo(proximaCompeticao)) {
+        parametros.grupoId = proximoCompeticaoId;
+      } else {
+        parametros.competicaoId = proximoCompeticaoId;
+      }
     }
 
     if (proximaCategoriaId) {
@@ -800,11 +806,18 @@ export function PaginaConsultaPartidas() {
     setCarregando(true);
 
     try {
-      const listaCompeticoes = await competicoesServico.listar();
+      const [listaCompeticoesApi, listaGrupos] = await Promise.all([
+        competicoesServico.listar(),
+        gruposServico.listar()
+      ]);
+      const listaCompeticoes = [
+        ...listaCompeticoesApi,
+        ...listaGrupos.map((grupo) => ({ ...grupo, tipo: TIPOS_COMPETICAO.grupo }))
+      ];
       setCompeticoes(listaCompeticoes);
 
       const categoriaUrl = params.get('categoriaId');
-      const competicaoUrl = params.get('competicaoId');
+      const competicaoUrl = params.get('grupoId') || params.get('competicaoId');
       const minhasUrl = params.get('minhas') === 'true';
       const abaUrl = params.get('aba');
       setAbaAtiva(abaUrl === 'lista' ? 'lista' : 'chaveamento');
@@ -874,10 +887,17 @@ export function PaginaConsultaPartidas() {
 
   async function carregarCategorias(idCompeticao) {
     try {
+      const ehGrupo = ehCompeticaoGrupo(competicoes.find((competicao) => competicao.id === idCompeticao));
+      if (ehGrupo) {
+        setCategorias([]);
+        setCategoriaId('');
+        atualizarParametrosUrl(idCompeticao, '');
+        return;
+      }
+
       const lista = await categoriasServico.listarPorCompeticao(idCompeticao);
       setCategorias(lista);
 
-      const ehGrupo = ehCompeticaoGrupo(competicoes.find((competicao) => competicao.id === idCompeticao));
       const categoriaValida = lista.some((categoria) => categoria.id === categoriaId);
       const proximaCategoriaId = categoriaValida
         ? categoriaId
@@ -915,9 +935,10 @@ export function PaginaConsultaPartidas() {
 
   async function carregarPartidasPorCompeticao(idCompeticao) {
     try {
+      const ehGrupo = ehCompeticaoGrupo(competicoes.find((competicao) => competicao.id === idCompeticao));
       const [lista, estrutura] = await Promise.all([
-        partidasServico.listarPorCompeticao(idCompeticao),
-        partidasServico.listarEstrutura({ competicaoId: idCompeticao })
+        ehGrupo ? partidasServico.listarPorGrupo(idCompeticao) : partidasServico.listarPorCompeticao(idCompeticao),
+        partidasServico.listarEstrutura(ehGrupo ? { grupoId: idCompeticao } : { competicaoId: idCompeticao })
       ]);
       setPartidas(lista);
       setEstruturaRodadas(estrutura);

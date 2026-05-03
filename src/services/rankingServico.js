@@ -40,5 +40,10 @@ export const rankingServico = {
   async listarAtletasPorCompeticao(competicaoId) {
     const resposta = await http.get(`/ranking/competicoes/${competicaoId}/atletas`);
     return resposta.data;
+  },
+
+  async listarAtletasPorGrupo(grupoId) {
+    const resposta = await http.get(`/ranking/grupos/${grupoId}/atletas`);
+    return resposta.data;
   }
 };

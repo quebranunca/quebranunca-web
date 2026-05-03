@@ -251,7 +251,7 @@ export default function App() {
           }
         />
         <Route
-          path="/grupos/:competicaoId/atletas"
+          path="/grupos/:grupoId/atletas"
           element={
             <RotaProtegida
               perfisPermitidos={[PERFIS_USUARIO.administrador, PERFIS_USUARIO.organizador, PERFIS_USUARIO.atleta]}

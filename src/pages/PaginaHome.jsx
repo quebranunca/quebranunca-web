@@ -12,6 +12,7 @@ import { useAutenticacao } from '../hooks/useAutenticacao';
 import { atletasServico } from '../services/atletasServico';
 import { categoriasServico } from '../services/categoriasServico';
 import { competicoesServico } from '../services/competicoesServico';
+import { gruposServico } from '../services/gruposServico';
 import { pendenciasServico } from '../services/pendenciasServico';
 import { rankingServico } from '../services/rankingServico';
 import { criarPendenciasPerfil } from '../utils/pendenciasPerfil';
@@ -160,8 +161,9 @@ export function PaginaHome() {
       setCarregando(true);
 
       try {
-        const [resultadoCompeticoes, resultadoRanking] = await Promise.allSettled([
+        const [resultadoCompeticoes, resultadoGrupos, resultadoRanking] = await Promise.allSettled([
           competicoesServico.listarVisiveis(),
+          token ? gruposServico.listar() : Promise.resolve([]),
           rankingServico.listarAtletasGeral()
         ]);
 
@@ -170,7 +172,10 @@ export function PaginaHome() {
         }
 
         if (resultadoCompeticoes.status === 'fulfilled') {
-          const listaCompeticoes = resultadoCompeticoes.value;
+          const listaGrupos = resultadoGrupos.status === 'fulfilled'
+            ? resultadoGrupos.value.map((grupo) => ({ ...grupo, tipo: TIPO_GRUPO }))
+            : [];
+          const listaCompeticoes = [...resultadoCompeticoes.value, ...listaGrupos];
           setCompeticoes(listaCompeticoes);
 
           const categoriasCampeonatos = await obterCategoriasCampeonatosExibidos(listaCompeticoes);
@@ -205,7 +210,7 @@ export function PaginaHome() {
     return () => {
       ativo = false;
     };
-  }, [hoje]);
+  }, [hoje, token]);
 
   useEffect(() => {
     let ativo = true;

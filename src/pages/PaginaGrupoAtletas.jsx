@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAutenticacao } from '../hooks/useAutenticacao';
-import { competicoesServico } from '../services/competicoesServico';
 import { grupoAtletasServico } from '../services/grupoAtletasServico';
+import { gruposServico } from '../services/gruposServico';
 import { ESTADOS_ACESSO } from '../utils/acesso';
 import { extrairMensagemErro } from '../utils/erros';
 import { PERFIS_USUARIO, ehAtleta } from '../utils/perfis';
@@ -20,12 +20,13 @@ const MENSAGEM_BLOQUEIO_NOME_DUPLICADO = 'Já existe um atleta com esse nome ou 
 const MENSAGEM_MESMO_ATLETA_SEM_EMAIL = 'Esse atleta já está no grupo sem email. Preencha o email quando tiver essa informação.';
 
 export function PaginaGrupoAtletas() {
-  const { competicaoId } = useParams();
+  const { grupoId, competicaoId } = useParams();
+  const idGrupo = grupoId || competicaoId;
   const { usuario, estadoAcesso, atualizarUsuarioLocal } = useAutenticacao();
   const usuarioAtleta = ehAtleta(usuario);
   const usuarioAtivo = estadoAcesso === ESTADOS_ACESSO.ativo;
   const usuarioAdministrador = Number(usuario?.perfil) === PERFIS_USUARIO.administrador;
-  const [competicao, setCompeticao] = useState(null);
+  const [grupo, setGrupo] = useState(null);
   const [grupoAtletas, setGrupoAtletas] = useState([]);
   const [formularioGrupoAtleta, setFormularioGrupoAtleta] = useState(estadoInicialGrupoAtleta);
   const [grupoAtletaSelecionadoId, setGrupoAtletaSelecionadoId] = useState('');
@@ -37,7 +38,7 @@ export function PaginaGrupoAtletas() {
   const [aviso, setAviso] = useState('');
 
   const gerenciavel = useMemo(() => {
-    if (!usuarioAtivo || !competicao) {
+    if (!usuarioAtivo || !grupo) {
       return false;
     }
 
@@ -46,11 +47,11 @@ export function PaginaGrupoAtletas() {
     }
 
     if (Number(usuario?.perfil) === PERFIS_USUARIO.organizador) {
-      return competicao.usuarioOrganizadorId === usuario?.id;
+      return grupo.usuarioOrganizadorId === usuario?.id;
     }
 
-    return usuarioAtleta && competicao.usuarioOrganizadorId === usuario?.id;
-  }, [competicao, usuario, usuarioAdministrador, usuarioAtivo, usuarioAtleta]);
+    return usuarioAtleta && grupo.usuarioOrganizadorId === usuario?.id;
+  }, [grupo, usuario, usuarioAdministrador, usuarioAtivo, usuarioAtleta]);
 
   const usuarioJaNoGrupo = grupoAtletas.some((item) => item.atletaId === usuario?.atletaId);
   const nomesDisponiveisParaAssumir = grupoAtletas.filter((item) => (
@@ -59,7 +60,7 @@ export function PaginaGrupoAtletas() {
 
   useEffect(() => {
     carregarDados();
-  }, [competicaoId]);
+  }, [idGrupo]);
 
   async function carregarDados() {
     setCarregando(true);
@@ -67,21 +68,16 @@ export function PaginaGrupoAtletas() {
     setAviso('');
 
     try {
-      const [listaCompeticoes, listaAtletas] = await Promise.all([
-        competicoesServico.listarVisiveis(),
-        grupoAtletasServico.listarPorCompeticao(competicaoId)
+      const [grupoAtual, listaAtletas] = await Promise.all([
+        gruposServico.obterPorId(idGrupo),
+        grupoAtletasServico.listarPorGrupo(idGrupo)
       ]);
 
-      const grupo = listaCompeticoes.find((item) => item.id === competicaoId && Number(item.tipo) === 3) || null;
-      setCompeticao(grupo);
+      setGrupo(grupoAtual);
       setGrupoAtletas(listaAtletas);
-
-      if (!grupo) {
-        setErro('Grupo não encontrado.');
-      }
     } catch (error) {
       setErro(extrairMensagemErro(error));
-      setCompeticao(null);
+      setGrupo(null);
       setGrupoAtletas([]);
     } finally {
       setCarregando(false);
@@ -100,14 +96,14 @@ export function PaginaGrupoAtletas() {
     setSalvandoGrupoAtleta(true);
 
     try {
-      await grupoAtletasServico.criar(competicaoId, {
+      await grupoAtletasServico.criar(idGrupo, {
         nomeAtleta: formularioGrupoAtleta.nomeAtleta,
         email: formularioGrupoAtleta.email || null
       });
 
       setAviso(formularioGrupoAtleta.email.trim() ? MENSAGEM_ATLETA_COM_EMAIL : MENSAGEM_ATLETA_SEM_EMAIL);
       setFormularioGrupoAtleta(estadoInicialGrupoAtleta);
-      const lista = await grupoAtletasServico.listarPorCompeticao(competicaoId);
+      const lista = await grupoAtletasServico.listarPorGrupo(idGrupo);
       setGrupoAtletas(lista);
       rolarParaTopo();
     } catch (error) {
@@ -143,11 +139,11 @@ export function PaginaGrupoAtletas() {
     setSalvandoGrupoAtleta(true);
 
     try {
-      await grupoAtletasServico.completarEmail(competicaoId, conflitoNome.grupoAtletaId, email);
+      await grupoAtletasServico.completarEmail(idGrupo, conflitoNome.grupoAtletaId, email);
       setAviso('Email do atleta atualizado no grupo.');
       setFormularioGrupoAtleta(estadoInicialGrupoAtleta);
       setConflitoNome(null);
-      const lista = await grupoAtletasServico.listarPorCompeticao(competicaoId);
+      const lista = await grupoAtletasServico.listarPorGrupo(idGrupo);
       setGrupoAtletas(lista);
       rolarParaTopo();
     } catch (error) {
@@ -168,8 +164,8 @@ export function PaginaGrupoAtletas() {
     }
 
     try {
-      await grupoAtletasServico.remover(competicaoId, id);
-      const lista = await grupoAtletasServico.listarPorCompeticao(competicaoId);
+      await grupoAtletasServico.remover(idGrupo, id);
+      const lista = await grupoAtletasServico.listarPorGrupo(idGrupo);
       setGrupoAtletas(lista);
     } catch (error) {
       setErro(extrairMensagemErro(error));
@@ -187,10 +183,10 @@ export function PaginaGrupoAtletas() {
     setAssumindoNomeGrupo(true);
 
     try {
-      const usuarioAtualizado = await grupoAtletasServico.assumirMeuNome(competicaoId, grupoAtletaSelecionadoId);
+      const usuarioAtualizado = await grupoAtletasServico.assumirMeuNome(idGrupo, grupoAtletaSelecionadoId);
       atualizarUsuarioLocal(usuarioAtualizado);
       setAviso('Seu usuário foi vinculado ao nome selecionado neste grupo.');
-      const lista = await grupoAtletasServico.listarPorCompeticao(competicaoId);
+      const lista = await grupoAtletasServico.listarPorGrupo(idGrupo);
       setGrupoAtletas(lista);
     } catch (error) {
       setErro(extrairMensagemErro(error));
@@ -203,7 +199,7 @@ export function PaginaGrupoAtletas() {
     <section className="pagina">
       <div className="cabecalho-pagina">
         <h2>Atletas do grupo</h2>
-        <p>{competicao?.nome || 'Carregando grupo...'}</p>
+        <p>{grupo?.nome || 'Carregando grupo...'}</p>
       </div>
 
       {erro && <p className="texto-erro">{erro}</p>}
@@ -214,7 +210,7 @@ export function PaginaGrupoAtletas() {
       ) : (
         <>
           <article className="cartao">
-            <h3>{competicao?.nome || 'Grupo'}</h3>
+            <h3>{grupo?.nome || 'Grupo'}</h3>
             <p>
               Os jogos deste grupo só podem ser registrados com atletas listados aqui. Você pode lançar nomes mesmo que a pessoa ainda não tenha usuário no sistema.
             </p>

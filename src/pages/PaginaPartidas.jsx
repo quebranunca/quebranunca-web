@@ -6,6 +6,7 @@ import { categoriasServico } from '../services/categoriasServico';
 import { competicoesServico } from '../services/competicoesServico';
 import { duplasServico } from '../services/duplasServico';
 import { grupoAtletasServico } from '../services/grupoAtletasServico';
+import { gruposServico } from '../services/gruposServico';
 import { inscricoesCampeonatoServico } from '../services/inscricoesCampeonatoServico';
 import { partidasServico } from '../services/partidasServico';
 import { useAutenticacao } from '../hooks/useAutenticacao';
@@ -962,9 +963,14 @@ export function PaginaPartidas({ modo = 'consulta' }) {
 
   function atualizarParametrosUrl(proximoCompeticaoId, proximaCategoriaId = '', proximaVisualizacao = modoVisualizacao) {
     const parametros = {};
+    const proximaCompeticao = competicoes.find((competicao) => competicao.id === proximoCompeticaoId);
 
     if (proximoCompeticaoId) {
-      parametros.competicaoId = proximoCompeticaoId;
+      if (ehCompeticaoGrupo(proximaCompeticao)) {
+        parametros.grupoId = proximoCompeticaoId;
+      } else {
+        parametros.competicaoId = proximoCompeticaoId;
+      }
     }
 
     if (proximaCategoriaId) {
@@ -983,7 +989,14 @@ export function PaginaPartidas({ modo = 'consulta' }) {
     setCarregando(true);
 
     try {
-      const listaCompeticoes = await competicoesServico.listar();
+      const [listaCompeticoesApi, listaGrupos] = await Promise.all([
+        competicoesServico.listar(),
+        gruposServico.listar()
+      ]);
+      const listaCompeticoes = [
+        ...listaCompeticoesApi,
+        ...listaGrupos.map((grupo) => ({ ...grupo, tipo: TIPOS_COMPETICAO.grupo }))
+      ];
       setCompeticoes(listaCompeticoes);
 
       if (!usuarioAtleta) {
@@ -996,7 +1009,7 @@ export function PaginaPartidas({ modo = 'consulta' }) {
       }
 
       const categoriaUrl = params.get('categoriaId');
-      const competicaoUrl = params.get('competicaoId');
+      const competicaoUrl = params.get('grupoId') || params.get('competicaoId');
 
       if (categoriaUrl) {
         const categoria = await categoriasServico.obterPorId(categoriaUrl);
@@ -1046,9 +1059,16 @@ export function PaginaPartidas({ modo = 'consulta' }) {
 
   async function carregarCategorias(idCompeticao) {
     try {
+      const ehGrupo = ehCompeticaoGrupo(competicoes.find((competicao) => competicao.id === idCompeticao));
+      if (ehGrupo) {
+        setCategorias([]);
+        setFormulario((anterior) => ({ ...anterior, categoriaCompeticaoId: '' }));
+        atualizarParametrosUrl(idCompeticao);
+        return;
+      }
+
       const lista = await categoriasServico.listarPorCompeticao(idCompeticao);
       setCategorias(lista);
-      const ehGrupo = ehCompeticaoGrupo(competicoes.find((competicao) => competicao.id === idCompeticao));
 
       setFormulario((anterior) => {
         const categoriaValida = lista.some((categoria) => categoria.id === anterior.categoriaCompeticaoId);
@@ -1086,7 +1106,7 @@ export function PaginaPartidas({ modo = 'consulta' }) {
 
   async function carregarGrupoAtletas(idCompeticao) {
     try {
-      const lista = await grupoAtletasServico.listarPorCompeticao(idCompeticao);
+      const lista = await grupoAtletasServico.listarPorGrupo(idCompeticao);
       setGrupoAtletas(lista);
     } catch (error) {
       setErro(extrairMensagemErro(error));
@@ -1126,9 +1146,10 @@ export function PaginaPartidas({ modo = 'consulta' }) {
 
   async function carregarPartidasPorCompeticao(idCompeticao) {
     try {
+      const ehGrupo = ehCompeticaoGrupo(competicoes.find((competicao) => competicao.id === idCompeticao));
       const [lista, estrutura] = await Promise.all([
-        partidasServico.listarPorCompeticao(idCompeticao),
-        partidasServico.listarEstrutura({ competicaoId: idCompeticao })
+        ehGrupo ? partidasServico.listarPorGrupo(idCompeticao) : partidasServico.listarPorCompeticao(idCompeticao),
+        partidasServico.listarEstrutura(ehGrupo ? { grupoId: idCompeticao } : { competicaoId: idCompeticao })
       ]);
       setPartidas(lista);
       setEstruturaRodadas(estrutura);
@@ -1318,7 +1339,8 @@ export function PaginaPartidas({ modo = 'consulta' }) {
     setSalvando(true);
 
     const dados = {
-      competicaoId: competicaoSelecionada?.id || null,
+      competicaoId: grupoSelecionado ? null : competicaoSelecionada?.id || null,
+      grupoId: grupoSelecionado ? competicaoSelecionada?.id || null : null,
       nomeGrupo: competicaoSelecionada ? null : formulario.nomeGrupo.trim() || null,
       categoriaCompeticaoId: formulario.categoriaCompeticaoId || null,
       duplaAId: usandoCadastroPorAtletas ? null : formulario.duplaAId,
@@ -1386,9 +1408,6 @@ export function PaginaPartidas({ modo = 'consulta' }) {
         return;
       }
 
-      if (grupoSelecionado && !formulario.categoriaCompeticaoId && competicaoSelecionada?.id) {
-        await carregarCategorias(competicaoSelecionada.id);
-      }
       if (grupoSelecionado && competicaoSelecionada?.id) {
         await carregarGrupoAtletas(competicaoSelecionada.id);
       }

@@ -5,6 +5,7 @@ import { categoriasServico } from '../services/categoriasServico';
 import { competicoesServico } from '../services/competicoesServico';
 import { duplasServico } from '../services/duplasServico';
 import { grupoAtletasServico } from '../services/grupoAtletasServico';
+import { gruposServico } from '../services/gruposServico';
 import { inscricoesCampeonatoServico } from '../services/inscricoesCampeonatoServico';
 import { partidasServico } from '../services/partidasServico';
 import { useAutenticacao } from '../hooks/useAutenticacao';
@@ -399,8 +400,9 @@ export function PaginaRegistrarPartidas() {
     setErro('');
 
     try {
-      const [listaCompeticoes, listaDuplas] = await Promise.all([
+      const [listaCompeticoesApi, listaGrupos, listaDuplas] = await Promise.all([
         competicoesServico.listar(),
+        gruposServico.listar(),
         usuarioAtleta
           ? Promise.resolve([])
           : duplasServico.listar({
@@ -408,10 +410,14 @@ export function PaginaRegistrarPartidas() {
             })
       ]);
 
+      const listaCompeticoes = [
+        ...listaCompeticoesApi,
+        ...listaGrupos.map((grupo) => ({ ...grupo, tipo: TIPOS_COMPETICAO.grupo }))
+      ];
       setCompeticoes(listaCompeticoes);
       setDuplasGerais(listaDuplas);
 
-      const competicaoUrl = params.get('competicaoId');
+      const competicaoUrl = params.get('grupoId') || params.get('competicaoId');
       const categoriaUrl = params.get('categoriaId');
       const competicaoValida = listaCompeticoes.find((competicao) => competicao.id === competicaoUrl);
 
@@ -439,7 +445,7 @@ export function PaginaRegistrarPartidas() {
       const competicao = competicoes.find((item) => item.id === idCompeticao);
       const [listaCategorias, listaGrupoAtletas] = await Promise.all([
         ehCompeticaoGrupo(competicao) ? Promise.resolve([]) : categoriasServico.listarPorCompeticao(idCompeticao),
-        ehCompeticaoGrupo(competicao) ? grupoAtletasServico.listarPorCompeticao(idCompeticao) : Promise.resolve([])
+        ehCompeticaoGrupo(competicao) ? grupoAtletasServico.listarPorGrupo(idCompeticao) : Promise.resolve([])
       ]);
 
       setCategorias(listaCategorias);
@@ -602,7 +608,8 @@ export function PaginaRegistrarPartidas() {
     setSalvando(true);
 
     const dados = {
-      competicaoId: competicaoSelecionada?.id || null,
+      competicaoId: grupoSelecionado ? null : competicaoSelecionada?.id || null,
+      grupoId: grupoSelecionado ? competicaoSelecionada?.id || null : null,
       nomeGrupo: competicaoSelecionada ? null : formulario.nomeGrupo.trim() || null,
       categoriaCompeticaoId: formulario.categoriaCompeticaoId || null,
       duplaAId: usandoCadastroPorAtletas ? null : formulario.duplaAId || null,

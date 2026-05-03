@@ -180,7 +180,7 @@ export const ROTAS_APP_HEADER = [
   { path: '/competicoes', title: 'Competições', tipoTela: TIPOS_TELA.raiz },
   { path: '/competicoes/:id', title: 'Competição', tipoTela: TIPOS_TELA.contexto },
   { path: '/grupos', title: 'Grupos', tipoTela: TIPOS_TELA.raiz },
-  { path: '/grupos/:competicaoId/atletas', title: 'Atletas do Grupo', tipoTela: TIPOS_TELA.contexto },
+  { path: '/grupos/:grupoId/atletas', title: 'Atletas do Grupo', tipoTela: TIPOS_TELA.contexto },
   { path: '/categorias', title: 'Categorias', tipoTela: TIPOS_TELA.raiz },
   { path: '/inscricoes', title: 'Inscrições', tipoTela: TIPOS_TELA.acao },
   { path: '/partidas/registrar', title: 'Registrar Partida', tipoTela: TIPOS_TELA.acao },

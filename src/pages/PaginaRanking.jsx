@@ -2,7 +2,7 @@ import { Fragment, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { competicoesServico } from '../services/competicoesServico';
-import { grupoAtletasServico } from '../services/grupoAtletasServico';
+import { gruposServico } from '../services/gruposServico';
 import { ligasServico } from '../services/ligasServico';
 import { rankingServico } from '../services/rankingServico';
 import { extrairMensagemErro } from '../utils/erros';
@@ -266,35 +266,24 @@ export function PaginaRanking() {
     setErro('');
 
     try {
-      const [listaCompeticoes, listaLigas, filtroInicial, filtroRegioes] = await Promise.all([
+      const [listaCompeticoesApi, listaGrupos, listaLigas, filtroInicial, filtroRegioes] = await Promise.all([
         competicoesServico.listar(),
+        gruposServico.listar(),
         usuarioAtleta ? Promise.resolve([]) : ligasServico.listar(),
         rankingServico.obterFiltroInicial(),
         rankingServico.listarRegioesDisponiveis()
       ]);
 
+      const listaCompeticoes = [
+        ...listaCompeticoesApi,
+        ...listaGrupos.map((grupo) => ({ ...grupo, tipo: TIPOS_COMPETICAO.grupo }))
+      ];
       let competicoesDisponiveis = listaCompeticoes;
       if (usuarioAtleta) {
         if (!usuario?.atletaId) {
           competicoesDisponiveis = listaCompeticoes.filter(ehCompeticaoPartidasAvulsas);
         } else {
-          const grupos = listaCompeticoes.filter((competicao) => competicao.tipo === 3);
-          const gruposParticipando = await Promise.all(
-            grupos.map(async (competicao) => {
-              if (ehCompeticaoPartidasAvulsas(competicao)) {
-                return competicao;
-              }
-
-              try {
-                const atletasGrupo = await grupoAtletasServico.listarPorCompeticao(competicao.id);
-                return atletasGrupo.some((item) => item.atletaId === usuario.atletaId) ? competicao : null;
-              } catch {
-                return null;
-              }
-            })
-          );
-
-          competicoesDisponiveis = gruposParticipando.filter(Boolean);
+          competicoesDisponiveis = listaCompeticoes.filter((competicao) => competicao.tipo === TIPOS_COMPETICAO.grupo);
         }
       }
 
@@ -314,7 +303,7 @@ export function PaginaRanking() {
 
       const tipoUrl = params.get('tipo');
       const ligaUrl = params.get('ligaId');
-      const competicaoUrl = params.get('competicaoId');
+      const competicaoUrl = params.get('grupoId') || params.get('competicaoId');
       const categoriaUrl = params.get('categoriaId');
       const estadoUrl = params.get('estado') || '';
       const cidadeUrl = params.get('cidade') || '';
@@ -381,7 +370,9 @@ export function PaginaRanking() {
           bairro: bairroRegiao
         });
       } else {
-        lista = await rankingServico.listarAtletasPorCompeticao(competicaoId);
+        lista = competicaoSelecionadaEhGrupo
+          ? await rankingServico.listarAtletasPorGrupo(competicaoId)
+          : await rankingServico.listarAtletasPorCompeticao(competicaoId);
       }
 
       const rankingNormalizado = normalizarRanking(lista, tipoConsulta);
@@ -423,7 +414,12 @@ export function PaginaRanking() {
     }
 
     if (tipo === 'competicao' && novaCompeticaoId) {
-      proximos.competicaoId = novaCompeticaoId;
+      const competicaoParametro = competicoes.find((competicao) => competicao.id === novaCompeticaoId);
+      if (Number(competicaoParametro?.tipo) === TIPOS_COMPETICAO.grupo) {
+        proximos.grupoId = novaCompeticaoId;
+      } else {
+        proximos.competicaoId = novaCompeticaoId;
+      }
     }
 
     if (tipo === 'competicao' && novaCompeticaoId && novaCategoriaId) {
