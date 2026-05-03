@@ -111,7 +111,7 @@ textarea {
 .topo-app {
   flex: 0 0 auto;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: var(--espaco-lg);
   padding: 0.72rem 0.95rem;
@@ -120,6 +120,10 @@ textarea {
   border-radius: var(--raio-lg);
   box-shadow: var(--sombra-suave);
   color: var(--cor-texto);
+}
+
+.topo-app-com-voltar {
+  grid-template-columns: auto minmax(0, 1fr) auto;
 }
 
 .topo-app-acao-esquerda {
@@ -735,19 +739,262 @@ code {
 
 .ranking-detalhe-item {
   display: grid;
-  gap: 0.2rem;
-  padding: 0.65rem 0.75rem;
+  gap: 0.75rem;
+  padding: 0.8rem;
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.82);
   border: 1px solid var(--cor-borda);
+  font-size: 0.88rem;
 }
 
+.ranking-detalhe-topo,
+.ranking-detalhe-rodape {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.ranking-detalhe-topo > div {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.ranking-detalhe-topo span,
 .ranking-detalhe-item span {
   font-size: 0.88rem;
 }
 
+.ranking-detalhe-data {
+  color: var(--cor-texto-suave);
+  font-weight: 700;
+}
+
+.ranking-detalhe-confronto {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 0.65rem;
+  align-items: stretch;
+}
+
+.ranking-detalhe-dupla {
+  min-width: 0;
+  display: grid;
+  align-content: center;
+  gap: 0.25rem;
+  padding: 0.7rem;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-sm);
+  background: var(--cor-superficie-suave);
+}
+
+.ranking-detalhe-dupla > span {
+  color: var(--color-primary);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.ranking-detalhe-dupla strong {
+  display: grid;
+  gap: 0.12rem;
+  overflow-wrap: anywhere;
+}
+
+.ranking-detalhe-dupla strong small {
+  color: var(--cor-texto-suave);
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.ranking-detalhe-dupla.vencedora {
+  border-color: var(--color-border-highlight);
+  background: rgba(255, 179, 0, 0.08);
+}
+
+.ranking-detalhe-placar {
+  min-width: 4.8rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.55rem;
+  border-radius: var(--raio-sm);
+  background: #08090b;
+  color: var(--color-primary);
+  font-weight: 900;
+}
+
+.ranking-detalhe-placar strong {
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.ranking-detalhe-pontos {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--cor-texto-suave);
+  font-weight: 800;
+}
+
+.ranking-detalhe-pontos strong {
+  color: var(--color-primary);
+  font-size: 1.05rem;
+}
+
+.ranking-detalhe-confronto-texto {
+  overflow-wrap: anywhere;
+}
+
 .ranking-detalhes p {
   margin: 0.35rem 0 0;
+}
+
+.meus-jogos-cabecalho {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--espaco-md);
+}
+
+.meus-jogos-resumo {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.meus-jogos-resumo div {
+  min-width: 0;
+  padding: 0.8rem;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-sm);
+  background: var(--cor-superficie-suave);
+}
+
+.meus-jogos-resumo span,
+.meus-jogos-dupla > span {
+  display: block;
+  color: var(--color-primary);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.meus-jogos-resumo strong {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.meus-jogos-lista {
+  gap: 0.85rem;
+}
+
+.meus-jogos-card {
+  gap: 0.85rem;
+}
+
+.meus-jogos-card-topo,
+.meus-jogos-card-rodape {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.meus-jogos-card-topo h3,
+.meus-jogos-card-topo p {
+  margin: 0;
+}
+
+.meus-jogos-card-topo p,
+.meus-jogos-card-rodape {
+  color: var(--cor-texto-suave);
+}
+
+.meus-jogos-status {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.meus-jogos-confronto {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 0.7rem;
+  align-items: stretch;
+}
+
+.meus-jogos-dupla {
+  min-width: 0;
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.8rem;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-sm);
+  background: var(--cor-superficie-suave);
+}
+
+.meus-jogos-dupla > strong {
+  overflow-wrap: anywhere;
+}
+
+.meus-jogos-dupla.vencedora {
+  border-color: var(--color-border-highlight);
+  background: rgba(255, 179, 0, 0.08);
+}
+
+.meus-jogos-dupla div {
+  min-width: 0;
+  display: grid;
+  gap: 0.12rem;
+  padding: 0.45rem 0.55rem;
+  border-radius: var(--raio-sm);
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.meus-jogos-dupla div.atleta-logado {
+  outline: 1px solid var(--color-border-highlight);
+  background: rgba(255, 179, 0, 0.12);
+}
+
+.meus-jogos-dupla small {
+  color: var(--cor-texto-suave);
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.meus-jogos-dupla div span {
+  overflow-wrap: anywhere;
+  color: var(--cor-texto);
+  font-weight: 800;
+}
+
+.meus-jogos-placar {
+  min-width: 5.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.65rem;
+  border-radius: var(--raio-sm);
+  background: #08090b;
+  color: var(--color-primary);
+  font-weight: 900;
+}
+
+.meus-jogos-placar strong {
+  font-size: 1.45rem;
+  line-height: 1;
 }
 
 .tag-status {
@@ -3577,11 +3824,15 @@ a.botao-terciario:active {
   }
 
   .topo-app {
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) auto;
     align-items: stretch;
     gap: var(--espaco-sm);
     padding: 0.62rem;
     border-radius: var(--raio-md);
+  }
+
+  .topo-app-com-voltar {
+    grid-template-columns: auto minmax(0, 1fr) auto;
   }
 
   .logo-interno {
@@ -3873,6 +4124,44 @@ a.botao-terciario:active {
     border: 1px solid var(--cor-borda);
     border-radius: var(--raio-md);
     background: var(--color-card-secondary);
+  }
+
+  .ranking-detalhe-confronto {
+    grid-template-columns: 1fr;
+  }
+
+  .ranking-detalhe-placar {
+    width: 100%;
+    min-height: 2.65rem;
+  }
+
+  .meus-jogos-cabecalho,
+  .meus-jogos-card-topo,
+  .meus-jogos-card-rodape {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .meus-jogos-cabecalho > a,
+  .meus-jogos-status {
+    width: 100%;
+  }
+
+  .meus-jogos-status {
+    justify-content: flex-start;
+  }
+
+  .meus-jogos-resumo {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .meus-jogos-confronto {
+    grid-template-columns: 1fr;
+  }
+
+  .meus-jogos-placar {
+    width: 100%;
+    min-height: 2.75rem;
   }
 
   .ranking-mobile-topo {

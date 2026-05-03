@@ -294,6 +294,7 @@ export function PaginaConsultaPartidas() {
   const { usuario } = useAutenticacao();
   const administradorLogado = ehAdministrador(usuario);
   const [params, setParams] = useSearchParams();
+  const consultaMinhasPartidas = params.get('minhas') === 'true';
   const [competicoes, setCompeticoes] = useState([]);
   const [categorias, setCategorias] = useState([]);
   const [partidas, setPartidas] = useState([]);
@@ -689,8 +690,12 @@ export function PaginaConsultaPartidas() {
   }, []);
 
   useEffect(() => {
+    if (consultaMinhasPartidas) {
+      return;
+    }
+
     atualizarParametrosUrl(competicaoId, categoriaId, abaAtiva);
-  }, [abaAtiva]);
+  }, [abaAtiva, consultaMinhasPartidas]);
 
   useEffect(() => {
     if (consultaPorCompeticao && abaAtiva === 'chaveamento') {
@@ -699,13 +704,21 @@ export function PaginaConsultaPartidas() {
   }, [consultaPorCompeticao, abaAtiva]);
 
   useEffect(() => {
+    if (consultaMinhasPartidas) {
+      return;
+    }
+
     if (competicaoId && !competicoesDisponiveis.some((competicao) => competicao.id === competicaoId)) {
       setCompeticaoId('');
       setCategoriaId('');
     }
-  }, [competicaoId, competicoesDisponiveis]);
+  }, [competicaoId, competicoesDisponiveis, consultaMinhasPartidas]);
 
   useEffect(() => {
+    if (consultaMinhasPartidas) {
+      return;
+    }
+
     if (!competicaoId) {
       setCategorias([]);
       setCategoriaId('');
@@ -723,9 +736,13 @@ export function PaginaConsultaPartidas() {
     }
 
     carregarCategorias(competicaoId);
-  }, [competicaoId, competicoesDisponiveis]);
+  }, [competicaoId, competicoesDisponiveis, consultaMinhasPartidas]);
 
   useEffect(() => {
+    if (consultaMinhasPartidas) {
+      return;
+    }
+
     if (!competicaoSelecionada) {
       setPartidas([]);
       setEstruturaRodadas([]);
@@ -751,7 +768,7 @@ export function PaginaConsultaPartidas() {
     setPartidas([]);
     setEstruturaRodadas([]);
     setDadosChaveamento(null);
-  }, [competicaoSelecionada, categoriaId, consultaPorCompeticao]);
+  }, [competicaoSelecionada, categoriaId, consultaPorCompeticao, consultaMinhasPartidas]);
 
   function atualizarParametrosUrl(proximoCompeticaoId, proximaCategoriaId = '', proximaAba = abaAtiva) {
     const parametros = {};
@@ -771,6 +788,13 @@ export function PaginaConsultaPartidas() {
     setParams(parametros);
   }
 
+  function atualizarParametrosMinhasPartidas() {
+    setParams({
+      minhas: 'true',
+      aba: 'lista'
+    });
+  }
+
   async function carregarBase() {
     setErro('');
     setCarregando(true);
@@ -781,8 +805,14 @@ export function PaginaConsultaPartidas() {
 
       const categoriaUrl = params.get('categoriaId');
       const competicaoUrl = params.get('competicaoId');
+      const minhasUrl = params.get('minhas') === 'true';
       const abaUrl = params.get('aba');
       setAbaAtiva(abaUrl === 'lista' ? 'lista' : 'chaveamento');
+
+      if (minhasUrl) {
+        await carregarMinhasPartidas();
+        return;
+      }
 
       if (categoriaUrl) {
         const categoria = await categoriasServico.obterPorId(categoriaUrl);
@@ -820,6 +850,25 @@ export function PaginaConsultaPartidas() {
       setErro(extrairMensagemErro(error));
     } finally {
       setCarregando(false);
+    }
+  }
+
+  async function carregarMinhasPartidas() {
+    try {
+      const lista = await partidasServico.listarMinhas();
+      setCompeticaoId('');
+      setCategoriaId('');
+      setCategorias([]);
+      setPartidas(lista);
+      setEstruturaRodadas([]);
+      setDadosChaveamento(null);
+      setAbaAtiva('lista');
+      atualizarParametrosMinhasPartidas();
+    } catch (error) {
+      setErro(extrairMensagemErro(error));
+      setPartidas([]);
+      setEstruturaRodadas([]);
+      setDadosChaveamento(null);
     }
   }
 
@@ -1159,10 +1208,15 @@ export function PaginaConsultaPartidas() {
   return (
     <section className="pagina">
       <div className="cabecalho-pagina">
-        <h2>Consultar Partidas</h2>
-        <p>Filtre a competição e acompanhe tabela, grupos e resultados.</p>
+        <h2>{consultaMinhasPartidas ? 'Meus Jogos' : 'Consultar Partidas'}</h2>
+        <p>
+          {consultaMinhasPartidas
+            ? 'Acompanhe os jogos vinculados ao seu atleta.'
+            : 'Filtre a competição e acompanhe tabela, grupos e resultados.'}
+        </p>
       </div>
 
+      {!consultaMinhasPartidas && (
       <div className="formulario-grid filtro-partidas barra-selecao-fixa">
         <label>
           Competição
@@ -1204,8 +1258,9 @@ export function PaginaConsultaPartidas() {
           </label>
         )}        
       </div>
+      )}
 
-      {(competicaoId || categoriaId) && (podeExibirAbaChaveamento || podeExibirAbaLista) && (
+      {!consultaMinhasPartidas && (competicaoId || categoriaId) && (podeExibirAbaChaveamento || podeExibirAbaLista) && (
         <div className="acoes-item">
           {podeExibirAbaChaveamento && (
             <button
@@ -1370,7 +1425,9 @@ export function PaginaConsultaPartidas() {
 
             {partidas.length === 0 && (
               <p>
-                {consultaPorCompeticao && !categoriaId
+                {consultaMinhasPartidas
+                  ? 'Nenhum jogo encontrado para o seu atleta.'
+                  : consultaPorCompeticao && !categoriaId
                   ? `Nenhuma partida cadastrada para ${partidasAvulsasSelecionadas ? 'partidas avulsas' : 'este grupo'}.`
                   : 'Nenhuma partida cadastrada para esta categoria.'}
               </p>

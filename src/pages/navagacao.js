@@ -167,6 +167,7 @@ export const ROTAS_APP_HEADER = [
   { path: '/admin', title: 'Painel Admin', tipoTela: TIPOS_TELA.raiz },
   { path: '/dashboard', title: 'Painel', tipoTela: TIPOS_TELA.raiz },
   { path: '/app/perfil', title: 'Meu Perfil', tipoTela: TIPOS_TELA.raiz },
+  { path: '/app/meus-jogos', title: 'Meus Jogos', tipoTela: TIPOS_TELA.acao },
   { path: '/perfil-usuario', title: 'Perfil Usuário', tipoTela: TIPOS_TELA.raiz },
   { path: '/app/pendencias', title: 'Pendências', tipoTela: TIPOS_TELA.acao },
   { path: '/atletas', title: 'Atletas', tipoTela: TIPOS_TELA.raiz },
@@ -188,7 +189,7 @@ export const ROTAS_APP_HEADER = [
   { path: '/partidas/campeonato', title: 'Partidas de Campeonato', tipoTela: TIPOS_TELA.contexto },
   { path: '/usuarios', title: 'Usuários', tipoTela: TIPOS_TELA.raiz },
   { path: '/convites-cadastro', title: 'Convites', tipoTela: TIPOS_TELA.raiz },
-  { path: '/ranking', title: 'Ranking', tipoTela: TIPOS_TELA.raiz },
+  { path: '/ranking', title: 'Ranking', tipoTela: TIPOS_TELA.acao },
   { path: '/login', title: 'Entrar', tipoTela: TIPOS_TELA.raiz }
 ];
 

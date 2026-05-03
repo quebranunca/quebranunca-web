@@ -76,9 +76,11 @@ export function HomeResumoUsuario({ nomeAtleta = '' }) {
               <div className="home-usuario-info-item">
                 <span>Nome</span>
                 <strong>{nomeAtleta || 'Não vinculado'}</strong>
-              </div>
+              </div>              
             </div>            
             {erro && <p>Não foi possível carregar seu desempenho agora.</p>}
+            <br></br>
+            <strong>Dados Gerais do Atleta</strong>
           </div>
         </div>
 
@@ -86,7 +88,11 @@ export function HomeResumoUsuario({ nomeAtleta = '' }) {
           <p>Carregando desempenho...</p>
         ) : (
           <>                 
-              <div className="home-resumo-usuario-metricas" aria-label="Resumo do desempenho">
+              <Link
+                to="/app/meus-jogos"
+                className="home-resumo-usuario-metricas"
+                aria-label="Abrir meus jogos"
+              >
                 <div>
                   <span>Jogos</span>
                   <strong>{resumo.totalPartidas}</strong>
@@ -99,7 +105,7 @@ export function HomeResumoUsuario({ nomeAtleta = '' }) {
                   <span>Derrotas</span>
                   <strong>{resumo.totalDerrotas}</strong>
                 </div>                  
-              </div>
+              </Link>
               <p className="home-resumo-usuario-aproveitamento">
                 Aproveitamento: <strong>{formatarPercentual(resumo.percentualAproveitamento)}</strong>
               </p>                         

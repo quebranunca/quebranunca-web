@@ -16,6 +16,11 @@ export const partidasServico = {
     return this.listar({ competicaoId });
   },
 
+  async listarMinhas() {
+    const resposta = await http.get('/partidas/minhas');
+    return resposta.data;
+  },
+
   async listarEstrutura({ competicaoId, categoriaId }) {
     const resposta = await http.get('/partidas/estrutura', {
       params: categoriaId ? { categoriaId } : { competicaoId }

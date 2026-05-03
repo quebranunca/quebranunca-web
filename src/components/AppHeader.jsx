@@ -43,36 +43,9 @@ export function AppHeader({
   }
 
   return (
-    <header className="topo-app">
-      <div className="topo-app-acao-esquerda">
-        {mostrarMenu && (
-          <button
-            type="button"
-            className="botao-terciario botao-topo-icone botao-menu-mobile"
-            onClick={aoAlternarMenu}
-            aria-expanded={menuAberto}
-            aria-controls="menu-principal-app"
-            aria-label={menuAberto ? 'Fechar menu de navegação' : 'Abrir menu de navegação'}
-            title={menuAberto ? 'Fechar menu de navegação' : 'Abrir menu de navegação'}
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              {menuAberto ? (
-                <path
-                  d="M6.7 5.3 12 10.6l5.3-5.3 1.4 1.4L13.4 12l5.3 5.3-1.4 1.4L12 13.4l-5.3 5.3-1.4-1.4L10.6 12 5.3 6.7Z"
-                  fill="currentColor"
-                />
-              ) : (
-                <path
-                  d="M4 6.5h16v2H4zm0 4.5h16v2H4zm0 4.5h16v2H4z"
-                  fill="currentColor"
-                />
-              )}
-            </svg>
-            <span className="rotulo-menu-mobile">{menuAberto ? 'Fechar' : 'Menu'}</span>
-          </button>
-        )}
-
-        {mostrarVoltar && (
+    <header className={`topo-app ${mostrarVoltar ? 'topo-app-com-voltar' : ''}`}>
+      {mostrarVoltar && (
+        <div className="topo-app-acao-esquerda">
           <button
             type="button"
             className="botao-terciario botao-topo-icone"
@@ -82,14 +55,14 @@ export function AppHeader({
           >
             <span className="app-header-icone" aria-hidden="true">&larr;</span>
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       <NavLink to={autenticado ? ROTA_HOME_APP : '/'} className="marca-topo" aria-label="Ir para a home">
         <img className="logo-interno" src={logoLiga} alt="Liga" />
         <div className="marca-texto">
           <p className="marca-subtitulo">Plataforma</p>
-          <h1 className="marca-titulo">{configuracao.title}</h1>
+          <h1 className="marca-titulo">QuebraNunca</h1>
         </div>
       </NavLink>
 
@@ -125,6 +98,33 @@ export function AppHeader({
                 fill="currentColor"
               />
             </svg>
+          </button>
+        )}
+
+        {mostrarMenu && (
+          <button
+            type="button"
+            className="botao-terciario botao-topo-icone botao-menu-mobile"
+            onClick={aoAlternarMenu}
+            aria-expanded={menuAberto}
+            aria-controls="menu-principal-app"
+            aria-label={menuAberto ? 'Fechar menu de navegação' : 'Abrir menu de navegação'}
+            title={menuAberto ? 'Fechar menu de navegação' : 'Abrir menu de navegação'}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              {menuAberto ? (
+                <path
+                  d="M6.7 5.3 12 10.6l5.3-5.3 1.4 1.4L13.4 12l5.3 5.3-1.4 1.4L12 13.4l-5.3 5.3-1.4-1.4L10.6 12 5.3 6.7Z"
+                  fill="currentColor"
+                />
+              ) : (
+                <path
+                  d="M4 6.5h16v2H4zm0 4.5h16v2H4zm0 4.5h16v2H4z"
+                  fill="currentColor"
+                />
+              )}
+            </svg>
+            <span className="rotulo-menu-mobile">{menuAberto ? 'Fechar' : 'Menu'}</span>
           </button>
         )}
 

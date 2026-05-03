@@ -88,6 +88,43 @@ function formatarRegiaoAtleta(item) {
   return partes.length > 0 ? partes.join(' / ') : '-';
 }
 
+function extrairDetalhePartidaRanking(partida) {
+  const confronto = String(partida.confronto || '').replace(/^Pontuação por colocação:\s*/i, '').trim();
+  const match = confronto.match(/^(.*?)\s+(\d+)\s+x\s+(\d+)\s+(.*)$/);
+
+  if (!match) {
+    return {
+      confronto,
+      duplaA: [],
+      duplaB: [],
+      placarA: null,
+      placarB: null
+    };
+  }
+
+  return {
+    confronto,
+    duplaA: match[1].split('/').map((nome) => nome.trim()).filter(Boolean),
+    duplaB: match[4].split('/').map((nome) => nome.trim()).filter(Boolean),
+    placarA: Number(match[2]),
+    placarB: Number(match[3])
+  };
+}
+
+function obterClasseResultadoRanking(resultado) {
+  const texto = String(resultado || '').toLowerCase();
+
+  if (texto.includes('vitória')) {
+    return 'tag-status-sucesso';
+  }
+
+  if (texto.includes('derrota')) {
+    return 'tag-status-erro';
+  }
+
+  return 'tag-status-alerta';
+}
+
 function obterTiposConsultaDisponiveis(usuarioAtleta, ligas, competicoes) {
   const opcoes = [];
 
@@ -124,6 +161,7 @@ export function PaginaRanking() {
   const [carregandoRanking, setCarregandoRanking] = useState(false);
   const [erro, setErro] = useState('');
   const [params, setParams] = useSearchParams();
+  const abrirPartidasMeuAtleta = params.get('partidas') === 'meu';
   const opcoesTipoConsulta = useMemo(() => {
     return obterTiposConsultaDisponiveis(usuarioAtleta, ligas, competicoes);
   }, [usuarioAtleta, ligas, competicoes]);
@@ -207,6 +245,21 @@ export function PaginaRanking() {
       atualizarParametros(tipoConsulta, ligaId, competicaoId, estadoRegiao, cidadeRegiao, bairroRegiao, '');
     }
   }, [categoriaId, categoriasRanking, tipoConsulta, ligaId, competicaoId, estadoRegiao, cidadeRegiao, bairroRegiao]);
+
+  useEffect(() => {
+    if (!abrirPartidasMeuAtleta || !detalheAberto) {
+      return;
+    }
+
+    window.requestAnimationFrame(() => {
+      const elementos = Array.from(document.querySelectorAll(`[data-ranking-detalhe="${detalheAberto}"]`));
+      const elementoVisivel = elementos.find((elemento) => elemento.offsetParent !== null) || elementos[0];
+      elementoVisivel?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      });
+    });
+  }, [abrirPartidasMeuAtleta, detalheAberto]);
 
   async function carregarBase() {
     setCarregandoBase(true);
@@ -331,7 +384,17 @@ export function PaginaRanking() {
         lista = await rankingServico.listarAtletasPorCompeticao(competicaoId);
       }
 
-      setRanking(normalizarRanking(lista, tipoConsulta));
+      const rankingNormalizado = normalizarRanking(lista, tipoConsulta);
+      setRanking(rankingNormalizado);
+      if (tipoConsulta === 'geral' && abrirPartidasMeuAtleta && usuario?.atletaId) {
+        const grupoMeuAtleta = rankingNormalizado.find((grupo) => (
+          grupo.atletas.some((atleta) => atleta.atletaId === usuario.atletaId)
+        ));
+
+        if (grupoMeuAtleta) {
+          setDetalheAberto(`${grupoMeuAtleta.chave}-${usuario.atletaId}`);
+        }
+      }
       atualizarParametros(tipoConsulta, ligaId, competicaoId, estadoRegiao, cidadeRegiao, bairroRegiao, categoriaId);
     } catch (error) {
       setErro(extrairMensagemErro(error));
@@ -351,6 +414,9 @@ export function PaginaRanking() {
     novaCategoriaId = ''
   ) {
     const proximos = { tipo };
+    if (tipo === 'geral' && params.get('partidas') === 'meu') {
+      proximos.partidas = 'meu';
+    }
 
     if (tipo === 'liga' && novaLigaId) {
       proximos.ligaId = novaLigaId;
@@ -442,16 +508,63 @@ export function PaginaRanking() {
           <p>Nenhuma partida detalhada.</p>
         ) : (
           <div className="ranking-detalhe-lista">
-            {item.partidas.map((partida) => (
-              <div key={partida.partidaId} className="ranking-detalhe-item">
-                <strong>{partida.confronto}</strong>
-                <span>{formatarDataHora(partida.dataPartida)}</span>
-                <span>{partida.nomeCompeticao}</span>
-                <span>{partida.nomeCategoria}</span>
-                <span>{partida.resultado}</span>
-                <span>Pontos {formatarPontuacao(partida.pontos)}</span>
-              </div>
-            ))}
+            {item.partidas.map((partida) => {
+              const detalhe = extrairDetalhePartidaRanking(partida);
+              const duplaAVenceu = detalhe.placarA !== null && detalhe.placarB !== null && detalhe.placarA > detalhe.placarB;
+              const duplaBVenceu = detalhe.placarA !== null && detalhe.placarB !== null && detalhe.placarB > detalhe.placarA;
+              const classeResultado = obterClasseResultadoRanking(partida.resultado);
+
+              return (
+                <div key={partida.partidaId} className="ranking-detalhe-item">
+                  <div className="ranking-detalhe-topo">
+                    <div>
+                      <strong>{partida.nomeCompeticao}</strong>
+                      <span>{partida.nomeCategoria}</span>
+                    </div>
+                    <span className="ranking-detalhe-data">{formatarDataHora(partida.dataPartida)}</span>
+                  </div>
+
+                  {detalhe.placarA === null || detalhe.placarB === null ? (
+                    <strong className="ranking-detalhe-confronto-texto">{partida.confronto}</strong>
+                  ) : (
+                    <div className="ranking-detalhe-confronto">
+                      <div className={`ranking-detalhe-dupla ${duplaAVenceu ? 'vencedora' : ''}`}>
+                        <span>Dupla 1</span>
+                        {detalhe.duplaA.map((nome, indice) => (
+                          <strong key={nome}>
+                            <small>{indice === 0 ? 'Direita' : 'Esquerda'}</small>
+                            {nome}
+                          </strong>
+                        ))}
+                      </div>
+
+                      <div className="ranking-detalhe-placar" aria-label="Placar da partida">
+                        <strong>{detalhe.placarA}</strong>
+                        <span>x</span>
+                        <strong>{detalhe.placarB}</strong>
+                      </div>
+
+                      <div className={`ranking-detalhe-dupla ${duplaBVenceu ? 'vencedora' : ''}`}>
+                        <span>Dupla 2</span>
+                        {detalhe.duplaB.map((nome, indice) => (
+                          <strong key={nome}>
+                            <small>{indice === 0 ? 'Direita' : 'Esquerda'}</small>
+                            {nome}
+                          </strong>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="ranking-detalhe-rodape">
+                    <span className={`tag-status ${classeResultado}`}>{partida.resultado}</span>
+                    <span className="ranking-detalhe-pontos">
+                      Pontos no ranking <strong>{formatarPontuacao(partida.pontos)}</strong>
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
@@ -635,7 +748,7 @@ export function PaginaRanking() {
                             <td>{item.derrotas}</td>
                           </tr>
                           {aberto && (
-                            <tr className="ranking-linha-detalhe">
+                            <tr className="ranking-linha-detalhe" data-ranking-detalhe={chaveDetalhe}>
                               <td colSpan={tipoConsulta === 'regiao' ? 9 : 8}>
                                 {renderizarDetalhesAtleta(item)}
                               </td>
@@ -654,7 +767,11 @@ export function PaginaRanking() {
                   const aberto = detalheAberto === chaveDetalhe;
 
                   return (
-                    <article key={item.atletaId} className="ranking-mobile-card">
+                    <article
+                      key={item.atletaId}
+                      className="ranking-mobile-card"
+                      data-ranking-detalhe={aberto ? chaveDetalhe : undefined}
+                    >
                       <div className="ranking-mobile-topo">
                         <span className="ranking-mobile-posicao">{item.posicao}º</span>
                         <div className="ranking-mobile-identidade">

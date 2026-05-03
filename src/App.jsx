@@ -20,6 +20,7 @@ import { PaginaInscricoesCampeonato } from './pages/PaginaInscricoesCampeonato';
 import { PaginaRegistrarPartidas } from './pages/PaginaRegistrarPartidas';
 import { PaginaConsultaPartidas } from './pages/PaginaConsultaPartidas';
 import { PaginaPartidasCampeonato } from './pages/PaginaPartidasCampeonato';
+import { PaginaMeusJogos } from './pages/PaginaMeusJogos';
 import { PaginaMeuPerfil } from './pages/PaginaMeuPerfil';
 import { PaginaPerfilUsuario } from './pages/PaginaPerfilUsuario';
 import { PaginaPendenciasAtletas } from './pages/PaginaPendenciasAtletas';
@@ -52,6 +53,17 @@ export default function App() {
       >
         <Route path="/app" element={<PaginaHome />} />
         <Route path="/app/registrar-partida" element={<Navigate to="/partidas/registrar" replace />} />
+        <Route
+          path="/app/meus-jogos"
+          element={
+            <RotaProtegida
+              perfisPermitidos={[PERFIS_USUARIO.atleta]}
+              estadosPermitidos={[ESTADOS_ACESSO.ativo]}
+            >
+              <PaginaMeusJogos />
+            </RotaProtegida>
+          }
+        />
         <Route
           path="/app/inicio"
           element={
