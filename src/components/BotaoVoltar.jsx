@@ -1,20 +1,35 @@
 import { useNavigate } from 'react-router-dom';
 
-export function BotaoVoltar({ fallback = '/dashboard', rotulo = 'Voltar' }) {
+export function BotaoVoltar({
+  mostrarTexto = true,
+  rotaFallback = '/',
+  fallback,
+  rotulo = 'Voltar'
+}) {
   const navegar = useNavigate();
+  const destinoFallback = fallback || rotaFallback;
 
   function aoVoltar() {
-    if (window.history.length > 1) {
+    const indiceHistorico = window.history.state?.idx;
+
+    if (typeof indiceHistorico === 'number' && indiceHistorico > 0) {
       navegar(-1);
       return;
     }
 
-    navegar(fallback);
+    navegar(destinoFallback);
   }
 
   return (
-    <button type="button" className="botao-terciario" onClick={aoVoltar}>
-      {rotulo}
+    <button
+      type="button"
+      className="botao-terciario botao-voltar"
+      onClick={aoVoltar}
+      aria-label={rotulo}
+      title={rotulo}
+    >
+      <span className="botao-voltar-icone" aria-hidden="true">&larr;</span>
+      {mostrarTexto && <span>{rotulo}</span>}
     </button>
   );
 }

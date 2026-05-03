@@ -263,6 +263,11 @@ textarea {
   padding: 0.15rem 0.05rem 0.25rem;
 }
 
+.cabecalho-pagina-voltar {
+  display: flex;
+  margin-bottom: 0.65rem;
+}
+
 .cabecalho-pagina h2,
 .cabecalho-pagina p {
   margin: 0.35rem 0 0;
@@ -506,6 +511,23 @@ a.botao-perigo {
   color: #fff;
   background: var(--cor-terciaria);
   border: 1px solid #30343c;
+}
+
+.botao-voltar {
+  min-height: 2rem;
+  padding: 0.42rem 0.68rem;
+  gap: 0.35rem;
+  align-self: flex-start;
+  font-size: 0.9rem;
+}
+
+.botao-voltar-icone {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  font-size: 1rem;
+  line-height: 1;
 }
 
 .botao-perigo {
@@ -1066,6 +1088,151 @@ code {
 .home-resumo-usuario-pendencias span {
   color: #6e5200;
   font-weight: 800;
+}
+
+.grupo-resumo-card {
+  gap: 1rem;
+  border-color: rgba(255, 180, 0, 0.28);
+  background:
+    linear-gradient(135deg, rgba(255, 180, 0, 0.08), transparent 42%),
+    var(--cor-superficie);
+}
+
+.grupo-resumo-topo,
+.grupo-resumo-conteudo,
+.grupo-resumo-jogo-meta,
+.grupo-resumo-ranking li {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.grupo-resumo-topo {
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.grupo-resumo-topo h3 {
+  margin: 0.35rem 0 0;
+  color: var(--cor-texto);
+  font-size: clamp(1.25rem, 2vw, 1.65rem);
+}
+
+.grupo-resumo-eyebrow {
+  color: #ffe2a1;
+  background: rgba(255, 180, 0, 0.1);
+}
+
+.grupo-resumo-conteudo {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(260px, 0.85fr);
+}
+
+.grupo-resumo-bloco {
+  min-width: 0;
+  padding: 0.9rem;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-sm);
+  background: var(--cor-superficie-suave);
+}
+
+.grupo-resumo-bloco p,
+.grupo-resumo-bloco strong {
+  margin: 0;
+}
+
+.grupo-resumo-bloco strong {
+  display: block;
+  color: var(--cor-texto);
+  line-height: 1.22;
+}
+
+.grupo-resumo-rotulo {
+  display: block;
+  margin-bottom: 0.45rem;
+  color: #ffc247;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.grupo-resumo-jogo-meta {
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 0.55rem;
+}
+
+.grupo-resumo-jogo-meta span {
+  color: #ffffff;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.grupo-resumo-jogo-meta small {
+  color: var(--cor-texto-suave);
+  font-weight: 700;
+}
+
+.grupo-resumo-ranking {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.grupo-resumo-ranking li {
+  align-items: center;
+  min-width: 0;
+  padding: 0.52rem 0.6rem;
+  border: 1px solid rgba(255, 180, 0, 0.18);
+  border-radius: var(--raio-sm);
+  background: rgba(255, 180, 0, 0.08);
+}
+
+.grupo-resumo-ranking li span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  background: #ffc247;
+  color: #1b1b1b;
+  font-weight: 900;
+}
+
+.grupo-resumo-ranking li strong {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.grupo-resumo-ranking li small {
+  flex: 0 0 auto;
+  color: #ffe2a1;
+  font-weight: 800;
+}
+
+.grupo-resumo-card-skeleton span {
+  display: block;
+  height: 1rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.08), rgba(255, 180, 0, 0.18), rgba(255, 255, 255, 0.08));
+}
+
+.grupo-resumo-card-skeleton span:first-child {
+  width: 34%;
+}
+
+.grupo-resumo-card-skeleton span:nth-child(2) {
+  width: 78%;
+}
+
+.grupo-resumo-card-skeleton span:nth-child(3) {
+  width: 56%;
 }
 
 .home-card-campeonato {
@@ -3062,6 +3229,25 @@ textarea:disabled {
   opacity: 1;
 }
 
+select {
+  appearance: none;
+  cursor: pointer;
+  padding-right: 2.35rem;
+  background-image: url("data:image/svg+xml,%3Csvg width='18' height='18' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6 9L12 15L18 9' stroke='%23b8b8b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.78rem center;
+  background-size: 0.95rem;
+}
+
+select:hover:not(:disabled) {
+  border-color: rgba(255, 179, 0, 0.28);
+  background-color: #111318;
+}
+
+select:disabled {
+  cursor: not-allowed;
+}
+
 input:focus,
 select:focus,
 textarea:focus {
@@ -3552,6 +3738,24 @@ a.botao-terciario:active {
   .home-resumo-usuario-pendencias a {
     width: 100%;
     justify-content: center;
+  }
+
+  .grupo-resumo-topo {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .grupo-resumo-topo a {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .grupo-resumo-conteudo {
+    grid-template-columns: 1fr;
+  }
+
+  .grupo-resumo-ranking li {
+    gap: 0.5rem;
   }
 
   .home-secao-cabecalho {

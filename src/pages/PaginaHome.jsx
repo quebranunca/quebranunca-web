@@ -7,6 +7,7 @@ import {
   HomeRankingsRealizados,
   HomeResumoUsuario
 } from '../components/home';
+import { GrupoResumoCard } from '../components/grupos/GrupoResumoCard';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { atletasServico } from '../services/atletasServico';
 import { categoriasServico } from '../services/categoriasServico';
@@ -284,6 +285,7 @@ export function PaginaHome() {
       ) : (
         <>
           {token && <HomePendencias totalPendencias={totalPendenciasHome} />}
+          {token && <GrupoResumoCard />}
           <HomeProximosCampeonatos
             campeonatos={proximosCampeonatos}
             categoriasPorCompeticao={categoriasPorCompeticao}

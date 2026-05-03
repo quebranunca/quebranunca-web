@@ -31,6 +31,7 @@ Seguir o `AGENTS.md` da raiz. Neste diretório, além disso:
 - `Modelos de importação` já oferece download e upload CSV por tipo de cadastro
 - Aceite de convite deve tratar o código no formato curto `000-000`, sem depender do frontend para definir perfil, validade ou regras de uso do convite
 - E-mail e WhatsApp são canais do mesmo convite; a interface não deve sugerir que reenviar por outro canal cria convite ou código diferente
+- Todo campo de seleção (dropdown) deve possuir indicação visual clara (ex: ícone de seta) para melhorar a usabilidade
 
 ## Acesso no frontend
 - Centralizar guardas de rota, landing page e menu a partir de perfil e estado do usuário
