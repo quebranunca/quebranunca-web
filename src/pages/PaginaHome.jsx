@@ -154,13 +154,19 @@ export function PaginaHome() {
       {
         id: 'hero-atual',
         tipo: 'componente',
-        render: () => <HomeHeroVisitante resumoPlataforma={resumoPlataforma} />
+        render: () => (
+        <article>
+          <HomeHeroVisitante resumoPlataforma={resumoPlataforma} />
+        </article>
+        )
       },
       {
-        id: 'convite-futevolei',
-        tipo: 'imagem',
-        src: bannerHomeConvite,
-        alt: 'QuebraNunca Futevôlei: campeonatos, grupos e ranking.'
+        id: 'placeholder',
+        tipo: 'componente',
+        render: () => (
+          <article className="home-hero">
+          </article>
+        )
       }
     ],
     [resumoPlataforma]
@@ -312,9 +318,7 @@ export function PaginaHome() {
           <HomeProximosCampeonatos
             campeonatos={proximosCampeonatos}
             categoriasPorCompeticao={categoriasPorCompeticao}
-          />
-          <HomeDestaqueRanking destaqueRanking={destaqueRanking} />
-          <HomeRankingsRealizados campeonatos={campeonatosRealizados} />
+          />          
         </>
       )}
     </section>
