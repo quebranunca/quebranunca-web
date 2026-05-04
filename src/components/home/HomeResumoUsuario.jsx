@@ -215,16 +215,20 @@ export function HomeResumoUsuario({
               {erro && <p className="texto-erro">Não foi possível atualizar todo o resumo agora.</p>}
               <div className="home-ultimo-jogo">
                 <div className="home-ultimo-jogo-topo">
-                  <div>
-                    <span className="home-ultimo-jogo-eyebrow">Último jogo</span>
-                    {ultimoJogo && (
-                      <strong>{ultimoJogo.dataPartida ? formatarDataHora(ultimoJogo.dataPartida) : 'Data a definir'}</strong>
-                    )}
-                  </div>
+                  <span className="home-ultimo-jogo-eyebrow">Último jogo</span>
+
                   {ultimoJogo && (
-                    <span className="home-ultimo-jogo-grupo">
-                      {obterGrupoPartida(ultimoJogo)}
-                    </span>
+                    <div className="home-ultimo-jogo-info">
+                      <strong>
+                        {ultimoJogo.dataPartida
+                          ? formatarDataHora(ultimoJogo.dataPartida)
+                          : 'Data a definir'}
+                      </strong>
+
+                      <span className="home-ultimo-jogo-grupo">
+                        {obterGrupoPartida(ultimoJogo)}
+                      </span>
+                    </div>
                   )}
                 </div>
 

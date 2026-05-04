@@ -1499,9 +1499,14 @@ code {
 
 .home-ultimo-jogo-topo {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.55rem;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.home-ultimo-jogo-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .home-ultimo-jogo-topo > div {
@@ -3685,9 +3690,12 @@ a.botao-terciario:active {
 }
 
 .home-eyebrow {
-  color: var(--color-primary);
-  border-color: var(--color-border-highlight);
-  background: rgba(255, 179, 0, 0.08);
+   display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #f5a623;
+  margin-bottom: 4px;
+  text-transform: uppercase;
 }
 
 .home-hero p {

@@ -49,8 +49,7 @@ function GrupoResumoEstado({ tipo, mensagem }) {
       <article className={`cartao-lista grupo-resumo-card grupo-resumo-card-${tipo}`}>
         <div className="grupo-resumo-topo">
           <div>
-            <span className="home-eyebrow grupo-resumo-eyebrow">Grupo</span>
-            <h3>Seus grupos</h3>
+            <span className="home-eyebrow grupo-resumo-eyebrow">Grupo</span>      
           </div>
           <Link to="/grupos" className="botao-primario home-botao">
             Ver todos os grupos
