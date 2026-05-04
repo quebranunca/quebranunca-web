@@ -23,6 +23,7 @@ import { usuariosServico } from '../services/usuariosServico';
 import { criarPendenciasPerfil } from '../utils/pendenciasPerfil';
 import { HomeRankingLiga } from '../components/HomeRankingLiga';
 import { ordenarPartidasRecentes } from '../utils/partidas';
+import bannerLoja from '../assets/banner-loja.png';
 
 const TIPO_CAMPEONATO = 1;
 const TIPO_GRUPO = 3;
@@ -180,7 +181,7 @@ export function PaginaHome() {
       {
         id: 'loja-quebranunca',
         tipo: 'imagem',
-        src: '/src/assets/banner-loja.png',
+        src: bannerLoja,
         alt: 'Conheça a loja QuebraNunca Futevôlei',
         url: 'https://www.quebranunca.com.br'
       }
