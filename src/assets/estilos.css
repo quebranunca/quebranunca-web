@@ -252,6 +252,7 @@ textarea {
 }
 
 .botao-topo-icone {
+  color: var(--color-text-primary);
   flex-shrink: 0;
   min-width: 2.75rem;
   min-height: 2.55rem;

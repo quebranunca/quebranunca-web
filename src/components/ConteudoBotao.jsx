@@ -136,7 +136,7 @@ export function ConteudoBotao({ icone, texto, ajuda, somenteIconeNoMobile = true
 
   return (
     <span
-      className={`botao-com-icone${somenteIconeNoMobile ? ' botao-mobile-icone' : ''}`}
+      className='botao-com-icone botao-mobile-icone'
       title={textoAjuda}
       aria-label={textoAjuda}
     >
