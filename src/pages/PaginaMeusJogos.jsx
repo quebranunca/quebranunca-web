@@ -116,7 +116,7 @@ export function PaginaMeusJogos() {
           <p>Nenhum jogo encontrado para o seu atleta.</p>
         </article>
       ) : atletaLogadoId ? (
-        <div className="lista-cartoes meus-jogos-lista">
+        <div className="lista-cartoes meus-jogos-lista scroll-discreto scroll-fade">
           {partidas.map((partida) => {
             const atletas = obterAtletasPartida(partida, atletaLogadoId);
             const resultado = obterResultadoAtleta(partida, atletaLogadoId);

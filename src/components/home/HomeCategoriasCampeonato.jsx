@@ -10,7 +10,7 @@ export function HomeCategoriasCampeonato({ competicao, categorias }) {
   }
 
   return (
-    <div className="home-card-categorias" aria-label={`Categorias de ${competicao.nome}`}>
+    <div className="home-card-categorias scroll-discreto scroll-fade" aria-label={`Categorias de ${competicao.nome}`}>
       {categorias.map((categoria) => (
         <div key={categoria.id} className="home-card-categoria-item">
           <span>{categoria.nome}</span>

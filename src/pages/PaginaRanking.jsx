@@ -681,7 +681,7 @@ export function PaginaRanking() {
       ) : rankingFiltrado.length === 0 ? (
         <p>Nenhuma pontuação encontrada para o filtro selecionado.</p>
       ) : (
-        <div className="lista-cartoes">
+        <div className="lista-cartoes scroll-discreto scroll-fade">
           {rankingFiltrado.map((grupo) => (
             <article key={grupo.chave} className="cartao-lista">
               <div>
@@ -697,7 +697,7 @@ export function PaginaRanking() {
                 {tipoConsulta === 'regiao' && <p>{grupo.nomeCategoria}</p>}
               </div>
 
-              <div className="ranking-tabela-wrapper">
+              <div className="ranking-tabela-wrapper scroll-discreto">
                 <table className="ranking-tabela">
                   <thead>
                     <tr>
@@ -757,7 +757,7 @@ export function PaginaRanking() {
                 </table>
               </div>
 
-              <div className="ranking-mobile-cards">
+              <div className="ranking-mobile-cards scroll-discreto scroll-fade">
                 {grupo.atletas.map((item) => {
                   const chaveDetalhe = `${grupo.chave}-${item.atletaId}`;
                   const aberto = detalheAberto === chaveDetalhe;

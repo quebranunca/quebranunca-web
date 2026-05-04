@@ -53,7 +53,7 @@ export function HomeRankingLiga() {
         </div>
       </div>
 
-      <div className="home-ranking-scroll">
+      <div className="home-ranking-scroll scroll-discreto scroll-fade">
         {rankingPreview.map((categoria) => (
           <section
             className="home-ranking-categoria"

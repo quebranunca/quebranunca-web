@@ -322,6 +322,105 @@ textarea {
   -webkit-overflow-scrolling: touch;
 }
 
+.scroll-discreto,
+.pagina > .lista-cartoes,
+.cartao-lista > .lista-cartoes,
+.lista-cartoes.lista-rolavel,
+.ranking-tabela-wrapper,
+.ranking-detalhe-lista,
+.lista-sugestoes,
+.grupos-rodadas,
+.grupos-copa-grid,
+.grupo-copa-rodadas,
+.grupo-copa-classificacao {
+  overflow-y: auto;
+  scrollbar-color: rgba(255, 179, 0, 0.28) transparent;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
+.scroll-discreto {
+  max-height: 100%;
+}
+
+.scroll-discreto::-webkit-scrollbar,
+.pagina > .lista-cartoes::-webkit-scrollbar,
+.cartao-lista > .lista-cartoes::-webkit-scrollbar,
+.lista-cartoes.lista-rolavel::-webkit-scrollbar,
+.ranking-tabela-wrapper::-webkit-scrollbar,
+.ranking-detalhe-lista::-webkit-scrollbar,
+.lista-sugestoes::-webkit-scrollbar,
+.grupos-rodadas::-webkit-scrollbar,
+.grupos-copa-grid::-webkit-scrollbar,
+.grupo-copa-rodadas::-webkit-scrollbar,
+.grupo-copa-classificacao::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.scroll-discreto::-webkit-scrollbar-track,
+.pagina > .lista-cartoes::-webkit-scrollbar-track,
+.cartao-lista > .lista-cartoes::-webkit-scrollbar-track,
+.lista-cartoes.lista-rolavel::-webkit-scrollbar-track,
+.ranking-tabela-wrapper::-webkit-scrollbar-track,
+.ranking-detalhe-lista::-webkit-scrollbar-track,
+.lista-sugestoes::-webkit-scrollbar-track,
+.grupos-rodadas::-webkit-scrollbar-track,
+.grupos-copa-grid::-webkit-scrollbar-track,
+.grupo-copa-rodadas::-webkit-scrollbar-track,
+.grupo-copa-classificacao::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scroll-discreto::-webkit-scrollbar-thumb,
+.pagina > .lista-cartoes::-webkit-scrollbar-thumb,
+.cartao-lista > .lista-cartoes::-webkit-scrollbar-thumb,
+.lista-cartoes.lista-rolavel::-webkit-scrollbar-thumb,
+.ranking-tabela-wrapper::-webkit-scrollbar-thumb,
+.ranking-detalhe-lista::-webkit-scrollbar-thumb,
+.lista-sugestoes::-webkit-scrollbar-thumb,
+.grupos-rodadas::-webkit-scrollbar-thumb,
+.grupos-copa-grid::-webkit-scrollbar-thumb,
+.grupo-copa-rodadas::-webkit-scrollbar-thumb,
+.grupo-copa-classificacao::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 179, 0, 0.28);
+  border-radius: 10px;
+}
+
+.scroll-discreto::-webkit-scrollbar-thumb:hover,
+.pagina > .lista-cartoes::-webkit-scrollbar-thumb:hover,
+.cartao-lista > .lista-cartoes::-webkit-scrollbar-thumb:hover,
+.lista-cartoes.lista-rolavel::-webkit-scrollbar-thumb:hover,
+.ranking-tabela-wrapper::-webkit-scrollbar-thumb:hover,
+.ranking-detalhe-lista::-webkit-scrollbar-thumb:hover,
+.lista-sugestoes::-webkit-scrollbar-thumb:hover,
+.grupos-rodadas::-webkit-scrollbar-thumb:hover,
+.grupos-copa-grid::-webkit-scrollbar-thumb:hover,
+.grupo-copa-rodadas::-webkit-scrollbar-thumb:hover,
+.grupo-copa-classificacao::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 179, 0, 0.5);
+}
+
+.scroll-fade {
+  position: relative;
+}
+
+.scroll-fade::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 24px;
+  pointer-events: none;
+  border-radius: 0 0 inherit inherit;
+  background: linear-gradient(
+    to bottom,
+    rgba(8, 9, 11, 0),
+    rgba(8, 9, 11, 0.92)
+  );
+}
+
 .pagina {
   display: flex;
   flex-direction: column;
@@ -640,6 +739,30 @@ a.botao-perigo {
   gap: var(--espaco-md);
 }
 
+.pagina > .lista-cartoes,
+.cartao-lista > .lista-cartoes,
+.lista-cartoes.lista-rolavel {
+  position: relative;
+  max-height: min(68vh, 52rem);
+  padding-right: 0.22rem;
+  align-content: start;
+}
+
+.ranking-detalhe-lista::after,
+.lista-sugestoes::after,
+.grupos-rodadas::after,
+.grupos-copa-grid::after,
+.grupo-copa-rodadas::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 24px;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgba(8, 9, 11, 0), rgba(8, 9, 11, 0.92));
+}
+
 .grade-cartoes {
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
 }
@@ -762,10 +885,13 @@ code {
 }
 
 .ranking-detalhe-lista {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 0.55rem;
+  max-height: min(48vh, 24rem);
   margin-top: 0.6rem;
+  padding-right: 0.18rem;
 }
 
 .ranking-detalhe-item {
@@ -924,6 +1050,7 @@ code {
 
 .meus-jogos-lista {
   gap: 0.85rem;
+  max-height: min(70vh, 48rem);
 }
 
 .meus-jogos-card {
@@ -2046,9 +2173,11 @@ code {
 }
 
 .grupos-rodadas {
+  position: relative;
   display: grid;
   gap: 1rem;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  max-height: min(70vh, 48rem);
   padding: 0.2rem 0.4rem 0.6rem;
 }
 
@@ -2060,9 +2189,12 @@ code {
 }
 
 .grupos-copa-grid {
+  position: relative;
   display: grid;
   gap: 1rem;
   grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  max-height: min(70vh, 50rem);
+  padding-right: 0.2rem;
 }
 
 .grupo-copa-card,
@@ -2148,8 +2280,11 @@ code {
 }
 
 .grupo-copa-rodadas {
+  position: relative;
   display: grid;
   gap: 0.85rem;
+  max-height: min(54vh, 34rem);
+  padding-right: 0.18rem;
 }
 
 .rodada-grupo-card-interna {
@@ -3028,10 +3163,13 @@ code {
 }
 
 .lista-sugestoes {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
+  max-height: 14rem;
   margin-top: -0.35rem;
+  padding-right: 0.15rem;
 }
 
 .secao-dupla-partida {
@@ -3725,7 +3863,6 @@ a.botao-terciario:active {
 
 .home-ranking-scroll {
   max-height: 300px;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -3790,15 +3927,6 @@ a.botao-terciario:active {
 
 .home-ranking-atleta.pos-3 {
   border: 1px solid rgba(205, 127, 50, 0.35);
-}
-
-.home-ranking-scroll::-webkit-scrollbar {
-  width: 4px;
-}
-
-.home-ranking-scroll::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.25);
-  border-radius: 999px;
 }
 
 @media (max-width: 720px) {
