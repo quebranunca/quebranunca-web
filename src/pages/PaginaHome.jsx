@@ -183,7 +183,7 @@ export function PaginaHome() {
         tipo: 'imagem',
         src: bannerLoja,
         alt: 'Conheça a loja QuebraNunca Futevôlei',
-        url: 'https://www.quebranunca.com.br'
+        url: 'https://www.quebranunca.com/quebranunca'
       }
     ],
     [resumoPlataforma]
