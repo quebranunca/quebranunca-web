@@ -50,10 +50,7 @@ function GrupoResumoEstado({ tipo, mensagem }) {
         <div className="grupo-resumo-topo">
           <div>
             <span className="home-eyebrow grupo-resumo-eyebrow">Grupo</span>      
-          </div>
-          <Link to="/grupos" className="botao-primario home-botao">
-            Ver todos os grupos
-          </Link>
+          </div>         
         </div>
 
         <p className="grupo-resumo-mensagem">{mensagem}</p>
@@ -182,6 +179,9 @@ export function GrupoResumoCard({
             )}
           </section>
         </div>
+         <Link to="/grupos" className="botao-primario home-botao">
+            Ver todos os grupos
+          </Link>
       </article>
     </section>
   );
