@@ -178,12 +178,11 @@ export function PaginaHome() {
         )
       },
       {
-        id: 'placeholder',
-        tipo: 'componente',
-        render: () => (
-          <article className="home-hero">
-          </article>
-        )
+        id: 'loja-quebranunca',
+        tipo: 'imagem',
+        src: '/src/assets/banner-loja.png',
+        alt: 'Conheça a loja QuebraNunca Futevôlei',
+        url: 'https://www.quebranunca.com.br'
       }
     ],
     [resumoPlataforma]

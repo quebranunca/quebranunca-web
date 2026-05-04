@@ -62,11 +62,27 @@ export function HomeBannerRotativo({ slides = [], intervaloMs = INTERVALO_PADRAO
                 slide.render?.()
               ) : (
                 <article className="cartao home-banner-imagem">
-                  <img
-                    src={slide.src}
-                    alt={slide.alt || ''}
-                    loading={indice === 0 ? 'eager' : 'lazy'}
-                  />
+                  {slide.url ? (
+                    <a
+                      href={slide.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={slide.alt || 'Abrir loja QuebraNunca'}
+                      className="home-banner-link"
+                    >
+                      <img
+                        src={slide.src}
+                        alt={slide.alt || ''}
+                        loading={indice === 0 ? 'eager' : 'lazy'}
+                      />
+                    </a>
+                  ) : (
+                    <img
+                      src={slide.src}
+                      alt={slide.alt || ''}
+                      loading={indice === 0 ? 'eager' : 'lazy'}
+                    />
+                  )}
                 </article>
               )}
             </div>
