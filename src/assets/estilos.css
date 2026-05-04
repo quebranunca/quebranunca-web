@@ -122,17 +122,6 @@ textarea {
   color: var(--cor-texto);
 }
 
-.topo-app-com-voltar {
-  grid-template-columns: auto minmax(0, 1fr) auto;
-}
-
-.topo-app-acao-esquerda {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  min-width: 2.75rem;
-}
-
 .botao-notificacoes-topo {
   position: relative;
 }
@@ -347,11 +336,6 @@ textarea {
   padding: 0.15rem 0.05rem 0.25rem;
 }
 
-.cabecalho-pagina-voltar {
-  display: flex;
-  margin-bottom: 0.65rem;
-}
-
 .cabecalho-pagina h2,
 .cabecalho-pagina p {
   margin: 0.35rem 0 0;
@@ -514,12 +498,6 @@ a:focus-visible {
 .acoes-formulario > * {
   flex-shrink: 0;
   max-width: 100%;
-}
-
-.rodape-pagina {
-  display: flex;
-  justify-content: flex-start;
-  padding-top: var(--espaco-md);
 }
 
 button {
@@ -1112,46 +1090,6 @@ code {
   gap: 1.15rem;
 }
 
-.home-usuario-card {
-  gap: 0.85rem;
-}
-
-.home-usuario-card-conteudo {
-  display: grid;
-  grid-template-columns: minmax(150px, 0.7fr) minmax(0, 1.3fr);
-  gap: 0.9rem;
-  align-items: flex-start;
-}
-
-.home-usuario-identidade {
-  min-width: 0;
-}
-
-.home-usuario-card h3,
-.home-usuario-card p {
-  margin: 0;
-}
-
-.home-usuario-card h3 {
-  font-size: clamp(1.05rem, 2vw, 1.35rem);
-  line-height: 1.12;
-}
-
-.home-usuario-eyebrow {
-  margin-bottom: 0.45rem;
-  border-color: var(--cor-borda);
-  color: #7a5a00;
-  letter-spacing: 0;
-  white-space: nowrap;
-}
-
-.home-usuario-pendencias {
-  display: flex;
-  gap: 0.45rem;
-  flex-wrap: wrap;
-  align-items: center;
-}
-
 .home-usuario-infos {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1183,10 +1121,6 @@ code {
   font-size: 0.9rem;
   line-height: 1.18;
   overflow-wrap: anywhere;
-}
-
-.home-usuario-pendencias {
-  padding-top: 0.15rem;
 }
 
 .home-usuario-acoes {
@@ -1342,17 +1276,6 @@ code {
   object-position: center;
 }
 
-.home-banner-seta,
-.home-banner-indicadores {
-  display: none;
-}
-
-.banner-placeholder {
-  width: 100%;
-  height: 100%;
-  background: #000;
-}
-
 .home-secao {
   display: flex;
   flex-direction: column;
@@ -1396,10 +1319,6 @@ code {
 
 .home-resumo-usuario {
   gap: 0.95rem;
-}
-
-.home-resumo-usuario-topo h3 {
-  margin: 0;
 }
 
 .home-resumo-usuario-metricas {
@@ -1557,23 +1476,6 @@ code {
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
-}
-
-.home-resumo-usuario-pendencias {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.65rem;
-  padding: 0.75rem;
-  border: 1px solid #f0d27a;
-  border-radius: var(--raio-sm);
-  background: #fff8df;
-}
-
-.home-resumo-usuario-pendencias span {
-  color: #6e5200;
-  font-weight: 800;
 }
 
 .grupo-resumo-card {
@@ -1840,38 +1742,6 @@ code {
   font-weight: 800;
 }
 
-.dashboard-perfil {
-  width: fit-content;
-  padding: 0.18rem 0.55rem;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 999px;
-  color: #d8d8d8;
-  font-size: 0.74rem;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.dashboard-hero-acoes {
-  display: flex;
-  flex-direction: column;
-  gap: 0.55rem;
-  align-items: flex-end;
-  flex-shrink: 0;
-}
-
-.dashboard-acao-principal {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: var(--altura-controle-compacto);
-  padding: 0.48rem 0.82rem;
-  border-radius: 999px;
-  color: #111;
-  font-weight: 800;
-  line-height: 1;
-}
-
 .grade-atalhos {
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
 }
@@ -1948,46 +1818,6 @@ code {
 .cartao-atalho:active h3,
 .cartao-atalho:active p {
   color: inherit;
-}
-
-.cartao-atalho-meta {
-  width: fit-content;
-  padding: 0.18rem 0.55rem;
-  border-radius: 999px;
-  background: var(--cor-superficie-suave);
-  color: #5f5f5f;
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.competicoes-resumo {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--espaco-md);
-}
-
-.competicoes-resumo-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.7rem;
-  padding: 0.8rem 0.95rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: var(--raio-md);
-  background: rgba(255, 255, 255, 0.07);
-  color: var(--cor-texto-fundo-escuro);
-}
-
-.competicoes-resumo-item span {
-  color: #d8d8d8;
-  font-weight: 700;
-}
-
-.competicoes-resumo-item strong {
-  font-size: 1.35rem;
-  line-height: 1;
 }
 
 .filtro-competicoes {
@@ -2147,26 +1977,6 @@ code {
   border: 1px solid var(--cor-borda);
   color: var(--cor-texto);
   box-shadow: var(--sombra-suave);
-}
-
-.barra-visualizacao-partidas {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(247, 244, 237, 0.96) 100%);
-  border: 1px solid var(--cor-borda);
-}
-
-.barra-visualizacao-partidas strong {
-  font-size: 0.95rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #6e5200;
-}
-
-.barra-visualizacao-partidas p {
-  margin: 0.35rem 0 0;
 }
 
 .chave-visualizacao-cabecalho {
@@ -2528,67 +2338,6 @@ code {
   color: #8a6800;
 }
 
-.chave-jogos-grade {
-  display: grid;
-  grid-template-columns: minmax(320px, 1fr) minmax(240px, auto) minmax(320px, 1fr);
-  gap: 2rem;
-  align-items: start;
-  min-width: max-content;
-}
-
-.chave-jogos-lado {
-  display: flex;
-  flex-direction: column;
-  gap: 0.9rem;
-}
-
-.chave-jogos-lado.esquerda {
-  justify-content: flex-start;
-}
-
-.chave-jogos-lado.direita {
-  justify-content: flex-end;
-}
-
-.chave-jogos-centro {
-  display: flex;
-  flex-direction: column;
-  gap: 0.9rem;
-  align-items: center;
-  justify-content: flex-start;
-  min-width: 240px;
-}
-
-.chave-jogos-setor-cabecalho {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-  padding: 0.7rem 1rem;
-  border-radius: 12px;
-  background: var(--cor-terciaria);
-  border: 1px solid var(--cor-borda);
-  color: var(--cor-texto-fundo-escuro);
-}
-
-.chave-jogos-setor-cabecalho.centro {
-  align-items: center;
-  text-align: center;
-  width: 100%;
-}
-
-.chave-jogos-setor-cabecalho span {
-  font-size: 0.92rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.chave-jogos-setor-cabecalho small {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #ffe6a8;
-}
-
 .chave-jogos-centro-vazio {
   display: flex;
   flex-direction: column;
@@ -2868,17 +2617,6 @@ code {
   font-size: 0.72rem;
 }
 
-.checkbox-linha {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-}
-
-.checkbox-linha input[type='checkbox'] {
-  width: auto;
-  margin: 0;
-}
-
 .lancamento-resultado {
   display: flex;
   flex-direction: column;
@@ -2949,16 +2687,11 @@ code {
   text-align: center;
 }
 
-.lancamento-resultado-chave .botao-primario,
-.lancamento-resultado-lista .botao-primario {
+.lancamento-resultado-chave .botao-primario {
   align-self: flex-end;
   width: auto;
   padding: 0.35rem 0.7rem;
   font-size: 0.76rem;
-}
-
-.lancamento-resultado-lista {
-  margin: 0.5rem 0 0;
 }
 
 .chaveamento-modelo .chave-jogos-wrapper {
@@ -3393,26 +3126,6 @@ code {
   font-weight: 800;
 }
 
-.partidas-contexto-resumo {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem;
-  padding-top: 0.15rem;
-}
-
-.partidas-contexto-resumo span {
-  display: inline-flex;
-  align-items: center;
-  min-height: 1.8rem;
-  padding: 0.24rem 0.62rem;
-  border: 1px solid var(--cor-borda);
-  border-radius: 999px;
-  background: var(--cor-superficie-suave);
-  color: var(--cor-texto);
-  font-size: 0.8rem;
-  font-weight: 700;
-}
-
 .formulario-partida {
   align-items: start;
 }
@@ -3556,17 +3269,6 @@ code {
   color: #4f4f4f;
 }
 
-.alternador-auth {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 0.55rem;
-  margin-bottom: 0.85rem;
-}
-
-.alternador-auth button {
-  flex: 1;
-}
-
 .tela-carregamento {
   min-height: 100vh;
   display: flex;
@@ -3635,28 +3337,6 @@ code {
   backdrop-filter: blur(14px);
 }
 
-.botao-notificacoes-topo {
-  position: relative;
-}
-
-.badge-notificacoes-topo {
-  position: absolute;
-  top: -5px;
-  right: -5px;
-  min-width: 19px;
-  height: 19px;
-  padding: 0 5px;
-  border-radius: 999px;
-  background: #ffb84d;
-  color: #050505;
-  font-size: 11px;
-  font-weight: 800;
-  line-height: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .marca-subtitulo,
 .usuario-perfil,
 .cabecalho-pagina p,
@@ -3684,10 +3364,8 @@ code {
 .ranking-mobile-pontos,
 .ranking-mobile-metrica,
 .secao-dupla-partida,
-.partidas-contexto-resumo span,
 .competicao-card-tipo,
 .home-card-detalhes span,
-.cartao-atalho-meta,
 .partidas-filtro-cabecalho span,
 .chave-resumo-item {
   background: var(--color-card-secondary);
@@ -3864,17 +3542,11 @@ a.botao-terciario:active {
   box-shadow: var(--sombra);
 }
 
-.home-hero::after {
-  display: none;
-}
-
 .home-hero h2 {
   letter-spacing: 0;
 }
 
-.home-eyebrow,
-.home-usuario-eyebrow,
-.dashboard-perfil {
+.home-eyebrow {
   color: var(--color-primary);
   border-color: var(--color-border-highlight);
   background: rgba(255, 179, 0, 0.08);
@@ -3904,15 +3576,6 @@ a.botao-terciario:active {
 .ranking-mobile-metrica span,
 .ranking-mobile-pontos span {
   color: var(--color-primary);
-}
-
-.home-resumo-usuario-pendencias {
-  background: rgba(255, 179, 0, 0.08);
-  border-color: var(--color-border-highlight);
-}
-
-.home-resumo-usuario-pendencias span {
-  color: #ffd166;
 }
 
 .ranking-tabela th,
@@ -3953,7 +3616,6 @@ a.botao-terciario:active {
 
 .chave-visualizacao,
 .grupos-visualizacao,
-.barra-visualizacao-partidas,
 .grupo-copa-card,
 .fase-eliminatoria-grupos,
 .grupo-copa-cabecalho,
@@ -4004,98 +3666,9 @@ a.botao-terciario:active {
   color: var(--color-primary);
 }
 
-.ranking-liga-card {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.ranking-liga-header h2 {
-  margin: 0;
-}
-
-.ranking-liga-header p {
-  margin: 6px 0 0;
-  color: var(--cor-texto-secundario, #a7a7a7);
-}
-
 .ranking-liga-lista {
   display: grid;
   gap: 16px;
-}
-
-.ranking-liga-item {
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 20px;
-  padding: 18px;
-  background: linear-gradient(180deg, #151515 0%, #0d0d0d 100%);
-}
-
-.ranking-liga-topo {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  align-items: flex-start;
-  margin-bottom: 16px;
-}
-
-.ranking-liga-campeonato {
-  display: block;
-  margin-bottom: 4px;
-  color: #f5a623;
-  font-size: 0.8rem;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.ranking-liga-topo h3 {
-  margin: 0;
-  font-size: 1.2rem;
-}
-
-.ranking-liga-participantes {
-  white-space: nowrap;
-  border-radius: 999px;
-  padding: 6px 10px;
-  background: rgba(245, 166, 35, 0.12);
-  color: #f5a623;
-  font-size: 0.8rem;
-  font-weight: 700;
-}
-
-.ranking-liga-podio {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-}
-
-.ranking-liga-posicao {
-  min-height: 90px;
-  border-radius: 16px;
-  padding: 14px;
-  background: rgba(255, 255, 255, 0.04);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 8px;
-}
-
-.ranking-liga-posicao span {
-  color: var(--cor-texto-secundario, #a7a7a7);
-  font-size: 0.78rem;
-  text-transform: uppercase;
-  font-weight: 700;
-}
-
-.ranking-liga-posicao strong {
-  color: #fff;
-  font-size: 0.95rem;
-  line-height: 1.35;
-}
-
-.ranking-liga-posicao.primeiro {
-  background: rgba(245, 166, 35, 0.14);
-  border: 1px solid rgba(245, 166, 35, 0.25);
 }
 
 .home-ranking-liga {
@@ -4130,51 +3703,6 @@ a.botao-terciario:active {
   font-size: 0.85rem;
 }
 
-.home-ranking-lista {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.home-ranking-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.04);
-}
-
-.home-ranking-info {
-  display: flex;
-  flex-direction: column;
-}
-
-.home-ranking-campeonato {
-  font-size: 0.7rem;
-  color: #f5a623;
-  text-transform: uppercase;
-}
-
-.home-ranking-info strong {
-  font-size: 0.9rem;
-}
-
-.home-ranking-primeiro {
-  text-align: right;
-}
-
-.home-ranking-primeiro span {
-  font-size: 0.7rem;
-  color: #a7a7a7;
-}
-
-.home-ranking-primeiro p {
-  margin: 2px 0 0;
-  font-size: 0.85rem;
-  font-weight: 600;
-}
-
 .home-ranking-cta {
   width: 100%;
 }
@@ -4193,102 +3721,6 @@ a.botao-terciario:active {
   display: grid;
   grid-template-columns: 1fr;
   gap: 10px;
-}
-
-.ranking-item {
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: 12px;
-  padding: 12px;
-  transition: all 0.2s ease;
-}
-
-.ranking-item.pos-1 {
-  background: linear-gradient(
-    180deg,
-    rgba(212, 175, 55, 0.12) 0%,
-    rgba(212, 175, 55, 0.05) 100%
-  );
-  border: 1px solid rgba(212, 175, 55, 0.18);
-}
-
-.ranking-item.pos-2 {
-  background: linear-gradient(
-    180deg,
-    rgba(192, 192, 192, 0.10) 0%,
-    rgba(192, 192, 192, 0.04) 100%
-  );
-  border: 1px solid rgba(192, 192, 192, 0.15);
-}
-
-.ranking-item.pos-3 {
-  background: linear-gradient(
-    180deg,
-    rgba(205, 127, 50, 0.10) 0%,
-    rgba(205, 127, 50, 0.04) 100%
-  );
-  border: 1px solid rgba(205, 127, 50, 0.15);
-}
-
-.ranking-item span {
-  font-size: 0.7rem;
-  color: #aaa;
-}
-
-.ranking-item strong {
-  display: block;
-}
-
-.ranking-item.pos-1 {
-  border: 1px solid #f5a623;
-  background: rgba(245,166,35,0.1);
-}
-
-.home-ranking-item {
-  width: 100%;
-  border: 0;
-  color: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.home-ranking-primeiro small {
-  display: block;
-  margin-top: 4px;
-  color: #f5a623;
-  font-weight: 700;
-}
-
-.home-ranking-scroll {
-  max-height: 260px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding-right: 4px;
-}
-
-/* scrollbar mais clean */
-.home-ranking-scroll::-webkit-scrollbar {
-  width: 4px;
-}
-
-.home-ranking-scroll::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.2);
-  border-radius: 4px;
-}
-
-/* destaque por posição */
-.home-ranking-item.pos-1 {
-  border: 1px solid #f5a623;
-  background: rgba(245,166,35,0.12);
-}
-
-.home-ranking-item.pos-2 {
-  border: 1px solid #aaa;
-}
-
-.home-ranking-item.pos-3 {
-  border: 1px solid #cd7f32;
 }
 
 .home-ranking-scroll {
@@ -4369,18 +3801,6 @@ a.botao-terciario:active {
   border-radius: 999px;
 }
 
-.ranking-item.pos-1 span {
-  color: #d4af37;
-}
-
-.ranking-item.pos-2 span {
-  color: #c0c0c0;
-}
-
-.ranking-item.pos-3 span {
-  color: #cd7f32;
-}
-
 @media (max-width: 720px) {
   .layout-app {
     padding: 0.65rem;
@@ -4431,32 +3851,6 @@ a.botao-terciario:active {
     gap: var(--espaco-sm);
     padding: 0.62rem;
     border-radius: var(--raio-md);
-  }
-
-  .topo-app-com-voltar {
-    grid-template-columns: auto minmax(0, 1fr) auto;
-  }
-
-  .botao-notificacoes-topo {
-  position: relative;
-}
-
-.badge-notificacoes-topo {
-    position: absolute;
-    top: -5px;
-    right: -5px;
-    min-width: 19px;
-    height: 19px;
-    padding: 0 5px;
-    border-radius: 999px;
-    background: #ffb84d;
-    color: #050505;
-    font-size: 11px;
-    font-weight: 800;
-    line-height: 1;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
   }
 
   .logo-interno {
@@ -4579,10 +3973,6 @@ a.botao-terciario:active {
     linear-gradient(135deg, rgba(255, 179, 0, 0.12) 0%, rgba(17, 18, 20, 0.98) 42%, #08090b 100%);
   }
 
-  .home-usuario-card-conteudo {
-    grid-template-columns: 1fr;
-  }
-
   .home-usuario-infos {
     grid-template-columns: 1fr;
   }
@@ -4677,15 +4067,6 @@ a.botao-terciario:active {
     min-height: 2.55rem;
   }
 
-  .home-resumo-usuario-pendencias {
-    align-items: stretch;
-  }
-
-  .home-resumo-usuario-pendencias a {
-    width: 100%;
-    justify-content: center;
-  }
-
   .grupo-resumo-topo {
     flex-direction: column;
     align-items: stretch;
@@ -4709,20 +4090,6 @@ a.botao-terciario:active {
     align-items: flex-start;
   }
 
-  .dashboard-hero-acoes {
-    width: 100%;
-    align-items: stretch;
-    gap: 0.45rem;
-  }
-
-  .dashboard-hero-acoes strong {
-    font-size: 0.85rem;
-  }
-
-  .dashboard-acao-principal {
-    width: 100%;
-  }
-
   .cartao-atalho {
     min-height: auto;
     gap: 0.28rem;
@@ -4730,19 +4097,6 @@ a.botao-terciario:active {
 
   .cartao-atalho .link-acao {
     margin-top: 0.25rem;
-  }
-
-  .competicoes-resumo {
-    grid-template-columns: 1fr;
-    gap: 0.5rem;
-  }
-
-  .competicoes-resumo-item {
-    padding: 0.65rem 0.75rem;
-  }
-
-  .competicoes-resumo-item strong {
-    font-size: 1.15rem;
   }
 
   .formulario-competicao-cabecalho {
@@ -4916,11 +4270,6 @@ a.botao-terciario:active {
     padding-bottom: 0.55rem;
   }
 
-  .partidas-contexto-resumo span {
-    min-height: 1.65rem;
-    padding: 0.2rem 0.55rem;
-  }
-
   .partida-confronto {
     grid-template-columns: 1fr;
     gap: 0.28rem;
@@ -4946,28 +4295,8 @@ a.botao-terciario:active {
     align-items: flex-start;
   }
 
-  .barra-visualizacao-partidas {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
   .chave-visualizacao-resumo {
     justify-content: flex-start;
-  }
-
-  .chave-jogos-grade {
-    grid-template-columns: 1fr;
-    min-width: 100%;
-  }
-
-  .chave-jogos-lado,
-  .chave-jogos-centro {
-    width: 100%;
-  }
-
-  .chave-jogos-setor-cabecalho.centro {
-    align-items: flex-start;
-    text-align: left;
   }
 
   .chave-jogos {
@@ -5062,17 +4391,6 @@ a.botao-terciario:active {
     text-align: left;
   }
 
-    .ranking-liga-topo {
-    flex-direction: column;
-  }
-
-  .ranking-liga-podio {
-    grid-template-columns: 1fr;
-  }
-
-  .ranking-liga-posicao {
-    min-height: auto;
-  }
 }
 
 @media (min-width: 1280px) {

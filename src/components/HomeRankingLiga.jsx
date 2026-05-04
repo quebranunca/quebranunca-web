@@ -44,7 +44,7 @@ export function HomeRankingLiga() {
   }
 
   return (
-    <article className="cartao home-ranking-liga">
+    <article className="cartao-lista home-resumo-usuario">
       <div className="home-ranking-header">
         <div>
           <span className="badge-liga">Liga</span>
