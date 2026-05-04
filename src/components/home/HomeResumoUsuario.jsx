@@ -227,9 +227,16 @@ export function HomeResumoUsuario({
               </div>                  
             </Link>   
                                           
-            <div className="home-ultimo-jogo">
-              <span className="grupo-resumo-rotulo"> {obterGrupoPartida(ultimoJogo)}  - ({formatarDataHora(ultimoJogo.dataPartida)})</span>                                                            
-              <>
+           {erroUltimoJogo ? (
+              <p className="home-resumo-usuario-vazio">
+                Não foi possível carregar seu último jogo agora.
+              </p>
+            ) : ultimoJogo ? (
+              <div className="home-ultimo-jogo">
+                <span className="grupo-resumo-rotulo">
+                  {obterGrupoPartida(ultimoJogo)} - ({ultimoJogo.dataPartida ? formatarDataHora(ultimoJogo.dataPartida) : 'Data a definir'})
+                </span>
+
                 <PlacarDupla
                   label="Sua dupla"
                   atletas={formatarAtletas(duplasUltimoJogo.minhaDupla)}
@@ -243,8 +250,12 @@ export function HomeResumoUsuario({
                   placar={placarUltimoJogo.adversaria}
                   vencedor={resultadoUltimoJogo?.texto === 'Derrota'}
                 />
-              </>               
-            </div>                          
+              </div>
+            ) : (
+              <p className="home-resumo-usuario-vazio">
+                Você ainda não possui partidas registradas.
+              </p>
+            )}                 
             
             <div className="grupo-resumo-conteudo">              
               <section className="grupo-resumo-bloco" aria-label="Top 3 do ranking do grupo">
