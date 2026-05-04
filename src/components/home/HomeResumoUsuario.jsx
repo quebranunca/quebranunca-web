@@ -12,6 +12,7 @@ import {
   ordenarPartidasRecentes,
   partidaTemPlacarValido
 } from '../../utils/partidas';
+import { PlacarDupla } from '../../components/partidas/PlacarDupla';
 
 const RESUMO_ZERADO = {
   totalPartidas: 0,
@@ -63,11 +64,26 @@ function obterGrupoPartida(partida) {
   return partida?.nomeGrupo || partida?.nomeCategoria || 'Partidas Avulsas';
 }
 
+function formatarPontuacao(valor) {
+  const numero = Number(valor);
+
+  if (!Number.isFinite(numero)) {
+    return '0 pts';
+  }
+
+  const texto = Number.isInteger(numero)
+    ? String(numero)
+    : numero.toFixed(1).replace('.', ',');
+
+  return `${texto} pts`;
+}
+
 export function HomeResumoUsuario({
   nomeAtleta = '',
   atletaId = null,
   resumoUsuario,
   ultimoJogoUsuario,
+  resumoGrupo,
   carregandoResumo,
   erroResumo,
   erroUltimoJogoUsuario
@@ -172,6 +188,7 @@ export function HomeResumoUsuario({
     : null;
   const duplasUltimoJogo = ultimoJogo ? obterDuplasDoAtleta(ultimoJogo, atletaId) : null;
   const placarUltimoJogo = ultimoJogo ? obterPlacarDoAtleta(ultimoJogo, atletaId) : null;
+  const rankingTop3 = resumoGrupo?.rankingTop3 || [];
 
   return (
     <section className="home-secao">
@@ -191,85 +208,72 @@ export function HomeResumoUsuario({
           <p>Carregando desempenho...</p>
         ) : (
           <>                 
-              <Link
-                to="/app/meus-jogos"
-                className="home-resumo-usuario-metricas"
-                aria-label="Abrir meus jogos"
-              >
-                <div>
-                  <span>Jogos</span>
-                  <strong>{resumo.totalPartidas}</strong>
-                </div>
-                <div>
-                  <span>Vitórias</span>
-                  <strong>{resumo.totalVitorias}</strong>
-                </div>
-                <div>
-                  <span>Derrotas</span>
-                  <strong>{resumo.totalDerrotas}</strong>
-                </div>                  
-              </Link>
-              <p className="home-resumo-usuario-aproveitamento">
-                Aproveitamento: <strong>{formatarPercentual(resumo.percentualAproveitamento)}</strong>
-              </p>                                       
-              <div className="home-ultimo-jogo">
-                <div className="home-ultimo-jogo-topo">
-                  <span className="home-ultimo-jogo-eyebrow">Último jogo</span>
-
-                  {ultimoJogo && (
-                    <div className="home-ultimo-jogo-info">
-                      <strong>
-                        {ultimoJogo.dataPartida
-                          ? formatarDataHora(ultimoJogo.dataPartida)
-                          : 'Data a definir'}
-                      </strong>
-
-                      <span className="home-ultimo-jogo-grupo">
-                        {obterGrupoPartida(ultimoJogo)}
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                {erroUltimoJogo ? (
-                  <p className="home-resumo-usuario-vazio">Não foi possível carregar seu último jogo agora.</p>
-                ) : ultimoJogo ? (
-                  <>
-                    <div className="home-ultimo-jogo-confronto">
-                      <div>
-                        <span>Sua dupla</span>
-                        <strong>{formatarAtletas(duplasUltimoJogo.minhaDupla)}</strong>
-                      </div>
-                      <div className="home-ultimo-jogo-placar">
-                        <strong>{partidaTemPlacarValido(ultimoJogo) ? placarUltimoJogo.minhaDupla : '-'}</strong>
-                        <span>x</span>
-                        <strong>{partidaTemPlacarValido(ultimoJogo) ? placarUltimoJogo.adversaria : '-'}</strong>
-                      </div>
-                      <div>
-                        <span>Adversários</span>
-                        <strong>{formatarAtletas(duplasUltimoJogo.duplaAdversaria)}</strong>
-                      </div>
-                    </div>
-                    <div className="home-ultimo-jogo-status">
-                      {resultadoUltimoJogo && (
-                        <span className={`tag-status ${resultadoUltimoJogo.classe} ${obterClasseResultadoHome(resultadoUltimoJogo)}`}>
-                          {resultadoUltimoJogo.texto}
-                        </span>
-                      )}
-                      <span className={`tag-status ${obterClasseStatusAprovacao(ultimoJogo.statusAprovacao)}`}>
-                        {obterTextoStatusAprovacaoHome(ultimoJogo.statusAprovacao)}
-                      </span>
-                    </div>
-                  </>
-                ) : (
-                  <p className="home-resumo-usuario-vazio">Você ainda não possui partidas registradas.</p>
-                )}
+            <Link
+              to="/app/meus-jogos"
+              className="home-resumo-usuario-metricas"
+              aria-label="Abrir meus jogos"
+            >
+              <div>
+                <span>Jogos</span>
+                <strong>{resumo.totalPartidas}</strong>
               </div>
-              <Link to="/partidas/registrar" className="botao-primario home-botao">
-                  Registrar partida
-              </Link>                                      
-          </>
-        )}
+              <div>
+                <span>Vitórias</span>
+                <strong>{resumo.totalVitorias}</strong>
+              </div>
+              <div>
+                <span>Derrotas</span>
+                <strong>{resumo.totalDerrotas}</strong>
+              </div>                  
+            </Link>   
+                                          
+            <div className="home-ultimo-jogo">
+              <span className="grupo-resumo-rotulo"> {obterGrupoPartida(ultimoJogo)}  - ({formatarDataHora(ultimoJogo.dataPartida)})</span>                                                            
+              <>
+                <PlacarDupla
+                  label="Sua dupla"
+                  atletas={formatarAtletas(duplasUltimoJogo.minhaDupla)}
+                  placar={placarUltimoJogo.minhaDupla}
+                  vencedor={resultadoUltimoJogo?.texto === 'Vitória'}
+                />
+
+                <PlacarDupla
+                  label="Adversários"
+                  atletas={formatarAtletas(duplasUltimoJogo.duplaAdversaria)}
+                  placar={placarUltimoJogo.adversaria}
+                  vencedor={resultadoUltimoJogo?.texto === 'Derrota'}
+                />
+              </>               
+            </div>                          
+            
+            <div className="grupo-resumo-conteudo">              
+              <section className="grupo-resumo-bloco" aria-label="Top 3 do ranking do grupo">
+                <span className="grupo-resumo-rotulo">Top 3</span>
+                {rankingTop3.length > 0 ? (
+                  <ol className="grupo-resumo-ranking">
+                    {rankingTop3.map((atleta) => (
+                    <li key={`${atleta.posicao}-${atleta.nomeAtleta}`}>
+                      <span>{atleta.posicao}º</span>
+                      <strong>{atleta.nomeAtleta}</strong>
+                      <small>{formatarPontuacao(atleta.pontuacao)}</small>
+                    </li>
+                  ))}
+                  </ol>
+                ) : (
+                  <p>Ranking ainda não disponível</p>
+                )}
+              </section>
+            </div>
+
+            <Link to="/grupos" className="botao-primario home-botao">
+              Ver todos os grupos
+            </Link>    
+                  
+            <Link to="/partidas/registrar" className="botao-primario home-botao">
+                Registrar partida
+            </Link>                          
+          </>          
+        )}        
       </article>
     </section>
   );

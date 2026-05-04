@@ -2,6 +2,16 @@ import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAutenticacao } from '../../hooks/useAutenticacao';
 import { gruposServico } from '../../services/gruposServico';
+import { PlacarDupla } from '../partidas/PlacarDupla';
+import {
+  atletaEstaNaDuplaA,
+  obterClasseStatusAprovacao,
+  obterDuplasDoAtleta,
+  obterResultadoAtleta,
+  obterTextoStatusAprovacaoHome,
+  ordenarPartidasRecentes,
+  partidaTemPlacarValido
+} from '../../utils/partidas';
 
 function formatarPontuacao(valor) {
   const numero = Number(valor);
@@ -63,10 +73,28 @@ function GrupoResumoEstado({ tipo, mensagem }) {
   );
 }
 
+function formatarAtletas(atletas) {
+  const nomes = (atletas || [])
+    .map((atleta) => atleta.nome)
+    .filter(Boolean);
+
+  return nomes.length > 0 ? nomes.join(' e ') : 'A definir';
+}
+
+function formatarDuplaPartida(partida, prefixo) {
+  const nomes = [
+    partida?.[`nome${prefixo}Atleta1`],
+    partida?.[`nome${prefixo}Atleta2`]
+  ].filter(Boolean);
+
+  return nomes.length > 0 ? nomes.join(' e ') : 'A definir';
+}
+
 export function GrupoResumoCard({
   resumoGrupo,
   carregandoResumo,
-  erroResumo
+  erroResumo,
+  ultimoJogoUsuario
 }) {
   const possuiDadosExternos = resumoGrupo !== undefined ||
     carregandoResumo !== undefined ||
@@ -118,7 +146,7 @@ export function GrupoResumoCard({
     return () => {
       ativo = false;
     };
-  }, [location.key, possuiDadosExternos, token, usuario?.id, usuario?.atletaId]);
+  }, [location.key, possuiDadosExternos, token, usuario?.id]);
 
   const resumo = possuiDadosExternos ? resumoGrupo : resumoLocal;
   const carregando = possuiDadosExternos ? Boolean(carregandoResumo) : carregandoLocal;
@@ -137,11 +165,19 @@ export function GrupoResumoCard({
             <span className="grupo-resumo-rotulo">Último jogo</span>
             {ultimoJogo ? (
               <>
-                <strong>
-                  {juntarNomes(ultimoJogo.dupla1)} X {juntarNomes(ultimoJogo.dupla2)}
-                </strong>
+                <PlacarDupla
+                  label="Dupla 1"
+                  atletas={formatarDuplaPartida(ultimoJogo, 'DuplaA')}
+                  placar={ultimoJogo.placarDuplaA ?? '-'}
+                />
+
+                <PlacarDupla
+                  label="Dupla 2"
+                  atletas={formatarDuplaPartida(ultimoJogo, 'DuplaB')}
+                  placar={ultimoJogo.placarDuplaB ?? '-'}
+                />
+
                 <div className="grupo-resumo-jogo-meta">
-                  <span>{ultimoJogo.placar}</span>
                   <small>{formatarDataRelativa(ultimoJogo.data)}</small>
                 </div>
               </>

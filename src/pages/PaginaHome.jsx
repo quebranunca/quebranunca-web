@@ -395,15 +395,9 @@ export function PaginaHome() {
           resumoUsuario={resumoUsuario}
           ultimoJogoUsuario={ultimoJogoUsuario}
           carregandoResumo={carregandoUsuario}
+          resumoGrupo={resumoGrupoUsuario}
           erroResumo={erroResumoUsuario}
           erroUltimoJogoUsuario={erroUltimoJogoUsuario}
-        />
-      )}
-      {token && (
-        <GrupoResumoCard
-          resumoGrupo={resumoGrupoUsuario}
-          carregandoResumo={carregandoUsuario}
-          erroResumo={erroResumoGrupoUsuario}
         />
       )}
 
