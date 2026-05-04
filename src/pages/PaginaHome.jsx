@@ -309,12 +309,12 @@ export function PaginaHome() {
       {!token && <HomeBannerRotativo slides={slidesBannerVisitante} />}
 
       {token && <HomeResumoUsuario nomeAtleta={nomeAtleta} />}
+      {token && <GrupoResumoCard />}
 
       {carregando ? (
         <p>Carregando informações públicas...</p>
       ) : (
         <>
-          {token && <GrupoResumoCard />}
           <HomeRankingLiga />
           <HomeProximosCampeonatos
             campeonatos={proximosCampeonatos}

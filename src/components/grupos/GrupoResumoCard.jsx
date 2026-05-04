@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { useAutenticacao } from '../../hooks/useAutenticacao';
 import { gruposServico } from '../../services/gruposServico';
 
 function formatarPontuacao(valor) {
@@ -42,27 +43,46 @@ function juntarNomes(nomes) {
   return (nomes || []).filter(Boolean).join(' / ');
 }
 
-function GrupoResumoSkeleton() {
+function GrupoResumoEstado({ tipo, mensagem }) {
   return (
     <section className="home-secao">
-      <article className="cartao-lista grupo-resumo-card grupo-resumo-card-skeleton" aria-label="Carregando resumo do grupo">
-        <span />
-        <span />
-        <span />
+      <article className={`cartao-lista grupo-resumo-card grupo-resumo-card-${tipo}`}>
+        <div className="grupo-resumo-topo">
+          <div>
+            <span className="home-eyebrow grupo-resumo-eyebrow">Grupo</span>
+            <h3>Seus grupos</h3>
+          </div>
+          <Link to="/grupos" className="botao-primario home-botao">
+            Ver todos os grupos
+          </Link>
+        </div>
+
+        <p className="grupo-resumo-mensagem">{mensagem}</p>
       </article>
     </section>
   );
 }
 
 export function GrupoResumoCard() {
+  const { token, usuario } = useAutenticacao();
+  const location = useLocation();
   const [resumo, setResumo] = useState(null);
   const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState(false);
 
   useEffect(() => {
     let ativo = true;
 
     async function carregarResumo() {
+      if (!token) {
+        setResumo(null);
+        setErro(false);
+        setCarregando(false);
+        return;
+      }
+
       setCarregando(true);
+      setErro(false);
 
       try {
         const dados = await gruposServico.obterResumoUsuario();
@@ -72,6 +92,7 @@ export function GrupoResumoCard() {
       } catch {
         if (ativo) {
           setResumo(null);
+          setErro(true);
         }
       } finally {
         if (ativo) {
@@ -85,14 +106,18 @@ export function GrupoResumoCard() {
     return () => {
       ativo = false;
     };
-  }, []);
+  }, [location.key, token, usuario?.id, usuario?.atletaId]);
 
   if (carregando) {
-    return <GrupoResumoSkeleton />;
+    return <GrupoResumoEstado tipo="carregando" mensagem="Carregando seus grupos..." />;
+  }
+
+  if (erro) {
+    return <GrupoResumoEstado tipo="erro" mensagem="Não foi possível carregar seus grupos agora." />;
   }
 
   if (!resumo) {
-    return null;
+    return <GrupoResumoEstado tipo="vazio" mensagem="Você ainda não participa de nenhum grupo." />;
   }
 
   const ultimoJogo = resumo.ultimoJogo;

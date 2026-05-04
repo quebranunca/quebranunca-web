@@ -1591,23 +1591,14 @@ code {
   font-weight: 800;
 }
 
-.grupo-resumo-card-skeleton span {
-  display: block;
-  height: 1rem;
-  border-radius: 999px;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.08), rgba(255, 180, 0, 0.18), rgba(255, 255, 255, 0.08));
+.grupo-resumo-mensagem {
+  margin: 0;
+  color: var(--cor-texto-suave);
+  font-weight: 700;
 }
 
-.grupo-resumo-card-skeleton span:first-child {
-  width: 34%;
-}
-
-.grupo-resumo-card-skeleton span:nth-child(2) {
-  width: 78%;
-}
-
-.grupo-resumo-card-skeleton span:nth-child(3) {
-  width: 56%;
+.grupo-resumo-card-erro {
+  border-color: rgba(255, 99, 71, 0.34);
 }
 
 .home-card-campeonato {
@@ -4075,6 +4066,208 @@ a.botao-terciario:active {
 
 .home-ranking-cta {
   width: 100%;
+}
+
+.ranking-categoria {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ranking-categoria h2 {
+  margin: 0;
+}
+
+.ranking-podio {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.ranking-item {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 12px;
+  padding: 12px;
+  transition: all 0.2s ease;
+}
+
+.ranking-item.pos-1 {
+  background: linear-gradient(
+    180deg,
+    rgba(212, 175, 55, 0.12) 0%,
+    rgba(212, 175, 55, 0.05) 100%
+  );
+  border: 1px solid rgba(212, 175, 55, 0.18);
+}
+
+.ranking-item.pos-2 {
+  background: linear-gradient(
+    180deg,
+    rgba(192, 192, 192, 0.10) 0%,
+    rgba(192, 192, 192, 0.04) 100%
+  );
+  border: 1px solid rgba(192, 192, 192, 0.15);
+}
+
+.ranking-item.pos-3 {
+  background: linear-gradient(
+    180deg,
+    rgba(205, 127, 50, 0.10) 0%,
+    rgba(205, 127, 50, 0.04) 100%
+  );
+  border: 1px solid rgba(205, 127, 50, 0.15);
+}
+
+.ranking-item span {
+  font-size: 0.7rem;
+  color: #aaa;
+}
+
+.ranking-item strong {
+  display: block;
+}
+
+.ranking-item.pos-1 {
+  border: 1px solid #f5a623;
+  background: rgba(245,166,35,0.1);
+}
+
+.home-ranking-item {
+  width: 100%;
+  border: 0;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.home-ranking-primeiro small {
+  display: block;
+  margin-top: 4px;
+  color: #f5a623;
+  font-weight: 700;
+}
+
+.home-ranking-scroll {
+  max-height: 260px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-right: 4px;
+}
+
+/* scrollbar mais clean */
+.home-ranking-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.home-ranking-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.2);
+  border-radius: 4px;
+}
+
+/* destaque por posição */
+.home-ranking-item.pos-1 {
+  border: 1px solid #f5a623;
+  background: rgba(245,166,35,0.12);
+}
+
+.home-ranking-item.pos-2 {
+  border: 1px solid #aaa;
+}
+
+.home-ranking-item.pos-3 {
+  border: 1px solid #cd7f32;
+}
+
+.home-ranking-scroll {
+  max-height: 300px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-right: 4px;
+}
+
+.home-ranking-categoria {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.home-ranking-categoria-header {
+  color: #f5a623;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+}
+
+.home-ranking-atletas {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.home-ranking-atleta {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 42px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.04);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.home-ranking-posicao {
+  font-weight: 800;
+  color: #f5a623;
+}
+
+.home-ranking-nome {
+  font-weight: 700;
+}
+
+.home-ranking-pontos {
+  color: #fff;
+  font-size: 0.85rem;
+}
+
+.home-ranking-atleta.pos-1 {
+  background: rgba(245, 166, 35, 0.12);
+  border: 1px solid rgba(245, 166, 35, 0.35);
+}
+
+.home-ranking-atleta.pos-2 {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.home-ranking-atleta.pos-3 {
+  border: 1px solid rgba(205, 127, 50, 0.35);
+}
+
+.home-ranking-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.home-ranking-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+}
+
+.ranking-item.pos-1 span {
+  color: #d4af37;
+}
+
+.ranking-item.pos-2 span {
+  color: #c0c0c0;
+}
+
+.ranking-item.pos-3 span {
+  color: #cd7f32;
 }
 
 @media (max-width: 720px) {
