@@ -138,12 +138,6 @@ export function GrupoResumoCard({
   return (
     <section className="home-secao">
       <article className="cartao-lista grupo-resumo-card">
-        <div className="grupo-resumo-topo">
-          <Link to="/grupos" className="botao-primario home-botao">
-            Ver todos os grupos
-          </Link>
-        </div>
-
         <div className="grupo-resumo-conteudo">
           <section className="grupo-resumo-bloco" aria-label="Último jogo do grupo">
             <span className="grupo-resumo-rotulo">Último jogo</span>
