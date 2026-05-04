@@ -59,6 +59,10 @@ function obterPlacarDoAtleta(partida, atletaId) {
   };
 }
 
+function obterGrupoPartida(partida) {
+  return partida?.nomeGrupo || partida?.nomeCategoria || 'Sem grupo';
+}
+
 export function HomeResumoUsuario({
   nomeAtleta = '',
   atletaId = null,
@@ -217,9 +221,9 @@ export function HomeResumoUsuario({
                       <strong>{ultimoJogo.dataPartida ? formatarDataHora(ultimoJogo.dataPartida) : 'Data a definir'}</strong>
                     )}
                   </div>
-                  {resultadoUltimoJogo && (
-                    <span className={`tag-status ${resultadoUltimoJogo.classe} ${obterClasseResultadoHome(resultadoUltimoJogo)}`}>
-                      {resultadoUltimoJogo.texto}
+                  {ultimoJogo && (
+                    <span className="home-ultimo-jogo-grupo">
+                      {obterGrupoPartida(ultimoJogo)}
                     </span>
                   )}
                 </div>
@@ -243,9 +247,16 @@ export function HomeResumoUsuario({
                         <strong>{formatarAtletas(duplasUltimoJogo.duplaAdversaria)}</strong>
                       </div>
                     </div>
-                    <span className={`tag-status ${obterClasseStatusAprovacao(ultimoJogo.statusAprovacao)}`}>
-                      {obterTextoStatusAprovacaoHome(ultimoJogo.statusAprovacao)}
-                    </span>
+                    <div className="home-ultimo-jogo-status">
+                      {resultadoUltimoJogo && (
+                        <span className={`tag-status ${resultadoUltimoJogo.classe} ${obterClasseResultadoHome(resultadoUltimoJogo)}`}>
+                          {resultadoUltimoJogo.texto}
+                        </span>
+                      )}
+                      <span className={`tag-status ${obterClasseStatusAprovacao(ultimoJogo.statusAprovacao)}`}>
+                        {obterTextoStatusAprovacaoHome(ultimoJogo.statusAprovacao)}
+                      </span>
+                    </div>
                   </>
                 ) : (
                   <p className="home-resumo-usuario-vazio">Você ainda não possui partidas registradas.</p>

@@ -1444,20 +1444,18 @@ code {
 
 .home-ultimo-jogo {
   display: grid;
-  gap: 0.75rem;
-  padding: 0.85rem;
-  border: 1px solid rgba(255, 180, 0, 0.24);
+  gap: 0.55rem;
+  padding: 0.62rem;
+  border: 1px solid rgba(255, 180, 0, 0.16);
   border-radius: var(--raio-sm);
-  background:
-    linear-gradient(135deg, rgba(255, 180, 0, 0.09), transparent 48%),
-    rgba(8, 9, 11, 0.62);
+  background: rgba(8, 9, 11, 0.46);
 }
 
 .home-ultimo-jogo-topo {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 0.7rem;
+  gap: 0.55rem;
 }
 
 .home-ultimo-jogo-topo > div {
@@ -1468,7 +1466,7 @@ code {
 .home-ultimo-jogo-confronto span {
   display: block;
   color: var(--color-primary);
-  font-size: 0.72rem;
+  font-size: 0.64rem;
   font-weight: 800;
   letter-spacing: 0;
   text-transform: uppercase;
@@ -1476,49 +1474,71 @@ code {
 
 .home-ultimo-jogo-topo strong {
   display: block;
-  margin-top: 0.2rem;
+  margin-top: 0.12rem;
   color: var(--cor-texto);
-  font-size: 0.95rem;
+  font-size: 0.82rem;
+}
+
+.home-ultimo-jogo-grupo {
+  max-width: 45%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--cor-texto-suave);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-align: right;
 }
 
 .home-ultimo-jogo-confronto {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-  gap: 0.55rem;
+  gap: 0.42rem;
   align-items: stretch;
 }
 
 .home-ultimo-jogo-confronto > div {
   min-width: 0;
-  padding: 0.65rem;
+  padding: 0.48rem;
   border: 1px solid var(--cor-borda);
   border-radius: var(--raio-sm);
-  background: rgba(255, 255, 255, 0.045);
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .home-ultimo-jogo-confronto strong {
   display: block;
-  margin-top: 0.24rem;
+  margin-top: 0.16rem;
   overflow-wrap: anywhere;
   color: var(--cor-texto);
-  font-size: 0.9rem;
+  font-size: 0.78rem;
   line-height: 1.25;
 }
 
 .home-ultimo-jogo-placar {
-  min-width: 4.65rem;
+  min-width: 3.7rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.3rem;
+  gap: 0.24rem;
   color: var(--color-primary);
   font-weight: 900;
 }
 
 .home-ultimo-jogo-placar strong {
   margin: 0;
-  font-size: 1.25rem;
+  font-size: 1.05rem;
   line-height: 1;
+}
+
+.home-ultimo-jogo-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.home-ultimo-jogo-status .tag-status {
+  padding: 0.16rem 0.48rem;
+  font-size: 0.7rem;
 }
 
 .home-ultimo-jogo-resultado-vitoria {
