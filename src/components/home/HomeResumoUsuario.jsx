@@ -36,7 +36,7 @@ function formatarAtletas(atletas) {
     .map((atleta) => atleta.nome)
     .filter(Boolean);
 
-  return nomes.length > 0 ? nomes.join(' / ') : 'A definir';
+  return nomes.length > 0 ? nomes.join(' e ') : 'A definir';
 }
 
 function obterClasseResultadoHome(resultado) {
