@@ -60,7 +60,7 @@ function obterPlacarDoAtleta(partida, atletaId) {
 }
 
 function obterGrupoPartida(partida) {
-  return partida?.nomeGrupo || partida?.nomeCategoria || 'Sem grupo';
+  return partida?.nomeGrupo || partida?.nomeCategoria || 'Partidas Avulsas';
 }
 
 export function HomeResumoUsuario({

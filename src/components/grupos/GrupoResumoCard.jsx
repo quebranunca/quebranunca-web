@@ -13,6 +13,10 @@ function formatarPontuacao(valor) {
   return `${texto} pts`;
 }
 
+function obterGrupoPartida(partida) {
+  return partida?.nomeGrupo || partida?.nomeCategoria || 'Partidas Avulsas';
+}
+
 function formatarDataRelativa(data) {
   if (!data) {
     return '';
@@ -119,26 +123,16 @@ export function GrupoResumoCard({
   const resumo = possuiDadosExternos ? resumoGrupo : resumoLocal;
   const carregando = possuiDadosExternos ? Boolean(carregandoResumo) : carregandoLocal;
   const erro = possuiDadosExternos ? Boolean(erroResumo) : erroLocal;
-
-  if (carregando) {
-    return <GrupoResumoEstado tipo="carregando" mensagem="Carregando seus grupos..." />;
-  }
-
-  if (erro) {
-    return <GrupoResumoEstado tipo="erro" mensagem="Não foi possível carregar seus grupos agora." />;
-  }
-
-  if (!resumo) {
-    return <GrupoResumoEstado tipo="vazio" mensagem="Você ainda não participa de nenhum grupo." />;
-  }
-
-  const ultimoJogo = resumo.ultimoJogo;
-  const rankingTop3 = resumo.rankingTop3 || [];
+  const ultimoJogo = resumo?.ultimoJogo;
+  const rankingTop3 = resumo?.rankingTop3 || [];
 
   return (
     <section className="home-secao">
       <article className="cartao-lista grupo-resumo-card">
         <div className="grupo-resumo-conteudo">
+          <span className="grupo-resumo-rotulo">
+            {ultimoJogo ? obterGrupoPartida(ultimoJogo) : 'Grupo'}
+          </span>
           <section className="grupo-resumo-bloco" aria-label="Último jogo do grupo">
             <span className="grupo-resumo-rotulo">Último jogo</span>
             {ultimoJogo ? (
