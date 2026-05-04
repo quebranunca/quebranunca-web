@@ -15,6 +15,7 @@ import { PaginaCompeticoes } from './pages/PaginaCompeticoes';
 import { PaginaGrupos } from './pages/PaginaGrupos';
 import { PaginaGrupoAtletas } from './pages/PaginaGrupoAtletas';
 import { PaginaRanking } from './pages/PaginaRanking';
+import { RankingLiga } from './pages/PaginaRankingLiga';
 import { PaginaCategorias } from './pages/PaginaCategorias';
 import { PaginaInscricoesCampeonato } from './pages/PaginaInscricoesCampeonato';
 import { PaginaRegistrarPartidas } from './pages/PaginaRegistrarPartidas';
@@ -38,8 +39,8 @@ export default function App() {
       <Route path="/cadastro/convite/:identificadorPublico" element={<PaginaCadastroConvite />} />
       <Route element={<LayoutPrincipal />}>
         <Route path="/" element={<PaginaHome />} />
-        <Route path="/login" element={<PaginaLogin />} />
-        <Route path="/ranking" element={<PaginaRanking />} />
+        <Route path="/login" element={<PaginaLogin />} />        
+        <Route path="/ranking/liga" element={<RankingLiga />} />
         <Route path="/competicoes" element={<PaginaCompeticoes />} />
         <Route path="/inscricoes" element={<PaginaInscricoesCampeonato />} />
       </Route>

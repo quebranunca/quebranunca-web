@@ -18,6 +18,7 @@ import { gruposServico } from '../services/gruposServico';
 import { pendenciasServico } from '../services/pendenciasServico';
 import { rankingServico } from '../services/rankingServico';
 import { criarPendenciasPerfil } from '../utils/pendenciasPerfil';
+import { HomeRankingLiga } from '../components/HomeRankingLiga';
 
 const TIPO_CAMPEONATO = 1;
 const TIPO_GRUPO = 3;
@@ -314,6 +315,7 @@ export function PaginaHome() {
       ) : (
         <>
           {token && <GrupoResumoCard />}
+          <HomeRankingLiga />
           <HomeProximosCampeonatos
             campeonatos={proximosCampeonatos}
             categoriasPorCompeticao={categoriasPorCompeticao}

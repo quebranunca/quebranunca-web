@@ -190,7 +190,8 @@ export const ROTAS_APP_HEADER = [
   { path: '/usuarios', title: 'Usuários', tipoTela: TIPOS_TELA.raiz },
   { path: '/convites-cadastro', title: 'Convites', tipoTela: TIPOS_TELA.raiz },
   { path: '/ranking', title: 'Ranking', tipoTela: TIPOS_TELA.acao },
-  { path: '/login', title: 'Entrar', tipoTela: TIPOS_TELA.raiz }
+  { path: '/login', title: 'Entrar', tipoTela: TIPOS_TELA.raiz },
+  { path: '/app/ranking-liga', title: 'Ranking da Liga', tipoTela: TIPOS_TELA.acao }
 ];
 
 export function obterItensNavegacao(usuario, estadoAcesso, opcoes = {}) {

@@ -3902,6 +3902,181 @@ a.botao-terciario:active {
   color: var(--color-primary);
 }
 
+.ranking-liga-card {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.ranking-liga-header h2 {
+  margin: 0;
+}
+
+.ranking-liga-header p {
+  margin: 6px 0 0;
+  color: var(--cor-texto-secundario, #a7a7a7);
+}
+
+.ranking-liga-lista {
+  display: grid;
+  gap: 16px;
+}
+
+.ranking-liga-item {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 18px;
+  background: linear-gradient(180deg, #151515 0%, #0d0d0d 100%);
+}
+
+.ranking-liga-topo {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.ranking-liga-campeonato {
+  display: block;
+  margin-bottom: 4px;
+  color: #f5a623;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.ranking-liga-topo h3 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.ranking-liga-participantes {
+  white-space: nowrap;
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: rgba(245, 166, 35, 0.12);
+  color: #f5a623;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.ranking-liga-podio {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.ranking-liga-posicao {
+  min-height: 90px;
+  border-radius: 16px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+}
+
+.ranking-liga-posicao span {
+  color: var(--cor-texto-secundario, #a7a7a7);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.ranking-liga-posicao strong {
+  color: #fff;
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+
+.ranking-liga-posicao.primeiro {
+  background: rgba(245, 166, 35, 0.14);
+  border: 1px solid rgba(245, 166, 35, 0.25);
+}
+
+.home-ranking-liga {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.home-ranking-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.badge-liga {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #f5a623;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.home-ranking-header h2 {
+  margin: 0;
+}
+
+.home-ranking-header p {
+  margin: 4px 0 0;
+  color: #a7a7a7;
+  font-size: 0.85rem;
+}
+
+.home-ranking-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.home-ranking-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.home-ranking-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.home-ranking-campeonato {
+  font-size: 0.7rem;
+  color: #f5a623;
+  text-transform: uppercase;
+}
+
+.home-ranking-info strong {
+  font-size: 0.9rem;
+}
+
+.home-ranking-primeiro {
+  text-align: right;
+}
+
+.home-ranking-primeiro span {
+  font-size: 0.7rem;
+  color: #a7a7a7;
+}
+
+.home-ranking-primeiro p {
+  margin: 2px 0 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.home-ranking-cta {
+  width: 100%;
+}
+
 @media (max-width: 720px) {
   .layout-app {
     padding: 0.65rem;
@@ -4567,6 +4742,18 @@ a.botao-terciario:active {
   .chave-jogo-pontuacao-texto {
     min-width: 0;
     text-align: left;
+  }
+
+    .ranking-liga-topo {
+    flex-direction: column;
+  }
+
+  .ranking-liga-podio {
+    grid-template-columns: 1fr;
+  }
+
+  .ranking-liga-posicao {
+    min-height: auto;
   }
 }
 
