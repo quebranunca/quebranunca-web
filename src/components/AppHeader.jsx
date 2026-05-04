@@ -1,5 +1,6 @@
 import { NavLink, matchPath, useLocation, useNavigate } from 'react-router-dom';
 import { ConteudoBotao } from './ConteudoBotao';
+import { NotificacoesBotao } from './NotificacoesBotao';
 import logoLiga from '../assets/logo-liga.svg';
 import { ROTAS_APP_HEADER, TIPOS_TELA } from '../pages/navagacao';
 import { nomePerfil } from '../utils/perfis';
@@ -97,6 +98,10 @@ export function AppHeader({
           </svg>
         </button>
 
+        {autenticado && (
+          <NotificacoesBotao autenticado={autenticado} />
+        )}
+        
         {mostrarMenu && (
           <button
             type="button"

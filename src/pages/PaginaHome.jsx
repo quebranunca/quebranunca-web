@@ -313,7 +313,6 @@ export function PaginaHome() {
         <p>Carregando informações públicas...</p>
       ) : (
         <>
-          {token && <HomePendencias totalPendencias={totalPendenciasHome} />}
           {token && <GrupoResumoCard />}
           <HomeProximosCampeonatos
             campeonatos={proximosCampeonatos}
