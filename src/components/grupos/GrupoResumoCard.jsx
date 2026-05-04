@@ -44,7 +44,7 @@ function formatarDataRelativa(data) {
 }
 
 function juntarNomes(nomes) {
-  return (nomes || []).filter(Boolean).join(' / ');
+  return (nomes || []).filter(Boolean).join(' e ');
 }
 
 function GrupoResumoEstado({ tipo, mensagem }) {
@@ -138,7 +138,7 @@ export function GrupoResumoCard({
             {ultimoJogo ? (
               <>
                 <strong>
-                  {juntarNomes(ultimoJogo.dupla1)} vs {juntarNomes(ultimoJogo.dupla2)}
+                  {juntarNomes(ultimoJogo.dupla1)} X {juntarNomes(ultimoJogo.dupla2)}
                 </strong>
                 <div className="grupo-resumo-jogo-meta">
                   <span>{ultimoJogo.placar}</span>

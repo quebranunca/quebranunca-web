@@ -180,7 +180,7 @@ export function HomeResumoUsuario({
           <div>
             <div className="home-usuario-infos">
               <div className="home-usuario-info-item">
-                <span>Nome</span>
+                <span>Atleta</span>
                 <strong>{nomeAtleta || 'Não vinculado'}</strong>
               </div>              
             </div>                    
@@ -211,8 +211,7 @@ export function HomeResumoUsuario({
               </Link>
               <p className="home-resumo-usuario-aproveitamento">
                 Aproveitamento: <strong>{formatarPercentual(resumo.percentualAproveitamento)}</strong>
-              </p>                         
-              {erro && <p className="texto-erro">Não foi possível atualizar todo o resumo agora.</p>}
+              </p>                                       
               <div className="home-ultimo-jogo">
                 <div className="home-ultimo-jogo-topo">
                   <span className="home-ultimo-jogo-eyebrow">Último jogo</span>
