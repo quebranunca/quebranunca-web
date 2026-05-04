@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
   HomeBannerRotativo,
   HomeDestaqueRanking,
@@ -16,9 +17,12 @@ import { categoriasServico } from '../services/categoriasServico';
 import { competicoesServico } from '../services/competicoesServico';
 import { gruposServico } from '../services/gruposServico';
 import { pendenciasServico } from '../services/pendenciasServico';
+import { partidasServico } from '../services/partidasServico';
 import { rankingServico } from '../services/rankingServico';
+import { usuariosServico } from '../services/usuariosServico';
 import { criarPendenciasPerfil } from '../utils/pendenciasPerfil';
 import { HomeRankingLiga } from '../components/HomeRankingLiga';
+import { ordenarPartidasRecentes } from '../utils/partidas';
 
 const TIPO_CAMPEONATO = 1;
 const TIPO_GRUPO = 3;
@@ -62,6 +66,10 @@ function pendenciaAindaVisivel(item) {
   }
 
   return !item.emailAtleta && !item.atletaPossuiUsuarioVinculado;
+}
+
+function registrarFalhaHome(contexto, erro) {
+  console.error(`Erro ao carregar ${contexto} na Home.`, erro);
 }
 
 function selecionarTopRanking(ranking) {
@@ -111,12 +119,20 @@ function montarResumoPlataforma(competicoes, ranking) {
 
 export function PaginaHome() {
   const { token, usuario, estadoAcesso } = useAutenticacao();
+  const location = useLocation();
   const [competicoes, setCompeticoes] = useState([]);
   const [categoriasPorCompeticao, setCategoriasPorCompeticao] = useState({});
   const [rankingGeral, setRankingGeral] = useState([]);
   const [pendenciasUsuario, setPendenciasUsuario] = useState([]);
   const [atletaPerfil, setAtletaPerfil] = useState(null);
+  const [resumoUsuario, setResumoUsuario] = useState(null);
+  const [ultimoJogoUsuario, setUltimoJogoUsuario] = useState(null);
+  const [resumoGrupoUsuario, setResumoGrupoUsuario] = useState(null);
   const [carregando, setCarregando] = useState(true);
+  const [carregandoUsuario, setCarregandoUsuario] = useState(false);
+  const [erroResumoUsuario, setErroResumoUsuario] = useState(false);
+  const [erroUltimoJogoUsuario, setErroUltimoJogoUsuario] = useState(false);
+  const [erroResumoGrupoUsuario, setErroResumoGrupoUsuario] = useState(false);
 
   const hoje = useMemo(() => {
     const data = new Date();
@@ -200,6 +216,10 @@ export function PaginaHome() {
           const listaGrupos = resultadoGrupos.status === 'fulfilled'
             ? resultadoGrupos.value.map((grupo) => ({ ...grupo, tipo: TIPO_GRUPO }))
             : [];
+          if (resultadoGrupos.status === 'rejected') {
+            registrarFalhaHome('grupos', resultadoGrupos.reason);
+          }
+
           const listaCompeticoes = [...resultadoCompeticoes.value, ...listaGrupos];
           setCompeticoes(listaCompeticoes);
 
@@ -210,6 +230,7 @@ export function PaginaHome() {
 
           setCategoriasPorCompeticao(categoriasCampeonatos);
         } else {
+          registrarFalhaHome('competições', resultadoCompeticoes.reason);
           setCompeticoes([]);
           setCategoriasPorCompeticao({});
         }
@@ -217,9 +238,11 @@ export function PaginaHome() {
         if (resultadoRanking.status === 'fulfilled') {
           setRankingGeral(resultadoRanking.value);
         } else {
+          registrarFalhaHome('ranking geral', resultadoRanking.reason);
           setRankingGeral([]);
         }
-      } catch {
+      } catch (erro) {
+        registrarFalhaHome('dados públicos', erro);
         setCompeticoes([]);
         setCategoriasPorCompeticao({});
         setRankingGeral([]);
@@ -244,12 +267,27 @@ export function PaginaHome() {
       if (!token) {
         setPendenciasUsuario([]);
         setAtletaPerfil(null);
+        setResumoUsuario(null);
+        setUltimoJogoUsuario(null);
+        setResumoGrupoUsuario(null);
+        setCarregandoUsuario(false);
+        setErroResumoUsuario(false);
+        setErroUltimoJogoUsuario(false);
+        setErroResumoGrupoUsuario(false);
         return;
       }
 
-      const [resultadoPendencias, resultadoAtleta] = await Promise.allSettled([
+      setCarregandoUsuario(true);
+      setErroResumoUsuario(false);
+      setErroUltimoJogoUsuario(false);
+      setErroResumoGrupoUsuario(false);
+
+      const [resultadoPendencias, resultadoAtleta, resultadoResumo, resultadoPartidas, resultadoResumoGrupo] = await Promise.allSettled([
         pendenciasServico.listar(),
-        usuario?.atletaId ? atletasServico.obterMeu() : Promise.resolve(null)
+        usuario?.atletaId ? atletasServico.obterMeu() : Promise.resolve(null),
+        usuariosServico.obterResumo(),
+        usuario?.atletaId ? partidasServico.listarMinhas() : Promise.resolve([]),
+        gruposServico.obterResumoUsuario()
       ]);
 
       if (!ativo) {
@@ -259,22 +297,64 @@ export function PaginaHome() {
       if (resultadoPendencias.status === 'fulfilled') {
         setPendenciasUsuario((resultadoPendencias.value || []).filter(pendenciaAindaVisivel));
       } else {
+        registrarFalhaHome('pendências do usuário', resultadoPendencias.reason);
         setPendenciasUsuario([]);
       }
 
       if (resultadoAtleta.status === 'fulfilled') {
         setAtletaPerfil(resultadoAtleta.value);
       } else {
+        registrarFalhaHome('atleta do usuário', resultadoAtleta.reason);
         setAtletaPerfil(null);
       }
+
+      if (resultadoResumo.status === 'fulfilled') {
+        setResumoUsuario(resultadoResumo.value || null);
+      } else {
+        registrarFalhaHome('resumo do usuário', resultadoResumo.reason);
+        setResumoUsuario(null);
+        setErroResumoUsuario(true);
+      }
+
+      if (resultadoPartidas.status === 'fulfilled') {
+        const partidasOrdenadas = ordenarPartidasRecentes(resultadoPartidas.value || []);
+        setUltimoJogoUsuario(partidasOrdenadas[0] || null);
+      } else {
+        registrarFalhaHome('último jogo do usuário', resultadoPartidas.reason);
+        setUltimoJogoUsuario(null);
+        setErroUltimoJogoUsuario(true);
+      }
+
+      if (resultadoResumoGrupo.status === 'fulfilled') {
+        setResumoGrupoUsuario(resultadoResumoGrupo.value || null);
+      } else {
+        registrarFalhaHome('resumo de grupo do usuário', resultadoResumoGrupo.reason);
+        setResumoGrupoUsuario(null);
+        setErroResumoGrupoUsuario(true);
+      }
+
+      setCarregandoUsuario(false);
     }
 
-    carregarDadosUsuario();
+    carregarDadosUsuario().catch((erro) => {
+      if (ativo) {
+        registrarFalhaHome('dados do usuário', erro);
+        setPendenciasUsuario([]);
+        setAtletaPerfil(null);
+        setResumoUsuario(null);
+        setUltimoJogoUsuario(null);
+        setResumoGrupoUsuario(null);
+        setCarregandoUsuario(false);
+        setErroResumoUsuario(true);
+        setErroUltimoJogoUsuario(true);
+        setErroResumoGrupoUsuario(true);
+      }
+    });
 
     return () => {
       ativo = false;
     };
-  }, [token, usuario?.atletaId]);
+  }, [location.key, token, usuario?.atletaId]);
 
   async function obterCategoriasCampeonatosExibidos(listaCompeticoes) {
     const campeonatosHome = (listaCompeticoes || [])
@@ -308,8 +388,24 @@ export function PaginaHome() {
     <section className="pagina pagina-home">
       {!token && <HomeBannerRotativo slides={slidesBannerVisitante} />}
 
-      {token && <HomeResumoUsuario nomeAtleta={nomeAtleta} />}
-      {token && <GrupoResumoCard />}
+      {token && (
+        <HomeResumoUsuario
+          nomeAtleta={nomeAtleta}
+          atletaId={usuario?.atletaId}
+          resumoUsuario={resumoUsuario}
+          ultimoJogoUsuario={ultimoJogoUsuario}
+          carregandoResumo={carregandoUsuario}
+          erroResumo={erroResumoUsuario}
+          erroUltimoJogoUsuario={erroUltimoJogoUsuario}
+        />
+      )}
+      {token && (
+        <GrupoResumoCard
+          resumoGrupo={resumoGrupoUsuario}
+          carregandoResumo={carregandoUsuario}
+          erroResumo={erroResumoGrupoUsuario}
+        />
+      )}
 
       {carregando ? (
         <p>Carregando informações públicas...</p>

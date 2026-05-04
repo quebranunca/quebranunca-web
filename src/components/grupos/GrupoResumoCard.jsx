@@ -63,40 +63,52 @@ function GrupoResumoEstado({ tipo, mensagem }) {
   );
 }
 
-export function GrupoResumoCard() {
+export function GrupoResumoCard({
+  resumoGrupo,
+  carregandoResumo,
+  erroResumo
+}) {
+  const possuiDadosExternos = resumoGrupo !== undefined ||
+    carregandoResumo !== undefined ||
+    erroResumo !== undefined;
   const { token, usuario } = useAutenticacao();
   const location = useLocation();
-  const [resumo, setResumo] = useState(null);
-  const [carregando, setCarregando] = useState(true);
-  const [erro, setErro] = useState(false);
+  const [resumoLocal, setResumoLocal] = useState(null);
+  const [carregandoLocal, setCarregandoLocal] = useState(true);
+  const [erroLocal, setErroLocal] = useState(false);
 
   useEffect(() => {
+    if (possuiDadosExternos) {
+      return undefined;
+    }
+
     let ativo = true;
 
     async function carregarResumo() {
       if (!token) {
-        setResumo(null);
-        setErro(false);
-        setCarregando(false);
+        setResumoLocal(null);
+        setErroLocal(false);
+        setCarregandoLocal(false);
         return;
       }
 
-      setCarregando(true);
-      setErro(false);
+      setCarregandoLocal(true);
+      setErroLocal(false);
 
       try {
         const dados = await gruposServico.obterResumoUsuario();
         if (ativo) {
-          setResumo(dados || null);
+          setResumoLocal(dados || null);
         }
-      } catch {
+      } catch (erro) {
         if (ativo) {
-          setResumo(null);
-          setErro(true);
+          console.error('Erro ao carregar resumo de grupo do usuário na Home.', erro);
+          setResumoLocal(null);
+          setErroLocal(true);
         }
       } finally {
         if (ativo) {
-          setCarregando(false);
+          setCarregandoLocal(false);
         }
       }
     }
@@ -106,7 +118,11 @@ export function GrupoResumoCard() {
     return () => {
       ativo = false;
     };
-  }, [location.key, token, usuario?.id, usuario?.atletaId]);
+  }, [location.key, possuiDadosExternos, token, usuario?.id, usuario?.atletaId]);
+
+  const resumo = possuiDadosExternos ? resumoGrupo : resumoLocal;
+  const carregando = possuiDadosExternos ? Boolean(carregandoResumo) : carregandoLocal;
+  const erro = possuiDadosExternos ? Boolean(erroResumo) : erroLocal;
 
   if (carregando) {
     return <GrupoResumoEstado tipo="carregando" mensagem="Carregando seus grupos..." />;
@@ -127,10 +143,6 @@ export function GrupoResumoCard() {
     <section className="home-secao">
       <article className="cartao-lista grupo-resumo-card">
         <div className="grupo-resumo-topo">
-          <div>
-            <span className="home-eyebrow grupo-resumo-eyebrow">Grupo</span>
-            <h3>{resumo.nome}</h3>
-          </div>
           <Link to="/grupos" className="botao-primario home-botao">
             Ver todos os grupos
           </Link>

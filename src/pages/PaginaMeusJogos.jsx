@@ -4,108 +4,16 @@ import { useAutenticacao } from '../hooks/useAutenticacao';
 import { partidasServico } from '../services/partidasServico';
 import { extrairMensagemErro } from '../utils/erros';
 import { formatarDataHora } from '../utils/formatacao';
-
-function obterNomeStatusPartida(status) {
-  switch (Number(status)) {
-    case 1:
-      return 'Agendada';
-    case 2:
-      return 'Encerrada';
-    default:
-      return 'Indefinida';
-  }
-}
-
-function obterClasseStatusPartida(status) {
-  return Number(status) === 2 ? 'tag-status-sucesso' : 'tag-status-alerta';
-}
-
-function obterNomeStatusAprovacao(status) {
-  switch (Number(status)) {
-    case 1:
-      return 'Pendente';
-    case 2:
-      return 'Aprovada';
-    case 3:
-      return 'Contestada';
-    case 4:
-      return 'Pendente de vínculos';
-    default:
-      return 'Indefinida';
-  }
-}
-
-function obterClasseStatusAprovacao(status) {
-  switch (Number(status)) {
-    case 2:
-      return 'tag-status-sucesso';
-    case 3:
-      return 'tag-status-erro';
-    default:
-      return 'tag-status-alerta';
-  }
-}
-
-function obterAtletasPartida(partida, atletaLogadoId) {
-  return {
-    duplaA: [
-      {
-        id: partida.duplaAAtleta1Id,
-        nome: partida.nomeDuplaAAtleta1,
-        lado: 'Direita',
-        destaque: partida.duplaAAtleta1Id === atletaLogadoId
-      },
-      {
-        id: partida.duplaAAtleta2Id,
-        nome: partida.nomeDuplaAAtleta2,
-        lado: 'Esquerda',
-        destaque: partida.duplaAAtleta2Id === atletaLogadoId
-      }
-    ],
-    duplaB: [
-      {
-        id: partida.duplaBAtleta1Id,
-        nome: partida.nomeDuplaBAtleta1,
-        lado: 'Direita',
-        destaque: partida.duplaBAtleta1Id === atletaLogadoId
-      },
-      {
-        id: partida.duplaBAtleta2Id,
-        nome: partida.nomeDuplaBAtleta2,
-        lado: 'Esquerda',
-        destaque: partida.duplaBAtleta2Id === atletaLogadoId
-      }
-    ]
-  };
-}
-
-function obterResultadoAtleta(partida, atletaLogadoId) {
-  const estaNaDuplaA = partida.duplaAAtleta1Id === atletaLogadoId || partida.duplaAAtleta2Id === atletaLogadoId;
-  const estaNaDuplaB = partida.duplaBAtleta1Id === atletaLogadoId || partida.duplaBAtleta2Id === atletaLogadoId;
-
-  if (Number(partida.status) !== 2) {
-    return { texto: 'Jogo agendado', classe: 'tag-status-alerta' };
-  }
-
-  if (!partida.duplaVencedoraId) {
-    return { texto: 'Sem vencedora', classe: 'tag-status-alerta' };
-  }
-
-  const venceu = (estaNaDuplaA && partida.duplaVencedoraId === partida.duplaAId)
-    || (estaNaDuplaB && partida.duplaVencedoraId === partida.duplaBId);
-
-  return venceu
-    ? { texto: 'Vitória', classe: 'tag-status-sucesso' }
-    : { texto: 'Derrota', classe: 'tag-status-erro' };
-}
-
-function ordenarPartidas(partidas) {
-  return [...partidas].sort((a, b) => {
-    const dataA = new Date(a.dataPartida || a.dataCriacao || 0).getTime();
-    const dataB = new Date(b.dataPartida || b.dataCriacao || 0).getTime();
-    return dataB - dataA;
-  });
-}
+import {
+  obterAtletasPartida,
+  obterClasseStatusAprovacao,
+  obterClasseStatusPartida,
+  obterNomeStatusAprovacao,
+  obterNomeStatusPartida,
+  obterResultadoAtleta,
+  ordenarPartidasRecentes,
+  STATUS_PARTIDA
+} from '../utils/partidas';
 
 export function PaginaMeusJogos() {
   const { usuario } = useAutenticacao();
@@ -124,7 +32,7 @@ export function PaginaMeusJogos() {
       try {
         const lista = await partidasServico.listarMinhas();
         if (ativo) {
-          setPartidas(ordenarPartidas(lista || []));
+          setPartidas(ordenarPartidasRecentes(lista || []));
         }
       } catch (error) {
         if (ativo) {
@@ -152,7 +60,7 @@ export function PaginaMeusJogos() {
         jogos: acumulado.jogos + 1,
         vitorias: acumulado.vitorias + (resultado.texto === 'Vitória' ? 1 : 0),
         derrotas: acumulado.derrotas + (resultado.texto === 'Derrota' ? 1 : 0),
-        pendentes: acumulado.pendentes + (Number(partida.status) !== 2 ? 1 : 0)
+        pendentes: acumulado.pendentes + (Number(partida.status) !== STATUS_PARTIDA.encerrada ? 1 : 0)
       };
     }, { jogos: 0, vitorias: 0, derrotas: 0, pendentes: 0 });
   }, [atletaLogadoId, partidas]);
@@ -244,9 +152,9 @@ export function PaginaMeusJogos() {
                   </div>
 
                   <div className="meus-jogos-placar">
-                    <strong>{Number(partida.status) === 2 ? partida.placarDuplaA : '-'}</strong>
+                    <strong>{Number(partida.status) === STATUS_PARTIDA.encerrada ? partida.placarDuplaA : '-'}</strong>
                     <span>x</span>
-                    <strong>{Number(partida.status) === 2 ? partida.placarDuplaB : '-'}</strong>
+                    <strong>{Number(partida.status) === STATUS_PARTIDA.encerrada ? partida.placarDuplaB : '-'}</strong>
                   </div>
 
                   <div className={`meus-jogos-dupla ${duplaBVencedora ? 'vencedora' : ''}`}>

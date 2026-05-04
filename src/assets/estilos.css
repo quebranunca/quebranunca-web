@@ -1442,6 +1442,97 @@ code {
   color: #7a5a00;
 }
 
+.home-ultimo-jogo {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.85rem;
+  border: 1px solid rgba(255, 180, 0, 0.24);
+  border-radius: var(--raio-sm);
+  background:
+    linear-gradient(135deg, rgba(255, 180, 0, 0.09), transparent 48%),
+    rgba(8, 9, 11, 0.62);
+}
+
+.home-ultimo-jogo-topo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.7rem;
+}
+
+.home-ultimo-jogo-topo > div {
+  min-width: 0;
+}
+
+.home-ultimo-jogo-eyebrow,
+.home-ultimo-jogo-confronto span {
+  display: block;
+  color: var(--color-primary);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.home-ultimo-jogo-topo strong {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--cor-texto);
+  font-size: 0.95rem;
+}
+
+.home-ultimo-jogo-confronto {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 0.55rem;
+  align-items: stretch;
+}
+
+.home-ultimo-jogo-confronto > div {
+  min-width: 0;
+  padding: 0.65rem;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-sm);
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.home-ultimo-jogo-confronto strong {
+  display: block;
+  margin-top: 0.24rem;
+  overflow-wrap: anywhere;
+  color: var(--cor-texto);
+  font-size: 0.9rem;
+  line-height: 1.25;
+}
+
+.home-ultimo-jogo-placar {
+  min-width: 4.65rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  color: var(--color-primary);
+  font-weight: 900;
+}
+
+.home-ultimo-jogo-placar strong {
+  margin: 0;
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.home-ultimo-jogo-resultado-vitoria {
+  box-shadow: 0 0 0 1px rgba(28, 122, 43, 0.18);
+}
+
+.home-ultimo-jogo-resultado-derrota {
+  background: rgba(166, 59, 61, 0.14);
+}
+
+.home-ultimo-jogo-resultado-pendente {
+  background: rgba(255, 180, 0, 0.16);
+}
+
 .home-resumo-usuario-vazio {
   display: flex;
   flex-direction: column;
@@ -4550,6 +4641,20 @@ a.botao-terciario:active {
 
   .home-resumo-usuario-metricas strong {
     font-size: 1.2rem;
+  }
+
+  .home-ultimo-jogo-confronto {
+    grid-template-columns: 1fr;
+  }
+
+  .home-ultimo-jogo-topo {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .home-ultimo-jogo-placar {
+    width: 100%;
+    min-height: 2.55rem;
   }
 
   .home-resumo-usuario-pendencias {

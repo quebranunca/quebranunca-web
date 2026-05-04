@@ -1,6 +1,17 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { partidasServico } from '../../services/partidasServico';
 import { usuariosServico } from '../../services/usuariosServico';
+import { formatarDataHora } from '../../utils/formatacao';
+import {
+  atletaEstaNaDuplaA,
+  obterClasseStatusAprovacao,
+  obterDuplasDoAtleta,
+  obterResultadoAtleta,
+  obterTextoStatusAprovacaoHome,
+  ordenarPartidasRecentes,
+  partidaTemPlacarValido
+} from '../../utils/partidas';
 
 const RESUMO_ZERADO = {
   totalPartidas: 0,
@@ -20,39 +31,110 @@ function formatarPercentual(valor) {
   return `${Number.isInteger(numero) ? numero : numero.toFixed(1)}%`;
 }
 
-export function HomeResumoUsuario({ nomeAtleta = '' }) {
-  const [resumo, setResumo] = useState(RESUMO_ZERADO);
-  const [carregando, setCarregando] = useState(true);
-  const [erro, setErro] = useState(false);
+function formatarAtletas(atletas) {
+  const nomes = (atletas || [])
+    .map((atleta) => atleta.nome)
+    .filter(Boolean);
+
+  return nomes.length > 0 ? nomes.join(' / ') : 'A definir';
+}
+
+function obterClasseResultadoHome(resultado) {
+  if (resultado.texto === 'Vitória') {
+    return 'home-ultimo-jogo-resultado-vitoria';
+  }
+
+  if (resultado.texto === 'Derrota') {
+    return 'home-ultimo-jogo-resultado-derrota';
+  }
+
+  return 'home-ultimo-jogo-resultado-pendente';
+}
+
+function obterPlacarDoAtleta(partida, atletaId) {
+  const estaNaDuplaA = atletaEstaNaDuplaA(partida, atletaId);
+  return {
+    minhaDupla: estaNaDuplaA ? partida.placarDuplaA : partida.placarDuplaB,
+    adversaria: estaNaDuplaA ? partida.placarDuplaB : partida.placarDuplaA
+  };
+}
+
+export function HomeResumoUsuario({
+  nomeAtleta = '',
+  atletaId = null,
+  resumoUsuario,
+  ultimoJogoUsuario,
+  carregandoResumo,
+  erroResumo,
+  erroUltimoJogoUsuario
+}) {
+  const possuiDadosExternos = resumoUsuario !== undefined ||
+    ultimoJogoUsuario !== undefined ||
+    carregandoResumo !== undefined ||
+    erroResumo !== undefined ||
+    erroUltimoJogoUsuario !== undefined;
+  const [resumoLocal, setResumoLocal] = useState(RESUMO_ZERADO);
+  const [ultimoJogoLocal, setUltimoJogoLocal] = useState(null);
+  const [carregandoLocal, setCarregandoLocal] = useState(true);
+  const [erroLocal, setErroLocal] = useState(false);
+  const [erroUltimoJogoLocal, setErroUltimoJogoLocal] = useState(false);
 
   useEffect(() => {
+    if (possuiDadosExternos) {
+      return undefined;
+    }
+
     let ativo = true;
 
     async function carregarResumo() {
-      setCarregando(true);
-      setErro(false);
+      setCarregandoLocal(true);
+      setErroLocal(false);
+      setErroUltimoJogoLocal(false);
 
       try {
-        const dados = await usuariosServico.obterResumo();
+        const [resultadoResumo, resultadoPartidas] = await Promise.allSettled([
+          usuariosServico.obterResumo(),
+          atletaId ? partidasServico.listarMinhas() : Promise.resolve([])
+        ]);
+
         if (!ativo) {
           return;
         }
 
-        setResumo({
-          totalPartidas: obterNumero(dados?.totalPartidas),
-          totalVitorias: obterNumero(dados?.totalVitorias),
-          totalDerrotas: obterNumero(dados?.totalDerrotas),
-          percentualAproveitamento: obterNumero(dados?.percentualAproveitamento),
-          totalPartidasPendentes: obterNumero(dados?.totalPartidasPendentes)
-        });
-      } catch {
+        if (resultadoResumo.status === 'fulfilled') {
+          const dados = resultadoResumo.value;
+          setResumoLocal({
+            totalPartidas: obterNumero(dados?.totalPartidas),
+            totalVitorias: obterNumero(dados?.totalVitorias),
+            totalDerrotas: obterNumero(dados?.totalDerrotas),
+            percentualAproveitamento: obterNumero(dados?.percentualAproveitamento),
+            totalPartidasPendentes: obterNumero(dados?.totalPartidasPendentes)
+          });
+        } else {
+          console.error('Erro ao carregar resumo do usuário na Home.', resultadoResumo.reason);
+          setResumoLocal(RESUMO_ZERADO);
+          setErroLocal(true);
+        }
+
+        if (resultadoPartidas.status === 'fulfilled') {
+          const partidasOrdenadas = ordenarPartidasRecentes(resultadoPartidas.value || []);
+          setUltimoJogoLocal(partidasOrdenadas[0] || null);
+        } else {
+          console.error('Erro ao carregar último jogo do usuário na Home.', resultadoPartidas.reason);
+          setUltimoJogoLocal(null);
+          setErroUltimoJogoLocal(true);
+        }
+      } catch (erro) {
         if (ativo) {
-          setResumo(RESUMO_ZERADO);
-          setErro(true);
+          console.error('Erro ao carregar dados do usuário na Home.', erro);
+          setResumoLocal(RESUMO_ZERADO);
+          setUltimoJogoLocal(null);
+          setErroLocal(true);
+          setErroUltimoJogoLocal(true);
         }
       } finally {
         if (ativo) {
-          setCarregando(false);
+          setCarregandoLocal(false);
         }
       }
     }
@@ -62,10 +144,30 @@ export function HomeResumoUsuario({ nomeAtleta = '' }) {
     return () => {
       ativo = false;
     };
-  }, []);
+  }, [atletaId, possuiDadosExternos]);
 
-  const possuiDadosDesempenho = resumo.totalPartidas > 0 || resumo.totalPartidasPendentes > 0;
-  const possuiPendencias = resumo.totalPartidasPendentes > 0;
+  const resumo = resumoUsuario
+    ? {
+      totalPartidas: obterNumero(resumoUsuario?.totalPartidas),
+      totalVitorias: obterNumero(resumoUsuario?.totalVitorias),
+      totalDerrotas: obterNumero(resumoUsuario?.totalDerrotas),
+      percentualAproveitamento: obterNumero(resumoUsuario?.percentualAproveitamento),
+      totalPartidasPendentes: obterNumero(resumoUsuario?.totalPartidasPendentes)
+    }
+    : (possuiDadosExternos ? RESUMO_ZERADO : resumoLocal);
+  const ultimoJogo = possuiDadosExternos ? ultimoJogoUsuario : ultimoJogoLocal;
+  const carregando = possuiDadosExternos ? Boolean(carregandoResumo) : carregandoLocal;
+  const erro = possuiDadosExternos ? Boolean(erroResumo) : erroLocal;
+  const erroUltimoJogo = possuiDadosExternos ? Boolean(erroUltimoJogoUsuario) : erroUltimoJogoLocal;
+
+  const resultadoUltimoJogo = ultimoJogo
+    ? obterResultadoAtleta(ultimoJogo, atletaId, {
+      textoPendente: 'Aguardando resultado',
+      textoInvalido: 'Aguardando resultado'
+    })
+    : null;
+  const duplasUltimoJogo = ultimoJogo ? obterDuplasDoAtleta(ultimoJogo, atletaId) : null;
+  const placarUltimoJogo = ultimoJogo ? obterPlacarDoAtleta(ultimoJogo, atletaId) : null;
 
   return (
     <section className="home-secao">
@@ -77,10 +179,7 @@ export function HomeResumoUsuario({ nomeAtleta = '' }) {
                 <span>Nome</span>
                 <strong>{nomeAtleta || 'Não vinculado'}</strong>
               </div>              
-            </div>            
-            {erro && <p>Não foi possível carregar seu desempenho agora.</p>}
-            <br></br>
-            <strong>Dados Gerais do Atleta</strong>
+            </div>                    
           </div>
         </div>
 
@@ -109,6 +208,49 @@ export function HomeResumoUsuario({ nomeAtleta = '' }) {
               <p className="home-resumo-usuario-aproveitamento">
                 Aproveitamento: <strong>{formatarPercentual(resumo.percentualAproveitamento)}</strong>
               </p>                         
+              {erro && <p className="texto-erro">Não foi possível atualizar todo o resumo agora.</p>}
+              <div className="home-ultimo-jogo">
+                <div className="home-ultimo-jogo-topo">
+                  <div>
+                    <span className="home-ultimo-jogo-eyebrow">Último jogo</span>
+                    {ultimoJogo && (
+                      <strong>{ultimoJogo.dataPartida ? formatarDataHora(ultimoJogo.dataPartida) : 'Data a definir'}</strong>
+                    )}
+                  </div>
+                  {resultadoUltimoJogo && (
+                    <span className={`tag-status ${resultadoUltimoJogo.classe} ${obterClasseResultadoHome(resultadoUltimoJogo)}`}>
+                      {resultadoUltimoJogo.texto}
+                    </span>
+                  )}
+                </div>
+
+                {erroUltimoJogo ? (
+                  <p className="home-resumo-usuario-vazio">Não foi possível carregar seu último jogo agora.</p>
+                ) : ultimoJogo ? (
+                  <>
+                    <div className="home-ultimo-jogo-confronto">
+                      <div>
+                        <span>Sua dupla</span>
+                        <strong>{formatarAtletas(duplasUltimoJogo.minhaDupla)}</strong>
+                      </div>
+                      <div className="home-ultimo-jogo-placar">
+                        <strong>{partidaTemPlacarValido(ultimoJogo) ? placarUltimoJogo.minhaDupla : '-'}</strong>
+                        <span>x</span>
+                        <strong>{partidaTemPlacarValido(ultimoJogo) ? placarUltimoJogo.adversaria : '-'}</strong>
+                      </div>
+                      <div>
+                        <span>Adversários</span>
+                        <strong>{formatarAtletas(duplasUltimoJogo.duplaAdversaria)}</strong>
+                      </div>
+                    </div>
+                    <span className={`tag-status ${obterClasseStatusAprovacao(ultimoJogo.statusAprovacao)}`}>
+                      {obterTextoStatusAprovacaoHome(ultimoJogo.statusAprovacao)}
+                    </span>
+                  </>
+                ) : (
+                  <p className="home-resumo-usuario-vazio">Você ainda não possui partidas registradas.</p>
+                )}
+              </div>
               <Link to="/partidas/registrar" className="botao-primario home-botao">
                   Registrar partida
               </Link>                                      
