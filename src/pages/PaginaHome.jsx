@@ -10,7 +10,6 @@ import {
   HomeResumoUsuario
 } from '../components/home';
 import { GrupoResumoCard } from '../components/grupos/GrupoResumoCard';
-import bannerHomeConvite from '../assets/banner-home-convite.svg';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { atletasServico } from '../services/atletasServico';
 import { categoriasServico } from '../services/categoriasServico';
