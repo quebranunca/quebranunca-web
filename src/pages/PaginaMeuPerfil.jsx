@@ -17,6 +17,8 @@ import { PERFIS_USUARIO } from '../utils/perfis';
 import { nomeEstadoAcesso } from '../utils/acesso';
 import { buscarCidadesPorEstado, estadosBrasil, normalizarEstadoParaUf } from '../utils/localidadesBrasil';
 import { rolarParaTopo } from '../utils/rolagem';
+import { useNotification } from '../contexts/NotificationContext';
+import { useNavigate } from 'react-router-dom';
 
 const estadoInicialAtleta = {
   nome: '',
@@ -129,6 +131,9 @@ export function PaginaMeuPerfil() {
     primeiroAcessoPendente,
     estadoAcesso
   } = useAutenticacao();
+  
+  const navigate = useNavigate();
+  const { showNotification } = useNotification();
   const [usuarioDetalhe, setUsuarioDetalhe] = useState(null);
   const [formularioUsuario, setFormularioUsuario] = useState({ nome: '' });
   const [formularioAtleta, setFormularioAtleta] = useState(estadoInicialAtleta);
@@ -216,7 +221,11 @@ export function PaginaMeuPerfil() {
         setFormularioAtleta(criarEstadoInicialAtleta(dadosUsuario));
       }
     } catch (error) {
-      setErro(extrairMensagemErro(error));
+      showNotification({
+        type: 'error',
+        title: 'Erro ao salvar acesso',
+        message: extrairMensagemErro(error)
+      });
     } finally {
       setCarregando(false);
     }
@@ -293,10 +302,17 @@ export function PaginaMeuPerfil() {
         concluirPrimeiroAcesso();
       }
 
-      setMensagem('Dados do acesso atualizados com sucesso.');
-      rolarParaTopo();
+      showNotification({
+        type: 'success',
+        title: 'Acesso atualizado',
+        message: 'Dados do acesso atualizados com sucesso.'
+      });
     } catch (error) {
-      setErro(extrairMensagemErro(error));
+      showNotification({
+        type: 'error',
+        title: 'Erro ao salvar acesso',
+        message: extrairMensagemErro(error)
+      });
     } finally {
       setSalvandoUsuario(false);
     }
@@ -312,15 +328,21 @@ export function PaginaMeuPerfil() {
     evento.preventDefault();
     const cpfLimpo = limparCpf(formularioAtleta.cpf);
     if (cpfLimpo && !validarCpf(cpfLimpo)) {
-      setErro('CPF inválido.');
-      setMensagem('');
+      showNotification({
+        type: 'warning',
+        title: 'CPF inválido',
+        message: 'Informe um CPF válido para continuar.'
+      });
       return;
     }
 
     const erroDataNascimento = validarDataNascimento(formularioAtleta.dataNascimento);
     if (erroDataNascimento) {
-      setErro(erroDataNascimento);
-      setMensagem('');
+      showNotification({
+        type: 'warning',
+        title: 'Data inválida',
+        message: erroDataNascimento
+      });
       return;
     }
 
@@ -358,13 +380,28 @@ export function PaginaMeuPerfil() {
       preencherFormularioAtleta(atleta);
       setUsuarioDetalhe(proximoUsuario);
       atualizarUsuarioLocal(proximoUsuario);
+      
       if (primeiroAcessoPendente) {
         concluirPrimeiroAcesso();
       }
-      setMensagem(possuiAtletaAnterior ? 'Dados do atleta atualizados com sucesso.' : 'Atleta criado com sucesso.');
-      rolarParaTopo();
+
+      showNotification({
+        type: 'success',
+        title: possuiAtletaAnterior ? 'Atleta atualizado' : 'Atleta criado',
+        message: possuiAtletaAnterior
+          ? 'Dados do atleta atualizados com sucesso.'
+          : 'Atleta criado com sucesso.',
+        autoClose: false, 
+        onClose: () => {
+            navigate('/'); 
+          }
+      });
     } catch (error) {
-      setErro(obterMensagemErroPerfil(error));
+      showNotification({
+        type: 'error',
+        title: 'Erro ao salvar atleta',
+        message: obterMensagemErroPerfil(error)
+      });
     } finally {
       setSalvandoAtleta(false);
     }
@@ -374,7 +411,6 @@ export function PaginaMeuPerfil() {
     return (
       <section className="pagina">
         <div className="cabecalho-pagina">
-          <h2>Meu Perfil</h2>
           <p>Carregando dados do usuário...</p>
         </div>
       </section>
@@ -390,9 +426,6 @@ export function PaginaMeuPerfil() {
 
   return (
     <section className="pagina">
-      {erro && <p className="texto-erro">{erro}</p>}
-      {mensagem && <p className="texto-sucesso">{mensagem}</p>}
-
       {primeiroAcessoPendente && !usuarioEhAtleta && (
         <article className="cartao">
           <h3>Primeiro acesso</h3>

@@ -3,14 +3,17 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import { ProvedorAutenticacao } from './contexts/AutenticacaoContexto';
+import { NotificationProvider } from './contexts/NotificationContext'; 
 import './assets/estilos.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter>
-      <ProvedorAutenticacao>
-        <App />
-      </ProvedorAutenticacao>
+      <NotificationProvider>
+        <ProvedorAutenticacao>
+          <App />
+        </ProvedorAutenticacao>
+      </NotificationProvider>
     </BrowserRouter>
   </React.StrictMode>
 );

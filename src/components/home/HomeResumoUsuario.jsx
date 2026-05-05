@@ -259,7 +259,7 @@ export function HomeResumoUsuario({
             
             <div className="grupo-resumo-conteudo">              
               <section className="grupo-resumo-bloco" aria-label="Top 3 do ranking do grupo">
-                <span className="grupo-resumo-rotulo">Top 3</span>
+                <span className="grupo-resumo-rotulo">{obterGrupoPartida(ultimoJogo)} - Top 3</span>
                 {rankingTop3.length > 0 ? (
                   <ol className="grupo-resumo-ranking">
                     {rankingTop3.map((atleta) => (

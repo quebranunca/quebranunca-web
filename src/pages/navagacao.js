@@ -119,7 +119,7 @@ const ITENS_NAVEGACAO = [
     caminho: '/competicoes',
     nome: 'Competições',
     descricao: 'Veja e gerencie campeonatos, eventos e grupos disponíveis para o seu perfil.',
-    visivel: ({ estadoAtivo }) => estadoAtivo
+    visivel: ({ administrador, estadoAtivo }) => administrador && estadoAtivo
   },
   {
     caminho: '/grupos',
@@ -185,7 +185,7 @@ export const ROTAS_APP_HEADER = [
   { path: '/inscricoes', title: 'Inscrições', tipoTela: TIPOS_TELA.acao },
   { path: '/partidas/registrar', title: 'Registrar Partida', tipoTela: TIPOS_TELA.acao },
   { path: '/app/registrar-partida', title: 'Registrar Partida', tipoTela: TIPOS_TELA.acao },
-  { path: '/partidas/consulta', title: 'Consultar Partidas', tipoTela: TIPOS_TELA.acao },
+  { path: '/partidas/consulta', title: 'Consultar Partidas', tipoTela: TIPOS_TELA.contexto },
   { path: '/partidas/campeonato', title: 'Partidas de Campeonato', tipoTela: TIPOS_TELA.contexto },
   { path: '/usuarios', title: 'Usuários', tipoTela: TIPOS_TELA.raiz },
   { path: '/convites-cadastro', title: 'Convites', tipoTela: TIPOS_TELA.raiz },

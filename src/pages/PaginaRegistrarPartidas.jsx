@@ -11,6 +11,7 @@ import { partidasServico } from '../services/partidasServico';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { extrairMensagemErro } from '../utils/erros';
 import { ehAtleta, ehGestorCompeticao, PERFIS_USUARIO } from '../utils/perfis';
+import { useNotification } from '../contexts/NotificationContext';
 
 const TIPOS_COMPETICAO = {
   campeonato: 1,
@@ -236,6 +237,7 @@ export function PaginaRegistrarPartidas() {
   const opcoesDuplaB = duplasDisponiveis.filter((dupla) => dupla.id !== formulario.duplaAId);
   const atletasBaseCadastroAssistido = grupoSelecionado ? grupoAtletas.map(mapearGrupoAtletaParaAtleta) : [];
   const podeSalvar = !salvando && podeRegistrarNaCompeticao && !(contextoGrupo && usuarioAtleta && !atletaUsuarioId);
+  const { showNotification } = useNotification();
 
   useEffect(() => {
     carregarBase();
@@ -348,7 +350,7 @@ export function PaginaRegistrarPartidas() {
               ? termo.length >= 3
                 ? await competicoesServico.buscarSugestoesAtletas(competicaoId, termo)
                 : []
-              : await atletasServico.buscar(termo);
+              : [];
           } catch {
             sugestoesRemotas = [];
           }
@@ -625,16 +627,27 @@ export function PaginaRegistrarPartidas() {
     try {
       const partidaSalva = await partidasServico.criar(dados);
       const pendenciasSemContato = (partidaSalva?.atletasPendentes || []).filter((item) => !item.temEmail);
-      setMensagem(
-        pendenciasSemContato.length > 0
+
+      showNotification({
+        type: 'success',
+        title: 'Partida registrada',
+        message: pendenciasSemContato.length > 0
           ? 'Partida registrada com sucesso. Existem atletas pendentes sem e-mail para completar depois.'
-          : 'Partida registrada com sucesso.'
-      );
+          : 'Partida registrada com sucesso.',
+        autoClose: false,
+        onClose: () => {
+          navegar('/');
+        }
+      });
+
       setFeedbackPendencias(pendenciasSemContato);
       limparFormularioAposSalvar();
-      navegar('/');
     } catch (error) {
-      setErro(extrairMensagemErro(error));
+      showNotification({
+        type: 'error',
+        title: 'Erro ao registrar partida',
+        message: extrairMensagemErro(error)
+      });
     } finally {
       setSalvando(false);
     }
@@ -659,12 +672,7 @@ export function PaginaRegistrarPartidas() {
   }
 
   return (
-    <section className="pagina">
-      <div className="cabecalho-pagina">
-        <h2>Registrar Partidas</h2>
-        <p>Informe o contexto, as duplas e o resultado para enviar o registro da partida.</p>
-      </div>
-
+    <section className="pagina">      
       {carregando ? (
         <p>Carregando dados para registro...</p>
       ) : (

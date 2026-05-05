@@ -124,8 +124,7 @@ export function AppHeader({
                   fill="currentColor"
                 />
               )}
-            </svg>
-            <span className="rotulo-menu-mobile">{menuAberto ? 'Fechar' : 'Menu'}</span>
+            </svg>           
           </button>
         )}
 

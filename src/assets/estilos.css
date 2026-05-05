@@ -778,6 +778,8 @@ a.botao-perigo {
   animation: subir 0.42s ease both;
   color: var(--cor-texto);
   min-width: 0;
+  gap: 10px;
+  margin-bottom: 15px;
 }
 
 .lista-cartoes .cartao-lista:nth-child(2) {
@@ -1614,8 +1616,10 @@ code {
 
 .dupla-label {
   font-size: 12px;
+  font-weight: 800;
   color: #888;
 }
+
 .dupla-conteudo {
   display: flex;
   align-items: center;
@@ -1717,7 +1721,7 @@ code {
   display: block;
   margin-bottom: 0.45rem;
   color: #ffc247;
-  font-size: 0.72rem;
+  font-size: 0.80rem;
   font-weight: 800;
   letter-spacing: 0;
   text-transform: uppercase;
@@ -2038,6 +2042,7 @@ code {
   display: flex;
   flex-direction: column;
   gap: 0.65rem;
+  margin-bottom: 10px;
 }
 
 .competicao-card-cabecalho {
@@ -3648,7 +3653,6 @@ a.botao-terciario:active {
   color: #08090b;
   background: var(--color-primary);
   border: 1px solid transparent;
-  box-shadow: 0 10px 24px rgba(255, 179, 0, 0.18);
 }
 
 .botao-primario:hover {
@@ -3982,6 +3986,37 @@ a.botao-terciario:active {
 
 .home-ranking-atleta.pos-3 {
   border: 1px solid rgba(205, 127, 50, 0.35);
+}
+
+.notification-overlay {
+  position: fixed;      
+  inset: 0;              
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(0, 0, 0, 0.6);  
+  backdrop-filter: blur(4px);      
+
+  z-index: 9999;    
+}
+
+.notification-modal {
+  background: #111214;
+  border-radius: 16px;
+  padding: 24px;
+  width: 100%;
+  max-width: 360px;
+
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.secao-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 16px; 
 }
 
 @media (max-width: 720px) {

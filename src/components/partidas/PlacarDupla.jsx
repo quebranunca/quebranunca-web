@@ -10,7 +10,10 @@ export function PlacarDupla({
 
       <div className={`dupla-conteudo ${vencedor ? 'vencedor' : ''}`}>
         <div className="dupla-nome">
-          {atletas}
+          {Array.isArray(atletas)
+            ? atletas.join(' e ')
+            : atletas
+          }
         </div>
 
         <div className="dupla-placar">

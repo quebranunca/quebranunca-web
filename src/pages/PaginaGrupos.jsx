@@ -152,52 +152,21 @@ export function PaginaGrupos() {
 
   return (
     <section className="pagina">
-      <div className="cabecalho-pagina">
-        <h2>Grupos</h2>
-        <p>Crie grupos, organize atletas e acompanhe jogos lançados.</p>
-      </div>
-
-      {erro && <p className="texto-erro">{erro}</p>}
-      {aviso && <p className="texto-sucesso">{aviso}</p>}
-
-      {podeCriarGrupo && !formularioAberto && (
-        <div className="acoes-formulario">
+  
+      {podeCriarGrupo && !formularioAberto && (  
+        
           <button type="button" className="botao-primario" onClick={abrirNovoGrupo}>
-            Novo grupo
-          </button>
-        </div>
+            Criar Novo Grupo
+          </button>      
+        
       )}
 
       {podeCriarGrupo && formularioAberto && (
         <article className="cartao">
-          <form className="formulario-grid" onSubmit={aoSubmeter}>
-            <div className="campo-largo">
-              <h3>{grupoEdicaoId ? 'Editar grupo' : 'Novo grupo'}</h3>
-            </div>
-
+          <form className="formulario-grid" onSubmit={aoSubmeter}> 
             <label>
               Nome
               <input value={formulario.nome} onChange={(evento) => atualizarCampo('nome', evento.target.value)} required />
-            </label>
-
-            <label>
-              Início
-              <input type="date" value={formulario.dataInicio} onChange={(evento) => atualizarCampo('dataInicio', evento.target.value)} required />
-            </label>
-
-            <label>
-              Fim
-              <input type="date" value={formulario.dataFim} onChange={(evento) => atualizarCampo('dataFim', evento.target.value)} />
-            </label>
-
-            <label className="campo-largo">
-              Link
-              <input value={formulario.link} onChange={(evento) => atualizarCampo('link', evento.target.value)} placeholder="https://..." />
-            </label>
-
-            <label className="campo-largo">
-              Descrição
-              <textarea value={formulario.descricao} onChange={(evento) => atualizarCampo('descricao', evento.target.value)} rows={3} />
             </label>
 
             <div className="acoes-formulario campo-largo">
@@ -213,10 +182,6 @@ export function PaginaGrupos() {
       )}
 
       <div className="secao-lista">
-        <div className="cabecalho-lista">
-          <strong>{totalGrupos} grupo(s)</strong>
-        </div>
-
         {carregando ? (
           <p>Carregando grupos...</p>
         ) : gruposOrdenados.length === 0 ? (
@@ -224,52 +189,37 @@ export function PaginaGrupos() {
         ) : (
           gruposOrdenados.map((grupo) => (
             <article key={grupo.id} className="cartao-lista competicao-card competicao-card-grupo">
-              <div className="competicao-card-conteudo">
-                <div className="competicao-card-cabecalho">
-                  <div className="competicao-card-titulo">
-                    <span className="competicao-card-tipo">Grupo</span>
-                    <h3>{grupo.nome}</h3>
-                  </div>
+              <div className="competicao-card-data">
+                <div className="competicao-card-conteudo">              
+                  <h3>{grupo.nome}</h3>                    
+                  <span>Criado por: {grupo.nomeUsuarioOrganizador || 'Não informado'}</span>                             
                 </div>
-                <div className="competicao-card-detalhes">
-                  <p>Início: {formatarData(grupo.dataInicio)}</p>
-                  <p>Fim: {formatarData(grupo.dataFim)}</p>
-                  <p>Responsável: {grupo.nomeUsuarioOrganizador || 'Não informado'}</p>
-                  {obterLinkHttp(grupo.link) && (
-                    <p>
-                      Link:{' '}
-                      <a href={obterLinkHttp(grupo.link)} target="_blank" rel="noopener noreferrer">
-                        Abrir
-                      </a>
-                    </p>
-                  )}
+                <div className="acoes-item competicao-card-acoes">
+                  <button type="button" className="botao-primario" onClick={() => navegar(`/partidas/registrar?grupoId=${grupo.id}`)}>
+                    Registrar partida
+                  </button>
+                  <button type="button" className="botao-secundario" onClick={() => navegar(`/grupos/${grupo.id}/atletas`)}>
+                    Atletas do grupo
+                  </button>               
+                  <button type="button" className="botao-secundario" onClick={() => navegar(`/partidas/consulta?grupoId=${grupo.id}`)}>
+                    Jogos do grupo
+                  </button>
+                  {podeGerenciar(grupo) && (
+                    <>
+                      <button type="button" className="botao-secundario" onClick={() => iniciarEdicao(grupo)}>
+                        Editar
+                      </button>
+                      <button type="button" className="botao-perigo" onClick={() => removerGrupo(grupo.id)}>
+                        Remover
+                      </button>
+                    </>
+                  )}               
                 </div>
-              </div>
-              <div className="acoes-item competicao-card-acoes">
-                <button type="button" className="botao-secundario" onClick={() => navegar(`/grupos/${grupo.id}/atletas`)}>
-                  Atletas do grupo
-                </button>
-                <button type="button" className="botao-primario" onClick={() => navegar(`/partidas/registrar?grupoId=${grupo.id}`)}>
-                  Registrar partida
-                </button>
-                <button type="button" className="botao-secundario" onClick={() => navegar(`/partidas/consulta?grupoId=${grupo.id}`)}>
-                  Jogos do grupo
-                </button>
-                {podeGerenciar(grupo) && (
-                  <>
-                    <button type="button" className="botao-secundario botao-editar" onClick={() => iniciarEdicao(grupo)}>
-                      Editar
-                    </button>
-                    <button type="button" className="botao-perigo" onClick={() => removerGrupo(grupo.id)}>
-                      Remover
-                    </button>
-                  </>
-                )}
-              </div>
+              </div>     
             </article>
           ))
-        )}
-      </div>
+        )}       
+      </div>      
     </section>
   );
 }
