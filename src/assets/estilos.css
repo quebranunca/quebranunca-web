@@ -724,6 +724,13 @@ a.botao-perigo {
   font-weight: 600;
 }
 
+.texto-ajuda {
+  margin: 0;
+  color: var(--cor-texto-secundario);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
 .texto-alerta {
   margin: 0;
   color: #8a6800;

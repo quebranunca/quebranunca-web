@@ -14,6 +14,10 @@ const LADOS_ATLETA = {
   esquerdo: 2
 };
 
+const GRUPO_GERAL_ID = '__grupo-geral__';
+const NOME_GRUPO_GERAL = 'Geral';
+const MENSAGEM_GRUPO_DUPLICADO = 'Já existe grupo com esse nome. Altere o nome para criar um novo grupo.';
+
 function obterDataHoraAtualInput() {
   const agora = new Date();
   const timezoneOffset = agora.getTimezoneOffset() * 60000;
@@ -40,6 +44,33 @@ function criarEstadoInicial() {
 
 function paraIsoUtc(dataLocal) {
   return dataLocal ? new Date(dataLocal).toISOString() : null;
+}
+
+function normalizarNomeGrupo(nome) {
+  return (nome || '').trim().replace(/\s+/g, ' ').toLocaleLowerCase('pt-BR');
+}
+
+function obterGrupoDoRetornoVerificacao(retorno) {
+  return retorno?.grupo || retorno?.grupoExistente || retorno?.grupoEncontrado || null;
+}
+
+function retornoIndicaGrupoExistente(retorno) {
+  return Boolean(
+    retorno?.existe ||
+    retorno?.existente ||
+    retorno?.grupoExiste ||
+    obterGrupoDoRetornoVerificacao(retorno)
+  );
+}
+
+function retornoIndicaPertencimento(retorno) {
+  return Boolean(
+    retorno?.usuarioFazParte ||
+    retorno?.fazParte ||
+    retorno?.pertenceAoUsuario ||
+    retorno?.usuarioParticipa ||
+    retorno?.podeUsar
+  );
 }
 
 function obterCampoBaseAtletaUsuarioPrimeiraDupla(lado) {
@@ -75,10 +106,14 @@ export function PaginaRegistrarPartidas() {
   const [carregando, setCarregando] = useState(true);
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState('');
+  const [erroNovoGrupo, setErroNovoGrupo] = useState('');
+  const [validandoNovoGrupo, setValidandoNovoGrupo] = useState(false);
   const [feedbackPendencias, setFeedbackPendencias] = useState([]);
 
   const grupoSelecionado = grupos.find((grupo) => grupo.id === grupoId) || null;
-  const podeSalvar = !salvando && !(usuarioAtleta && !atletaUsuarioId);
+  const grupoGeralNaLista = grupos.some((grupo) => normalizarNomeGrupo(grupo.nome) === normalizarNomeGrupo(NOME_GRUPO_GERAL));
+  const grupoFoiEscolhido = Boolean(grupoId);
+  const podeSalvar = !salvando && !validandoNovoGrupo && !erroNovoGrupo && !(usuarioAtleta && !atletaUsuarioId);
 
   useEffect(() => {
     carregarBase();
@@ -94,6 +129,73 @@ export function PaginaRegistrarPartidas() {
       ...obterCamposAtletaUsuarioPrimeiraDupla(atletaUsuarioId, atletaUsuarioNome, atletaUsuarioLado)
     }));
   }, [atletaUsuarioId, atletaUsuarioLado, atletaUsuarioNome]);
+
+  useEffect(() => {
+    if (grupoFoiEscolhido) {
+      setErroNovoGrupo('');
+      setValidandoNovoGrupo(false);
+      return undefined;
+    }
+
+    const nomeNormalizado = normalizarNomeGrupo(formulario.nomeGrupo);
+
+    if (!nomeNormalizado) {
+      setErroNovoGrupo('');
+      setValidandoNovoGrupo(false);
+      return undefined;
+    }
+
+    const grupoLocal = grupos.find((grupo) => normalizarNomeGrupo(grupo.nome) === nomeNormalizado);
+
+    if (grupoLocal) {
+      selecionarGrupo(grupoLocal.id);
+      return undefined;
+    }
+
+    let validacaoAtiva = true;
+    const temporizador = window.setTimeout(async () => {
+      setValidandoNovoGrupo(true);
+      setErroNovoGrupo('');
+
+      try {
+        const retorno = await gruposServico.verificarNome(formulario.nomeGrupo.trim().replace(/\s+/g, ' '));
+
+        if (!validacaoAtiva) {
+          return;
+        }
+
+        const grupoRetornado = obterGrupoDoRetornoVerificacao(retorno);
+        const grupoEncontrado = grupoRetornado?.id
+          ? grupos.find((grupo) => grupo.id === grupoRetornado.id) || grupoRetornado
+          : null;
+
+        if (grupoEncontrado && (retornoIndicaPertencimento(retorno) || grupos.some((grupo) => grupo.id === grupoEncontrado.id))) {
+          selecionarGrupo(grupoEncontrado.id);
+          return;
+        }
+
+        if (retornoIndicaGrupoExistente(retorno)) {
+          setErroNovoGrupo(MENSAGEM_GRUPO_DUPLICADO);
+          return;
+        }
+
+        setErroNovoGrupo('');
+      } catch (error) {
+        if (validacaoAtiva && error?.response?.status !== 404) {
+          setErroNovoGrupo(extrairMensagemErro(error));
+        }
+      } finally {
+        if (validacaoAtiva) {
+          setValidandoNovoGrupo(false);
+        }
+      }
+    }, 450);
+
+    return () => {
+      validacaoAtiva = false;
+      window.clearTimeout(temporizador);
+    };
+  }, [formulario.nomeGrupo, grupoFoiEscolhido, grupos]);
 
   async function carregarBase() {
     setCarregando(true);
@@ -127,6 +229,10 @@ export function PaginaRegistrarPartidas() {
   }
 
   function atualizarCampo(campo, valor) {
+    if (campo === 'nomeGrupo') {
+      setErroNovoGrupo('');
+    }
+
     setFormulario((anterior) => ({
       ...anterior,
       [campo]: valor
@@ -136,9 +242,11 @@ export function PaginaRegistrarPartidas() {
   function selecionarGrupo(idGrupo) {
     setGrupoId(idGrupo);
     setFeedbackPendencias([]);
+    setErroNovoGrupo('');
 
     setFormulario((anterior) => ({
       ...criarEstadoInicial(),
+      nomeGrupo: '',
       dataPartida: anterior.dataPartida,
       ...(
         atletaUsuarioId
@@ -147,7 +255,7 @@ export function PaginaRegistrarPartidas() {
       )
     }));
 
-    atualizarParametrosUrl(idGrupo);
+    atualizarParametrosUrl(idGrupo === GRUPO_GERAL_ID ? '' : idGrupo);
   }
 
   function atualizarAtleta(campoBase, valor) {
@@ -161,7 +269,6 @@ export function PaginaRegistrarPartidas() {
   function limparFormularioAposSalvar() {
     setFormulario((anterior) => ({
       ...criarEstadoInicial(),
-      nomeGrupo: anterior.nomeGrupo,
       dataPartida: anterior.dataPartida,
       ...(
         atletaUsuarioId
@@ -169,6 +276,7 @@ export function PaginaRegistrarPartidas() {
           : {}
       )
     }));
+    setErroNovoGrupo('');
   }
 
   async function aoSubmeter(evento) {
@@ -182,12 +290,24 @@ export function PaginaRegistrarPartidas() {
       return;
     }
 
+    if (erroNovoGrupo) {
+      setErro(erroNovoGrupo);
+      return;
+    }
+
+    if (validandoNovoGrupo) {
+      setErro('Aguarde a verificação do grupo para salvar.');
+      return;
+    }
+
     setSalvando(true);
+
+    const nomeNovoGrupo = grupoFoiEscolhido ? '' : formulario.nomeGrupo.trim().replace(/\s+/g, ' ');
 
     const dados = {
       competicaoId: null,
       grupoId: grupoSelecionado?.id || null,
-      nomeGrupo: grupoSelecionado ? null : formulario.nomeGrupo.trim() || "Partidas Avulsas",
+      nomeGrupo: nomeNovoGrupo || null,
       categoriaCompeticaoId: null,
       duplaAId: null,
       duplaBId: null,
@@ -263,7 +383,8 @@ export function PaginaRegistrarPartidas() {
           <label>
             Grupo
             <select value={grupoId} onChange={(evento) => selecionarGrupo(evento.target.value)}>
-              <option value="">Selecione um grupo</option>
+              <option value="">Sem grupo selecionado</option>
+              {!grupoGeralNaLista && <option value={GRUPO_GERAL_ID}>{NOME_GRUPO_GERAL}</option>}
               {grupos.map((grupo) => (
                 <option key={grupo.id} value={grupo.id}>
                   {grupo.nome}
@@ -272,16 +393,22 @@ export function PaginaRegistrarPartidas() {
             </select>
           </label>
 
-          {!grupoId && (
+          <p className="campo-largo texto-ajuda">
+            Se não selecionar ou criar um grupo, a partida será registrada no grupo Geral.
+          </p>
+
+          {!grupoFoiEscolhido && (
             <label className="campo-largo">
-              Nome do grupo
+              Novo grupo
               <input
                 type="text"
                 value={formulario.nomeGrupo}
                 onChange={(evento) => atualizarCampo('nomeGrupo', evento.target.value)}
+                onBlur={(evento) => atualizarCampo('nomeGrupo', evento.target.value.trim().replace(/\s+/g, ' '))}
                 placeholder="Ex.: Grupo da Praia de domingo"
-                required
               />
+              {validandoNovoGrupo && <span className="texto-ajuda">Verificando grupo...</span>}
+              {erroNovoGrupo && <span className="texto-erro">{erroNovoGrupo}</span>}
             </label>
           )}
 
