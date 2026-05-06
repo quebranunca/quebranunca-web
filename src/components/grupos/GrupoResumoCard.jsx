@@ -12,6 +12,7 @@ import {
   ordenarPartidasRecentes,
   partidaTemPlacarValido
 } from '../../utils/partidas';
+import { obterNomeExibicaoAtleta } from '../../utils/atletaUtils';
 
 function formatarPontuacao(valor) {
   const numero = Number(valor);
@@ -75,7 +76,7 @@ function GrupoResumoEstado({ tipo, mensagem }) {
 
 function formatarAtletas(atletas) {
   const nomes = (atletas || [])
-    .map((atleta) => atleta.nome)
+    .map((atleta) => obterNomeExibicaoAtleta(atleta))
     .filter(Boolean);
 
   return nomes.length > 0 ? nomes.join(' e ') : 'A definir';
@@ -193,7 +194,7 @@ export function GrupoResumoCard({
                 {rankingTop3.map((atleta) => (
                   <li key={`${atleta.posicao}-${atleta.nomeAtleta}`}>
                     <span>{atleta.posicao}º</span>
-                    <strong>{atleta.nomeAtleta}</strong>
+                    <strong>{obterNomeExibicaoAtleta(atleta)}</strong>
                     <small>{formatarPontuacao(atleta.pontuacao)}</small>
                   </li>
                 ))}

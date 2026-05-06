@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { IconeAcao } from '../components/ConteudoBotao';
+import { CompartilharPartidaBotao } from '../components/partidas/CompartilharPartidaBotao';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { categoriasServico } from '../services/categoriasServico';
 import { competicoesServico } from '../services/competicoesServico';
@@ -1073,6 +1074,11 @@ export function PaginaPartidasCampeonato() {
                   )}
                   <p className="campo-largo">Obs: {partida.observacoes || '-'}</p>
                 </div>
+                {partida.status === 2 && (
+                  <div className="acoes-item">
+                    <CompartilharPartidaBotao partidaId={partida.id} />
+                  </div>
+                )}
               </article>
             ))}
 

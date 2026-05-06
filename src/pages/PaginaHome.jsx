@@ -22,6 +22,7 @@ import { usuariosServico } from '../services/usuariosServico';
 import { criarPendenciasPerfil } from '../utils/pendenciasPerfil';
 import { HomeRankingLiga } from '../components/HomeRankingLiga';
 import { ordenarPartidasRecentes } from '../utils/partidas';
+import { obterNomeExibicaoAtleta } from '../utils/atletaUtils';
 import bannerLoja from '../assets/banner-loja.png';
 
 const TIPO_CAMPEONATO = 1;
@@ -192,7 +193,7 @@ export function PaginaHome() {
     [atletaPerfil, estadoAcesso, usuario]
   );
   const totalPendenciasHome = pendenciasUsuario.length + pendenciasPerfil.length;
-  const nomeAtleta = atletaPerfil?.nome || usuario?.atleta?.nome || '';
+  const nomeAtleta = obterNomeExibicaoAtleta(atletaPerfil) || obterNomeExibicaoAtleta(usuario?.atleta);
 
   useEffect(() => {
     let ativo = true;

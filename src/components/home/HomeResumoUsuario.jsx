@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { partidasServico } from '../../services/partidasServico';
 import { usuariosServico } from '../../services/usuariosServico';
 import { formatarDataHora } from '../../utils/formatacao';
+import { obterNomeExibicaoAtleta } from '../../utils/atletaUtils';
 import {
   atletaEstaNaDuplaA,
   obterClasseStatusAprovacao,
@@ -13,6 +14,7 @@ import {
   partidaTemPlacarValido
 } from '../../utils/partidas';
 import { PlacarDupla } from '../../components/partidas/PlacarDupla';
+import { CompartilharPartidaBotao } from '../../components/partidas/CompartilharPartidaBotao';
 
 const RESUMO_ZERADO = {
   totalPartidas: 0,
@@ -34,7 +36,7 @@ function formatarPercentual(valor) {
 
 function formatarAtletas(atletas) {
   const nomes = (atletas || [])
-    .map((atleta) => atleta.nome)
+    .map((atleta) => obterNomeExibicaoAtleta(atleta))
     .filter(Boolean);
 
   return nomes.length > 0 ? nomes.join(' e ') : 'A definir';
@@ -233,9 +235,12 @@ export function HomeResumoUsuario({
               </p>
             ) : ultimoJogo ? (
               <div className="home-ultimo-jogo">
-                <span className="grupo-resumo-rotulo">
-                  {obterGrupoPartida(ultimoJogo)} - ({ultimoJogo.dataPartida ? formatarDataHora(ultimoJogo.dataPartida) : 'Data a definir'})
-                </span>
+                <div className="home-ultimo-jogo-acoes">
+                  <span className="grupo-resumo-rotulo">
+                    {obterGrupoPartida(ultimoJogo)} - ({ultimoJogo.dataPartida ? formatarDataHora(ultimoJogo.dataPartida) : 'Data a definir'})
+                  </span>
+                  <CompartilharPartidaBotao partidaId={ultimoJogo.id} />
+                </div>
 
                 <PlacarDupla
                   label="Sua dupla"
@@ -265,7 +270,7 @@ export function HomeResumoUsuario({
                     {rankingTop3.map((atleta) => (
                     <li key={`${atleta.posicao}-${atleta.nomeAtleta}`}>
                       <span>{atleta.posicao}º</span>
-                      <strong>{atleta.nomeAtleta}</strong>
+                      <strong>{obterNomeExibicaoAtleta(atleta)}</strong>
                       <small>{formatarPontuacao(atleta.pontuacao)}</small>
                     </li>
                   ))}

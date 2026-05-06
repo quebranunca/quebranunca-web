@@ -14,6 +14,7 @@ import { extrairMensagemErro } from '../utils/erros';
 import { formatarDataHora, paraInputDataHora } from '../utils/formatacao';
 import { rolarParaElemento, rolarParaTopo } from '../utils/rolagem';
 import { ehAtleta, ehGestorCompeticao, PERFIS_USUARIO } from '../utils/perfis';
+import { obterNomeExibicaoAtleta, obterNomeExibicaoAtletaCampos } from '../utils/atletaUtils';
 
 function obterDataHoraAtualInput() {
   const agora = new Date();
@@ -143,7 +144,7 @@ function obterCamposAtletaUsuarioPrimeiraDupla(atletaId, atletaNome, atletaLado)
 }
 
 function formatarNomeDupla(dupla) {
-  return `${dupla.nome} (${dupla.nomeAtleta1} / ${dupla.nomeAtleta2})`;
+  return `${dupla.nome} (${obterNomeExibicaoAtletaCampos(dupla.nomeAtleta1, dupla.apelidoAtleta1)} / ${obterNomeExibicaoAtletaCampos(dupla.nomeAtleta2, dupla.apelidoAtleta2)})`;
 }
 
 function obterNomeStatus(status) {
@@ -466,7 +467,7 @@ export function PaginaPartidas({ modo = 'consulta' }) {
   const { usuario } = useAutenticacao();
   const usuarioAtleta = ehAtleta(usuario);
   const atletaUsuarioId = usuario?.atletaId || '';
-  const atletaUsuarioNome = usuario?.atleta?.nome || usuario?.nome || '';
+  const atletaUsuarioNome = obterNomeExibicaoAtleta(usuario?.atleta) || usuario?.nome || '';
   const [atletaUsuarioLadoDetalhe, setAtletaUsuarioLadoDetalhe] = useState(() => usuario?.atleta?.lado || null);
   const atletaUsuarioSemVinculo = usuarioAtleta && !atletaUsuarioId;
   const temAtletaUsuarioVinculado = Boolean(atletaUsuarioId);
@@ -1235,8 +1236,7 @@ export function PaginaPartidas({ modo = 'consulta' }) {
             className="item-sugestao"
             onClick={() => selecionarAtletaGrupo(campoBase, atleta)}
           >
-            {atleta.nome}
-            {atleta.apelido ? ` (${atleta.apelido})` : ''}
+            {obterNomeExibicaoAtleta(atleta)}
             {atleta.cadastroPendente ? ' [pendente]' : ''}
           </button>
         ))}
@@ -2322,7 +2322,9 @@ export function PaginaPartidas({ modo = 'consulta' }) {
                   <div>
                     <h3>{inscricao.nomeDupla}</h3>
                     <p>Categoria: {inscricao.nomeCategoria}</p>
-                    <p>Atletas: {inscricao.nomeAtleta1} / {inscricao.nomeAtleta2}</p>
+                    <p>
+                      Atletas: {obterNomeExibicaoAtletaCampos(inscricao.nomeAtleta1, inscricao.apelidoAtleta1)} / {obterNomeExibicaoAtletaCampos(inscricao.nomeAtleta2, inscricao.apelidoAtleta2)}
+                    </p>
                     <p>Pagamento: {inscricao.pago ? 'Pago' : 'Pendente'}</p>
                     <p>Data da inscrição: {formatarDataHora(inscricao.dataInscricaoUtc)}</p>
                     <p>Observação: {inscricao.observacao || '-'}</p>

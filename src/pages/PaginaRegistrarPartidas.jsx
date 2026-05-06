@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
+import { CompartilharPartidaBotao } from '../components/partidas/CompartilharPartidaBotao';
 import { gruposServico } from '../services/gruposServico';
 import { partidasServico } from '../services/partidasServico';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { extrairMensagemErro } from '../utils/erros';
 import { ehAtleta } from '../utils/perfis';
 import { useNotification } from '../contexts/NotificationContext';
+import { obterNomeExibicaoAtleta } from '../utils/atletaUtils';
 
 const LADOS_ATLETA = {
   direito: 1,
@@ -60,12 +62,11 @@ function obterCamposAtletaUsuarioPrimeiraDupla(atletaId, atletaNome, atletaLado)
 export function PaginaRegistrarPartidas() {
   const { usuario } = useAutenticacao();
   const [params, setParams] = useSearchParams();
-  const navegar = useNavigate();
-  const { showNotification } = useNotification();
+  const { showNotification, closeNotification } = useNotification();
 
   const usuarioAtleta = ehAtleta(usuario);
   const atletaUsuarioId = usuario?.atletaId || '';
-  const atletaUsuarioNome = usuario?.atleta?.nome || usuario?.nome || '';
+  const atletaUsuarioNome = obterNomeExibicaoAtleta(usuario?.atleta) || usuario?.nome || '';
   const atletaUsuarioLado = Number(usuario?.atleta?.lado || LADOS_ATLETA.direito);
 
   const [grupos, setGrupos] = useState([]);
@@ -212,14 +213,17 @@ export function PaginaRegistrarPartidas() {
 
       showNotification({
         type: 'success',
-        title: 'Partida registrada',
-        message: pendenciasSemContato.length > 0
-          ? 'Partida registrada com sucesso. Existem atletas pendentes sem e-mail para completar depois.'
-          : 'Partida registrada com sucesso.',
+        title: 'Partida salva com sucesso!',
+        message: 'Agora você pode compartilhar o resultado com a galera.',
         autoClose: false,
-        onClose: () => {
-          navegar('/');
-        }
+        actions: (
+          <>
+            <CompartilharPartidaBotao partidaId={partidaSalva.id} />
+            <button type="button" className="botao-secundario" onClick={closeNotification}>
+              Fechar
+            </button>
+          </>
+        )
       });
 
       setFeedbackPendencias(pendenciasSemContato);
@@ -339,7 +343,7 @@ export function PaginaRegistrarPartidas() {
           {feedbackPendencias.length > 0 && (
             <div className="campo-largo texto-ajuda">
               {feedbackPendencias.map((pendencia) => (
-                <p key={pendencia.atletaId}>{pendencia.nomeAtleta}: contato pendente.</p>
+                <p key={pendencia.atletaId}>{obterNomeExibicaoAtleta(pendencia) || 'Atleta'}: contato pendente.</p>
               ))}
             </div>
           )}

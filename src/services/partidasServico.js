@@ -25,6 +25,11 @@ export const partidasServico = {
     return resposta.data;
   },
 
+  async obterCompartilhamento(id) {
+    const resposta = await http.get(`/partidas/${id}/compartilhamento`);
+    return resposta.data;
+  },
+
   async listarEstrutura({ competicaoId, grupoId, categoriaId }) {
     const resposta = await http.get('/partidas/estrutura', {
       params: categoriaId ? { categoriaId } : grupoId ? { grupoId } : { competicaoId }

@@ -1,4 +1,5 @@
 import { HomeSecaoCabecalho } from './HomeSecaoCabecalho';
+import { obterNomeExibicaoAtleta } from '../../utils/atletaUtils';
 
 export function HomeDestaqueRanking({ destaqueRanking }) {
   return (
@@ -16,7 +17,7 @@ export function HomeDestaqueRanking({ destaqueRanking }) {
             destaqueRanking.atletas.map((atleta) => (
               <div key={atleta.atletaId} className="home-ranking-linha">
                 <span>{atleta.posicao}º</span>
-                <strong>{atleta.nomeAtleta}</strong>
+                <strong>{obterNomeExibicaoAtleta(atleta)}</strong>
                 <small>{atleta.pontos} pts</small>
               </div>
             ))

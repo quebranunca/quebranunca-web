@@ -7,6 +7,7 @@ import { extrairMensagemErro } from '../utils/erros';
 import { formatarDataHora } from '../utils/formatacao';
 import { criarPendenciasPerfil } from '../utils/pendenciasPerfil';
 import { rolarParaTopo } from '../utils/rolagem';
+import { obterNomeExibicaoAtleta } from '../utils/atletaUtils';
 
 const TIPOS_PENDENCIA = {
   aprovarPartida: 1,
@@ -222,7 +223,7 @@ export function PaginaPendenciasAtletas() {
               <div className="linha-entre">
                 <div>
                   <h3>{obterTituloPendencia(item.tipo)}</h3>
-                  {item.nomeAtleta && <p>Atleta: {item.nomeAtleta}</p>}
+                  {obterNomeExibicaoAtleta(item) && <p>Atleta: {obterNomeExibicaoAtleta(item)}</p>}
                   {item.partidaId && (
                     <>
                       <p>Partida: {item.nomeDuplaA} x {item.nomeDuplaB}</p>
@@ -246,7 +247,7 @@ export function PaginaPendenciasAtletas() {
               {item.tipo === TIPOS_PENDENCIA.completarContato ? (
                 <>
                   <label className="campo-largo">
-                    E-mail do {item.nomeAtleta || 'atleta'}
+                    E-mail do {obterNomeExibicaoAtleta(item) || 'atleta'}
                     <input
                       type="email"
                       value={emails[item.id] || ''}

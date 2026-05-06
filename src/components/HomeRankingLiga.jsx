@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { obterNomeExibicaoAtleta } from '../utils/atletaUtils';
 
 const rankingPreview = [
   {
@@ -76,7 +77,7 @@ export function HomeRankingLiga() {
                   </span>
 
                   <span className="home-ranking-nome">
-                    {atleta.nome}
+                    {obterNomeExibicaoAtleta(atleta)}
                   </span>
 
                   <strong className="home-ranking-pontos">

@@ -3,6 +3,7 @@
 - Usar `src/services` para acesso HTTP e manter autenticação e URL base centralizadas em `src/services/http.js`
 - Preferir páginas com estado local; só extrair hook ou componente quando isso reduzir duplicação real
 - Reutilizar `utils/erros.js` e `utils/formatacao.js` antes de criar lógica equivalente dentro das páginas
+- Sempre que exibir o nome de um atleta no frontend, priorizar o apelido. Caso não exista apelido preenchido, usar o nome. Centralizar essa lógica em utilitário reutilizável e evitar duplicação.
 - Não colocar regra de negócio da competição no cliente; refletir dados e validações vindos da API
 - Exibir feedback claro para carregamento, erro, sucesso e ações destrutivas
 - Quando um endpoint existir no repositório, mas a tela receber `404` ou falha de conexão, verificar primeiro a instância local da API, o `baseURL` em `src/services/http.js`, o proxy do Vite e o `.env` antes de alterar código

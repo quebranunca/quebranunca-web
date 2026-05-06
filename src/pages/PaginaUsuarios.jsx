@@ -5,6 +5,7 @@ import { usuariosServico } from '../services/usuariosServico';
 import { extrairMensagemErro } from '../utils/erros';
 import { nomePerfil, PERFIS_USUARIO } from '../utils/perfis';
 import { rolarParaTopo } from '../utils/rolagem';
+import { obterNomeExibicaoAtleta } from '../utils/atletaUtils';
 
 function criarEdicao(usuario) {
   return {
@@ -13,7 +14,7 @@ function criarEdicao(usuario) {
     perfil: String(usuario.perfil),
     ativo: Boolean(usuario.ativo),
     atletaId: usuario.atletaId || '',
-    nomeAtleta: usuario.atleta?.nome || ''
+    nomeAtleta: obterNomeExibicaoAtleta(usuario.atleta)
   };
 }
 
@@ -114,7 +115,7 @@ export function PaginaUsuarios() {
 
   function selecionarAtleta(usuarioId, atleta) {
     atualizarEdicao(usuarioId, 'atletaId', atleta.id);
-    atualizarEdicao(usuarioId, 'nomeAtleta', atleta.nome);
+    atualizarEdicao(usuarioId, 'nomeAtleta', obterNomeExibicaoAtleta(atleta));
     setResultadosAtleta((anterior) => ({ ...anterior, [usuarioId]: [] }));
   }
 
@@ -175,7 +176,7 @@ export function PaginaUsuarios() {
                   <p>E-mail atual: {usuario.email}</p>
                   <p>Perfil atual: {nomePerfil(usuario.perfil)}</p>
                   <p>Status: {usuario.ativo ? 'Ativo' : 'Inativo'}</p>
-                  <p>Atleta vinculado: {usuario.atleta?.nome || 'Nenhum'}</p>
+                  <p>Atleta vinculado: {obterNomeExibicaoAtleta(usuario.atleta) || 'Nenhum'}</p>
                 </div>
 
                 <div className="formulario-grid">
@@ -268,8 +269,7 @@ export function PaginaUsuarios() {
                           className="item-sugestao"
                           onClick={() => selecionarAtleta(usuario.id, atleta)}
                         >
-                          {atleta.nome}
-                          {atleta.apelido ? ` (${atleta.apelido})` : ''}
+                          {obterNomeExibicaoAtleta(atleta)}
                         </button>
                       ))}
                     </div>

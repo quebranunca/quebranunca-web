@@ -8,6 +8,7 @@ import { rankingServico } from '../services/rankingServico';
 import { extrairMensagemErro } from '../utils/erros';
 import { formatarDataHora } from '../utils/formatacao';
 import { ehAtleta } from '../utils/perfis';
+import { obterNomeExibicaoAtleta } from '../utils/atletaUtils';
 
 const tiposConsulta = [
   { valor: 'competicao', rotulo: 'Competições' },
@@ -728,7 +729,7 @@ export function PaginaRanking() {
                                 onClick={() => alternarDetalhe(grupo.chave, item.atletaId)}
                                 aria-expanded={aberto}
                               >
-                                {item.nomeAtleta}
+                                {obterNomeExibicaoAtleta(item)}
                               </button>
                             </td>
                             {tipoConsulta === 'regiao' && <td>{formatarRegiaoAtleta(item)}</td>}
@@ -771,7 +772,7 @@ export function PaginaRanking() {
                       <div className="ranking-mobile-topo">
                         <span className="ranking-mobile-posicao">{item.posicao}º</span>
                         <div className="ranking-mobile-identidade">
-                          <strong className="ranking-mobile-nome">{item.nomeAtleta}</strong>
+                          <strong className="ranking-mobile-nome">{obterNomeExibicaoAtleta(item)}</strong>
                           {tipoConsulta === 'regiao' && <span>{formatarRegiaoAtleta(item)}</span>}
                           <span className={`tag-status ${classeStatusPendencia(item)}`}>
                             {item.statusPendencia}

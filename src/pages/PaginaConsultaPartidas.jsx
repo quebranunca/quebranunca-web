@@ -7,6 +7,7 @@ import { extrairMensagemErro } from '../utils/erros';
 import { formatarDataHora } from '../utils/formatacao';
 import { ehAdministrador } from '../utils/perfis';
 import { PlacarDupla } from '../components/partidas/PlacarDupla';
+import { CompartilharPartidaBotao } from '../components/partidas/CompartilharPartidaBotao';
 
 function obterGrupoPartida(partida) {
   return partida?.nomeGrupo || 'Grupo';
@@ -173,8 +174,9 @@ export function PaginaConsultaPartidas() {
                     />
                   </div>
 
-                  {administradorLogado && (
-                    <div className="acoes-item">
+                  <div className="acoes-item">
+                    {partida.status === 2 && <CompartilharPartidaBotao partidaId={partida.id} />}
+                    {administradorLogado && (
                       <button
                         type="button"
                         className="botao-perigo botao-compacto"
@@ -183,8 +185,8 @@ export function PaginaConsultaPartidas() {
                       >
                         {excluindoPartida ? 'Excluindo...' : 'Excluir'}
                       </button>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </article>
               );
             })}

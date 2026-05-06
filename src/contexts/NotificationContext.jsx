@@ -29,7 +29,9 @@ export function NotificationProvider({ children }) {
     message,
     autoClose = true,
     duration = 3000,
-    onClose = null
+    onClose = null,
+    actions = null,
+    closeLabel = 'OK'
     }) => {
     if (timerRef.current) {
         clearTimeout(timerRef.current);
@@ -40,7 +42,9 @@ export function NotificationProvider({ children }) {
         type,
         title,
         message,
-        onClose
+        onClose,
+        actions,
+        closeLabel
     });
 
     if (autoClose) {
@@ -72,13 +76,19 @@ export function NotificationProvider({ children }) {
               {notification.message && <p>{notification.message}</p>}
             </div>
 
-            <button
-              type="button"
-              className="botao-primario"
-              onClick={closeNotification}
-            >
-              OK
-            </button>
+            {notification.actions ? (
+              <div className="notification-actions">
+                {notification.actions}
+              </div>
+            ) : (
+              <button
+                type="button"
+                className="botao-primario"
+                onClick={closeNotification}
+              >
+                {notification.closeLabel || 'OK'}
+              </button>
+            )}
           </div>
         </div>
       )}

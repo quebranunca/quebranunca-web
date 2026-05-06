@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { partidasServico } from '../services/partidasServico';
+import { CompartilharPartidaBotao } from '../components/partidas/CompartilharPartidaBotao';
 import { extrairMensagemErro } from '../utils/erros';
 import { formatarDataHora } from '../utils/formatacao';
 import {
@@ -14,6 +15,7 @@ import {
   ordenarPartidasRecentes,
   STATUS_PARTIDA
 } from '../utils/partidas';
+import { obterNomeExibicaoAtleta } from '../utils/atletaUtils';
 
 export function PaginaMeusJogos() {
   const { usuario } = useAutenticacao();
@@ -146,7 +148,7 @@ export function PaginaMeusJogos() {
                     {atletas.duplaA.map((atleta) => (
                       <div key={`${partida.id}-a-${atleta.lado}`} className={atleta.destaque ? 'atleta-logado' : ''}>
                         <small>{atleta.lado}</small>
-                        <span>{atleta.nome || 'A definir'}</span>
+                        <span>{obterNomeExibicaoAtleta(atleta) || 'A definir'}</span>
                       </div>
                     ))}
                   </div>
@@ -163,7 +165,7 @@ export function PaginaMeusJogos() {
                     {atletas.duplaB.map((atleta) => (
                       <div key={`${partida.id}-b-${atleta.lado}`} className={atleta.destaque ? 'atleta-logado' : ''}>
                         <small>{atleta.lado}</small>
-                        <span>{atleta.nome || 'A definir'}</span>
+                        <span>{obterNomeExibicaoAtleta(atleta) || 'A definir'}</span>
                       </div>
                     ))}
                   </div>
@@ -175,6 +177,9 @@ export function PaginaMeusJogos() {
                   </span>
                   <span>{partida.nomeCriadoPorUsuario ? `Registrada por ${partida.nomeCriadoPorUsuario}` : 'Origem não informada'}</span>
                   {partida.observacoes && <span>{partida.observacoes}</span>}
+                  {Number(partida.status) === STATUS_PARTIDA.encerrada && (
+                    <CompartilharPartidaBotao partidaId={partida.id} />
+                  )}
                 </div>
               </article>
             );

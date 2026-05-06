@@ -7,6 +7,7 @@ import { ESTADOS_ACESSO } from '../utils/acesso';
 import { extrairMensagemErro } from '../utils/erros';
 import { PERFIS_USUARIO, ehAtleta } from '../utils/perfis';
 import { rolarParaTopo } from '../utils/rolagem';
+import { obterNomeExibicaoAtleta } from '../utils/atletaUtils';
 
 const estadoInicialGrupoAtleta = {
   nomeAtleta: '',
@@ -260,7 +261,7 @@ export function PaginaGrupoAtletas() {
                   <option value="">Selecione</option>
                   {nomesDisponiveisParaAssumir.map((item) => (
                     <option key={item.id} value={item.id}>
-                      {item.nomeAtleta}{item.apelidoAtleta ? ` (${item.apelidoAtleta})` : ''}
+                      {obterNomeExibicaoAtleta(item)}
                     </option>
                   ))}
                 </select>
@@ -290,7 +291,7 @@ export function PaginaGrupoAtletas() {
               return (
                 <article key={item.id} className="cartao-lista">
                   <div>
-                    <h3>{item.nomeAtleta}</h3>
+                    <h3>{obterNomeExibicaoAtleta(item)}</h3>
                     <p>Apelido: {item.apelidoAtleta || '-'}</p>
                     <p>Email: {item.emailAtleta || 'Pendente'}</p>
                     <p>Cadastro no sistema: {item.cadastroPendente ? 'Pendente' : 'Completo'}</p>

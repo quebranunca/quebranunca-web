@@ -11,6 +11,7 @@ import { formatarDataHora } from '../utils/formatacao';
 import { abrirLinkExterno } from '../utils/links';
 import { ehGestorCompeticao, PERFIS_USUARIO } from '../utils/perfis';
 import { rolarParaTopo } from '../utils/rolagem';
+import { obterNomeExibicaoAtleta, obterNomeExibicaoAtletaCampos } from '../utils/atletaUtils';
 
 const estadoInicialFormulario = {
   categoriaId: '',
@@ -152,7 +153,7 @@ export function PaginaInscricoesCampeonato() {
   const organizadorLogado = Number(usuario?.perfil) === PERFIS_USUARIO.organizador;
   const gestorCompeticao = ehGestorCompeticao(usuario);
   const meuAtletaId = usuario?.atletaId || '';
-  const meuAtletaNome = usuario?.atleta?.nome || '';
+  const meuAtletaNome = obterNomeExibicaoAtleta(usuario?.atleta);
   const meuAtletaApelido = usuario?.atleta?.apelido || '';
   const [campeonatos, setCampeonatos] = useState([]);
   const [categorias, setCategorias] = useState([]);
@@ -1045,8 +1046,7 @@ export function PaginaInscricoesCampeonato() {
                       className="item-sugestao"
                       onClick={() => selecionarAtleta(2, atleta)}
                     >
-                      {atleta.nome}
-                      {atleta.apelido ? ` (${atleta.apelido})` : ''}
+                      {obterNomeExibicaoAtleta(atleta)}
                       {atleta.cadastroPendente ? ' [pendente]' : ''}
                     </button>
                   ))}
@@ -1055,7 +1055,7 @@ export function PaginaInscricoesCampeonato() {
 
               {atletaSelecionado2 && (
                 <p className="texto-sucesso campo-largo">
-                  Parceiro selecionado: {atletaSelecionado2.nome}{atletaSelecionado2.cadastroPendente ? ' [pendente]' : ''}
+                  Parceiro selecionado: {obterNomeExibicaoAtleta(atletaSelecionado2)}{atletaSelecionado2.cadastroPendente ? ' [pendente]' : ''}
                 </p>
               )}
 
@@ -1099,8 +1099,7 @@ export function PaginaInscricoesCampeonato() {
                   className="item-sugestao"
                   onClick={() => selecionarAtleta(1, atleta)}
                 >
-                  {atleta.nome}
-                  {atleta.apelido ? ` (${atleta.apelido})` : ''}
+                  {obterNomeExibicaoAtleta(atleta)}
                   {atleta.cadastroPendente ? ' [pendente]' : ''}
                 </button>
               ))}
@@ -1127,8 +1126,7 @@ export function PaginaInscricoesCampeonato() {
                   className="item-sugestao"
                   onClick={() => selecionarAtleta(2, atleta)}
                 >
-                  {atleta.nome}
-                  {atleta.apelido ? ` (${atleta.apelido})` : ''}
+                  {obterNomeExibicaoAtleta(atleta)}
                   {atleta.cadastroPendente ? ' [pendente]' : ''}
                 </button>
               ))}
@@ -1137,13 +1135,13 @@ export function PaginaInscricoesCampeonato() {
 
           {!formulario.duplaId && atletaSelecionado1 && (
             <p className="texto-sucesso campo-largo">
-              Jogador 1 selecionado: {atletaSelecionado1.nome}{atletaSelecionado1.cadastroPendente ? ' [pendente]' : ''}
+              Jogador 1 selecionado: {obterNomeExibicaoAtleta(atletaSelecionado1)}{atletaSelecionado1.cadastroPendente ? ' [pendente]' : ''}
             </p>
           )}
 
           {!formulario.duplaId && atletaSelecionado2 && (
             <p className="texto-sucesso campo-largo">
-              Jogador 2 selecionado: {atletaSelecionado2.nome}{atletaSelecionado2.cadastroPendente ? ' [pendente]' : ''}
+              Jogador 2 selecionado: {obterNomeExibicaoAtleta(atletaSelecionado2)}{atletaSelecionado2.cadastroPendente ? ' [pendente]' : ''}
             </p>
           )}
 
@@ -1212,7 +1210,9 @@ export function PaginaInscricoesCampeonato() {
             <article key={inscricao.id} className="cartao-lista">
               <div>
                 <h3>{inscricao.nomeCategoria}</h3>
-                <p>Dupla: {inscricao.nomeDupla || `${inscricao.nomeAtleta1} + ${inscricao.nomeAtleta2}`}</p>
+                <p>
+                  Dupla: {inscricao.nomeDupla || `${obterNomeExibicaoAtletaCampos(inscricao.nomeAtleta1, inscricao.apelidoAtleta1)} + ${obterNomeExibicaoAtletaCampos(inscricao.nomeAtleta2, inscricao.apelidoAtleta2)}`}
+                </p>
                 <p>Data da inscrição: {formatarDataHora(inscricao.dataInscricaoUtc)}</p>
                 <p>Status: {obterNomeStatus(inscricao.status)}</p>
                 <p>Pagamento: {inscricao.pago ? 'Pago' : 'Pendente'}</p>

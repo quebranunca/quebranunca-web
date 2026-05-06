@@ -5,6 +5,7 @@ import { extrairMensagemErro } from '../utils/erros';
 import { formatarDataHora } from '../utils/formatacao';
 import { nomePerfil } from '../utils/perfis';
 import { rolarParaTopo } from '../utils/rolagem';
+import { obterNomeExibicaoAtleta } from '../utils/atletaUtils';
 
 const formularioInicial = {
   email: '',
@@ -257,7 +258,7 @@ export function PaginaConvitesCadastro() {
               </option>
               {atletasElegiveis.map((atleta) => (
                 <option key={atleta.atletaId} value={atleta.atletaId}>
-                  {atleta.nomeAtleta} - {atleta.email}
+                  {obterNomeExibicaoAtleta(atleta)} - {atleta.email}
                 </option>
               ))}
             </select>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { extrairMensagemErro } from '../utils/erros';
 import { nomePerfil } from '../utils/perfis';
+import { obterNomeExibicaoAtleta } from '../utils/atletaUtils';
 
 export function PaginaPerfilUsuario() {
   const { usuario, recarregarUsuario } = useAutenticacao();
@@ -59,7 +60,7 @@ export function PaginaPerfilUsuario() {
         <p>Nome: {usuarioDetalhe?.nome || usuario?.nome}</p>
         <p>E-mail: {usuarioDetalhe?.email || usuario?.email}</p>
         <p>Perfil: {nomePerfil(usuarioDetalhe?.perfil || usuario?.perfil)}</p>
-        <p>Atleta vinculado: {usuarioDetalhe?.atleta?.nome || 'Nenhum atleta vinculado'}</p>
+        <p>Atleta vinculado: {obterNomeExibicaoAtleta(usuarioDetalhe?.atleta) || 'Nenhum atleta vinculado'}</p>
       </div>
     </section>
   );

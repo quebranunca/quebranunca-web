@@ -7,6 +7,7 @@ import { duplasServico } from '../services/duplasServico';
 import { extrairMensagemErro } from '../utils/erros';
 import { rolarParaElemento, rolarParaTopo } from '../utils/rolagem';
 import { ehOrganizador } from '../utils/perfis';
+import { obterNomeExibicaoAtleta, obterNomeExibicaoAtletaCampos } from '../utils/atletaUtils';
 
 const estadoInicial = {
   nome: '',
@@ -176,7 +177,7 @@ export function PaginaDuplas() {
               <option value="">Selecione</option>
               {atletas.map((atleta) => (
                 <option key={atleta.id} value={atleta.id}>
-                  {atleta.nome}{atleta.cadastroPendente ? ' (pendente)' : ''}
+                  {obterNomeExibicaoAtleta(atleta)}{atleta.cadastroPendente ? ' (pendente)' : ''}
                 </option>
               ))}
             </select>
@@ -192,7 +193,7 @@ export function PaginaDuplas() {
               <option value="">Selecione</option>
               {atletas.map((atleta) => (
                 <option key={atleta.id} value={atleta.id}>
-                  {atleta.nome}{atleta.cadastroPendente ? ' (pendente)' : ''}
+                  {obterNomeExibicaoAtleta(atleta)}{atleta.cadastroPendente ? ' (pendente)' : ''}
                 </option>
               ))}
             </select>
@@ -220,7 +221,9 @@ export function PaginaDuplas() {
             <article key={dupla.id} className="cartao-lista">
               <div>
                 <h3>{dupla.nome}</h3>
-                <p>{dupla.nomeAtleta1} + {dupla.nomeAtleta2}</p>
+                <p>
+                  {obterNomeExibicaoAtletaCampos(dupla.nomeAtleta1, dupla.apelidoAtleta1)} + {obterNomeExibicaoAtletaCampos(dupla.nomeAtleta2, dupla.apelidoAtleta2)}
+                </p>
               </div>
 
               <div className="acoes-item">

@@ -8,6 +8,7 @@ import { formatarData, normalizarDataParaApi, paraInputData } from '../utils/for
 import { nomeNivelAtleta, opcoesNivelAtleta } from '../utils/niveisAtleta';
 import { rolarParaElemento, rolarParaTopo } from '../utils/rolagem';
 import { ehOrganizador } from '../utils/perfis';
+import { obterNomeExibicaoAtleta } from '../utils/atletaUtils';
 
 const estadoInicial = {
   nome: '',
@@ -338,7 +339,7 @@ export function PaginaAtletas() {
           {atletas.map((atleta) => (
             <article key={atleta.id} className="cartao-lista">
               <div>
-                <h3>{atleta.nome}</h3>
+                <h3>{obterNomeExibicaoAtleta(atleta)}</h3>
                 <p>Apelido: {atleta.apelido || '-'}</p>
                 <p>Telefone: {atleta.telefone || '-'}</p>
                 <p>E-mail: {atleta.email || '-'}</p>
