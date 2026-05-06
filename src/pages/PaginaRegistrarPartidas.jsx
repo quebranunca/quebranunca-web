@@ -345,7 +345,7 @@ export function PaginaRegistrarPartidas() {
           )}
 
           <div className="acoes-formulario">
-            <button type="submit" className="botao-primario botao-compacto" disabled={!podeSalvar}>
+            <button type="submit" className="botao-primario" disabled={!podeSalvar}>
               {salvando ? 'Salvando...' : 'Registrar partida'}
             </button>
           </div>
