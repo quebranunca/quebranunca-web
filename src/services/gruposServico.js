@@ -16,6 +16,13 @@ export const gruposServico = {
     return resposta.data;
   },
 
+  async verificarNome(nome) {
+    const resposta = await http.get('/grupos/verificar-nome', {
+      params: { nome }
+    });
+    return resposta.data;
+  },
+
   async criar(dados) {
     const resposta = await http.post('/grupos', dados);
     return resposta.data;
