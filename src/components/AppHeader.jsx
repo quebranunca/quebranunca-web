@@ -130,11 +130,11 @@ export function AppHeader({
 
         {autenticado ? (
           <button type="button" className="botao-terciario botao-topo-icone botao-menu-mobile" onClick={aoSair}>
-            <ConteudoBotao icone="sair" texto="Sair" />
+            <ConteudoBotao icone="sair"/>
           </button>
         ) : (
           <NavLink to="/login" className="botao-terciario botao-topo-icone botao-menu-mobile">
-            <ConteudoBotao icone="entrar" texto="Entrar" />
+            <ConteudoBotao icone="entrar"/>
           </NavLink>
         )}
       </div>

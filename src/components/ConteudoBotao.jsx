@@ -135,13 +135,10 @@ export function ConteudoBotao({ icone, texto, ajuda, somenteIconeNoMobile = true
   const textoAjuda = ajuda || texto;
 
   return (
-    <span
-      className='botao-com-icone botao-mobile-icone'
-      title={textoAjuda}
+    <span        title={textoAjuda}
       aria-label={textoAjuda}
     >
       <IconeAcao nome={icone} />
-      <span className="texto-botao">{texto}</span>
     </span>
   );
 }
