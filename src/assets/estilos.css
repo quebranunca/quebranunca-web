@@ -131,7 +131,6 @@ textarea {
   display: inline-flex;
 }
 
-/* ALERTA (! pequeno no sino) */
 .indicador-alerta {
   position: absolute;
   top: -4px;
@@ -140,7 +139,17 @@ textarea {
   font-weight: 900;
   color: #ff3b3b;
 }
-/* BADGE número */
+
+.indicador-alerta-b {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 8px;
+  height: 8px;
+  background-color: #ff3b30;
+  border-radius: 50%;
+}
+
 .badge-notificacoes-topo {
   position: absolute;
   top: -6px;

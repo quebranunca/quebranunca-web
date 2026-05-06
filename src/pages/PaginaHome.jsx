@@ -201,10 +201,9 @@ export function PaginaHome() {
       setCarregando(true);
 
       try {
-        const [resultadoCompeticoes, resultadoGrupos, resultadoRanking] = await Promise.allSettled([
+        const [resultadoCompeticoes, resultadoGrupos] = await Promise.allSettled([
           competicoesServico.listarVisiveis(),
-          token ? gruposServico.listar() : Promise.resolve([]),
-          rankingServico.listarAtletasGeral()
+          token ? gruposServico.listar() : Promise.resolve([])
         ]);
 
         if (!ativo) {
@@ -232,14 +231,7 @@ export function PaginaHome() {
           registrarFalhaHome('competições', resultadoCompeticoes.reason);
           setCompeticoes([]);
           setCategoriasPorCompeticao({});
-        }
-
-        if (resultadoRanking.status === 'fulfilled') {
-          setRankingGeral(resultadoRanking.value);
-        } else {
-          registrarFalhaHome('ranking geral', resultadoRanking.reason);
-          setRankingGeral([]);
-        }
+        }      
       } catch (erro) {
         registrarFalhaHome('dados públicos', erro);
         setCompeticoes([]);
@@ -281,8 +273,7 @@ export function PaginaHome() {
       setErroUltimoJogoUsuario(false);
       setErroResumoGrupoUsuario(false);
 
-      const [resultadoPendencias, resultadoAtleta, resultadoResumo, resultadoPartidas, resultadoResumoGrupo] = await Promise.allSettled([
-        pendenciasServico.listar(),
+      const [resultadoAtleta, resultadoResumo, resultadoPartidas, resultadoResumoGrupo] = await Promise.allSettled([
         usuario?.atletaId ? atletasServico.obterMeu() : Promise.resolve(null),
         usuariosServico.obterResumo(),
         usuario?.atletaId ? partidasServico.listarMinhas() : Promise.resolve([]),
@@ -291,13 +282,6 @@ export function PaginaHome() {
 
       if (!ativo) {
         return;
-      }
-
-      if (resultadoPendencias.status === 'fulfilled') {
-        setPendenciasUsuario((resultadoPendencias.value || []).filter(pendenciaAindaVisivel));
-      } else {
-        registrarFalhaHome('pendências do usuário', resultadoPendencias.reason);
-        setPendenciasUsuario([]);
       }
 
       if (resultadoAtleta.status === 'fulfilled') {
