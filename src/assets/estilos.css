@@ -2029,6 +2029,10 @@ code {
   background: var(--cor-superficie-suave);
 }
 
+.grupo-resumo-bloco-clicavel {
+  cursor: pointer;
+}
+
 .grupo-resumo-bloco p,
 .grupo-resumo-bloco strong {
   margin: 0;

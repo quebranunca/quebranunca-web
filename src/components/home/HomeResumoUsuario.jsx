@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { partidasServico } from '../../services/partidasServico';
 import { usuariosServico } from '../../services/usuariosServico';
 import { formatarDataHora } from '../../utils/formatacao';
@@ -90,6 +90,7 @@ export function HomeResumoUsuario({
   erroResumo,
   erroUltimoJogoUsuario
 }) {
+  const navegar = useNavigate();
   const possuiDadosExternos = resumoUsuario !== undefined ||
     ultimoJogoUsuario !== undefined ||
     carregandoResumo !== undefined ||
@@ -191,6 +192,26 @@ export function HomeResumoUsuario({
   const duplasUltimoJogo = ultimoJogo ? obterDuplasDoAtleta(ultimoJogo, atletaId) : null;
   const placarUltimoJogo = ultimoJogo ? obterPlacarDoAtleta(ultimoJogo, atletaId) : null;
   const rankingTop3 = resumoGrupo?.rankingTop3 || [];
+  const possuiRanking = Array.isArray(rankingTop3) &&
+    rankingTop3.some((item) => item?.posicaoRanking || item?.posicao);
+  const possuiPartidas = resumo.totalPartidas > 0;
+  const exibirResumoRanking = possuiRanking || possuiPartidas;
+  const grupoIdRanking = resumoGrupo?.grupoId || rankingTop3.find((item) => item?.grupoId)?.grupoId || null;
+  const podeAbrirRankingGrupo = possuiRanking && Boolean(grupoIdRanking);
+
+  function aoAbrirRankingGrupo() {
+    if (!podeAbrirRankingGrupo) {
+      return;
+    }
+
+    navegar(`/ranking?tipo=competicao&grupoId=${encodeURIComponent(grupoIdRanking)}`);
+  }
+
+  function aoTeclarRankingGrupo(evento) {
+    if (evento.key === 'Enter') {
+      aoAbrirRankingGrupo();
+    }
+  }
 
   return (
     <section className="home-secao">
@@ -262,24 +283,33 @@ export function HomeResumoUsuario({
               </p>
             )}                 
             
-            <div className="grupo-resumo-conteudo">              
-              <section className="grupo-resumo-bloco" aria-label="Top 3 do ranking do grupo">
-                <span className="grupo-resumo-rotulo">{obterGrupoPartida(ultimoJogo)} - Top 3</span>
-                {rankingTop3.length > 0 ? (
-                  <ol className="grupo-resumo-ranking">
-                    {rankingTop3.map((atleta) => (
-                    <li key={`${atleta.posicao}-${atleta.nomeAtleta}`}>
-                      <span>{atleta.posicao}º</span>
-                      <strong>{obterNomeExibicaoAtleta(atleta)}</strong>
-                      <small>{formatarPontuacao(atleta.pontuacao)}</small>
-                    </li>
-                  ))}
-                  </ol>
-                ) : (
-                  <p>Ranking ainda não disponível</p>
-                )}
-              </section>
-            </div>
+            {exibirResumoRanking && (
+              <div className="grupo-resumo-conteudo">
+                <section
+                  className={`grupo-resumo-bloco${podeAbrirRankingGrupo ? ' grupo-resumo-bloco-clicavel' : ''}`}
+                  aria-label="Top 3 do ranking do grupo"
+                  role={podeAbrirRankingGrupo ? 'button' : undefined}
+                  tabIndex={podeAbrirRankingGrupo ? 0 : undefined}
+                  onClick={podeAbrirRankingGrupo ? aoAbrirRankingGrupo : undefined}
+                  onKeyDown={podeAbrirRankingGrupo ? aoTeclarRankingGrupo : undefined}
+                >
+                  <span className="grupo-resumo-rotulo">{obterGrupoPartida(ultimoJogo)} - Top 3</span>
+                  {rankingTop3.length > 0 ? (
+                    <ol className="grupo-resumo-ranking">
+                      {rankingTop3.map((atleta) => (
+                        <li key={`${atleta.posicao}-${atleta.nomeAtleta}`}>
+                          <span>{atleta.posicao}º</span>
+                          <strong>{obterNomeExibicaoAtleta(atleta)}</strong>
+                          <small>{formatarPontuacao(atleta.pontuacao)}</small>
+                        </li>
+                      ))}
+                    </ol>
+                  ) : (
+                    <p>Ranking ainda não disponível</p>
+                  )}
+                </section>
+              </div>
+            )}
 
             <Link to="/grupos" className="botao-primario home-botao">
               Ver todos os grupos

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { CompartilharPartidaBotao } from '../components/partidas/CompartilharPartidaBotao';
 import { gruposServico } from '../services/gruposServico';
 import { partidasServico } from '../services/partidasServico';
@@ -92,6 +92,7 @@ function obterCamposAtletaUsuarioPrimeiraDupla(atletaId, atletaNome, atletaLado)
 
 export function PaginaRegistrarPartidas() {
   const { usuario } = useAutenticacao();
+  const navegar = useNavigate();
   const [params, setParams] = useSearchParams();
   const { showNotification, closeNotification } = useNotification();
 
@@ -279,6 +280,11 @@ export function PaginaRegistrarPartidas() {
     setErroNovoGrupo('');
   }
 
+  function aoConfirmarSucesso() {
+    closeNotification();
+    navegar('/app');
+  }
+
   async function aoSubmeter(evento) {
     evento.preventDefault();
 
@@ -339,8 +345,8 @@ export function PaginaRegistrarPartidas() {
         actions: (
           <>
             <CompartilharPartidaBotao partidaId={partidaSalva.id} />
-            <button type="button" className="botao-secundario" onClick={closeNotification}>
-              Fechar
+            <button type="button" className="botao-secundario" onClick={aoConfirmarSucesso}>
+              OK
             </button>
           </>
         )

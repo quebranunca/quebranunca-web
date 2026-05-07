@@ -40,6 +40,7 @@ export default function App() {
       <Route element={<LayoutPrincipal />}>
         <Route path="/" element={<PaginaHome />} />
         <Route path="/login" element={<PaginaLogin />} />        
+        <Route path="/ranking" element={<PaginaRanking />} />
         <Route path="/ranking/liga" element={<RankingLiga />} />
         <Route path="/competicoes" element={<PaginaCompeticoes />} />
         <Route path="/inscricoes" element={<PaginaInscricoesCampeonato />} />
