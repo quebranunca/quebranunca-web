@@ -239,10 +239,7 @@ export function PaginaUsuarios() {
                       onClick={() => buscarAtletas(usuario.id)}
                       disabled={buscandoAtletaId === usuario.id}
                     >
-                      <ConteudoBotao
-                        icone="buscar"
-                        texto={buscandoAtletaId === usuario.id ? 'Buscando...' : 'Buscar atleta'}
-                      />
+                      Buscar Atleta
                     </button>
                     <button
                       type="button"
@@ -252,7 +249,7 @@ export function PaginaUsuarios() {
                         atualizarEdicao(usuario.id, 'nomeAtleta', '');
                       }}
                     >
-                      <ConteudoBotao icone="desvincular" texto="Desvincular atleta" />
+                      Desvilcular atleta
                     </button>
                   </div>
 
