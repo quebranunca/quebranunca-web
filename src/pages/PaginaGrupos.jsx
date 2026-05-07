@@ -198,15 +198,15 @@ export function PaginaGrupos() {
                   <button type="button" className="botao-primario" onClick={() => navegar(`/partidas/registrar?grupoId=${grupo.id}`)}>
                     Registrar partida
                   </button>
-                  <button type="button" className="botao-secundario" onClick={() => navegar(`/grupos/${grupo.id}/atletas`)}>
+                  <button type="button" className="botao-primario" onClick={() => navegar(`/grupos/${grupo.id}/atletas`)}>
                     Atletas do grupo
                   </button>               
-                  <button type="button" className="botao-secundario" onClick={() => navegar(`/partidas/consulta?grupoId=${grupo.id}`)}>
+                  <button type="button" className="botao-primario" onClick={() => navegar(`/partidas/consulta?grupoId=${grupo.id}`)}>
                     Jogos do grupo
                   </button>
                   {podeGerenciar(grupo) && (
                     <>
-                      <button type="button" className="botao-secundario" onClick={() => iniciarEdicao(grupo)}>
+                      <button type="button" className="botao-primario" onClick={() => iniciarEdicao(grupo)}>
                         Editar
                       </button>
                       <button type="button" className="botao-perigo" onClick={() => removerGrupo(grupo.id)}>

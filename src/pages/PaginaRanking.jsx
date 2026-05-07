@@ -9,6 +9,7 @@ import { extrairMensagemErro } from '../utils/erros';
 import { formatarDataHora } from '../utils/formatacao';
 import { ehAtleta } from '../utils/perfis';
 import { obterNomeExibicaoAtleta } from '../utils/atletaUtils';
+import { PlacarDupla } from '../components/partidas/PlacarDupla';
 
 const tiposConsulta = [
   { valor: 'competicao', rotulo: 'Competições' },
@@ -110,6 +111,10 @@ function extrairDetalhePartidaRanking(partida) {
     placarA: Number(match[2]),
     placarB: Number(match[3])
   };
+}
+
+function formatarAtletasPlacarRanking(atletas) {
+  return atletas.length > 0 ? atletas : 'A definir';
 }
 
 function obterClasseResultadoRanking(resultado) {
@@ -524,32 +529,20 @@ export function PaginaRanking() {
                   {detalhe.placarA === null || detalhe.placarB === null ? (
                     <strong className="ranking-detalhe-confronto-texto">{partida.confronto}</strong>
                   ) : (
-                    <div className="ranking-detalhe-confronto">
-                      <div className={`ranking-detalhe-dupla ${duplaAVenceu ? 'vencedora' : ''}`}>
-                        <span>Dupla 1</span>
-                        {detalhe.duplaA.map((nome, indice) => (
-                          <strong key={nome}>
-                            <small>{indice === 0 ? 'Direita' : 'Esquerda'}</small>
-                            {nome}
-                          </strong>
-                        ))}
-                      </div>
+                    <div className="ranking-detalhe-confronto ranking-detalhe-confronto-placar">
+                      <PlacarDupla
+                        label="Dupla 1"
+                        atletas={formatarAtletasPlacarRanking(detalhe.duplaA)}
+                        placar={detalhe.placarA}
+                        vencedor={duplaAVenceu}
+                      />
 
-                      <div className="ranking-detalhe-placar" aria-label="Placar da partida">
-                        <strong>{detalhe.placarA}</strong>
-                        <span>x</span>
-                        <strong>{detalhe.placarB}</strong>
-                      </div>
-
-                      <div className={`ranking-detalhe-dupla ${duplaBVenceu ? 'vencedora' : ''}`}>
-                        <span>Dupla 2</span>
-                        {detalhe.duplaB.map((nome, indice) => (
-                          <strong key={nome}>
-                            <small>{indice === 0 ? 'Direita' : 'Esquerda'}</small>
-                            {nome}
-                          </strong>
-                        ))}
-                      </div>
+                      <PlacarDupla
+                        label="Dupla 2"
+                        atletas={formatarAtletasPlacarRanking(detalhe.duplaB)}
+                        placar={detalhe.placarB}
+                        vencedor={duplaBVenceu}
+                      />
                     </div>
                   )}
 
@@ -569,7 +562,7 @@ export function PaginaRanking() {
   }
 
   return (
-    <section className="pagina">
+    <section className="pagina pagina-ranking">
       <div className="cabecalho-pagina">
         <h2>Ranking</h2>
       </div>
@@ -682,7 +675,7 @@ export function PaginaRanking() {
       ) : rankingFiltrado.length === 0 ? (
         <p>Nenhuma pontuação encontrada para o filtro selecionado.</p>
       ) : (
-        <div className="lista-cartoes scroll-discreto scroll-fade">
+        <div className="lista-cartoes ranking-lista">
           {rankingFiltrado.map((grupo) => (
             <article key={grupo.chave} className="cartao-lista">
               <div>
@@ -758,7 +751,7 @@ export function PaginaRanking() {
                 </table>
               </div>
 
-              <div className="ranking-mobile-cards scroll-discreto scroll-fade">
+              <div className="ranking-mobile-cards scroll-discreto">
                 {grupo.atletas.map((item) => {
                   const chaveDetalhe = `${grupo.chave}-${item.atletaId}`;
                   const aberto = detalheAberto === chaveDetalhe;
@@ -781,14 +774,11 @@ export function PaginaRanking() {
                         <div className="ranking-mobile-pontos">
                           <span>Pontos</span>
                           <strong>{formatarPontuacao(item.pontos)}</strong>
+                          <small>Pendente +{formatarPontuacao(item.pontosPendentes)}</small>
                         </div>
                       </div>
 
                       <div className="ranking-mobile-metricas">
-                        <div className="ranking-mobile-metrica">
-                          <span>Bônus pendente</span>
-                          <strong>{formatarPontuacao(item.pontosPendentes)}</strong>
-                        </div>
                         <div className="ranking-mobile-metrica">
                           <span>Jogos</span>
                           <strong>{item.jogos}</strong>

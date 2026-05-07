@@ -244,15 +244,24 @@ export function HomeResumoUsuario({
   return (
     <section className="home-secao">
       <article className="cartao-lista home-resumo-usuario">
-        <div className="home-usuario-infos">
+        <div className="home-usuario-infos">           
           <div>
             <div className="home-usuario-infos">
-              <div className="home-usuario-info-item">
-                <span>Atleta</span>
-                <strong>{nomeAtleta || 'Não vinculado'}</strong>
-              </div>              
-            </div>                    
-          </div>
+             
+                <div className="home-usuario-info-item">         
+                  <Link
+                to="/app/perfil"
+                className="home-resumo-usuario-metricas"
+                aria-label="Abrir meus perfil"
+              >  
+                  <span>Atleta</span>
+                  <strong>{nomeAtleta || 'Não vinculado'}</strong>
+                </Link>
+                </div>    
+                  
+            </div>   
+                                  
+          </div>          
         </div>
 
         {carregando ? (
