@@ -8,6 +8,7 @@ import { formatarDataHora } from '../utils/formatacao';
 import { criarPendenciasPerfil } from '../utils/pendenciasPerfil';
 import { rolarParaTopo } from '../utils/rolagem';
 import { obterNomeExibicaoAtleta, obterNomeExibicaoDupla } from '../utils/atletaUtils';
+import { useNotification } from '../contexts/NotificationContext';
 
 const TIPOS_PENDENCIA = {
   aprovarPartida: 1,
@@ -86,8 +87,7 @@ export function PaginaPendenciasAtletas() {
   const [emails, setEmails] = useState({});
   const [carregando, setCarregando] = useState(true);
   const [processandoId, setProcessandoId] = useState(null);
-  const [erro, setErro] = useState('');
-  const [mensagem, setMensagem] = useState('');
+  const { showNotification } = useNotification();
 
   useEffect(() => {
     carregarPendencias();
@@ -107,8 +107,7 @@ export function PaginaPendenciasAtletas() {
   );
 
   async function carregarPendencias() {
-    setCarregando(true);
-    setErro('');
+    setCarregando(true);  
 
     try {
       const lista = await pendenciasServico.listar();
@@ -122,7 +121,12 @@ export function PaginaPendenciasAtletas() {
         setAtletaPerfil(null);
       }
     } catch (error) {
-      setErro(extrairMensagemErro(error));
+      showNotification({
+        type: 'error',
+        title: 'Erro ao carregar pendências',
+        message: extrairMensagemErro(error)
+      });
+
       setPendencias([]);
       setAtletaPerfil(null);
     } finally {
@@ -130,9 +134,7 @@ export function PaginaPendenciasAtletas() {
     }
   }
 
-  async function salvarEmail(pendenciaId) {
-    setErro('');
-    setMensagem('');
+  async function salvarEmail(pendenciaId) {    
     setProcessandoId(pendenciaId);
 
     try {
@@ -145,34 +147,56 @@ export function PaginaPendenciasAtletas() {
           item.atletaId !== pendenciaAtualizada.atletaId
         )
       ));
-      setMensagem('Contato atualizado. A pendência saiu da lista.');
+      
+      showNotification({
+        type: 'success',
+        title: 'Contato atualizado!',
+        message: 'A pendência saiu da lista.'
+      });
+
       await carregarPendencias();
       rolarParaTopo();
     } catch (error) {
-      setErro(extrairMensagemErro(error));
+      showNotification({
+        type: 'error',
+        title: 'Erro ao salvar e-mail',
+        message: extrairMensagemErro(error)
+      });
     } finally {
       setProcessandoId(null);
     }
   }
 
-  async function responderPartida(pendenciaId, acao) {
-    setErro('');
-    setMensagem('');
+  async function responderPartida(pendenciaId, acao) {    
     setProcessandoId(pendenciaId);
 
     try {
       if (acao === 'contestar') {
         await pendenciasServico.contestarPartida(pendenciaId);
-        setMensagem('Contestação registrada com sucesso.');
+
+        showNotification({
+          type: 'success',
+          title: 'Contestação registrada!',
+          message: 'A partida foi contestada com sucesso.'
+        });
       } else {
         await pendenciasServico.aprovarPartida(pendenciaId);
-        setMensagem('Aprovação registrada com sucesso.');
+
+        showNotification({
+          type: 'success',
+          title: 'Aprovação registrada!',
+          message: 'A partida foi aprovada com sucesso.'
+        });
       }
 
       setPendencias((listaAtual) => listaAtual.filter((item) => item.id !== pendenciaId));
       await carregarPendencias();
-    } catch (error) {
-      setErro(extrairMensagemErro(error));
+   } catch (error) {
+      showNotification({
+        type: 'error',
+        title: 'Erro ao responder partida',
+        message: extrairMensagemErro(error)
+      });
     } finally {
       setProcessandoId(null);
     }
@@ -190,9 +214,6 @@ export function PaginaPendenciasAtletas() {
           </p>
         )}
       </div>
-
-      {erro && <p className="texto-erro">{erro}</p>}
-      {mensagem && <p className="texto-sucesso">{mensagem}</p>}
 
       {carregando ? (
         <p>Carregando pendências...</p>
