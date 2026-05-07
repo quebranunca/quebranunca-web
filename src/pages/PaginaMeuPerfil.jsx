@@ -584,6 +584,41 @@ export function PaginaMeuPerfil() {
 
         <div className="secao-formulario">
           <div className="secao-formulario-cabecalho">
+            <h3>Detalhes esportivos e cadastro</h3>
+          </div>
+
+          <div className="secao-formulario-conteudo">
+            <label>
+              Lado
+              <select
+                value={formularioAtleta.lado}
+                onChange={(evento) => atualizarCampoAtleta('lado', evento.target.value)}
+              >
+                <option value="1">Direito</option>
+                <option value="2">Esquerdo</option>
+                <option value="3">Ambos</option>
+              </select>
+            </label>
+
+            <label>
+              Nível
+              <select
+                value={formularioAtleta.nivel}
+                onChange={(evento) => atualizarCampoAtleta('nivel', evento.target.value)}
+              >
+                <option value="">Selecione</option>
+                {opcoesNivelAtleta.map((opcao) => (
+                  <option key={opcao.valor} value={opcao.valor}>
+                    {opcao.rotulo}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <div className="secao-formulario">
+          <div className="secao-formulario-cabecalho">
             <h3>Contato</h3>
           </div>
 
@@ -657,42 +692,7 @@ export function PaginaMeuPerfil() {
               />
             </label>
           </div>
-        </div>
-
-        <div className="secao-formulario">
-          <div className="secao-formulario-cabecalho">
-            <h3>Detalhes esportivos e cadastro</h3>
-          </div>
-
-          <div className="secao-formulario-conteudo">
-            <label>
-              Lado
-              <select
-                value={formularioAtleta.lado}
-                onChange={(evento) => atualizarCampoAtleta('lado', evento.target.value)}
-              >
-                <option value="1">Direito</option>
-                <option value="2">Esquerdo</option>
-                <option value="3">Ambos</option>
-              </select>
-            </label>
-
-            <label>
-              Nível
-              <select
-                value={formularioAtleta.nivel}
-                onChange={(evento) => atualizarCampoAtleta('nivel', evento.target.value)}
-              >
-                <option value="">Selecione</option>
-                {opcoesNivelAtleta.map((opcao) => (
-                  <option key={opcao.valor} value={opcao.valor}>
-                    {opcao.rotulo}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-        </div>
+        </div>        
 
         <div className="acoes-formulario campo-largo">
           <button type="submit" className="botao-primario" disabled={salvandoAtleta}>
