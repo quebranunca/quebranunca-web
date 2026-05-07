@@ -1083,6 +1083,11 @@ code {
   background: var(--cor-superficie-suave);
 }
 
+.meus-jogos-resumo-pontos {
+  border-color: var(--color-border-highlight) !important;
+  background: linear-gradient(180deg, rgba(255, 179, 0, 0.1), rgba(255, 255, 255, 0.02)), var(--color-card) !important;
+}
+
 .meus-jogos-resumo span,
 .meus-jogos-dupla > span {
   display: block;
@@ -1097,6 +1102,15 @@ code {
   margin-top: 0.25rem;
   font-size: 1.5rem;
   line-height: 1;
+}
+
+.meus-jogos-resumo small {
+  display: block;
+  margin-top: 0.32rem;
+  color: var(--cor-texto-suave);
+  font-size: 0.78rem;
+  font-weight: 800;
+  white-space: nowrap;
 }
 
 .meus-jogos-lista {
@@ -1137,7 +1151,7 @@ code {
 
 .meus-jogos-confronto {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.7rem;
   align-items: stretch;
 }
@@ -1979,6 +1993,12 @@ code {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.dupla-conteudo.vencedor .dupla-nome,
+.dupla-conteudo.vencedor .dupla-placar {
+  outline: 1px solid var(--color-border-highlight);
+  background: rgba(255, 179, 0, 0.12);
 }
 
 /* nome ocupa todo espaço disponível */

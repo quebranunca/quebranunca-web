@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { partidasServico } from '../services/partidasServico';
 import { CompartilharPartidaBotao } from '../components/partidas/CompartilharPartidaBotao';
+import { PlacarDupla } from '../components/partidas/PlacarDupla';
 import { extrairMensagemErro } from '../utils/erros';
 import { formatarDataHora } from '../utils/formatacao';
 import {
@@ -13,9 +14,61 @@ import {
   obterNomeStatusPartida,
   obterResultadoAtleta,
   ordenarPartidasRecentes,
+  STATUS_APROVACAO_PARTIDA,
   STATUS_PARTIDA
 } from '../utils/partidas';
 import { obterNomeExibicaoAtleta } from '../utils/atletaUtils';
+
+function formatarAtletasPlacar(atletas) {
+  const nomes = (atletas || [])
+    .map((atleta) => obterNomeExibicaoAtleta(atleta))
+    .filter(Boolean);
+
+  return nomes.length > 0 ? nomes : 'A definir';
+}
+
+function atletaVenceuPartida(partida, atletaLogadoId) {
+  const estaNaDuplaA = partida.duplaAAtleta1Id === atletaLogadoId || partida.duplaAAtleta2Id === atletaLogadoId;
+  const estaNaDuplaB = partida.duplaBAtleta1Id === atletaLogadoId || partida.duplaBAtleta2Id === atletaLogadoId;
+
+  return (estaNaDuplaA && partida.duplaVencedoraId === partida.duplaAId) ||
+    (estaNaDuplaB && partida.duplaVencedoraId === partida.duplaBId);
+}
+
+function obterPontosPartidaAtleta(partida, atletaLogadoId) {
+  if (!atletaVenceuPartida(partida, atletaLogadoId)) {
+    return 0;
+  }
+
+  if (Number(partida.statusAprovacao) === STATUS_APROVACAO_PARTIDA.contestada) {
+    return 0;
+  }
+
+  return Number(partida.pontosRankingVitoria || 0);
+}
+
+function obterPontosPendentesPartidaAtleta(partida, atletaLogadoId) {
+  if (!atletaVenceuPartida(partida, atletaLogadoId)) {
+    return 0;
+  }
+
+  const statusAprovacao = Number(partida.statusAprovacao);
+  const possuiBonusPendente = statusAprovacao === STATUS_APROVACAO_PARTIDA.pendente ||
+    statusAprovacao === STATUS_APROVACAO_PARTIDA.pendenteDeVinculos;
+
+  return possuiBonusPendente ? Number(partida.pesoRankingCategoria || 1) : 0;
+}
+
+function formatarPontuacao(valor) {
+  const numero = Number(valor || 0);
+
+  return Number.isInteger(numero)
+    ? String(numero)
+    : numero.toLocaleString('pt-BR', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2
+    });
+}
 
 export function PaginaMeusJogos() {
   const { usuario } = useAutenticacao();
@@ -62,9 +115,10 @@ export function PaginaMeusJogos() {
         jogos: acumulado.jogos + 1,
         vitorias: acumulado.vitorias + (resultado.texto === 'Vitória' ? 1 : 0),
         derrotas: acumulado.derrotas + (resultado.texto === 'Derrota' ? 1 : 0),
-        pendentes: acumulado.pendentes + (Number(partida.status) !== STATUS_PARTIDA.encerrada ? 1 : 0)
+        pontos: acumulado.pontos + obterPontosPartidaAtleta(partida, atletaLogadoId),
+        pontosPendentes: acumulado.pontosPendentes + obterPontosPendentesPartidaAtleta(partida, atletaLogadoId)
       };
-    }, { jogos: 0, vitorias: 0, derrotas: 0, pendentes: 0 });
+    }, { jogos: 0, vitorias: 0, derrotas: 0, pontos: 0, pontosPendentes: 0 });
   }, [atletaLogadoId, partidas]);
 
   return (
@@ -90,6 +144,11 @@ export function PaginaMeusJogos() {
 
       {atletaLogadoId && (
         <div className="meus-jogos-resumo">
+          <div className="meus-jogos-resumo-pontos">
+            <span>Pontos</span>
+            <strong>{formatarPontuacao(resumo.pontos)}</strong>
+            <small>Pendente +{formatarPontuacao(resumo.pontosPendentes)}</small>
+          </div>
           <div>
             <span>Jogos</span>
             <strong>{resumo.jogos}</strong>
@@ -101,10 +160,6 @@ export function PaginaMeusJogos() {
           <div>
             <span>Derrotas</span>
             <strong>{resumo.derrotas}</strong>
-          </div>
-          <div>
-            <span>Agendados</span>
-            <strong>{resumo.pendentes}</strong>
           </div>
         </div>
       )}
@@ -129,7 +184,7 @@ export function PaginaMeusJogos() {
               <article key={partida.id} className="cartao-lista meus-jogos-card">
                 <div className="meus-jogos-card-topo">
                   <div>
-                    <h3>{partida.nomeCategoria || 'Sem categoria'}</h3>
+                    <h3>{partida.nomeGrupo || 'Partida'}</h3>
                     <p>{partida.dataPartida ? formatarDataHora(partida.dataPartida) : 'Data a definir'}</p>
                     {partida.faseCampeonato && <p>{partida.faseCampeonato}</p>}
                   </div>
@@ -142,33 +197,19 @@ export function PaginaMeusJogos() {
                 </div>
 
                 <div className="meus-jogos-confronto">
-                  <div className={`meus-jogos-dupla ${duplaAVencedora ? 'vencedora' : ''}`}>
-                    <span>Dupla 1</span>
-                    <strong>{partida.nomeDuplaA}</strong>
-                    {atletas.duplaA.map((atleta) => (
-                      <div key={`${partida.id}-a-${atleta.lado}`} className={atleta.destaque ? 'atleta-logado' : ''}>
-                        <small>{atleta.lado}</small>
-                        <span>{obterNomeExibicaoAtleta(atleta) || 'A definir'}</span>
-                      </div>
-                    ))}
-                  </div>
+                  <PlacarDupla
+                    label="Dupla 1"
+                    atletas={formatarAtletasPlacar(atletas.duplaA)}
+                    placar={Number(partida.status) === STATUS_PARTIDA.encerrada ? partida.placarDuplaA : '-'}
+                    vencedor={duplaAVencedora}
+                  />
 
-                  <div className="meus-jogos-placar">
-                    <strong>{Number(partida.status) === STATUS_PARTIDA.encerrada ? partida.placarDuplaA : '-'}</strong>
-                    <span>x</span>
-                    <strong>{Number(partida.status) === STATUS_PARTIDA.encerrada ? partida.placarDuplaB : '-'}</strong>
-                  </div>
-
-                  <div className={`meus-jogos-dupla ${duplaBVencedora ? 'vencedora' : ''}`}>
-                    <span>Dupla 2</span>
-                    <strong>{partida.nomeDuplaB}</strong>
-                    {atletas.duplaB.map((atleta) => (
-                      <div key={`${partida.id}-b-${atleta.lado}`} className={atleta.destaque ? 'atleta-logado' : ''}>
-                        <small>{atleta.lado}</small>
-                        <span>{obterNomeExibicaoAtleta(atleta) || 'A definir'}</span>
-                      </div>
-                    ))}
-                  </div>
+                  <PlacarDupla
+                    label="Dupla 2"
+                    atletas={formatarAtletasPlacar(atletas.duplaB)}
+                    placar={Number(partida.status) === STATUS_PARTIDA.encerrada ? partida.placarDuplaB : '-'}
+                    vencedor={duplaBVencedora}
+                  />
                 </div>
 
                 <div className="meus-jogos-card-rodape">
