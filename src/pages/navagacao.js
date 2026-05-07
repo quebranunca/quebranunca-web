@@ -56,6 +56,12 @@ const ITENS_NAVEGACAO = [
     visivel: ({ gestorCompeticao, atleta, estadoAtivo }) => estadoAtivo && (gestorCompeticao || atleta)
   },
   {
+    caminho: '/app/meus-jogos',
+    nome: 'Meus Jogos',
+    descricao: 'Todos os jogos vinculados ao seu atleta, com duplas, lados, placar e validação.',
+    visivel: ({ gestorCompeticao, atleta, estadoAtivo }) => estadoAtivo && (gestorCompeticao || atleta)
+  },
+  {
     caminho: '/ranking',
     nome: 'Ranking',
     descricao: 'Consulte os pontos por liga e competição.',

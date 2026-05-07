@@ -4,6 +4,7 @@ import { useNotification } from '../../contexts/NotificationContext';
 import { partidasServico } from '../../services/partidasServico';
 import { extrairMensagemErro } from '../../utils/erros';
 import { ArteCompartilhamentoPartida } from './ArteCompartilhamentoPartida';
+import { IoShareSocialSharp } from 'react-icons/io5';
 
 function aguardarRenderizacao() {
   return new Promise((resolve) => {
@@ -98,10 +99,10 @@ export function CompartilharPartidaBotao({ partidaId }) {
         className="botao-compartilhar-partida botao-compacto"
         onClick={compartilhar}
         disabled={carregando}
-        aria-label="Compartilhar partida no Instagram"
+        aria-label="Compartilhar partida"
         title="Compartilhar partida"
       >
-        <span aria-hidden="true">↗</span>
+        <IoShareSocialSharp aria-hidden="true" />
         {carregando ? 'Gerando...' : 'Compartilhar'}
       </button>
 

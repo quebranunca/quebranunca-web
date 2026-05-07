@@ -189,10 +189,10 @@ export function PaginaMeusJogos() {
                     {partida.faseCampeonato && <p>{partida.faseCampeonato}</p>}
                   </div>
                   <div className="meus-jogos-status">
-                    <span className={`tag-status ${resultado.classe}`}>{resultado.texto}</span>
-                    <span className={`tag-status ${obterClasseStatusPartida(partida.status)}`}>
-                      {obterNomeStatusPartida(partida.status)}
-                    </span>
+                    <span className={`tag-status ${resultado.classe}`}>{resultado.texto}</span>    
+                    <span className={`tag-status ${obterClasseStatusAprovacao(partida.statusAprovacao)}`}>
+                      {obterNomeStatusAprovacao(partida.statusAprovacao)}
+                    </span>          
                   </div>
                 </div>
 
@@ -211,17 +211,7 @@ export function PaginaMeusJogos() {
                     vencedor={duplaBVencedora}
                   />
                 </div>
-
-                <div className="meus-jogos-card-rodape">
-                  <span className={`tag-status ${obterClasseStatusAprovacao(partida.statusAprovacao)}`}>
-                    {obterNomeStatusAprovacao(partida.statusAprovacao)}
-                  </span>
-                  <span>{partida.nomeCriadoPorUsuario ? `Registrada por ${partida.nomeCriadoPorUsuario}` : 'Origem não informada'}</span>
-                  {partida.observacoes && <span>{partida.observacoes}</span>}
-                  {Number(partida.status) === STATUS_PARTIDA.encerrada && (
-                    <CompartilharPartidaBotao partidaId={partida.id} />
-                  )}
-                </div>
+                <CompartilharPartidaBotao partidaId={partida.id} />
               </article>
             );
           })}

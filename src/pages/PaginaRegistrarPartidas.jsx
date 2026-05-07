@@ -343,12 +343,13 @@ export function PaginaRegistrarPartidas() {
         message: 'Agora você pode compartilhar o resultado com a galera.',
         autoClose: false,
         actions: (
-          <>
+           <div className="notificacao-acoes-partida">
             <CompartilharPartidaBotao partidaId={partidaSalva.id} />
-            <button type="button" className="botao-secundario" onClick={aoConfirmarSucesso}>
+
+            <button type="button" className="botao-primario" onClick={aoConfirmarSucesso}>
               OK
             </button>
-          </>
+          </div>
         )
       });
 
@@ -469,17 +470,7 @@ export function PaginaRegistrarPartidas() {
               value={formulario.dataPartida}
               onChange={(evento) => atualizarCampo('dataPartida', evento.target.value)}
             />
-          </label>
-
-          {erro && <p className="texto-erro campo-largo">{erro}</p>}
-
-          {feedbackPendencias.length > 0 && (
-            <div className="campo-largo texto-ajuda">
-              {feedbackPendencias.map((pendencia) => (
-                <p key={pendencia.atletaId}>{obterNomeExibicaoAtleta(pendencia) || 'Atleta'}: contato pendente.</p>
-              ))}
-            </div>
-          )}
+          </label>          
 
           <div className="acoes-formulario">
             <button type="submit" className="botao-primario" disabled={!podeSalvar}>

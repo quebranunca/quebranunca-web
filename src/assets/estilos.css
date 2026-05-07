@@ -1772,8 +1772,8 @@ code {
 
 .botao-compartilhar-partida {
   color: #fff;
-  background: rgba(255, 179, 0, 0.1);
-  border: 1px solid rgba(255, 179, 0, 0.34);
+  background: rgba(49, 49, 49, 0.518);
+  border: 1px solid rgba(244, 219, 161, 0.106);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
@@ -4476,6 +4476,17 @@ a.botao-terciario:active {
   display: flex;
   flex-direction: column;
   gap: 16px; 
+}
+
+.notificacao-acoes-partida {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.notificacao-acoes-partida button {
+  width: 100%;
 }
 
 @media (min-width: 768px) {
