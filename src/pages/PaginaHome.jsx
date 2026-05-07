@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import {
   HomeBannerRotativo,
-  HomeDestaqueRanking,
   HomeHeroVisitante,
   HomePendencias,
   HomeProximosCampeonatos,
@@ -17,7 +16,6 @@ import { competicoesServico } from '../services/competicoesServico';
 import { gruposServico } from '../services/gruposServico';
 import { pendenciasServico } from '../services/pendenciasServico';
 import { partidasServico } from '../services/partidasServico';
-import { rankingServico } from '../services/rankingServico';
 import { usuariosServico } from '../services/usuariosServico';
 import { criarPendenciasPerfil } from '../utils/pendenciasPerfil';
 import { HomeRankingLiga } from '../components/HomeRankingLiga';
@@ -73,48 +71,22 @@ function registrarFalhaHome(contexto, erro) {
   console.error(`Erro ao carregar ${contexto} na Home.`, erro);
 }
 
-function selecionarTopRanking(ranking) {
-  const grupos = ranking || [];
-  const primeiroGrupoComAtletas = grupos.find((grupo) => (grupo.atletas || []).length > 0);
-
-  if (!primeiroGrupoComAtletas) {
-    return {
-      titulo: 'Ranking geral',
-      atletas: []
-    };
-  }
-
-  return {
-    titulo: primeiroGrupoComAtletas.nomeCompeticao || primeiroGrupoComAtletas.nomeCategoria || 'Ranking geral',
-    atletas: [...(primeiroGrupoComAtletas.atletas || [])]
-      .sort((a, b) => (a.posicao || 0) - (b.posicao || 0))
-      .slice(0, 3)
-  };
-}
-
-function montarResumoPlataforma(competicoes, ranking) {
-  const atletas = new Set();
-  const jogos = new Set();
+function montarResumoPlataforma(competicoes, resumoPublico) {
   const totalGruposLista = (competicoes || []).filter(ehCompeticaoGrupo).length;
-
-  (ranking || []).forEach((grupo) => {
-    (grupo.atletas || []).forEach((atleta) => {
-      if (atleta.atletaId) {
-        atletas.add(atleta.atletaId);
-      }
-
-      (atleta.partidas || []).forEach((partida) => {
-        if (partida.partidaId) {
-          jogos.add(partida.partidaId);
-        }
-      });
-    });
-  });
+  const totalGrupos = Number.isFinite(Number(resumoPublico?.totalGrupos))
+    ? Number(resumoPublico.totalGrupos)
+    : totalGruposLista;
+  const totalAtletas = Number.isFinite(Number(resumoPublico?.totalAtletas))
+    ? Number(resumoPublico.totalAtletas)
+    : 0;
+  const totalJogos = Number.isFinite(Number(resumoPublico?.totalJogos))
+    ? Number(resumoPublico.totalJogos)
+    : 0;
 
   return {
-    atletas: atletas.size,
-    jogos: jogos.size,
-    grupos: totalGruposLista
+    atletas: totalAtletas,
+    jogos: totalJogos,
+    grupos: totalGrupos
   };
 }
 
@@ -123,7 +95,7 @@ export function PaginaHome() {
   const location = useLocation();
   const [competicoes, setCompeticoes] = useState([]);
   const [categoriasPorCompeticao, setCategoriasPorCompeticao] = useState({});
-  const [rankingGeral, setRankingGeral] = useState([]);
+  const [resumoPublico, setResumoPublico] = useState(null);
   const [pendenciasUsuario, setPendenciasUsuario] = useState([]);
   const [atletaPerfil, setAtletaPerfil] = useState(null);
   const [resumoUsuario, setResumoUsuario] = useState(null);
@@ -162,10 +134,9 @@ export function PaginaHome() {
     [campeonatos, hoje]
   );
 
-  const destaqueRanking = useMemo(() => selecionarTopRanking(rankingGeral), [rankingGeral]);
   const resumoPlataforma = useMemo(
-    () => montarResumoPlataforma(competicoes, rankingGeral),
-    [competicoes, rankingGeral]
+    () => montarResumoPlataforma(competicoes, resumoPublico),
+    [competicoes, resumoPublico]
   );
   const slidesBannerVisitante = useMemo(
     () => [
@@ -202,9 +173,14 @@ export function PaginaHome() {
       setCarregando(true);
 
       try {
-        const [resultadoCompeticoes, resultadoGrupos] = await Promise.allSettled([
+        const [
+          resultadoCompeticoes,
+          resultadoGrupos,
+          resultadoResumoPublico
+        ] = await Promise.allSettled([
           competicoesServico.listarVisiveis(),
-          token ? gruposServico.listar() : Promise.resolve([])
+          token ? gruposServico.listar() : Promise.resolve([]),
+          competicoesServico.obterResumoPublico()
         ]);
 
         if (!ativo) {
@@ -222,6 +198,13 @@ export function PaginaHome() {
           const listaCompeticoes = [...resultadoCompeticoes.value, ...listaGrupos];
           setCompeticoes(listaCompeticoes);
 
+          if (resultadoResumoPublico.status === 'fulfilled') {
+            setResumoPublico(resultadoResumoPublico.value || null);
+          } else {
+            registrarFalhaHome('resumo público', resultadoResumoPublico.reason);
+            setResumoPublico(null);
+          }
+
           const categoriasCampeonatos = await obterCategoriasCampeonatosExibidos(listaCompeticoes);
           if (!ativo) {
             return;
@@ -232,12 +215,13 @@ export function PaginaHome() {
           registrarFalhaHome('competições', resultadoCompeticoes.reason);
           setCompeticoes([]);
           setCategoriasPorCompeticao({});
+          setResumoPublico(null);
         }      
       } catch (erro) {
         registrarFalhaHome('dados públicos', erro);
         setCompeticoes([]);
         setCategoriasPorCompeticao({});
-        setRankingGeral([]);
+        setResumoPublico(null);
       } finally {
         if (ativo) {
           setCarregando(false);
@@ -388,13 +372,13 @@ export function PaginaHome() {
       {carregando ? (
         <p>Carregando informações públicas...</p>
       ) : (
-        <>
+        <div className="home-secoes-publicas">
           <HomeRankingLiga />
           <HomeProximosCampeonatos
             campeonatos={proximosCampeonatos}
             categoriasPorCompeticao={categoriasPorCompeticao}
           />          
-        </>
+        </div>
       )}
     </section>
   );

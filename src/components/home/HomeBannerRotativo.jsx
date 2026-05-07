@@ -19,6 +19,7 @@ export function HomeBannerRotativo({ slides = [], intervaloMs = INTERVALO_PADRAO
 
   const [slideAtual, setSlideAtual] = useState(0);
   const totalSlides = slidesValidos.length;
+  const exibirIndicadores = totalSlides > 1;
 
   useEffect(() => {
     if (totalSlides === 0) {
@@ -89,6 +90,25 @@ export function HomeBannerRotativo({ slides = [], intervaloMs = INTERVALO_PADRAO
           );
         })}
       </div>
+
+      {exibirIndicadores && (
+        <div className="home-banner-indicadores" aria-label="Navegação dos destaques">
+          {slidesValidos.map((slide, indice) => {
+            const ativo = indice === slideAtual;
+
+            return (
+              <button
+                key={`indicador-${obterChaveSlide(slide, indice)}`}
+                type="button"
+                className={`home-banner-indicador${ativo ? ' ativo' : ''}`}
+                aria-label={`Ir para o destaque ${indice + 1}`}
+                aria-current={ativo ? 'true' : undefined}
+                onClick={() => setSlideAtual(indice)}
+              />
+            );
+          })}
+        </div>
+      )}
     </section>
   );
 }

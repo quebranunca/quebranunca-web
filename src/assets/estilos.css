@@ -108,6 +108,10 @@ textarea {
   overflow: hidden;
 }
 
+.layout-home-publica {
+  width: min(1200px, 100%);
+}
+
 .topo-app {
   flex: 0 0 auto;
   display: grid;
@@ -1279,7 +1283,10 @@ code {
 }
 
 .pagina-home {
-  gap: 1.15rem;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  gap: clamp(1rem, 1.7vw, 1.45rem);
 }
 
 .home-usuario-infos {
@@ -1325,11 +1332,12 @@ code {
   min-height: 0;
 
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: center;
   justify-content: space-between;
-  gap: 1.2rem;
+  gap: clamp(1rem, 3vw, 2.6rem);
 
-  padding: 1.25rem;
+  padding: clamp(1.2rem, 2.6vw, 2.25rem);
   background:
     linear-gradient(135deg, rgba(255, 179, 0, 0.12) 0%, rgba(17, 18, 20, 0.98) 42%, #08090b 100%);
   border: none;
@@ -1342,29 +1350,30 @@ code {
 
 .home-hero-conteudo {
   width: 100%;
-  max-width: none;
+  max-width: 620px;
   display: flex;
   flex-direction: column;
-  gap: 0.55rem;
+  gap: clamp(0.55rem, 1vw, 0.85rem);
 }
 
 .home-hero h2 {
-  max-width: none;
-  font-size: 1.45rem;
-  line-height: 1.05;
-  letter-spacing: -0.02em;
+  max-width: 14ch;
+  font-size: clamp(1.45rem, 3vw, 2.65rem);
+  line-height: 1.02;
+  letter-spacing: 0;
 }
 
 .home-hero p {
-  max-width: none;
+  max-width: 44ch;
   margin: 0;
   color: #d6d0c3;
-  font-size: 0.9rem;
-  line-height: 1.35;
+  font-size: clamp(0.9rem, 1.25vw, 1.08rem);
+  line-height: 1.45;
 }
 
 .home-hero-resumo {
   width: 100%;
+  max-width: 380px;
   min-width: 0;
 
   display: grid;
@@ -1374,8 +1383,8 @@ code {
 
 .home-hero-resumo div {
   min-width: 0;
-  min-height: 58px;
-  padding: 0.65rem 0.45rem;
+  min-height: clamp(58px, 7vw, 82px);
+  padding: clamp(0.65rem, 1.3vw, 0.95rem) 0.55rem;
 
   display: flex;
   flex-direction: column;
@@ -1391,7 +1400,7 @@ code {
 .home-hero-resumo span {
   display: block;
   color: var(--color-primary);
-  font-size: 1.2rem;
+  font-size: clamp(1.2rem, 2vw, 1.75rem);
   font-weight: 800;
   line-height: 1;
 }
@@ -1409,11 +1418,13 @@ code {
 .home-banner-rotativo {
   position: relative;
   width: 100%;
-  height: 100px;
+  aspect-ratio: 16 / 7;
+  min-height: 260px;
+  max-height: 420px;
   min-width: 0;
   overflow: hidden;
   border: 1px solid var(--cor-borda);
-  border-radius: var(--raio-lg);
+  border-radius: 24px;
 }
 
 .home-banner-slides {
@@ -1421,13 +1432,15 @@ code {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  border-radius: var(--raio-lg);
+  border-radius: inherit;
 }
 
 .home-banner-slide {
   position: absolute;
   inset: 0;
   display: flex;
+  overflow: hidden;
+  border-radius: inherit;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.36s ease;
@@ -1455,7 +1468,7 @@ code {
   padding: 0;
   background: #08090b;
   border: 1px solid var(--color-border-highlight);
-  border-radius: var(--raio-lg);
+  border-radius: inherit;
   box-shadow: var(--sombra);
 }
 
@@ -1464,15 +1477,75 @@ code {
   width: 100%;
   height: 100%;
   min-height: 0;
-  aspect-ratio: auto;
   object-fit: cover;
   object-position: center;
+}
+
+.home-banner-indicadores {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(0.45rem, 1vw, 0.75rem);
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.38rem;
+  padding: 0.22rem 0.34rem;
+  transform: translateX(-50%);
+}
+
+.home-banner-indicador {
+  width: 7px;
+  height: 7px;
+  min-width: 7px;
+  min-height: 7px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.35);
+  opacity: 0.65;
+  cursor: pointer;
+  appearance: none;
+  line-height: 0;
+  font-size: 0;
+  transition:
+    background-color 0.22s ease,
+    opacity 0.22s ease,
+    transform 0.22s ease;
+}
+
+.home-banner-indicador.ativo {
+  width: 8px;
+  height: 8px;
+  min-width: 8px;
+  min-height: 8px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  opacity: 1;
+  transform: scale(1.15);
+}
+
+.home-banner-indicador:hover {
+  opacity: 0.9;
+}
+
+.home-banner-indicador:focus-visible {
+  outline: 2px solid rgba(255, 179, 0, 0.5);
+  outline-offset: 2px;
 }
 
 .home-secao {
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
+  min-width: 0;
+}
+
+.home-secoes-publicas {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(1rem, 1.7vw, 1.35rem);
+  align-items: start;
   min-width: 0;
 }
 
@@ -4405,6 +4478,31 @@ a.botao-terciario:active {
   gap: 16px; 
 }
 
+@media (min-width: 768px) {
+  .home-secoes-publicas {
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  }
+
+  .home-secoes-publicas > * {
+    min-width: 0;
+    height: 100%;
+  }
+
+  .home-secoes-publicas .home-secao {
+    height: 100%;
+  }
+}
+
+@media (min-width: 1024px) {
+  .layout-home-publica {
+    padding-inline: clamp(1rem, 2vw, 1.6rem);
+  }
+
+  .pagina-home {
+    gap: 1.45rem;
+  }
+}
+
 @media (max-width: 720px) {
   .layout-app {
     padding: 0.65rem;
@@ -4602,23 +4700,31 @@ a.botao-terciario:active {
   }
 
   .home-banner-rotativo {
-    height: 200px;
+    aspect-ratio: 16 / 9;
+    min-height: 200px;
+    max-height: none;
+    border-radius: 18px;
   }
 
   .home-hero {
+    flex-direction: column;
+    align-items: stretch;
     padding: 1rem;
     gap: 1rem;
   }
 
   .home-hero h2 {
     font-size: 1.35rem;
+    max-width: none;
   }
 
   .home-hero p {
     font-size: 0.84rem;
+    max-width: none;
   }
 
   .home-hero-resumo {
+    max-width: none;
     gap: 0.5rem;
   }
 
