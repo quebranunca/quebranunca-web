@@ -16,6 +16,10 @@ export const usuariosServico = {
     return resposta.data;
   },
 
+  async excluirMeuPerfil() {
+    await http.delete('/usuarios/meu-perfil');
+  },
+
   async vincularMeuAtleta(dados) {
     const resposta = await http.post('/usuarios/me/vincular-atleta', dados);
     return resposta.data;
@@ -31,5 +35,9 @@ export const usuariosServico = {
   async atualizar(id, dados) {
     const resposta = await http.put(`/usuarios/${id}`, dados);
     return resposta.data;
+  },
+
+  async excluirPorAdministrador(id) {
+    await http.delete(`/admin/usuarios/${id}`);
   }
 };

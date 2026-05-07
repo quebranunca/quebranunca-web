@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ConteudoBotao } from '../components/ConteudoBotao';
+import { useAutenticacao } from '../hooks/useAutenticacao';
 import { atletasServico } from '../services/atletasServico';
 import { usuariosServico } from '../services/usuariosServico';
 import { extrairMensagemErro } from '../utils/erros';
@@ -19,6 +20,7 @@ function criarEdicao(usuario) {
 }
 
 export function PaginaUsuarios() {
+  const { usuario: usuarioLogado } = useAutenticacao();
   const [usuarios, setUsuarios] = useState([]);
   const [edicoes, setEdicoes] = useState({});
   const [filtros, setFiltros] = useState({ nome: '', email: '' });
@@ -26,6 +28,7 @@ export function PaginaUsuarios() {
   const [resultadosAtleta, setResultadosAtleta] = useState({});
   const [carregando, setCarregando] = useState(true);
   const [salvandoId, setSalvandoId] = useState(null);
+  const [excluindoId, setExcluindoId] = useState(null);
   const [buscandoAtletaId, setBuscandoAtletaId] = useState(null);
   const [erro, setErro] = useState('');
   const [mensagem, setMensagem] = useState('');
@@ -93,6 +96,36 @@ export function PaginaUsuarios() {
       setErro(extrairMensagemErro(error));
     } finally {
       setSalvandoId(null);
+    }
+  }
+
+  async function excluirUsuario(usuarioSelecionado) {
+    if (!usuarioSelecionado || usuarioSelecionado.id === usuarioLogado?.id) {
+      return;
+    }
+
+    const confirmar = window.confirm(
+      `Deseja excluir o usuário ${usuarioSelecionado.nome}? A conta será desativada e os dados pessoais serão anonimizados. Partidas, rankings e históricos compartilhados serão preservados.`
+    );
+
+    if (!confirmar) {
+      return;
+    }
+
+    setExcluindoId(usuarioSelecionado.id);
+    setErro('');
+    setMensagem('');
+
+    try {
+      await usuariosServico.excluirPorAdministrador(usuarioSelecionado.id);
+      await carregarUsuarios();
+      setMensagem('Usuário excluído com sucesso.');
+      rolarParaTopo();
+    } catch (error) {
+      setErro(extrairMensagemErro(error));
+      rolarParaTopo();
+    } finally {
+      setExcluindoId(null);
     }
   }
 
@@ -168,6 +201,7 @@ export function PaginaUsuarios() {
           {usuarios.map((usuario) => {
             const edicao = edicoes[usuario.id] || criarEdicao(usuario);
             const resultados = resultadosAtleta[usuario.id] || [];
+            const usuarioAtual = usuario.id === usuarioLogado?.id;
 
             return (
               <article key={usuario.id} className="cartao-lista">
@@ -277,10 +311,20 @@ export function PaginaUsuarios() {
                       type="button"
                       className="botao-primario"
                       onClick={() => salvarUsuario(usuario.id)}
-                      disabled={salvandoId === usuario.id}
+                      disabled={salvandoId === usuario.id || excluindoId === usuario.id}
                     >
                       {salvandoId === usuario.id ? 'Salvando...' : 'Salvar'}
                     </button>
+                    {!usuarioAtual && (
+                      <button
+                        type="button"
+                        className="botao-perigo"
+                        onClick={() => excluirUsuario(usuario)}
+                        disabled={excluindoId === usuario.id || salvandoId === usuario.id}
+                      >
+                        {excluindoId === usuario.id ? 'Excluindo...' : 'Excluir usuário'}
+                      </button>
+                    )}
                   </div>
                 </div>
               </article>

@@ -128,18 +128,20 @@ export function PaginaMeuPerfil() {
     atualizarUsuarioLocal,
     recarregarUsuario,
     concluirPrimeiroAcesso,
+    sair,
     primeiroAcessoPendente,
     estadoAcesso
   } = useAutenticacao();
   
   const navigate = useNavigate();
-  const { showNotification } = useNotification();
+  const { showNotification, closeNotification } = useNotification();
   const [usuarioDetalhe, setUsuarioDetalhe] = useState(null);
   const [formularioUsuario, setFormularioUsuario] = useState({ nome: '' });
   const [formularioAtleta, setFormularioAtleta] = useState(estadoInicialAtleta);
   const [carregando, setCarregando] = useState(true);
   const [salvandoUsuario, setSalvandoUsuario] = useState(false);
   const [salvandoAtleta, setSalvandoAtleta] = useState(false);
+  const [excluindoPerfil, setExcluindoPerfil] = useState(false);
   const [cidadesEstado, setCidadesEstado] = useState([]);
   const [carregandoCidades, setCarregandoCidades] = useState(false);
   const [erro, setErro] = useState('');
@@ -407,6 +409,60 @@ export function PaginaMeuPerfil() {
     }
   }
 
+  async function excluirMeuPerfil() {
+    setExcluindoPerfil(true);
+    setErro('');
+    setMensagem('');
+
+    try {
+      await usuariosServico.excluirMeuPerfil();
+      sair();
+      sessionStorage.clear();
+      showNotification({
+        type: 'success',
+        title: 'Conta excluída',
+        message: 'Sua conta foi excluída com sucesso.',
+        autoClose: false,
+        onClose: () => navigate('/login', { replace: true })
+      });
+    } catch (error) {
+      const mensagemErro = extrairMensagemErro(error);
+      showNotification({
+        type: 'error',
+        title: 'Não foi possível excluir a conta',
+        message: mensagemErro
+      });
+    } finally {
+      setExcluindoPerfil(false);
+    }
+  }
+
+  function confirmarExclusaoMeuPerfil() {
+    showNotification({
+      type: 'warning',
+      title: 'Excluir minha conta?',
+      message: 'Essa ação vai desativar sua conta, remover seus dados pessoais e encerrar seu acesso à plataforma. Partidas e históricos compartilhados serão mantidos para preservar os dados dos outros atletas.',
+      autoClose: false,
+      actions: (
+        <>
+          <button type="button" className="botao-secundario" onClick={closeNotification}>
+            Cancelar
+          </button>
+          <button
+            type="button"
+            className="botao-perigo"
+            onClick={() => {
+              closeNotification();
+              excluirMeuPerfil();
+            }}
+          >
+            Sim, excluir minha conta
+          </button>
+        </>
+      )
+    });
+  }
+
   if (carregando) {
     return (
       <section className="pagina">
@@ -644,6 +700,27 @@ export function PaginaMeuPerfil() {
           </button>
         </div>
       </form>
+
+      <article className="cartao zona-perigo">
+        <div>
+          <h3>Zona de perigo</h3>
+          <p>
+            Excluir sua conta remove seus dados pessoais e bloqueia seu acesso. Suas partidas e históricos
+            compartilhados serão preservados para não afetar outros atletas.
+          </p>
+        </div>
+
+        <div className="acoes-formulario">
+          <button
+            type="button"
+            className="botao-perigo"
+            onClick={confirmarExclusaoMeuPerfil}
+            disabled={excluindoPerfil}
+          >
+            {excluindoPerfil ? 'Excluindo...' : 'Excluir minha conta'}
+          </button>
+        </div>
+      </article>
     </section>
   );
 }

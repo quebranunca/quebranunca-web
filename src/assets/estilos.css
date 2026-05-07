@@ -885,6 +885,15 @@ code {
   white-space: break-spaces;
 }
 
+.zona-perigo {
+  border-color: rgba(223, 75, 85, 0.45);
+  background: linear-gradient(180deg, rgba(223, 75, 85, 0.08), rgba(255, 255, 255, 0.02)), var(--cor-superficie);
+}
+
+.zona-perigo .acoes-formulario {
+  justify-content: flex-start;
+}
+
 .ranking-tabela-wrapper {
   overflow-x: auto;
 }
