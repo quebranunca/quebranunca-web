@@ -80,6 +80,34 @@ function formatarPontuacao(valor) {
   return `${texto} pts`;
 }
 
+function obterRankingResumoUsuario(ranking = [], atletaUsuarioId) {
+  if (!Array.isArray(ranking) || ranking.length === 0) {
+    return [];
+  }
+
+  const rankingOrdenado = [...ranking].sort((a, b) => obterNumero(a?.posicao) - obterNumero(b?.posicao));
+
+  if (!atletaUsuarioId) {
+    return rankingOrdenado.slice(0, 3);
+  }
+
+  const indiceUsuario = rankingOrdenado.findIndex((item) => (
+    item?.atletaId === atletaUsuarioId ||
+    item?.idAtleta === atletaUsuarioId ||
+    item?.usuarioId === atletaUsuarioId ||
+    item?.idUsuario === atletaUsuarioId
+  ));
+
+  if (indiceUsuario <= 0) {
+    return rankingOrdenado.slice(0, 3);
+  }
+
+  const inicio = Math.max(indiceUsuario - 1, 0);
+  const fim = Math.min(indiceUsuario + 2, rankingOrdenado.length);
+
+  return rankingOrdenado.slice(inicio, fim);
+}
+
 export function HomeResumoUsuario({
   nomeAtleta = '',
   atletaId = null,
@@ -192,8 +220,8 @@ export function HomeResumoUsuario({
   const duplasUltimoJogo = ultimoJogo ? obterDuplasDoAtleta(ultimoJogo, atletaId) : null;
   const placarUltimoJogo = ultimoJogo ? obterPlacarDoAtleta(ultimoJogo, atletaId) : null;
   const rankingTop3 = resumoGrupo?.rankingTop3 || [];
-  const possuiRanking = Array.isArray(rankingTop3) &&
-    rankingTop3.some((item) => item?.posicaoRanking || item?.posicao);
+  const rankingResumo = obterRankingResumoUsuario(rankingTop3, atletaId);
+  const possuiRanking = rankingResumo.some((item) => item?.posicaoRanking || item?.posicao);
   const possuiPartidas = resumo.totalPartidas > 0;
   const exibirResumoRanking = possuiRanking || possuiPartidas;
   const grupoIdRanking = resumoGrupo?.grupoId || rankingTop3.find((item) => item?.grupoId)?.grupoId || null;
@@ -287,16 +315,16 @@ export function HomeResumoUsuario({
               <div className="grupo-resumo-conteudo">
                 <section
                   className={`grupo-resumo-bloco${podeAbrirRankingGrupo ? ' grupo-resumo-bloco-clicavel' : ''}`}
-                  aria-label="Top 3 do ranking do grupo"
+                  aria-label="Resumo do ranking do grupo"
                   role={podeAbrirRankingGrupo ? 'button' : undefined}
                   tabIndex={podeAbrirRankingGrupo ? 0 : undefined}
                   onClick={podeAbrirRankingGrupo ? aoAbrirRankingGrupo : undefined}
                   onKeyDown={podeAbrirRankingGrupo ? aoTeclarRankingGrupo : undefined}
                 >
-                  <span className="grupo-resumo-rotulo">{obterGrupoPartida(ultimoJogo)} - Top 3</span>
-                  {rankingTop3.length > 0 ? (
+                  <span className="grupo-resumo-rotulo">{obterGrupoPartida(ultimoJogo)} - Ranking</span>
+                  {rankingResumo.length > 0 ? (
                     <ol className="grupo-resumo-ranking">
-                      {rankingTop3.map((atleta) => (
+                      {rankingResumo.map((atleta) => (
                         <li key={`${atleta.posicao}-${atleta.nomeAtleta}`}>
                           <span>{atleta.posicao}º</span>
                           <strong>{obterNomeExibicaoAtleta(atleta)}</strong>
