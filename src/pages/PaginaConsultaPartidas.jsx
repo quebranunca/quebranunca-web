@@ -145,11 +145,7 @@ export function PaginaConsultaPartidas() {
 
                     <PlacarDupla
                       label="Dupla A"
-                      atletas={
-                        partida.nomeDuplaA
-                          ? partida.nomeDuplaA.split('/').map((nome) => nome.trim())
-                          : []
-                      }
+                      atletas={partida.nomeDuplaA}
                       placar={partida.placarDuplaA}
                       vencedor={
                         partida.nomeDuplaVencedora === partida.nomeDuplaA
@@ -160,11 +156,7 @@ export function PaginaConsultaPartidas() {
 
                     <PlacarDupla
                       label="Dupla B"
-                      atletas={
-                        partida.nomeDuplaB
-                          ? partida.nomeDuplaB.split('/').map((nome) => nome.trim())
-                          : []
-                      }
+                      atletas={partida.nomeDuplaB}
                       placar={partida.placarDuplaB}
                       vencedor={
                         partida.nomeDuplaVencedora === partida.nomeDuplaB

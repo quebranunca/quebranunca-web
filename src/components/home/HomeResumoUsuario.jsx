@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { partidasServico } from '../../services/partidasServico';
 import { usuariosServico } from '../../services/usuariosServico';
 import { formatarDataHora } from '../../utils/formatacao';
-import { obterNomeExibicaoAtleta } from '../../utils/atletaUtils';
+import { obterNomeExibicaoAtleta, obterTituloAtleta } from '../../utils/atletaUtils';
 import {
   atletaEstaNaDuplaA,
   obterClasseStatusAprovacao,
@@ -21,7 +21,9 @@ const RESUMO_ZERADO = {
   totalVitorias: 0,
   totalDerrotas: 0,
   percentualAproveitamento: 0,
-  totalPartidasPendentes: 0
+  totalPartidasPendentes: 0,
+  pontos: 0,
+  pontosPendentes: 0
 };
 
 function obterNumero(valor) {
@@ -110,6 +112,7 @@ function obterRankingResumoUsuario(ranking = [], atletaUsuarioId) {
 
 export function HomeResumoUsuario({
   nomeAtleta = '',
+  atleta = null,
   atletaId = null,
   resumoUsuario,
   ultimoJogoUsuario,
@@ -159,7 +162,9 @@ export function HomeResumoUsuario({
             totalVitorias: obterNumero(dados?.totalVitorias),
             totalDerrotas: obterNumero(dados?.totalDerrotas),
             percentualAproveitamento: obterNumero(dados?.percentualAproveitamento),
-            totalPartidasPendentes: obterNumero(dados?.totalPartidasPendentes)
+            totalPartidasPendentes: obterNumero(dados?.totalPartidasPendentes),
+            pontos: obterNumero(dados?.pontos),
+            pontosPendentes: obterNumero(dados?.pontosPendentes)
           });
         } else {
           console.error('Erro ao carregar resumo do usuário na Home.', resultadoResumo.reason);
@@ -203,13 +208,17 @@ export function HomeResumoUsuario({
       totalVitorias: obterNumero(resumoUsuario?.totalVitorias),
       totalDerrotas: obterNumero(resumoUsuario?.totalDerrotas),
       percentualAproveitamento: obterNumero(resumoUsuario?.percentualAproveitamento),
-      totalPartidasPendentes: obterNumero(resumoUsuario?.totalPartidasPendentes)
+      totalPartidasPendentes: obterNumero(resumoUsuario?.totalPartidasPendentes),
+      pontos: obterNumero(resumoUsuario?.pontos),
+      pontosPendentes: obterNumero(resumoUsuario?.pontosPendentes)
     }
     : (possuiDadosExternos ? RESUMO_ZERADO : resumoLocal);
   const ultimoJogo = possuiDadosExternos ? ultimoJogoUsuario : ultimoJogoLocal;
   const carregando = possuiDadosExternos ? Boolean(carregandoResumo) : carregandoLocal;
   const erro = possuiDadosExternos ? Boolean(erroResumo) : erroLocal;
   const erroUltimoJogo = possuiDadosExternos ? Boolean(erroUltimoJogoUsuario) : erroUltimoJogoLocal;
+  const textoAtletaResumo = obterNomeExibicaoAtleta(atleta || { nome: nomeAtleta }) || 'Não vinculado';
+  const tituloAtletaResumo = obterTituloAtleta(atleta || { nome: nomeAtleta }) || 'Não vinculado';
 
   const resultadoUltimoJogo = ultimoJogo
     ? obterResultadoAtleta(ultimoJogo, atletaId, {
@@ -251,11 +260,13 @@ export function HomeResumoUsuario({
                 <div className="home-usuario-info-item">         
                   <Link
                 to="/app/perfil"
-                className="home-resumo-usuario-metricas"
-                aria-label="Abrir meus perfil"
+                className="home-usuario-info-link"
+                aria-label="Abrir meu perfil"
               >  
                   <span>Atleta</span>
-                  <strong>{nomeAtleta || 'Não vinculado'}</strong>
+                  <strong className="home-usuario-atleta-nome" title={tituloAtletaResumo}>
+                    {textoAtletaResumo}
+                  </strong>
                 </Link>
                 </div>    
                   
@@ -273,6 +284,11 @@ export function HomeResumoUsuario({
               className="home-resumo-usuario-metricas"
               aria-label="Abrir meus jogos"
             >
+              <div className="home-resumo-usuario-pontos">
+                <span>Pontos</span>
+                <strong>{formatarPontuacao(resumo.pontos)}</strong>
+                <small>+{formatarPontuacao(resumo.pontosPendentes)} pend.</small>
+              </div>
               <div>
                 <span>Jogos</span>
                 <strong>{resumo.totalPartidas}</strong>
@@ -292,9 +308,17 @@ export function HomeResumoUsuario({
             ) : ultimoJogo ? (
               <div className="home-ultimo-jogo">
                 <div className="home-ultimo-jogo-acoes">
-                  <span className="grupo-resumo-rotulo">
-                    {obterGrupoPartida(ultimoJogo)} - ({ultimoJogo.dataPartida ? formatarDataHora(ultimoJogo.dataPartida) : 'Data a definir'})
-                  </span>
+                  <div className="grupo-resumo-informacoes">
+                    <span className="grupo-resumo-rotulo grupo-resumo-grupo-nome">
+                      {obterGrupoPartida(ultimoJogo)}
+                    </span>
+
+                    <span className="grupo-resumo-rotulo">
+                      ({ultimoJogo.dataPartida
+                        ? formatarDataHora(ultimoJogo.dataPartida)
+                        : 'Data a definir'})
+                    </span>
+                  </div>
                   <CompartilharPartidaBotao partidaId={ultimoJogo.id} />
                 </div>
 

@@ -14,7 +14,12 @@ import { extrairMensagemErro } from '../utils/erros';
 import { formatarDataHora, paraInputDataHora } from '../utils/formatacao';
 import { rolarParaElemento, rolarParaTopo } from '../utils/rolagem';
 import { ehAtleta, ehGestorCompeticao, PERFIS_USUARIO } from '../utils/perfis';
-import { obterNomeExibicaoAtleta, obterNomeExibicaoAtletaCampos } from '../utils/atletaUtils';
+import {
+  obterNomeExibicaoAtleta,
+  obterNomeExibicaoAtletaCampos,
+  obterNomeExibicaoDupla,
+  obterNomeExibicaoDuplaCampos
+} from '../utils/atletaUtils';
 
 function obterDataHoraAtualInput() {
   const agora = new Date();
@@ -144,7 +149,7 @@ function obterCamposAtletaUsuarioPrimeiraDupla(atletaId, atletaNome, atletaLado)
 }
 
 function formatarNomeDupla(dupla) {
-  return `${dupla.nome} (${obterNomeExibicaoAtletaCampos(dupla.nomeAtleta1, dupla.apelidoAtleta1)} / ${obterNomeExibicaoAtletaCampos(dupla.nomeAtleta2, dupla.apelidoAtleta2)})`;
+  return `${obterNomeExibicaoDupla(dupla.nome)} (${obterNomeExibicaoDuplaCampos(dupla.nomeAtleta1, dupla.apelidoAtleta1, dupla.nomeAtleta2, dupla.apelidoAtleta2)})`;
 }
 
 function obterNomeStatus(status) {
@@ -1679,7 +1684,7 @@ export function PaginaPartidas({ modo = 'consulta' }) {
             disabled={salvandoResultado}
             aria-label={`Pontos de ${partida.nomeDuplaA}`}
           />
-          <span>{partida.nomeDuplaA}</span>
+          <span>{obterNomeExibicaoDupla(partida.nomeDuplaA)}</span>
         </div>
 
         <div className="lancamento-resultado-linha">
@@ -1691,7 +1696,7 @@ export function PaginaPartidas({ modo = 'consulta' }) {
             disabled={salvandoResultado}
             aria-label={`Pontos de ${partida.nomeDuplaB}`}
           />
-          <span>{partida.nomeDuplaB}</span>
+          <span>{obterNomeExibicaoDupla(partida.nomeDuplaB)}</span>
         </div>
 
         <button
@@ -1767,7 +1772,7 @@ export function PaginaPartidas({ modo = 'consulta' }) {
                   ) : (
                     <span className="chave-jogo-pontuacao-texto">{partida.status === 2 ? partida.placarDuplaA : '-'}</span>
                   )}
-                  <strong>{partida.nomeDuplaA}</strong>
+                  <strong>{obterNomeExibicaoDupla(partida.nomeDuplaA)}</strong>
                 </div>
 
                 <div className={`chave-jogo-linha ${duplaBVenceu ? 'vencedora' : ''}`}>
@@ -1784,7 +1789,7 @@ export function PaginaPartidas({ modo = 'consulta' }) {
                   ) : (
                     <span className="chave-jogo-pontuacao-texto">{partida.status === 2 ? partida.placarDuplaB : '-'}</span>
                   )}
-                  <strong>{partida.nomeDuplaB}</strong>
+                  <strong>{obterNomeExibicaoDupla(partida.nomeDuplaB)}</strong>
                 </div>
 
                 {renderizarLancamentoResultado(partida, 'chave')}
@@ -1835,12 +1840,12 @@ export function PaginaPartidas({ modo = 'consulta' }) {
           )}
 
           <div className={`jogo-grupo-time ${duplaAVenceu ? 'vencedora' : ''}`}>
-            <strong>{jogo.nomeDuplaA}</strong>
+            <strong>{obterNomeExibicaoDupla(jogo.nomeDuplaA)}</strong>
             <span>{jogo.status === 2 ? jogo.placarDuplaA : '-'}</span>
           </div>
 
           <div className={`jogo-grupo-time ${duplaBVenceu ? 'vencedora' : ''}`}>
-            <strong>{jogo.nomeDuplaB}</strong>
+            <strong>{obterNomeExibicaoDupla(jogo.nomeDuplaB)}</strong>
             <span>{jogo.status === 2 ? jogo.placarDuplaB : '-'}</span>
           </div>
 
@@ -1915,7 +1920,7 @@ export function PaginaPartidas({ modo = 'consulta' }) {
                         {grupo.classificacao.map((linha) => (
                           <tr key={linha.duplaId}>
                             <td>{linha.posicao}</td>
-                            <td>{linha.nomeDupla}</td>
+                            <td>{obterNomeExibicaoDupla(linha.nomeDupla)}</td>
                             <td>{linha.pontos}</td>
                             <td>{linha.vitorias}</td>
                             <td>{linha.saldo}</td>
@@ -2263,11 +2268,11 @@ export function PaginaPartidas({ modo = 'consulta' }) {
               <div>
                 <div className="partida-lista-topo">
                   <h3 className="partida-confronto">
-                    <span>{partida.nomeDuplaA}</span>
+                    <span>{obterNomeExibicaoDupla(partida.nomeDuplaA)}</span>
                     <span className="partida-placar-valor">
                       {partida.status === 2 ? `${partida.placarDuplaA} x ${partida.placarDuplaB}` : 'x'}
                     </span>
-                    <span>{partida.nomeDuplaB}</span>
+                    <span>{obterNomeExibicaoDupla(partida.nomeDuplaB)}</span>
                   </h3>
                   <span className={`tag-status ${partida.status === 2 ? 'tag-status-sucesso' : 'tag-status-alerta'}`}>
                     {obterNomeStatus(partida.status)}
@@ -2277,10 +2282,10 @@ export function PaginaPartidas({ modo = 'consulta' }) {
                 <div className="partida-lista-detalhes">
                   <p>Categoria: {partida.nomeCategoria}</p>
                   <p>Data: {partida.dataPartida ? formatarDataHora(partida.dataPartida) : 'A definir'}</p>
-                  <p>Dupla A · Direita: {partida.nomeDuplaAAtleta1}</p>
-                  <p>Dupla A · Esquerda: {partida.nomeDuplaAAtleta2}</p>
-                  <p>Dupla B · Direita: {partida.nomeDuplaBAtleta1}</p>
-                  <p>Dupla B · Esquerda: {partida.nomeDuplaBAtleta2}</p>
+                  <p>Dupla A · Direita: {obterNomeExibicaoAtletaCampos(partida.nomeDuplaAAtleta1, null)}</p>
+                  <p>Dupla A · Esquerda: {obterNomeExibicaoAtletaCampos(partida.nomeDuplaAAtleta2, null)}</p>
+                  <p>Dupla B · Direita: {obterNomeExibicaoAtletaCampos(partida.nomeDuplaBAtleta1, null)}</p>
+                  <p>Dupla B · Esquerda: {obterNomeExibicaoAtletaCampos(partida.nomeDuplaBAtleta2, null)}</p>
                   <p className="partida-status-linha">
                     Validação:
                     <span className={`tag-status ${obterClasseStatusAprovacao(partida.statusAprovacao)}`}>
@@ -2290,7 +2295,7 @@ export function PaginaPartidas({ modo = 'consulta' }) {
                   <p>Registrada por: {partida.nomeCriadoPorUsuario || 'Não informado'}</p>
                   {partida.faseCampeonato && <p>Fase: {partida.faseCampeonato}</p>}
                   {partida.status === 2 ? (
-                    <p>Vencedora: {partida.nomeDuplaVencedora || 'Empate'}</p>
+                    <p>Vencedora: {obterNomeExibicaoDupla(partida.nomeDuplaVencedora) || 'Empate'}</p>
                   ) : (
                     <p>Resultado: jogo ainda não encerrado</p>
                   )}
@@ -2320,10 +2325,10 @@ export function PaginaPartidas({ modo = 'consulta' }) {
               {inscricoesCategoriaOrdenadas.map((inscricao) => (
                 <article key={inscricao.id} className="cartao-lista">
                   <div>
-                    <h3>{inscricao.nomeDupla}</h3>
+                    <h3>{obterNomeExibicaoDupla(inscricao.nomeDupla)}</h3>
                     <p>Categoria: {inscricao.nomeCategoria}</p>
                     <p>
-                      Atletas: {obterNomeExibicaoAtletaCampos(inscricao.nomeAtleta1, inscricao.apelidoAtleta1)} / {obterNomeExibicaoAtletaCampos(inscricao.nomeAtleta2, inscricao.apelidoAtleta2)}
+                      Atletas: {obterNomeExibicaoDuplaCampos(inscricao.nomeAtleta1, inscricao.apelidoAtleta1, inscricao.nomeAtleta2, inscricao.apelidoAtleta2)}
                     </p>
                     <p>Pagamento: {inscricao.pago ? 'Pago' : 'Pendente'}</p>
                     <p>Data da inscrição: {formatarDataHora(inscricao.dataInscricaoUtc)}</p>

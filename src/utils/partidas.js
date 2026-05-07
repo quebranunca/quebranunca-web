@@ -4,10 +4,10 @@ export const STATUS_PARTIDA = {
 };
 
 export const STATUS_APROVACAO_PARTIDA = {
-  pendente: 1,
-  aprovada: 2,
-  contestada: 3,
-  pendenteDeVinculos: 4
+  pendenteDeVinculos: 1,
+  pendente: 2,
+  aprovada: 3,
+  contestada: 4
 };
 
 export function obterNomeStatusPartida(status) {

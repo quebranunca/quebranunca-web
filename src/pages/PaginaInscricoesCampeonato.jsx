@@ -11,7 +11,11 @@ import { formatarDataHora } from '../utils/formatacao';
 import { abrirLinkExterno } from '../utils/links';
 import { ehGestorCompeticao, PERFIS_USUARIO } from '../utils/perfis';
 import { rolarParaTopo } from '../utils/rolagem';
-import { obterNomeExibicaoAtleta, obterNomeExibicaoAtletaCampos } from '../utils/atletaUtils';
+import {
+  obterNomeExibicaoAtleta,
+  obterNomeExibicaoDupla,
+  obterNomeExibicaoDuplaCampos
+} from '../utils/atletaUtils';
 
 const estadoInicialFormulario = {
   categoriaId: '',
@@ -1211,7 +1215,7 @@ export function PaginaInscricoesCampeonato() {
               <div>
                 <h3>{inscricao.nomeCategoria}</h3>
                 <p>
-                  Dupla: {inscricao.nomeDupla || `${obterNomeExibicaoAtletaCampos(inscricao.nomeAtleta1, inscricao.apelidoAtleta1)} + ${obterNomeExibicaoAtletaCampos(inscricao.nomeAtleta2, inscricao.apelidoAtleta2)}`}
+                  Dupla: {obterNomeExibicaoDupla(inscricao.nomeDupla) || obterNomeExibicaoDuplaCampos(inscricao.nomeAtleta1, inscricao.apelidoAtleta1, inscricao.nomeAtleta2, inscricao.apelidoAtleta2)}
                 </p>
                 <p>Data da inscrição: {formatarDataHora(inscricao.dataInscricaoUtc)}</p>
                 <p>Status: {obterNomeStatus(inscricao.status)}</p>

@@ -14,7 +14,7 @@ import { formatarData, paraInputData } from '../utils/formatacao';
 import { abrirLinkExterno, obterLinkHttp } from '../utils/links';
 import { ehAtleta, ehGestorCompeticao, PERFIS_USUARIO } from '../utils/perfis';
 import { rolarParaElemento, rolarParaTopo } from '../utils/rolagem';
-import { obterNomeExibicaoAtletaCampos } from '../utils/atletaUtils';
+import { obterNomeExibicaoDupla, obterNomeExibicaoDuplaCampos } from '../utils/atletaUtils';
 
 function obterDataAtualInput() {
   const agora = new Date();
@@ -1118,9 +1118,9 @@ export function PaginaCompeticoes({ apenasGrupos = false }) {
                                   {inscricoesCategoria.map((inscricao) => (
                                     <article key={inscricao.id} className="cartao-lista">
                                       <div>
-                                        <h4>{inscricao.nomeDupla}</h4>
+                                        <h4>{obterNomeExibicaoDupla(inscricao.nomeDupla)}</h4>
                                         <p>
-                                          Atletas: {obterNomeExibicaoAtletaCampos(inscricao.nomeAtleta1, inscricao.apelidoAtleta1)} e {obterNomeExibicaoAtletaCampos(inscricao.nomeAtleta2, inscricao.apelidoAtleta2)}
+                                          Atletas: {obterNomeExibicaoDuplaCampos(inscricao.nomeAtleta1, inscricao.apelidoAtleta1, inscricao.nomeAtleta2, inscricao.apelidoAtleta2)}
                                         </p>
                                         <p>Pagamento: {inscricao.pago ? 'Pago' : 'Pendente'}</p>
                                         {inscricao.observacao && <p>Observação: {inscricao.observacao}</p>}

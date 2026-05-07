@@ -1324,11 +1324,30 @@ code {
   text-transform: uppercase;
 }
 
+.home-usuario-info-link {
+  display: flex;
+  flex-direction: column;
+  gap: 0.14rem;
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+}
+
 .home-usuario-info-item strong {
   color: var(--cor-texto);
   font-size: 0.9rem;
   line-height: 1.18;
   overflow-wrap: anywhere;
+}
+
+.home-usuario-atleta-nome {
+  display: block;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow-wrap: normal;
 }
 
 .home-usuario-acoes {
@@ -1598,7 +1617,7 @@ code {
 
 .home-resumo-usuario-metricas {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.65rem;
 }
 
@@ -1608,6 +1627,7 @@ code {
   border: 1px solid var(--cor-borda);
   border-radius: var(--raio-sm);
   background: var(--cor-superficie-suave);
+  overflow: hidden;
 }
 
 .home-resumo-usuario-metricas span {
@@ -1625,6 +1645,24 @@ code {
   color: var(--cor-texto);
   font-size: 1.45rem;
   line-height: 1;
+}
+
+.home-resumo-usuario-pontos {
+  border-color: var(--color-border-highlight) !important;
+  background: linear-gradient(180deg, rgba(255, 179, 0, 0.1), rgba(255, 255, 255, 0.02)), var(--color-card) !important;
+}
+
+.home-resumo-usuario-pontos small {
+  display: block;
+  margin-top: 0.32rem;
+  color: var(--cor-texto-suave);
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1.15;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .home-resumo-usuario-aproveitamento {
@@ -4498,6 +4536,28 @@ a.botao-terciario:active {
   width: 100%;
 }
 
+.grupo-resumo-rotulo {
+  display: block;
+}
+
+.grupo-resumo-informacoes {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.grupo-resumo-informacoes .grupo-resumo-rotulo,
+.grupo-resumo-informacoes .grupo-resumo-data {
+  margin: 0;
+  padding: 0;
+  line-height: 1;
+}
+
+.grupo-resumo-grupo-nome {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
 @media (min-width: 768px) {
   .home-secoes-publicas {
     grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
@@ -4771,16 +4831,20 @@ a.botao-terciario:active {
   }
 
   .home-resumo-usuario-metricas {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 0.45rem;
   }
 
   .home-resumo-usuario-metricas div {
-    padding: 0.6rem 0.45rem;
+    padding: 0.55rem 0.32rem;
   }
 
   .home-resumo-usuario-metricas strong {
-    font-size: 1.2rem;
+    font-size: 1.05rem;
+  }
+
+  .home-resumo-usuario-pontos small {
+    font-size: 0.62rem;
   }
 
   .home-ultimo-jogo-confronto {

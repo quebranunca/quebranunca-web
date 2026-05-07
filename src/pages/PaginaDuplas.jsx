@@ -7,7 +7,7 @@ import { duplasServico } from '../services/duplasServico';
 import { extrairMensagemErro } from '../utils/erros';
 import { rolarParaElemento, rolarParaTopo } from '../utils/rolagem';
 import { ehOrganizador } from '../utils/perfis';
-import { obterNomeExibicaoAtleta, obterNomeExibicaoAtletaCampos } from '../utils/atletaUtils';
+import { obterNomeExibicaoAtleta, obterNomeExibicaoDupla, obterNomeExibicaoDuplaCampos } from '../utils/atletaUtils';
 
 const estadoInicial = {
   nome: '',
@@ -220,9 +220,9 @@ export function PaginaDuplas() {
           {duplas.map((dupla) => (
             <article key={dupla.id} className="cartao-lista">
               <div>
-                <h3>{dupla.nome}</h3>
+                <h3>{obterNomeExibicaoDupla(dupla.nome)}</h3>
                 <p>
-                  {obterNomeExibicaoAtletaCampos(dupla.nomeAtleta1, dupla.apelidoAtleta1)} + {obterNomeExibicaoAtletaCampos(dupla.nomeAtleta2, dupla.apelidoAtleta2)}
+                  {obterNomeExibicaoDuplaCampos(dupla.nomeAtleta1, dupla.apelidoAtleta1, dupla.nomeAtleta2, dupla.apelidoAtleta2)}
                 </p>
               </div>
 

@@ -359,6 +359,7 @@ export function PaginaHome() {
       {token && (
         <HomeResumoUsuario
           nomeAtleta={nomeAtleta}
+          atleta={atletaPerfil || usuario?.atleta}
           atletaId={usuario?.atletaId}
           resumoUsuario={resumoUsuario}
           ultimoJogoUsuario={ultimoJogoUsuario}

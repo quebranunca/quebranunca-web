@@ -8,6 +8,7 @@ import { competicoesServico } from '../services/competicoesServico';
 import { partidasServico } from '../services/partidasServico';
 import { extrairMensagemErro } from '../utils/erros';
 import { formatarDataHora } from '../utils/formatacao';
+import { obterNomeExibicaoAtletaCampos, obterNomeExibicaoDupla } from '../utils/atletaUtils';
 import { ehGestorCompeticao } from '../utils/perfis';
 import { rolarParaTopo } from '../utils/rolagem';
 
@@ -822,12 +823,12 @@ export function PaginaPartidasCampeonato() {
 
                   <div className={`chave-jogo-linha ${duplaAVenceu ? 'vencedora' : ''}`}>
                     <span className="chave-jogo-pontuacao-texto">{partida.status === 2 ? partida.placarDuplaA : '-'}</span>
-                    <strong>{partida.nomeDuplaA}</strong>
+                    <strong>{obterNomeExibicaoDupla(partida.nomeDuplaA)}</strong>
                   </div>
 
                   <div className={`chave-jogo-linha ${duplaBVenceu ? 'vencedora' : ''}`}>
                     <span className="chave-jogo-pontuacao-texto">{partida.status === 2 ? partida.placarDuplaB : '-'}</span>
-                    <strong>{partida.nomeDuplaB}</strong>
+                    <strong>{obterNomeExibicaoDupla(partida.nomeDuplaB)}</strong>
                   </div>
 
                   {podeEditarResultado && (
@@ -1040,11 +1041,11 @@ export function PaginaPartidasCampeonato() {
               <article key={partida.id} className="cartao-lista partida-lista-card">
                 <div className="partida-lista-topo">
                   <h3 className="partida-confronto">
-                    <span>{partida.nomeDuplaA}</span>
+                    <span>{obterNomeExibicaoDupla(partida.nomeDuplaA)}</span>
                     <span className="partida-placar-valor">
                       {partida.status === 2 ? `${partida.placarDuplaA} x ${partida.placarDuplaB}` : 'x'}
                     </span>
-                    <span>{partida.nomeDuplaB}</span>
+                    <span>{obterNomeExibicaoDupla(partida.nomeDuplaB)}</span>
                   </h3>
                   <span className={`tag-status ${partida.status === 2 ? 'tag-status-sucesso' : 'tag-status-alerta'}`}>
                     {obterNomeStatus(partida.status, partida.ativa)}
@@ -1055,10 +1056,10 @@ export function PaginaPartidasCampeonato() {
                   <p>Competição: {competicaoSelecionada?.nome || '-'}</p>
                   <p>Categoria: {partida.nomeCategoria}</p>
                   <p>Data: {partida.dataPartida ? formatarDataHora(partida.dataPartida) : 'A definir'}</p>
-                  <p>Dupla A · Direita: {partida.nomeDuplaAAtleta1}</p>
-                  <p>Dupla A · Esquerda: {partida.nomeDuplaAAtleta2}</p>
-                  <p>Dupla B · Direita: {partida.nomeDuplaBAtleta1}</p>
-                  <p>Dupla B · Esquerda: {partida.nomeDuplaBAtleta2}</p>
+                  <p>Dupla A · Direita: {obterNomeExibicaoAtletaCampos(partida.nomeDuplaAAtleta1, null)}</p>
+                  <p>Dupla A · Esquerda: {obterNomeExibicaoAtletaCampos(partida.nomeDuplaAAtleta2, null)}</p>
+                  <p>Dupla B · Direita: {obterNomeExibicaoAtletaCampos(partida.nomeDuplaBAtleta1, null)}</p>
+                  <p>Dupla B · Esquerda: {obterNomeExibicaoAtletaCampos(partida.nomeDuplaBAtleta2, null)}</p>
                   <p className="partida-status-linha">
                     Validação:
                     <span className={`tag-status ${obterClasseStatusAprovacao(partida.statusAprovacao)}`}>
@@ -1068,7 +1069,7 @@ export function PaginaPartidasCampeonato() {
                   <p>Registrada por: {partida.nomeCriadoPorUsuario || 'Não informado'}</p>
                   {partida.faseCampeonato && <p>Fase: {partida.faseCampeonato}</p>}
                   {partida.status === 2 ? (
-                    <p>Vencedora: {partida.nomeDuplaVencedora || '-'}</p>
+                    <p>Vencedora: {obterNomeExibicaoDupla(partida.nomeDuplaVencedora) || '-'}</p>
                   ) : (
                     <p>Resultado: jogo ainda não encerrado</p>
                   )}
@@ -1109,7 +1110,7 @@ export function PaginaPartidasCampeonato() {
 
             <div className="modal-placar-linhas">
               <label className="modal-placar-linha">
-                <span>{partidaResultadoModal.nomeDuplaA}</span>
+                <span>{obterNomeExibicaoDupla(partidaResultadoModal.nomeDuplaA)}</span>
                 <input
                   type="number"
                   min={0}
@@ -1121,7 +1122,7 @@ export function PaginaPartidasCampeonato() {
               </label>
 
               <label className="modal-placar-linha">
-                <span>{partidaResultadoModal.nomeDuplaB}</span>
+                <span>{obterNomeExibicaoDupla(partidaResultadoModal.nomeDuplaB)}</span>
                 <input
                   type="number"
                   min={0}

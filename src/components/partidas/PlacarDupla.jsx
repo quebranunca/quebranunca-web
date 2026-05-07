@@ -1,3 +1,13 @@
+import { obterNomeExibicaoAtleta, obterNomeExibicaoDupla } from '../../utils/atletaUtils';
+
+function formatarAtletaPlacar(atleta) {
+  if (typeof atleta === 'string') {
+    return obterNomeExibicaoAtleta({ nome: atleta }) || atleta;
+  }
+
+  return obterNomeExibicaoAtleta(atleta) || '';
+}
+
 export function PlacarDupla({
   label,
   atletas,
@@ -11,8 +21,8 @@ export function PlacarDupla({
       <div className={`dupla-conteudo ${vencedor ? 'vencedor' : ''}`}>
         <div className="dupla-nome">
           {Array.isArray(atletas)
-            ? atletas.join(' e ')
-            : atletas
+            ? atletas.map(formatarAtletaPlacar).filter(Boolean).join(' e ')
+            : obterNomeExibicaoDupla(atletas) || atletas
           }
         </div>
 

@@ -7,7 +7,7 @@ import { extrairMensagemErro } from '../utils/erros';
 import { formatarDataHora } from '../utils/formatacao';
 import { criarPendenciasPerfil } from '../utils/pendenciasPerfil';
 import { rolarParaTopo } from '../utils/rolagem';
-import { obterNomeExibicaoAtleta } from '../utils/atletaUtils';
+import { obterNomeExibicaoAtleta, obterNomeExibicaoDupla } from '../utils/atletaUtils';
 
 const TIPOS_PENDENCIA = {
   aprovarPartida: 1,
@@ -226,7 +226,7 @@ export function PaginaPendenciasAtletas() {
                   {obterNomeExibicaoAtleta(item) && <p>Atleta: {obterNomeExibicaoAtleta(item)}</p>}
                   {item.partidaId && (
                     <>
-                      <p>Partida: {item.nomeDuplaA} x {item.nomeDuplaB}</p>
+                      <p>Partida: {obterNomeExibicaoDupla(item.nomeDuplaA)} x {obterNomeExibicaoDupla(item.nomeDuplaB)}</p>
                       <p>Placar: {item.placarDuplaA ?? '-'} x {item.placarDuplaB ?? '-'}</p>
                       <p>Data da partida: {formatarDataHora(item.dataPartida)}</p>
                     </>
