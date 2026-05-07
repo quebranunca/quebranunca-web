@@ -288,9 +288,7 @@ export function HomeResumoUsuario({
             </Link>   
                                           
            {erroUltimoJogo ? (
-              <p className="home-resumo-usuario-vazio">
-                Não foi possível carregar seu último jogo agora.
-              </p>
+              <p className="home-resumo-usuario-vazio"></p>
             ) : ultimoJogo ? (
               <div className="home-ultimo-jogo">
                 <div className="home-ultimo-jogo-acoes">
@@ -315,9 +313,7 @@ export function HomeResumoUsuario({
                 />
               </div>
             ) : (
-              <p className="home-resumo-usuario-vazio">
-                Você ainda não possui partidas registradas.
-              </p>
+              <p className="home-resumo-usuario-vazio"></p>
             )}                 
             
             {exibirResumoRanking && (
