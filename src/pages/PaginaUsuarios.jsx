@@ -186,7 +186,7 @@ export function PaginaUsuarios() {
 
         <div className="acoes-formulario">
           <button type="submit" className="botao-primario" disabled={carregando}>
-            <ConteudoBotao icone="filtro" texto={carregando ? 'Filtrando...' : 'Filtrar'} />
+            Filtrar
           </button>
         </div>
       </form>
