@@ -259,19 +259,17 @@ export function HomeResumoUsuario({
              
                 <div className="home-usuario-info-item">         
                   <Link
-                to="/app/perfil"
-                className="home-usuario-info-link"
-                aria-label="Abrir meu perfil"
-              >  
+                    to="/app/perfil"
+                    className="home-usuario-info-link"
+                    aria-label="Abrir meu perfil"
+                  >  
                   <span>Atleta</span>
                   <strong className="home-usuario-atleta-nome" title={tituloAtletaResumo}>
                     {textoAtletaResumo}
                   </strong>
                 </Link>
-                </div>    
-                  
-            </div>   
-                                  
+                </div>                      
+            </div>                                     
           </div>          
         </div>
 
@@ -302,7 +300,11 @@ export function HomeResumoUsuario({
                 <strong>{resumo.totalDerrotas}</strong>
               </div>                  
             </Link>   
-                                          
+                                           
+            <Link to="/partidas/registrar" className="botao-primario home-botao">
+              Registrar partida
+            </Link>       
+
            {erroUltimoJogo ? (
               <p className="home-resumo-usuario-vazio"></p>
             ) : ultimoJogo ? (
@@ -339,6 +341,10 @@ export function HomeResumoUsuario({
             ) : (
               <p className="home-resumo-usuario-vazio"></p>
             )}                 
+
+            <Link to="/grupos" className="botao-primario home-botao">
+              Ver todos os grupos
+            </Link>    
             
             {exibirResumoRanking && (
               <div className="grupo-resumo-conteudo">
@@ -366,15 +372,7 @@ export function HomeResumoUsuario({
                   )}
                 </section>
               </div>
-            )}
-
-            <Link to="/grupos" className="botao-primario home-botao">
-              Ver todos os grupos
-            </Link>    
-                  
-            <Link to="/partidas/registrar" className="botao-primario home-botao">
-                Registrar partida
-            </Link>                          
+            )}                               
           </>          
         )}        
       </article>
