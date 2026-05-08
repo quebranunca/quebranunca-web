@@ -378,11 +378,7 @@ export function PaginaConvitesCadastro() {
                       onClick={() => enviarPorEmail(convite)}
                       disabled={!podeEnviar || enviandoEmailId === convite.id}
                     >
-                      <ConteudoBotao
-                        icone="email"
-                        texto={enviandoEmailId === convite.id ? 'Enviando e-mail...' : 'Enviar e-mail'}
-                        somenteIconeNoMobile={false}
-                      />
+                     Enviar e-mail
                     </button>
                     <button
                       type="button"
@@ -390,23 +386,14 @@ export function PaginaConvitesCadastro() {
                       onClick={() => enviarPorWhatsApp(convite)}
                       disabled={!podeEnviar || enviandoWhatsappId === convite.id}
                     >
-                      <ConteudoBotao
-                        icone="whatsapp"
-                        texto={enviandoWhatsappId === convite.id ? 'Enviando WhatsApp...' : 'Enviar WhatsApp'}
-                        somenteIconeNoMobile={false}
-                      />
+                      Enviar WhatsApp
                     </button>
                     <button
                       type="button"
                       className="botao-secundario"
                       onClick={() => obterECopiarLinkAceite(convite.id)}
                       disabled={obtendoLinkId === convite.id}
-                    >
-                      <ConteudoBotao
-                        icone="link"
-                        texto={obtendoLinkId === convite.id ? 'Gerando acesso...' : 'Gerar e copiar link e código'}
-                        somenteIconeNoMobile={false}
-                      />
+                    > Gerar e copiar link e código
                     </button>
                     <button
                       type="button"
@@ -414,11 +401,7 @@ export function PaginaConvitesCadastro() {
                       onClick={() => cancelarConvite(convite.id)}
                       disabled={!podeCancelar || cancelandoId === convite.id}
                     >
-                      <ConteudoBotao
-                        icone="cancelar"
-                        texto={cancelandoId === convite.id ? 'Cancelando...' : 'Cancelar convite'}
-                        somenteIconeNoMobile={false}
-                      />
+                      Cancelar convite
                     </button>
                   </div>
 

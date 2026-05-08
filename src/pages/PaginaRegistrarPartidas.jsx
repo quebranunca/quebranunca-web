@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { CompartilharPartidaBotao } from '../components/partidas/CompartilharPartidaBotao';
 import { gruposServico } from '../services/gruposServico';
+import { grupoAtletasServico } from '../services/grupoAtletasServico';
 import { partidasServico } from '../services/partidasServico';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { extrairMensagemErro } from '../utils/erros';
@@ -22,6 +23,18 @@ const LADOS_ATLETA = {
 const GRUPO_GERAL_ID = '__grupo-geral__';
 const NOME_GRUPO_GERAL = 'Geral';
 const MENSAGEM_GRUPO_DUPLICADO = 'Já existe grupo com esse nome. Altere o nome para criar um novo grupo.';
+const CAMPOS_ATLETAS = ['duplaAAtleta1', 'duplaAAtleta2', 'duplaBAtleta1', 'duplaBAtleta2'];
+
+function criarEstadoSugestoes() {
+  return CAMPOS_ATLETAS.reduce((estado, campo) => ({
+    ...estado,
+    [campo]: {
+      itens: [],
+      carregando: false,
+      buscou: false
+    }
+  }), {});
+}
 
 function criarEstadoInicial() {
   return {
@@ -47,6 +60,14 @@ function paraIsoUtc(dataLocal) {
 
 function normalizarNomeGrupo(nome) {
   return (nome || '').trim().replace(/\s+/g, ' ').toLocaleLowerCase('pt-BR');
+}
+
+function normalizarTexto(valor) {
+  return (valor || '').trim().replace(/\s+/g, ' ').toLocaleLowerCase('pt-BR');
+}
+
+function ehGrupoGeral(grupo) {
+  return normalizarNomeGrupo(grupo?.nome) === normalizarNomeGrupo(NOME_GRUPO_GERAL);
 }
 
 function obterGrupoDoRetornoVerificacao(retorno) {
@@ -89,6 +110,10 @@ function obterCamposAtletaUsuarioPrimeiraDupla(atletaId, atletaNome, atletaLado)
   };
 }
 
+function obterTextoExibicaoSugestao(atleta) {
+  return atleta?.textoExibicao || atleta?.apelido || atleta?.nome || '';
+}
+
 export function PaginaRegistrarPartidas() {
   const { usuario } = useAutenticacao();
   const navegar = useNavigate();
@@ -109,10 +134,12 @@ export function PaginaRegistrarPartidas() {
   const [erroNovoGrupo, setErroNovoGrupo] = useState('');
   const [validandoNovoGrupo, setValidandoNovoGrupo] = useState(false);
   const [feedbackPendencias, setFeedbackPendencias] = useState([]);
+  const [sugestoesAtletas, setSugestoesAtletas] = useState(() => criarEstadoSugestoes());
 
   const grupoSelecionado = grupos.find((grupo) => grupo.id === grupoId) || null;
   const grupoGeralNaLista = grupos.some((grupo) => normalizarNomeGrupo(grupo.nome) === normalizarNomeGrupo(NOME_GRUPO_GERAL));
   const grupoFoiEscolhido = Boolean(grupoId);
+  const usarAutocompleteGrupo = Boolean(grupoSelecionado && !ehGrupoGeral(grupoSelecionado));
   const podeSalvar = !salvando && !validandoNovoGrupo && !erroNovoGrupo && !(usuarioAtleta && !atletaUsuarioId);
 
   useEffect(() => {
@@ -197,6 +224,89 @@ export function PaginaRegistrarPartidas() {
     };
   }, [formulario.nomeGrupo, grupoFoiEscolhido, grupos]);
 
+  useEffect(() => {
+    if (!usarAutocompleteGrupo) {
+      setSugestoesAtletas(criarEstadoSugestoes());
+      return undefined;
+    }
+
+    let ativo = true;
+    const temporizador = window.setTimeout(async () => {
+      const campos = CAMPOS_ATLETAS.map((campo) => ({
+        campo,
+        id: formulario[`${campo}Id`],
+        nome: formulario[`${campo}Nome`],
+        idsBloqueados: CAMPOS_ATLETAS
+          .filter((outroCampo) => outroCampo !== campo)
+          .map((outroCampo) => formulario[`${outroCampo}Id`])
+          .filter(Boolean)
+      }));
+
+      const camposComBusca = campos.filter((campo) =>
+        !campo.id &&
+        normalizarTexto(campo.nome).length >= 3
+      );
+
+      setSugestoesAtletas((anterior) => {
+        const proximo = { ...anterior };
+        campos.forEach((campo) => {
+          if (!camposComBusca.some((item) => item.campo === campo.campo)) {
+            proximo[campo.campo] = { itens: [], carregando: false, buscou: false };
+          } else {
+            proximo[campo.campo] = { ...proximo[campo.campo], carregando: true, buscou: true };
+          }
+        });
+        return proximo;
+      });
+
+      await Promise.all(camposComBusca.map(async (campo) => {
+        try {
+          const resultados = await grupoAtletasServico.buscar(grupoSelecionado.id, campo.nome.trim());
+          if (!ativo) {
+            return;
+          }
+
+          const idsBloqueados = new Set(campo.idsBloqueados);
+          setSugestoesAtletas((anterior) => ({
+            ...anterior,
+            [campo.campo]: {
+              itens: (resultados || []).filter((atleta) => !idsBloqueados.has(atleta.id)).slice(0, 6),
+              carregando: false,
+              buscou: true
+            }
+          }));
+        } catch {
+          if (ativo) {
+            setSugestoesAtletas((anterior) => ({
+              ...anterior,
+              [campo.campo]: {
+                itens: [],
+                carregando: false,
+                buscou: true
+              }
+            }));
+          }
+        }
+      }));
+    }, 300);
+
+    return () => {
+      ativo = false;
+      window.clearTimeout(temporizador);
+    };
+  }, [
+    usarAutocompleteGrupo,
+    grupoSelecionado?.id,
+    formulario.duplaAAtleta1Id,
+    formulario.duplaAAtleta1Nome,
+    formulario.duplaAAtleta2Id,
+    formulario.duplaAAtleta2Nome,
+    formulario.duplaBAtleta1Id,
+    formulario.duplaBAtleta1Nome,
+    formulario.duplaBAtleta2Id,
+    formulario.duplaBAtleta2Nome
+  ]);
+
   async function carregarBase() {
     setCarregando(true);
     setErro('');
@@ -266,6 +376,43 @@ export function PaginaRegistrarPartidas() {
     }));
   }
 
+  function selecionarAtleta(campoBase, atleta) {
+    setFormulario((anterior) => ({
+      ...anterior,
+      [`${campoBase}Id`]: atleta.id,
+      [`${campoBase}Nome`]: obterTextoExibicaoSugestao(atleta)
+    }));
+
+    setSugestoesAtletas((anterior) => ({
+      ...anterior,
+      [campoBase]: {
+        itens: [],
+        carregando: false,
+        buscou: false
+      }
+    }));
+  }
+
+  function validarAtletasDuplicadosFormulario() {
+    const ids = CAMPOS_ATLETAS
+      .map((campo) => formulario[`${campo}Id`])
+      .filter(Boolean);
+
+    if (new Set(ids).size !== ids.length) {
+      return 'Um mesmo atleta não pode aparecer em dois campos da partida.';
+    }
+
+    const chaves = CAMPOS_ATLETAS
+      .map((campo) => formulario[`${campo}Id`] || normalizarTexto(formulario[`${campo}Nome`]))
+      .filter(Boolean);
+
+    if (new Set(chaves).size !== chaves.length) {
+      return 'Um mesmo atleta não pode aparecer em dois campos da partida.';
+    }
+
+    return '';
+  }
+
   function limparFormularioAposSalvar() {
     setFormulario((anterior) => ({
       ...criarEstadoInicial(),
@@ -302,6 +449,12 @@ export function PaginaRegistrarPartidas() {
 
     if (validandoNovoGrupo) {
       setErro('Aguarde a verificação do grupo para salvar.');
+      return;
+    }
+
+    const erroAtletasDuplicados = validarAtletasDuplicadosFormulario();
+    if (erroAtletasDuplicados) {
+      setErro(erroAtletasDuplicados);
       return;
     }
 
@@ -366,17 +519,42 @@ export function PaginaRegistrarPartidas() {
   }
 
   function renderizarCampoAtleta(campoBase, rotulo) {
+    const estadoSugestoes = sugestoesAtletas[campoBase] || {};
+    const exibirLista = usarAutocompleteGrupo && (estadoSugestoes.itens?.length > 0 || estadoSugestoes.carregando || estadoSugestoes.buscou);
+
     return (
-      <label>
-        {rotulo}
-        <input
-          type="text"
-          value={formulario[`${campoBase}Nome`]}
-          onChange={(evento) => atualizarAtleta(campoBase, evento.target.value)}
-          placeholder="Digite o apelido ou nome"
-          required
-        />
-      </label>
+      <>
+        <label>
+          {rotulo}
+          <input
+            type="text"
+            value={formulario[`${campoBase}Nome`]}
+            onChange={(evento) => atualizarAtleta(campoBase, evento.target.value)}
+            placeholder="Digite o apelido ou nome"
+            required
+            autoComplete="off"
+          />
+        </label>
+
+        {exibirLista && (
+          <div className="lista-sugestoes secao-dupla-partida-info">
+            {estadoSugestoes.carregando && <span className="texto-ajuda">Buscando atletas...</span>}
+            {!estadoSugestoes.carregando && estadoSugestoes.itens?.map((atleta) => (
+              <button
+                key={atleta.id}
+                type="button"
+                className="item-sugestao"
+                onClick={() => selecionarAtleta(campoBase, atleta)}
+              >
+                {obterTextoExibicaoSugestao(atleta)}
+              </button>
+            ))}
+            {!estadoSugestoes.carregando && estadoSugestoes.buscou && !estadoSugestoes.itens?.length && (
+              <span className="texto-ajuda">Nenhum atleta encontrado.</span>
+            )}
+          </div>
+        )}
+      </>
     );
   }
 
@@ -386,6 +564,8 @@ export function PaginaRegistrarPartidas() {
         <p>Carregando dados para registro...</p>
       ) : (
         <form className="formulario-grid formulario-partida" onSubmit={aoSubmeter}>
+          {erro && <p className="campo-largo texto-erro">{erro}</p>}
+
           <label>
             Grupo
             <select value={grupoId} onChange={(evento) => selecionarGrupo(evento.target.value)}>

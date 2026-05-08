@@ -10,6 +10,13 @@ export const grupoAtletasServico = {
     return resposta.data;
   },
 
+  async buscar(grupoId, termo) {
+    const resposta = await http.get(`/grupos/${grupoId}/atletas/busca`, {
+      params: { termo }
+    });
+    return resposta.data;
+  },
+
   async criar(grupoId, dados) {
     const resposta = await http.post(`/grupos/${grupoId}/atletas`, dados);
     return resposta.data;

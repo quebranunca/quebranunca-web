@@ -22,6 +22,7 @@ import { HomeRankingLiga } from '../components/HomeRankingLiga';
 import { ordenarPartidasRecentes } from '../utils/partidas';
 import { obterNomeExibicaoAtleta } from '../utils/atletaUtils';
 import bannerLoja from '../assets/banner-loja.png';
+import { Link, useNavigate } from 'react-router-dom';
 
 const TIPO_CAMPEONATO = 1;
 const TIPO_GRUPO = 3;
@@ -372,8 +373,12 @@ export function PaginaHome() {
 
       {carregando ? (
         <p>Carregando informações públicas...</p>
-      ) : (
+      ) : (        
+
         <div className="home-secoes-publicas">
+          <Link to="/partidas/registrar" className="botao-primario home-botao">
+            Registrar partida
+          </Link>   
           <HomeRankingLiga />
           <HomeProximosCampeonatos
             campeonatos={proximosCampeonatos}
