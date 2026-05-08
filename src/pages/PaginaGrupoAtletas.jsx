@@ -288,21 +288,13 @@ export function PaginaGrupoAtletas() {
   return (
     <section className="pagina">
       <div className="cabecalho-pagina">
-        <h2>Atletas do grupo</h2>
-        <p>{grupo?.nome || 'Carregando grupo...'}</p>
+        <h2>{grupo?.nome || 'Carregando grupo...'}</h2>  
       </div>
 
       {carregando ? (
         <p>Carregando atletas do grupo...</p>
       ) : (
         <>
-          <article className="cartao">
-            <h3>{grupo?.nome || 'Grupo'}</h3>
-            <p>
-              Os jogos deste grupo só podem ser registrados com atletas listados aqui. Você pode lançar nomes mesmo que a pessoa ainda não tenha usuário no sistema.
-            </p>
-          </article>
-
           {gerenciavel && (
             <form className="formulario-grid" onSubmit={aoSubmeterGrupoAtleta}>
               <label>
