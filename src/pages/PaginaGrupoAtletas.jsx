@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { useNotification } from '../contexts/NotificationContext';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { grupoAtletasServico } from '../services/grupoAtletasServico';
 import { gruposServico } from '../services/gruposServico';
@@ -24,6 +25,7 @@ export function PaginaGrupoAtletas() {
   const { grupoId, competicaoId } = useParams();
   const idGrupo = grupoId || competicaoId;
   const { usuario, estadoAcesso, atualizarUsuarioLocal } = useAutenticacao();
+  const { showNotification, closeNotification } = useNotification();
   const usuarioAtleta = ehAtleta(usuario);
   const usuarioAtivo = estadoAcesso === ESTADOS_ACESSO.ativo;
   const usuarioAdministrador = Number(usuario?.perfil) === PERFIS_USUARIO.administrador;
@@ -34,9 +36,6 @@ export function PaginaGrupoAtletas() {
   const [carregando, setCarregando] = useState(true);
   const [salvandoGrupoAtleta, setSalvandoGrupoAtleta] = useState(false);
   const [assumindoNomeGrupo, setAssumindoNomeGrupo] = useState(false);
-  const [conflitoNome, setConflitoNome] = useState(null);
-  const [erro, setErro] = useState('');
-  const [aviso, setAviso] = useState('');
 
   const gerenciavel = useMemo(() => {
     if (!usuarioAtivo || !grupo) {
@@ -65,8 +64,6 @@ export function PaginaGrupoAtletas() {
 
   async function carregarDados() {
     setCarregando(true);
-    setErro('');
-    setAviso('');
 
     try {
       const [grupoAtual, listaAtletas] = await Promise.all([
@@ -77,7 +74,11 @@ export function PaginaGrupoAtletas() {
       setGrupo(grupoAtual);
       setGrupoAtletas(listaAtletas);
     } catch (error) {
-      setErro(extrairMensagemErro(error));
+      showNotification({
+        type: 'error',
+        title: 'Erro ao carregar atletas',
+        message: extrairMensagemErro(error)
+      });
       setGrupo(null);
       setGrupoAtletas([]);
     } finally {
@@ -91,9 +92,6 @@ export function PaginaGrupoAtletas() {
 
   async function aoSubmeterGrupoAtleta(evento) {
     evento.preventDefault();
-    setErro('');
-    setAviso('');
-    setConflitoNome(null);
     setSalvandoGrupoAtleta(true);
 
     try {
@@ -102,95 +100,186 @@ export function PaginaGrupoAtletas() {
         email: formularioGrupoAtleta.email || null
       });
 
-      setAviso(formularioGrupoAtleta.email.trim() ? MENSAGEM_ATLETA_COM_EMAIL : MENSAGEM_ATLETA_SEM_EMAIL);
+      const possuiEmail = Boolean(formularioGrupoAtleta.email.trim());
+      showNotification({
+        type: possuiEmail ? 'success' : 'warning',
+        title: 'Atleta adicionado',
+        message: possuiEmail ? MENSAGEM_ATLETA_COM_EMAIL : MENSAGEM_ATLETA_SEM_EMAIL
+      });
       setFormularioGrupoAtleta(estadoInicialGrupoAtleta);
       const lista = await grupoAtletasServico.listarPorGrupo(idGrupo);
       setGrupoAtletas(lista);
       rolarParaTopo();
     } catch (error) {
       if (error?.response?.data?.codigo === CODIGO_POSSIVEL_DUPLICIDADE_ATLETA_GRUPO) {
-        setConflitoNome({
+        mostrarConflitoNome({
           grupoAtletaId: error.response.data.grupoAtletaId,
           mensagem: error.response.data.erro
         });
         return;
       }
 
-      setErro(extrairMensagemErro(error));
+      showNotification({
+        type: 'error',
+        title: 'Erro ao adicionar atleta',
+        message: extrairMensagemErro(error)
+      });
     } finally {
       setSalvandoGrupoAtleta(false);
     }
   }
 
-  async function confirmarMesmoAtleta() {
-    if (!conflitoNome?.grupoAtletaId) {
-      setConflitoNome(null);
+  function mostrarConflitoNome(conflito) {
+    showNotification({
+      type: 'warning',
+      title: 'Possível duplicidade',
+      message: `${conflito.mensagem} É o mesmo atleta?`,
+      autoClose: false,
+      actions: (
+        <>
+          <button
+            type="button"
+            className="botao-primario"
+            onClick={() => confirmarMesmoAtleta(conflito.grupoAtletaId)}
+          >
+            É o mesmo atleta
+          </button>
+          <button
+            type="button"
+            className="botao-secundario"
+            onClick={bloquearNovoAtletaComMesmoNome}
+          >
+            Cadastrar como novo
+          </button>
+        </>
+      )
+    });
+  }
+
+  async function confirmarMesmoAtleta(grupoAtletaId) {
+    if (!grupoAtletaId) {
+      closeNotification();
       return;
     }
 
     const email = formularioGrupoAtleta.email.trim();
     if (!email) {
-      setAviso(MENSAGEM_MESMO_ATLETA_SEM_EMAIL);
-      setConflitoNome(null);
+      closeNotification();
+      showNotification({
+        type: 'warning',
+        title: 'Atleta já está no grupo',
+        message: MENSAGEM_MESMO_ATLETA_SEM_EMAIL
+      });
       return;
     }
 
-    setErro('');
-    setAviso('');
+    closeNotification();
     setSalvandoGrupoAtleta(true);
 
     try {
-      await grupoAtletasServico.completarEmail(idGrupo, conflitoNome.grupoAtletaId, email);
-      setAviso('Email do atleta atualizado no grupo.');
+      await grupoAtletasServico.completarEmail(idGrupo, grupoAtletaId, email);
+      showNotification({
+        type: 'success',
+        title: 'Email atualizado',
+        message: 'Email do atleta atualizado no grupo.'
+      });
       setFormularioGrupoAtleta(estadoInicialGrupoAtleta);
-      setConflitoNome(null);
       const lista = await grupoAtletasServico.listarPorGrupo(idGrupo);
       setGrupoAtletas(lista);
       rolarParaTopo();
     } catch (error) {
-      setErro(extrairMensagemErro(error));
+      showNotification({
+        type: 'error',
+        title: 'Erro ao atualizar email',
+        message: extrairMensagemErro(error)
+      });
     } finally {
       setSalvandoGrupoAtleta(false);
     }
   }
 
   function bloquearNovoAtletaComMesmoNome() {
-    setErro(MENSAGEM_BLOQUEIO_NOME_DUPLICADO);
-    setConflitoNome(null);
+    closeNotification();
+    showNotification({
+      type: 'error',
+      title: 'Nome indisponível',
+      message: MENSAGEM_BLOQUEIO_NOME_DUPLICADO
+    });
   }
 
   async function removerGrupoAtleta(id) {
-    if (!window.confirm('Deseja remover este atleta do grupo?')) {
-      return;
-    }
-
     try {
       await grupoAtletasServico.remover(idGrupo, id);
       const lista = await grupoAtletasServico.listarPorGrupo(idGrupo);
       setGrupoAtletas(lista);
+      showNotification({
+        type: 'success',
+        title: 'Atleta removido',
+        message: 'O atleta foi removido do grupo.'
+      });
     } catch (error) {
-      setErro(extrairMensagemErro(error));
+      showNotification({
+        type: 'error',
+        title: 'Erro ao remover atleta',
+        message: extrairMensagemErro(error)
+      });
     }
+  }
+
+  function confirmarRemocaoGrupoAtleta(id) {
+    showNotification({
+      type: 'warning',
+      title: 'Remover atleta?',
+      message: 'Deseja remover este atleta do grupo?',
+      autoClose: false,
+      actions: (
+        <>
+          <button type="button" className="botao-secundario" onClick={closeNotification}>
+            Cancelar
+          </button>
+          <button
+            type="button"
+            className="botao-perigo"
+            onClick={() => {
+              closeNotification();
+              removerGrupoAtleta(id);
+            }}
+          >
+            Remover
+          </button>
+        </>
+      )
+    });
   }
 
   async function assumirMeuNomeNoGrupo() {
     if (!grupoAtletaSelecionadoId) {
-      setErro('Selecione o seu nome na lista do grupo.');
+      showNotification({
+        type: 'warning',
+        title: 'Selecione um nome',
+        message: 'Selecione o seu nome na lista do grupo.'
+      });
       return;
     }
 
-    setErro('');
-    setAviso('');
     setAssumindoNomeGrupo(true);
 
     try {
       const usuarioAtualizado = await grupoAtletasServico.assumirMeuNome(idGrupo, grupoAtletaSelecionadoId);
       atualizarUsuarioLocal(usuarioAtualizado);
-      setAviso('Seu usuário foi vinculado ao nome selecionado neste grupo.');
+      showNotification({
+        type: 'success',
+        title: 'Nome vinculado',
+        message: 'Seu usuário foi vinculado ao nome selecionado neste grupo.'
+      });
       const lista = await grupoAtletasServico.listarPorGrupo(idGrupo);
       setGrupoAtletas(lista);
     } catch (error) {
-      setErro(extrairMensagemErro(error));
+      showNotification({
+        type: 'error',
+        title: 'Erro ao vincular nome',
+        message: extrairMensagemErro(error)
+      });
     } finally {
       setAssumindoNomeGrupo(false);
     }
@@ -202,9 +291,6 @@ export function PaginaGrupoAtletas() {
         <h2>Atletas do grupo</h2>
         <p>{grupo?.nome || 'Carregando grupo...'}</p>
       </div>
-
-      {erro && <p className="texto-erro">{erro}</p>}
-      {aviso && <p className="texto-sucesso">{aviso}</p>}
 
       {carregando ? (
         <p>Carregando atletas do grupo...</p>
@@ -234,6 +320,7 @@ export function PaginaGrupoAtletas() {
                 <input
                   type="email"
                   value={formularioGrupoAtleta.email}
+                  placeholder="Opcional, mas necessário para vincular a um usuário"
                   onChange={(evento) => atualizarCampoGrupoAtleta('email', evento.target.value)}
                 />
               </label>
@@ -303,7 +390,7 @@ export function PaginaGrupoAtletas() {
                       {atletaEhUsuarioAtual ? (
                         <span className="texto-aviso">Você não pode remover seu próprio atleta do grupo.</span>
                       ) : (
-                        <button type="button" className="botao-perigo" onClick={() => removerGrupoAtleta(item.id)}>
+                        <button type="button" className="botao-perigo" onClick={() => confirmarRemocaoGrupoAtleta(item.id)}>
                           Remover
                         </button>
                       )}
@@ -316,26 +403,6 @@ export function PaginaGrupoAtletas() {
             {grupoAtletas.length === 0 && <p>Nenhum atleta cadastrado neste grupo.</p>}
           </div>
         </>
-      )}
-
-      {conflitoNome && (
-        <div className="modal-sobreposicao" role="presentation" onClick={() => setConflitoNome(null)}>
-          <div className="modal-conteudo" role="dialog" aria-modal="true" aria-labelledby="modal-duplicidade-atleta-titulo" onClick={(evento) => evento.stopPropagation()}>
-            <div className="modal-cabecalho">
-              <h3 id="modal-duplicidade-atleta-titulo">Possível duplicidade</h3>
-              <p>{conflitoNome.mensagem}</p>
-            </div>
-            <p>Esse atleta já parece existir no grupo. É o mesmo atleta ou deseja cadastrar como novo?</p>
-            <div className="acoes-formulario">
-              <button type="button" className="botao-primario" onClick={confirmarMesmoAtleta} disabled={salvandoGrupoAtleta}>
-                É o mesmo atleta
-              </button>
-              <button type="button" className="botao-secundario" onClick={bloquearNovoAtletaComMesmoNome} disabled={salvandoGrupoAtleta}>
-                Cadastrar como novo
-              </button>
-            </div>
-          </div>
-        </div>
       )}
     </section>
   );

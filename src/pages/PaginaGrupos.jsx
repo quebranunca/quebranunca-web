@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useNotification } from '../contexts/NotificationContext';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { gruposServico } from '../services/gruposServico';
 import { ESTADOS_ACESSO } from '../utils/acesso';
 import { extrairMensagemErro } from '../utils/erros';
-import { formatarData, paraInputData } from '../utils/formatacao';
-import { obterLinkHttp } from '../utils/links';
+import { paraInputData } from '../utils/formatacao';
 import { PERFIS_USUARIO, ehAtleta } from '../utils/perfis';
 
 const estadoInicial = {
@@ -20,6 +20,7 @@ const estadoInicial = {
 export function PaginaGrupos() {
   const navegar = useNavigate();
   const { usuario, estadoAcesso } = useAutenticacao();
+  const { showNotification, closeNotification } = useNotification();
   const usuarioAtivo = estadoAcesso === ESTADOS_ACESSO.ativo;
   const usuarioAdministrador = Number(usuario?.perfil) === PERFIS_USUARIO.administrador;
   const usuarioOrganizador = Number(usuario?.perfil) === PERFIS_USUARIO.organizador;
@@ -32,8 +33,6 @@ export function PaginaGrupos() {
   const [formularioAberto, setFormularioAberto] = useState(false);
   const [carregando, setCarregando] = useState(true);
   const [salvando, setSalvando] = useState(false);
-  const [erro, setErro] = useState('');
-  const [aviso, setAviso] = useState('');
 
   const totalGrupos = grupos.length;
   const gruposOrdenados = useMemo(
@@ -47,12 +46,15 @@ export function PaginaGrupos() {
 
   async function carregarDados() {
     setCarregando(true);
-    setErro('');
     try {
       const listaGrupos = await gruposServico.listar();
       setGrupos(listaGrupos);
     } catch (error) {
-      setErro(extrairMensagemErro(error));
+      showNotification({
+        type: 'error',
+        title: 'Erro ao carregar grupos',
+        message: extrairMensagemErro(error)
+      });
     } finally {
       setCarregando(false);
     }
@@ -78,8 +80,6 @@ export function PaginaGrupos() {
     setGrupoEdicaoId(null);
     setFormulario(estadoInicial);
     setFormularioAberto(true);
-    setAviso('');
-    setErro('');
   }
 
   function iniciarEdicao(grupo) {
@@ -93,8 +93,6 @@ export function PaginaGrupos() {
       localId: grupo.localId || ''
     });
     setFormularioAberto(true);
-    setAviso('');
-    setErro('');
   }
 
   function limparFormulario() {
@@ -105,8 +103,6 @@ export function PaginaGrupos() {
 
   async function aoSubmeter(evento) {
     evento.preventDefault();
-    setErro('');
-    setAviso('');
     setSalvando(true);
 
     try {
@@ -121,33 +117,75 @@ export function PaginaGrupos() {
 
       if (grupoEdicaoId) {
         await gruposServico.atualizar(grupoEdicaoId, dados);
-        setAviso('Grupo atualizado.');
+        showNotification({
+          type: 'success',
+          title: 'Grupo atualizado',
+          message: 'As alterações foram salvas com sucesso.'
+        });
       } else {
         await gruposServico.criar(dados);
-        setAviso('Grupo criado.');
+        showNotification({
+          type: 'success',
+          title: 'Grupo criado',
+          message: 'O grupo foi criado com sucesso.'
+        });
       }
 
       limparFormulario();
       await carregarDados();
     } catch (error) {
-      setErro(extrairMensagemErro(error));
+      showNotification({
+        type: 'error',
+        title: grupoEdicaoId ? 'Erro ao atualizar grupo' : 'Erro ao criar grupo',
+        message: extrairMensagemErro(error)
+      });
     } finally {
       setSalvando(false);
     }
   }
 
   async function removerGrupo(id) {
-    if (!window.confirm('Deseja remover este grupo?')) {
-      return;
-    }
-
     try {
       await gruposServico.remover(id);
-      setAviso('Grupo removido.');
+      showNotification({
+        type: 'success',
+        title: 'Grupo removido',
+        message: 'O grupo foi removido com sucesso.'
+      });
       await carregarDados();
     } catch (error) {
-      setErro(extrairMensagemErro(error));
+      showNotification({
+        type: 'error',
+        title: 'Erro ao remover grupo',
+        message: extrairMensagemErro(error)
+      });
     }
+  }
+
+  function confirmarRemocaoGrupo(id) {
+    showNotification({
+      type: 'warning',
+      title: 'Remover grupo?',
+      message: 'Esta ação remove o grupo selecionado.',
+      autoClose: false,
+      actions: (
+        <>
+          <button type="button" className="botao-secundario" onClick={closeNotification}>
+            Cancelar
+          </button>
+          <button
+            type="button"
+            className="botao-perigo"
+            onClick={() => {
+              closeNotification();
+              removerGrupo(id);
+            }}
+          >
+            Remover
+          </button>
+        </>
+      )
+    });
   }
 
   return (
@@ -209,7 +247,7 @@ export function PaginaGrupos() {
                       <button type="button" className="botao-primario" onClick={() => iniciarEdicao(grupo)}>
                         Editar
                       </button>
-                      <button type="button" className="botao-perigo" onClick={() => removerGrupo(grupo.id)}>
+                      <button type="button" className="botao-perigo" onClick={() => confirmarRemocaoGrupo(grupo.id)}>
                         Remover
                       </button>
                     </>
