@@ -8,6 +8,11 @@ import { extrairMensagemErro } from '../utils/erros';
 import { ehAtleta } from '../utils/perfis';
 import { useNotification } from '../contexts/NotificationContext';
 import { obterNomeExibicaoAtleta } from '../utils/atletaUtils';
+import {
+  ajustarDataHoraInputParaIntervalo,
+  obterDataHoraPadraoInput,
+  STEP_HORA_15_MINUTOS_SEGUNDOS
+} from '../utils/formatacao';
 
 const LADOS_ATLETA = {
   direito: 1,
@@ -17,12 +22,6 @@ const LADOS_ATLETA = {
 const GRUPO_GERAL_ID = '__grupo-geral__';
 const NOME_GRUPO_GERAL = 'Geral';
 const MENSAGEM_GRUPO_DUPLICADO = 'Já existe grupo com esse nome. Altere o nome para criar um novo grupo.';
-
-function obterDataHoraAtualInput() {
-  const agora = new Date();
-  const timezoneOffset = agora.getTimezoneOffset() * 60000;
-  return new Date(agora.getTime() - timezoneOffset).toISOString().slice(0, 16);
-}
 
 function criarEstadoInicial() {
   return {
@@ -37,7 +36,7 @@ function criarEstadoInicial() {
     duplaBAtleta2Nome: '',
     placarDuplaA: '',
     placarDuplaB: '',
-    dataPartida: obterDataHoraAtualInput(),
+    dataPartida: obterDataHoraPadraoInput(),
     observacoes: ''
   };
 }
@@ -467,8 +466,10 @@ export function PaginaRegistrarPartidas() {
             Data da partida
             <input
               type="datetime-local"
+              step={STEP_HORA_15_MINUTOS_SEGUNDOS}
               value={formulario.dataPartida}
               onChange={(evento) => atualizarCampo('dataPartida', evento.target.value)}
+              onBlur={(evento) => atualizarCampo('dataPartida', ajustarDataHoraInputParaIntervalo(evento.target.value))}
             />
           </label>          
 

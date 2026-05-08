@@ -26,18 +26,54 @@ export function paraInputData(data) {
   return `${ano}-${mes}-${dia}`;
 }
 
-export function paraInputDataHora(data) {
-  if (!data) {
-    return '';
-  }
+export const STEP_HORA_15_MINUTOS_SEGUNDOS = 15 * 60;
 
-  const objetoData = new Date(data);
+function formatarDataHoraParaInput(objetoData) {
   const ano = objetoData.getFullYear();
   const mes = String(objetoData.getMonth() + 1).padStart(2, '0');
   const dia = String(objetoData.getDate()).padStart(2, '0');
   const horas = String(objetoData.getHours()).padStart(2, '0');
   const minutos = String(objetoData.getMinutes()).padStart(2, '0');
   return `${ano}-${mes}-${dia}T${horas}:${minutos}`;
+}
+
+function arredondarDataHoraParaIntervaloAnterior(data) {
+  const objetoData = new Date(data);
+  const minutos = objetoData.getMinutes();
+  const minutosArredondados = Math.floor(minutos / 15) * 15;
+
+  objetoData.setMinutes(minutosArredondados, 0, 0);
+  return objetoData;
+}
+
+export function paraInputDataHora(data) {
+  if (!data) {
+    return '';
+  }
+
+  const objetoData = new Date(data);
+  return formatarDataHoraParaInput(objetoData);
+}
+
+export function obterDataHoraPadraoInput(dataReferencia = new Date()) {
+  const dataBase = new Date(dataReferencia);
+  dataBase.setMinutes(dataBase.getMinutes() - 15);
+
+  return formatarDataHoraParaInput(arredondarDataHoraParaIntervaloAnterior(dataBase));
+}
+
+export function ajustarDataHoraInputParaIntervalo(valor) {
+  if (!valor) {
+    return '';
+  }
+
+  const data = new Date(valor);
+
+  if (Number.isNaN(data.getTime())) {
+    return valor;
+  }
+
+  return formatarDataHoraParaInput(arredondarDataHoraParaIntervaloAnterior(data));
 }
 
 export function normalizarDataParaApi(data) {

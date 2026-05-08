@@ -2,7 +2,11 @@ import { useEffect, useRef, useState } from 'react';
 import { ConteudoBotao } from '../components/ConteudoBotao';
 import { convitesCadastroServico } from '../services/convitesCadastroServico';
 import { extrairMensagemErro } from '../utils/erros';
-import { formatarDataHora } from '../utils/formatacao';
+import {
+  ajustarDataHoraInputParaIntervalo,
+  formatarDataHora,
+  STEP_HORA_15_MINUTOS_SEGUNDOS
+} from '../utils/formatacao';
 import { nomePerfil } from '../utils/perfis';
 import { rolarParaTopo } from '../utils/rolagem';
 import { obterNomeExibicaoAtleta } from '../utils/atletaUtils';
@@ -304,8 +308,10 @@ export function PaginaConvitesCadastro() {
             Expira em
             <input
               type="datetime-local"
+              step={STEP_HORA_15_MINUTOS_SEGUNDOS}
               value={formulario.expiraEmUtc}
               onChange={(evento) => atualizarFormulario('expiraEmUtc', evento.target.value)}
+              onBlur={(evento) => atualizarFormulario('expiraEmUtc', ajustarDataHoraInputParaIntervalo(evento.target.value))}
             />
           </label>
 

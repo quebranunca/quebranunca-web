@@ -11,7 +11,13 @@ import { inscricoesCampeonatoServico } from '../services/inscricoesCampeonatoSer
 import { partidasServico } from '../services/partidasServico';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { extrairMensagemErro } from '../utils/erros';
-import { formatarDataHora, paraInputDataHora } from '../utils/formatacao';
+import {
+  ajustarDataHoraInputParaIntervalo,
+  formatarDataHora,
+  obterDataHoraPadraoInput,
+  paraInputDataHora,
+  STEP_HORA_15_MINUTOS_SEGUNDOS
+} from '../utils/formatacao';
 import { rolarParaElemento, rolarParaTopo } from '../utils/rolagem';
 import { ehAtleta, ehGestorCompeticao, PERFIS_USUARIO } from '../utils/perfis';
 import {
@@ -20,12 +26,6 @@ import {
   obterNomeExibicaoDupla,
   obterNomeExibicaoDuplaCampos
 } from '../utils/atletaUtils';
-
-function obterDataHoraAtualInput() {
-  const agora = new Date();
-  const timezoneOffset = agora.getTimezoneOffset() * 60000;
-  return new Date(agora.getTime() - timezoneOffset).toISOString().slice(0, 16);
-}
 
 function criarEstadoInicial() {
   return {
@@ -45,7 +45,7 @@ function criarEstadoInicial() {
     status: '1',
     placarDuplaA: '',
     placarDuplaB: '',
-    dataPartida: obterDataHoraAtualInput(),
+    dataPartida: obterDataHoraPadraoInput(),
     observacoes: ''
   };
 }
@@ -2237,8 +2237,10 @@ export function PaginaPartidas({ modo = 'consulta' }) {
             Data da partida
             <input
               type="datetime-local"
+              step={STEP_HORA_15_MINUTOS_SEGUNDOS}
               value={formulario.dataPartida}
               onChange={(evento) => atualizarCampo('dataPartida', evento.target.value)}
+              onBlur={(evento) => atualizarCampo('dataPartida', ajustarDataHoraInputParaIntervalo(evento.target.value))}
             />
           </label>
           

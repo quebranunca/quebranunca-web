@@ -16,6 +16,7 @@
 - Em telas de campeonato, refletir a fase da partida quando existir e não esconder campos que já são obrigatórios no backend para esse tipo de competição
 - Autocomplete no registro de partidas só deve consultar sugestões da competição quando houver competição selecionada e termo com ao menos 3 caracteres; sem competição, preservar o fluxo atual
 - Banner rotativo reutilizável deve aceitar slides de imagem e componente
+- Campos de data/hora do frontend devem reutilizar `utils/formatacao.js`; horários selecionáveis devem respeitar intervalos de 15 minutos e horários padrão devem usar o arredondamento centralizado.
 
 ## NAVIGATION_RULES
 - O header global deve ser centralizado no `AppHeader`.
