@@ -374,11 +374,7 @@ export function PaginaHome() {
       {carregando ? (
         <p>Carregando informações públicas...</p>
       ) : (        
-
         <div className="home-secoes-publicas">
-          <Link to="/partidas/registrar" className="botao-primario home-botao">
-            Registrar partida
-          </Link>   
           <HomeRankingLiga />
           <HomeProximosCampeonatos
             campeonatos={proximosCampeonatos}
