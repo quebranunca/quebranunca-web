@@ -376,15 +376,15 @@ export function PaginaHome() {
           erroUltimoJogoUsuario={erroUltimoJogoUsuario}
         />
       )}
-
-      {token && (
+ 
+      { /* token && (
         <HomeGruposUsuarioResumo
           resumos={resumosGruposUsuario}
           carregando={carregandoUsuario}
           erro={erroResumoGrupoUsuario}
         />
-      )}
-
+      )*/}
+ 
       {carregando ? (
         <p>Carregando informações públicas...</p>
       ) : (        
