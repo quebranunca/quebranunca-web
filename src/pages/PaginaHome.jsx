@@ -2,13 +2,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import {
   HomeBannerRotativo,
+  HomeGruposUsuarioResumo,
   HomeHeroVisitante,
   HomePendencias,
   HomeProximosCampeonatos,
   HomeRankingsRealizados,
   HomeResumoUsuario
 } from '../components/home';
-import { GrupoResumoCard } from '../components/grupos/GrupoResumoCard';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { atletasServico } from '../services/atletasServico';
 import { categoriasServico } from '../services/categoriasServico';
@@ -102,6 +102,7 @@ export function PaginaHome() {
   const [resumoUsuario, setResumoUsuario] = useState(null);
   const [ultimoJogoUsuario, setUltimoJogoUsuario] = useState(null);
   const [resumoGrupoUsuario, setResumoGrupoUsuario] = useState(null);
+  const [resumosGruposUsuario, setResumosGruposUsuario] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [carregandoUsuario, setCarregandoUsuario] = useState(false);
   const [erroResumoUsuario, setErroResumoUsuario] = useState(false);
@@ -247,6 +248,7 @@ export function PaginaHome() {
         setResumoUsuario(null);
         setUltimoJogoUsuario(null);
         setResumoGrupoUsuario(null);
+        setResumosGruposUsuario([]);
         setCarregandoUsuario(false);
         setErroResumoUsuario(false);
         setErroUltimoJogoUsuario(false);
@@ -259,11 +261,11 @@ export function PaginaHome() {
       setErroUltimoJogoUsuario(false);
       setErroResumoGrupoUsuario(false);
 
-      const [resultadoAtleta, resultadoResumo, resultadoPartidas, resultadoResumoGrupo] = await Promise.allSettled([
+      const [resultadoAtleta, resultadoResumo, resultadoPartidas, resultadoResumoGrupos] = await Promise.allSettled([
         usuario?.atletaId ? atletasServico.obterMeu() : Promise.resolve(null),
         usuariosServico.obterResumo(),
         usuario?.atletaId ? partidasServico.listarMinhas() : Promise.resolve([]),
-        gruposServico.obterResumoUsuario()
+        gruposServico.listarResumosUsuario()
       ]);
 
       if (!ativo) {
@@ -294,10 +296,13 @@ export function PaginaHome() {
         setErroUltimoJogoUsuario(true);
       }
 
-      if (resultadoResumoGrupo.status === 'fulfilled') {
-        setResumoGrupoUsuario(resultadoResumoGrupo.value || null);
+      if (resultadoResumoGrupos.status === 'fulfilled') {
+        const resumos = Array.isArray(resultadoResumoGrupos.value) ? resultadoResumoGrupos.value : [];
+        setResumosGruposUsuario(resumos);
+        setResumoGrupoUsuario(resumos[0] || null);
       } else {
-        registrarFalhaHome('resumo de grupo do usuário', resultadoResumoGrupo.reason);
+        registrarFalhaHome('resumo de grupo do usuário', resultadoResumoGrupos.reason);
+        setResumosGruposUsuario([]);
         setResumoGrupoUsuario(null);
         setErroResumoGrupoUsuario(true);
       }
@@ -313,6 +318,7 @@ export function PaginaHome() {
         setResumoUsuario(null);
         setUltimoJogoUsuario(null);
         setResumoGrupoUsuario(null);
+        setResumosGruposUsuario([]);
         setCarregandoUsuario(false);
         setErroResumoUsuario(true);
         setErroUltimoJogoUsuario(true);
@@ -368,6 +374,14 @@ export function PaginaHome() {
           resumoGrupo={resumoGrupoUsuario}
           erroResumo={erroResumoUsuario}
           erroUltimoJogoUsuario={erroUltimoJogoUsuario}
+        />
+      )}
+
+      {token && (
+        <HomeGruposUsuarioResumo
+          resumos={resumosGruposUsuario}
+          carregando={carregandoUsuario}
+          erro={erroResumoGrupoUsuario}
         />
       )}
 

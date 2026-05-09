@@ -83,6 +83,11 @@ function formatarAtletas(atletas) {
 }
 
 function formatarDuplaPartida(partida, prefixo) {
+  const dupla = prefixo === 'DuplaA' ? partida?.dupla1 : partida?.dupla2;
+  if (Array.isArray(dupla)) {
+    return formatarAtletas(dupla);
+  }
+
   const nomes = [
     partida?.[`nome${prefixo}Atleta1`],
     partida?.[`nome${prefixo}Atleta2`]
@@ -169,13 +174,13 @@ export function GrupoResumoCard({
                 <PlacarDupla
                   label="Dupla 1"
                   atletas={formatarDuplaPartida(ultimoJogo, 'DuplaA')}
-                  placar={ultimoJogo.placarDuplaA ?? '-'}
+                  placar={ultimoJogo.placarDupla1 ?? ultimoJogo.placarDuplaA ?? '-'}
                 />
 
                 <PlacarDupla
                   label="Dupla 2"
                   atletas={formatarDuplaPartida(ultimoJogo, 'DuplaB')}
-                  placar={ultimoJogo.placarDuplaB ?? '-'}
+                  placar={ultimoJogo.placarDupla2 ?? ultimoJogo.placarDuplaB ?? '-'}
                 />
 
                 <div className="grupo-resumo-jogo-meta">
