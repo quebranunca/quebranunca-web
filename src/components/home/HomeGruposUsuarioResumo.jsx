@@ -42,24 +42,9 @@ function GrupoUsuarioCard({ resumo }) {
       </div>
 
       <section className="home-grupo-usuario-bloco" aria-label={`Último jogo em ${resumo?.nome || 'grupo'}`}>
-        <span className="grupo-resumo-rotulo">Último jogo</span>
-        {ultimaPartida ? (
-          <>
-            <div className="home-grupo-usuario-jogo">
-              <strong>{formatarDupla(ultimaPartida.dupla1)}</strong>
-              <span>{ultimaPartida.placarDupla1} x {ultimaPartida.placarDupla2}</span>
-              <strong>{formatarDupla(ultimaPartida.dupla2)}</strong>
-            </div>
-            <div className="home-grupo-usuario-meta">
-              <small>{formatarDataHora(ultimaPartida.data)}</small>
-              <small className={`tag-status ${obterClasseStatusAprovacao(ultimaPartida.statusAprovacao)}`}>
-                {obterTextoStatusAprovacaoHome(ultimaPartida.statusAprovacao)}
-              </small>
-            </div>
-          </>
-        ) : (
-          <p>Nenhuma partida registrada neste grupo ainda.</p>
-        )}
+        <Link to="/grupos" className="botao-primario home-botao">
+          Ver todos os grupos
+        </Link>    
       </section>
 
       <section className="home-grupo-usuario-bloco" aria-label={`Ranking em ${resumo?.nome || 'grupo'}`}>

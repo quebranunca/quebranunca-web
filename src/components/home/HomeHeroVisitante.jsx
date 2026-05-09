@@ -1,3 +1,5 @@
+import { Link, useNavigate } from 'react-router-dom';
+
 export function HomeHeroVisitante({ resumoPlataforma }) {
   return (
     <article className="home-hero">
@@ -7,6 +9,10 @@ export function HomeHeroVisitante({ resumoPlataforma }) {
           Acompanhe campeonatos, entre nas inscrições e veja rankings em tempo real.
         </p>
       </div>
+
+      <Link to="/partidas/registrar" className="botao-primario home-botao">
+        Registrar partida
+      </Link>      
 
       <div className="home-hero-resumo" aria-label="Resumo da plataforma">
         <div>
