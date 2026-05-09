@@ -137,26 +137,10 @@ export function HomeGruposUsuarioResumo({
   const possuiErro = possuiDadosExternos ? Boolean(erro) : erroLocal;
 
   return (
-    <section className="home-secao home-grupos-usuario">
-      <div className="home-secao-cabecalho">
-        <div>
-          <span className="home-eyebrow">Meus grupos</span>
-          <h3>Grupos que você participa</h3>
-        </div>
-        <Link to="/grupos" className="link-acao">Ver mais</Link>
-      </div>
-
+    <section className="home-secao home-grupos-usuario">      
       {estaCarregando ? (
         <article className="cartao-lista home-grupos-usuario-estado">
           <p>Carregando grupos...</p>
-        </article>
-      ) : possuiErro ? (
-        <article className="cartao-lista home-grupos-usuario-estado">
-          <p>Não foi possível carregar seus grupos agora.</p>
-        </article>
-      ) : lista.length === 0 ? (
-        <article className="cartao-lista home-grupos-usuario-estado">
-          <p>Você ainda não participa de nenhum grupo.</p>
         </article>
       ) : (
         <div className="home-grupos-usuario-lista" aria-label="Resumo dos meus grupos">
