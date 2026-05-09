@@ -17,8 +17,17 @@ export const gruposServico = {
   },
 
   async listarResumosUsuario() {
-    const resposta = await http.get('/grupos/resumos-usuario');
-    return resposta.data;
+    try {
+      const resposta = await http.get('/grupos/resumos-usuario');
+      return resposta.data;
+    } catch (erro) {
+      if (erro?.response?.status !== 404) {
+        throw erro;
+      }
+
+      const respostaResumoLegado = await http.get('/grupos/resumo-usuario');
+      return respostaResumoLegado.data ? [respostaResumoLegado.data] : [];
+    }
   },
 
   async verificarNome(nome) {
