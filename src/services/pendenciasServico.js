@@ -19,5 +19,10 @@ export const pendenciasServico = {
   async completarContato(id, email) {
     const resposta = await http.put(`/pendencias/${id}/contato`, { email });
     return resposta.data;
+  },
+
+  async confirmarVinculoAtletaCadastrado(id, usuarioId) {
+    const resposta = await http.post(`/pendencias/${id}/vincular-atleta-cadastrado`, { usuarioId });
+    return resposta.data;
   }
 };

@@ -80,6 +80,17 @@ function obterClasseStatusAprovacao(status) {
   }
 }
 
+function obterNomeConfirmacaoAtleta(atleta) {
+  const nome = atleta?.nome?.trim();
+  const apelido = atleta?.apelido?.trim();
+
+  if (nome && apelido) {
+    return `${nome} (${apelido})`;
+  }
+
+  return nome || apelido || 'atleta cadastrado';
+}
+
 export function PaginaPendenciasAtletas() {
   const { usuario, estadoAcesso } = useAutenticacao();
   const [pendencias, setPendencias] = useState([]);
@@ -87,7 +98,7 @@ export function PaginaPendenciasAtletas() {
   const [emails, setEmails] = useState({});
   const [carregando, setCarregando] = useState(true);
   const [processandoId, setProcessandoId] = useState(null);
-  const { showNotification } = useNotification();
+  const { showNotification, closeNotification } = useNotification();
 
   useEffect(() => {
     carregarPendencias();
@@ -138,7 +149,13 @@ export function PaginaPendenciasAtletas() {
     setProcessandoId(pendenciaId);
 
     try {
-      const pendenciaAtualizada = await pendenciasServico.completarContato(pendenciaId, emails[pendenciaId] || '');
+      const resultado = await pendenciasServico.completarContato(pendenciaId, emails[pendenciaId] || '');
+      if (resultado?.usuarioJaCadastrado && resultado?.usuarioEncontrado) {
+        mostrarConfirmacaoVinculoAtleta(pendenciaId, resultado.usuarioEncontrado);
+        return;
+      }
+
+      const pendenciaAtualizada = resultado?.pendencia || resultado;
       setPendencias((listaAtual) => listaAtual.filter((item) =>
         item.id !== pendenciaId &&
         (
@@ -160,6 +177,69 @@ export function PaginaPendenciasAtletas() {
       showNotification({
         type: 'error',
         title: 'Erro ao salvar e-mail',
+        message: extrairMensagemErro(error)
+      });
+    } finally {
+      setProcessandoId(null);
+    }
+  }
+
+  function mostrarConfirmacaoVinculoAtleta(pendenciaId, usuarioEncontrado) {
+    const nomeAtleta = obterNomeConfirmacaoAtleta(usuarioEncontrado);
+
+    showNotification({
+      type: 'warning',
+      title: 'Atleta já cadastrado',
+      message: `Este e-mail já pertence ao atleta ${nomeAtleta}. Deseja vincular esta participação da partida a esse atleta?`,
+      autoClose: false,
+      actions: (
+        <>
+          <button
+            type="button"
+            className="botao-primario"
+            onClick={() => confirmarVinculoAtleta(pendenciaId, usuarioEncontrado.usuarioId)}
+          >
+            Vincular atleta
+          </button>
+          <button
+            type="button"
+            className="botao-secundario"
+            onClick={closeNotification}
+          >
+            Cancelar
+          </button>
+        </>
+      )
+    });
+  }
+
+  async function confirmarVinculoAtleta(pendenciaId, usuarioId) {
+    closeNotification();
+    setProcessandoId(pendenciaId);
+
+    try {
+      const pendenciaAtualizada = await pendenciasServico.confirmarVinculoAtletaCadastrado(pendenciaId, usuarioId);
+      setPendencias((listaAtual) => listaAtual.filter((item) =>
+        item.id !== pendenciaId &&
+        (
+          item.tipo !== TIPOS_PENDENCIA.completarContato ||
+          !pendenciaAtualizada?.atletaId ||
+          item.atletaId !== pendenciaAtualizada.atletaId
+        )
+      ));
+
+      showNotification({
+        type: 'success',
+        title: 'Atleta vinculado!',
+        message: 'A participação foi vinculada ao atleta cadastrado.'
+      });
+
+      await carregarPendencias();
+      rolarParaTopo();
+    } catch (error) {
+      showNotification({
+        type: 'error',
+        title: 'Erro ao vincular atleta',
         message: extrairMensagemErro(error)
       });
     } finally {
