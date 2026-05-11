@@ -13,21 +13,7 @@ export function HomeHeroVisitante({ resumoPlataforma }) {
       <Link to="/partidas/registrar" className="botao-primario home-botao">
         Registrar partida
       </Link>      
-
-      <div className="home-hero-resumo" aria-label="Resumo da plataforma">
-        <div>
-          <span>{resumoPlataforma.atletas}</span>
-          <small>Atletas</small>
-        </div>
-        <div>
-          <span>{resumoPlataforma.jogos}</span>
-          <small>Jogos</small>
-        </div>
-        <div>
-          <span>{resumoPlataforma.grupos}</span>
-          <small>Grupos</small>
-        </div>
-      </div>
+      
     </article>
   );
 }
