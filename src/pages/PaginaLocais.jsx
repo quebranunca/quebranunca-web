@@ -191,7 +191,7 @@ export function PaginaLocais() {
             </button>
 
             <button type="button" className="botao-secundario" onClick={cancelarEdicao}>
-              <ConteudoBotao icone="cancelar" texto={localEdicaoId ? 'Cancelar' : 'Fechar'} />
+              Cancelar
             </button>
           </div>
         </form>
@@ -221,7 +221,7 @@ export function PaginaLocais() {
                   onClick={() => iniciarEdicao(local)}
                   disabled={!usuarioAdministrador && local.usuarioCriadorId !== usuario?.id}
                 >
-                  <ConteudoBotao icone="editar" texto="Editar" />
+                Editar
                 </button>
                 <button
                   type="button"
@@ -229,7 +229,7 @@ export function PaginaLocais() {
                   onClick={() => removerLocal(local.id)}
                   disabled={!usuarioAdministrador && local.usuarioCriadorId !== usuario?.id}
                 >
-                  <ConteudoBotao icone="excluir" texto="Excluir" />
+                Excluir
                 </button>
               </div>
             </article>

@@ -470,7 +470,7 @@ export function PaginaFormatosCampeonato() {
                   onClick={() => iniciarEdicao(formato)}
                   disabled={formato.ehPadrao}
                 >
-                  <ConteudoBotao icone="editar" texto="Editar" />
+                  Editar
                 </button>
                 <button
                   type="button"
@@ -478,7 +478,7 @@ export function PaginaFormatosCampeonato() {
                   onClick={() => removerFormato(formato.id)}
                   disabled={formato.ehPadrao}
                 >
-                  <ConteudoBotao icone="excluir" texto="Excluir" />
+                  Excluir
                 </button>
               </div>
             </article>

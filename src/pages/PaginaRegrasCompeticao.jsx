@@ -344,7 +344,7 @@ export function PaginaRegrasCompeticao() {
             </button>
 
             <button type="button" className="botao-secundario" onClick={cancelarEdicao}>
-              <ConteudoBotao icone="cancelar" texto={regraEdicaoId ? 'Cancelar' : 'Fechar'} />
+              Cancelar
             </button>
           </div>
         </form>
@@ -385,7 +385,7 @@ export function PaginaRegrasCompeticao() {
                   onClick={() => iniciarEdicao(regra)}
                   disabled={regra.ehPadrao || (!usuarioAdministrador && regra.usuarioCriadorId !== usuario?.id)}
                 >
-                  <ConteudoBotao icone="editar" texto="Editar" />
+                  Editar
                 </button>
                 <button
                   type="button"
@@ -393,7 +393,7 @@ export function PaginaRegrasCompeticao() {
                   onClick={() => removerRegra(regra.id)}
                   disabled={regra.ehPadrao || (!usuarioAdministrador && regra.usuarioCriadorId !== usuario?.id)}
                 >
-                  <ConteudoBotao icone="excluir" texto="Excluir" />
+                  Excluir
                 </button>
               </div>
             </article>
