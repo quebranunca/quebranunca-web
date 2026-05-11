@@ -8,12 +8,10 @@ export function HomeHeroVisitante({ resumoPlataforma }) {
         <p>
           Acompanhe campeonatos, entre nas inscrições e veja rankings em tempo real.
         </p>
-      </div>
-
-      <Link to="/partidas/registrar" className="botao-primario home-botao">
-        Registrar partida
-      </Link>      
-      
+         <Link to="/partidas/registrar" className="botao-primario home-botao">
+          Registrar partida
+        </Link>   
+      </div>             
     </article>
   );
 }
