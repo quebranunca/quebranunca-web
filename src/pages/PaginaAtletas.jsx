@@ -352,6 +352,7 @@ export function PaginaAtletas() {
                 <p>Status: {atleta.cadastroPendente ? 'Cadastro pendente' : 'Cadastro completo'}</p>
                 <p>Lado: {lados.find((lado) => Number(lado.valor) === atleta.lado)?.rotulo || '-'}</p>
                 <p>Nascimento: {formatarData(atleta.dataNascimento)}</p>
+                <p>Criado por: {atleta.nomeUsuarioCriador || '-'}</p>
                 <p>Criado em: {formatarData(atleta.dataCriacao)}</p>
               </div>
 
