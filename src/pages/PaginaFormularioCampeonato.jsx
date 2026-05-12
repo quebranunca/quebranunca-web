@@ -353,12 +353,13 @@ export function PaginaFormularioCampeonato() {
       }
 
       const payload = montarPayload();
-      const resultado = editando
-        ? await campeonatosServico.atualizar(id, payload)
-        : await campeonatosServico.criar(payload);
+      if (editando) {
+        await campeonatosServico.atualizar(id, payload);
+      } else {
+        await campeonatosServico.criar(payload);
+      }
 
-      setAviso('Campeonato salvo com sucesso.');
-      navegar(`/campeonatos/${resultado.campeonato.id}/editar`, { replace: true });
+      navegar('/competicoes', { replace: true });
     } catch (error) {
       setErro(extrairMensagemErro(error));
     } finally {

@@ -73,6 +73,21 @@ const opcoesNivel = [
   { valor: 6, rotulo: 'Livre' }
 ];
 
+function obterNomeLocal(competicao) {
+  return competicao?.nomeLocal ||
+    competicao?.localNome ||
+    competicao?.local?.nome ||
+    (competicao?.localId ? 'Local cadastrado' : '-');
+}
+
+function obterStatusCompeticao(competicao) {
+  if (competicao?.statusCampeonato) {
+    return competicao.statusCampeonato;
+  }
+
+  return competicao?.inscricoesAbertas ? 'Inscrições abertas' : 'Inscrições fechadas';
+}
+
 const filtrosIniciais = {
   competicaoId: '',
   categoria: ''
@@ -610,6 +625,7 @@ export function PaginaCompeticoes() {
                 const categoriasCadastradasCompeticao = categoriasPorCompeticao[competicao.id] || [];
                 const categoriasCompeticao = categoriasVisiveisPorCompeticao[competicao.id] || [];
                 const competicaoSemCategoriasCadastradas = categoriasCadastradasCompeticao.length === 0;
+                const statusCompeticao = obterStatusCompeticao(competicao);
 
                 return (
                   <article key={competicao.id} className="formulario-grid ">
@@ -617,6 +633,7 @@ export function PaginaCompeticoes() {
                       <div className="competicao-card-cabecalho">
                         <div className="competicao-card-titulo">                        
                           <h3>{competicao.nome}</h3>
+                          <span className="competicao-card-tipo">Campeonato</span>
                         </div>
 
                         <span
@@ -624,13 +641,15 @@ export function PaginaCompeticoes() {
                             competicao.inscricoesAbertas ? 'tag-status-sucesso' : 'tag-status-alerta'
                           } competicao-card-status`}
                         >
-                          {competicao.inscricoesAbertas ? 'Inscrições abertas' : 'Inscrições fechadas'}
+                          {statusCompeticao}
                         </span>
                       </div>
 
                       <div className="competicao-card-detalhes">
+                        <p>Local: {obterNomeLocal(competicao)}</p>
                         <p>Início: {formatarData(competicao.dataInicio)}</p>
-                        <p>Fim: {formatarData(competicao.dataFim)}</p>                        
+                        <p>Fim: {formatarData(competicao.dataFim)}</p>
+                        <p>Categorias: {categoriasCadastradasCompeticao.length}</p>
                       </div>
 
                       {gerenciavel && (
