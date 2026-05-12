@@ -322,14 +322,10 @@ export function PaginaConvitesCadastro() {
 
           <div className="acoes-formulario">
             <button type="submit" className="botao-primario" disabled={salvando}>
-              <ConteudoBotao
-                icone="convite"
-                texto={salvando ? 'Criando...' : 'Criar convite'}
-                somenteIconeNoMobile={false}
-              />
+              Criar convite
             </button>
             <button type="button" className="botao-secundario" onClick={fecharFormulario}>
-              <ConteudoBotao icone="cancelar" texto="Fechar" somenteIconeNoMobile={false} />
+              Cancelar
             </button>
           </div>
         </form>
