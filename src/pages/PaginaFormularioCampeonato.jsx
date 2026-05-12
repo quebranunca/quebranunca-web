@@ -307,14 +307,14 @@ export function PaginaFormularioCampeonato() {
     }));
   }
 
-  function montarPayload() {
+  function montarPayload(statusOverride) {
     return {
       nome: formulario.nome,
       localId: formulario.localId,
       dataInicio: formulario.dataInicio,
       dataFim: formulario.dataFim || null,
       descricao: formulario.descricao || null,
-      status: formulario.status,
+      status: statusOverride || formulario.status,
       ligaId: formulario.ligaId || null,
       formatoCampeonatoId: formulario.formatoCampeonatoId || null,
       regraCompeticaoId: formulario.regraCompeticaoId || null,
@@ -333,7 +333,7 @@ export function PaginaFormularioCampeonato() {
     };
   }
 
-  async function salvar(evento) {
+  async function salvar(evento, statusOverride) {
     evento.preventDefault();
     setErro('');
     setAviso('');
@@ -352,7 +352,7 @@ export function PaginaFormularioCampeonato() {
         throw new Error(categoriaInvalida);
       }
 
-      const payload = montarPayload();
+      const payload = montarPayload(statusOverride);
       if (editando) {
         await campeonatosServico.atualizar(id, payload);
       } else {
@@ -382,7 +382,7 @@ export function PaginaFormularioCampeonato() {
         <p>Cadastre o campeonato e vincule categorias já existentes.</p>
       </div>
 
-      <form className="formulario-grid" onSubmit={salvar}>
+        <form className="formulario-grid" onSubmit={(evento) => salvar(evento)}>
         {erro && <p className="mensagem-erro campo-largo">{erro}</p>}
         {aviso && <p className="mensagem-sucesso campo-largo">{aviso}</p>}
 
@@ -578,7 +578,12 @@ export function PaginaFormularioCampeonato() {
         </div>
 
         <div className="acoes-item campo-largo">
-          <button type="submit" className="botao-primario" disabled={salvando}>
+          <button
+            type="button"
+            className="botao-primario"
+            disabled={salvando}
+            onClick={(evento) => salvar(evento, 'Rascunho')}
+          >
             {salvando ? 'Salvando...' : 'Salvar rascunho'}
           </button>
 
