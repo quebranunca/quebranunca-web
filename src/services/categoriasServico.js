@@ -1,6 +1,11 @@
 import { http } from './http';
 
 export const categoriasServico = {
+  async listarDisponiveisVinculo() {
+    const resposta = await http.get('/categorias/disponiveis-vinculo');
+    return resposta.data;
+  },
+
   async listarPorCompeticao(competicaoId) {
     const resposta = await http.get(`/competicoes/${competicaoId}/categorias`);
     return resposta.data;

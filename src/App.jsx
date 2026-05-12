@@ -12,6 +12,7 @@ import { PaginaFormatosCampeonato } from './pages/PaginaFormatosCampeonato';
 import { PaginaRegrasCompeticao } from './pages/PaginaRegrasCompeticao';
 import { PaginaModelosImportacao } from './pages/PaginaModelosImportacao';
 import { PaginaCompeticoes } from './pages/PaginaCompeticoes';
+import { PaginaFormularioCampeonato } from './pages/PaginaFormularioCampeonato';
 import { PaginaGrupos } from './pages/PaginaGrupos';
 import { PaginaGrupoAtletas } from './pages/PaginaGrupoAtletas';
 import { PaginaRanking } from './pages/PaginaRanking';
@@ -227,6 +228,28 @@ export default function App() {
               estadosPermitidos={[ESTADOS_ACESSO.ativo]}
             >
               <PaginaModelosImportacao />
+            </RotaProtegida>
+          }
+        />
+        <Route
+          path="/campeonatos/novo"
+          element={
+            <RotaProtegida
+              perfisPermitidos={[PERFIS_USUARIO.administrador, PERFIS_USUARIO.organizador]}
+              estadosPermitidos={[ESTADOS_ACESSO.ativo]}
+            >
+              <PaginaFormularioCampeonato />
+            </RotaProtegida>
+          }
+        />
+        <Route
+          path="/campeonatos/:id/editar"
+          element={
+            <RotaProtegida
+              perfisPermitidos={[PERFIS_USUARIO.administrador, PERFIS_USUARIO.organizador]}
+              estadosPermitidos={[ESTADOS_ACESSO.ativo]}
+            >
+              <PaginaFormularioCampeonato />
             </RotaProtegida>
           }
         />

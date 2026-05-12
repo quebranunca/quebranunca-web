@@ -553,6 +553,14 @@ export function PaginaCompeticoes() {
           <p>Carregando campeonatos...</p>
         ) : (
           <>
+            {gestorCompeticao && usuarioAtivo && (
+              <div className="acoes-item campo-largo">
+                <button type="button" className="botao-primario" onClick={() => navegar('/campeonatos/novo')}>
+                  Novo campeonato
+                </button>
+              </div>
+            )}
+
             <section className="formulario-grid filtro-competicoes barra-selecao-fixa">
               <div className="partidas-filtro-cabecalho campo-largo">
                 <div>
@@ -624,6 +632,18 @@ export function PaginaCompeticoes() {
                         <p>Início: {formatarData(competicao.dataInicio)}</p>
                         <p>Fim: {formatarData(competicao.dataFim)}</p>                        
                       </div>
+
+                      {gerenciavel && (
+                        <div className="acoes-item">
+                          <button
+                            type="button"
+                            className="botao-secundario botao-editar"
+                            onClick={() => navegar(`/campeonatos/${competicao.id}/editar`)}
+                          >
+                            Editar campeonato
+                          </button>
+                        </div>
+                      )}
                     </div>                    
 
                     <div className="campo-largo">
@@ -701,9 +721,9 @@ export function PaginaCompeticoes() {
                                         <button
                                           type="button"
                                           className="botao-secundario botao-editar"
-                                          onClick={() => navegar(`/categorias?competicaoId=${categoria.competicaoId}&categoriaId=${categoria.id}`)}
+                                          onClick={() => navegar(`/campeonatos/${competicao.id}/editar`)}
                                         >
-                                          Editar
+                                          Editar campeonato
                                         </button>
 
                                         <button

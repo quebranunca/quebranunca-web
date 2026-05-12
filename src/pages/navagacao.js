@@ -125,7 +125,13 @@ const ITENS_NAVEGACAO = [
     caminho: '/competicoes',
     nome: 'Competições',
     descricao: 'Veja e gerencie campeonatos, eventos e grupos disponíveis para o seu perfil.',
-    visivel: ({ administrador, estadoAtivo }) => administrador && estadoAtivo
+    visivel: ({ gestorCompeticao, estadoAtivo }) => gestorCompeticao && estadoAtivo
+  },
+  {
+    caminho: '/campeonatos/novo',
+    nome: 'Novo Campeonato',
+    descricao: 'Crie um campeonato e vincule categorias já cadastradas.',
+    visivel: ({ gestorCompeticao, estadoAtivo }) => gestorCompeticao && estadoAtivo
   },
   {
     caminho: '/grupos',
@@ -185,6 +191,8 @@ export const ROTAS_APP_HEADER = [
   { path: '/modelos-importacao', title: 'Modelos', tipoTela: TIPOS_TELA.raiz },
   { path: '/competicoes', title: 'Competições', tipoTela: TIPOS_TELA.raiz },
   { path: '/competicoes/:id', title: 'Competição', tipoTela: TIPOS_TELA.contexto },
+  { path: '/campeonatos/novo', title: 'Novo Campeonato', tipoTela: TIPOS_TELA.acao },
+  { path: '/campeonatos/:id/editar', title: 'Editar Campeonato', tipoTela: TIPOS_TELA.contexto },
   { path: '/grupos', title: 'Grupos', tipoTela: TIPOS_TELA.raiz },
   { path: '/grupos/:grupoId/atletas', title: 'Atletas do Grupo', tipoTela: TIPOS_TELA.contexto },
   { path: '/categorias', title: 'Categorias', tipoTela: TIPOS_TELA.raiz },
