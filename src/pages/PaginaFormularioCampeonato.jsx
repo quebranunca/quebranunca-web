@@ -33,6 +33,48 @@ const opcoesNivel = {
   6: 'Livre'
 };
 
+function obterRotuloStatusInscricao(valor) {
+  return statusInscricao.find((status) => status.valor === Number(valor))?.rotulo || '-';
+}
+
+function formatarMoeda(valor) {
+  const numero = Number(valor || 0);
+
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL'
+  }).format(numero);
+}
+
+function formatarDataInscricao(valor) {
+  if (!valor) {
+    return '';
+  }
+
+  const [ano, mes, dia] = valor.split('-');
+  if (ano && mes && dia) {
+    return `${dia}/${mes}/${ano}`;
+  }
+
+  return valor;
+}
+
+function obterPeriodoInscricoes(categoria) {
+  if (!categoria.dataAberturaInscricao && !categoria.dataEncerramentoInscricao) {
+    return '';
+  }
+
+  if (categoria.dataAberturaInscricao && categoria.dataEncerramentoInscricao) {
+    return `${formatarDataInscricao(categoria.dataAberturaInscricao)} até ${formatarDataInscricao(categoria.dataEncerramentoInscricao)}`;
+  }
+
+  if (categoria.dataAberturaInscricao) {
+    return `A partir de ${formatarDataInscricao(categoria.dataAberturaInscricao)}`;
+  }
+
+  return `Até ${formatarDataInscricao(categoria.dataEncerramentoInscricao)}`;
+}
+
 function estadoInicial() {
   return {
     nome: '',
@@ -63,7 +105,9 @@ function criarCategoriaVinculada(categoria) {
     dataEncerramentoInscricao: '',
     permiteListaEspera: false,
     observacao: '',
-    quantidadeDuplasInscritas: 0
+    quantidadeDuplasInscritas: 0,
+    configurada: false,
+    editando: true
   };
 }
 
@@ -81,7 +125,9 @@ function mapearCategoriaApi(categoria) {
     dataEncerramentoInscricao: paraInputData(categoria.dataEncerramentoInscricao),
     permiteListaEspera: Boolean(categoria.permiteListaEspera),
     observacao: categoria.observacao || '',
-    quantidadeDuplasInscritas: Number(categoria.quantidadeDuplasInscritas || 0)
+    quantidadeDuplasInscritas: Number(categoria.quantidadeDuplasInscritas || 0),
+    configurada: true,
+    editando: false
   };
 }
 
@@ -199,9 +245,53 @@ export function PaginaFormularioCampeonato() {
     setFormulario((anterior) => ({
       ...anterior,
       categorias: anterior.categorias.map((categoria, indiceAtual) => (
-        indiceAtual === indice ? { ...categoria, [campo]: valor } : categoria
+        indiceAtual === indice ? { ...categoria, [campo]: valor, configurada: false } : categoria
       ))
     }));
+  }
+
+  function validarCategoria(categoria) {
+    if (categoria.valorInscricao !== '' && Number(categoria.valorInscricao) < 0) {
+      return 'Valor da inscrição não pode ser negativo.';
+    }
+
+    if (
+      categoria.dataAberturaInscricao &&
+      categoria.dataEncerramentoInscricao &&
+      categoria.dataEncerramentoInscricao < categoria.dataAberturaInscricao
+    ) {
+      return 'Data de encerramento não pode ser menor que data de abertura.';
+    }
+
+    return '';
+  }
+
+  function salvarCategoria(indice) {
+    const categoria = formulario.categorias[indice];
+    const mensagemErro = validarCategoria(categoria);
+
+    if (mensagemErro) {
+      setErro(mensagemErro);
+      return;
+    }
+
+    setFormulario((anterior) => ({
+      ...anterior,
+      categorias: anterior.categorias.map((item, indiceAtual) => (
+        indiceAtual === indice ? { ...item, configurada: true, editando: false } : item
+      ))
+    }));
+    setErro('');
+  }
+
+  function editarCategoria(indice) {
+    setFormulario((anterior) => ({
+      ...anterior,
+      categorias: anterior.categorias.map((categoria, indiceAtual) => (
+        indiceAtual === indice ? { ...categoria, configurada: false, editando: true } : categoria
+      ))
+    }));
+    setErro('');
   }
 
   function removerCategoria(indice) {
@@ -250,6 +340,18 @@ export function PaginaFormularioCampeonato() {
     setSalvando(true);
 
     try {
+      const categoriaPendente = formulario.categorias.some((categoria) => !categoria.configurada || categoria.editando);
+      if (categoriaPendente) {
+        throw new Error('Configure e salve todas as categorias antes de salvar o campeonato.');
+      }
+
+      const categoriaInvalida = formulario.categorias
+        .map(validarCategoria)
+        .find((mensagem) => mensagem);
+      if (categoriaInvalida) {
+        throw new Error(categoriaInvalida);
+      }
+
       const payload = montarPayload();
       const resultado = editando
         ? await campeonatosServico.atualizar(id, payload)
@@ -396,52 +498,76 @@ export function PaginaFormularioCampeonato() {
                 <p>Nível: {opcoesNivel[categoria.nivel]}</p>
               </div>
 
-              <div className="formulario-grid campo-largo">
-                <label>
-                  Status das inscrições
-                  <select value={categoria.statusInscricao} onChange={(evento) => atualizarCategoria(indice, 'statusInscricao', evento.target.value)}>
-                    {statusInscricao.map((status) => (
-                      <option key={status.valor} value={status.valor}>{status.rotulo}</option>
-                    ))}
-                  </select>
-                </label>
+              {categoria.editando ? (
+                <>
+                  <div className="formulario-grid campo-largo">
+                    <label>
+                      Status das inscrições
+                      <select value={categoria.statusInscricao} onChange={(evento) => atualizarCategoria(indice, 'statusInscricao', evento.target.value)}>
+                        {statusInscricao.map((status) => (
+                          <option key={status.valor} value={status.valor}>{status.rotulo}</option>
+                        ))}
+                      </select>
+                    </label>
 
-                <label>
-                  Valor da inscrição
-                  <input type="number" min="0" step="0.01" value={categoria.valorInscricao} onChange={(evento) => atualizarCategoria(indice, 'valorInscricao', evento.target.value)} />
-                </label>
+                    <label>
+                      Valor da inscrição
+                      <input type="number" min="0" step="0.01" value={categoria.valorInscricao} onChange={(evento) => atualizarCategoria(indice, 'valorInscricao', evento.target.value)} />
+                    </label>
 
-                <label>
-                  Limite de duplas
-                  <input type="number" min="1" value={categoria.limiteDuplas} onChange={(evento) => atualizarCategoria(indice, 'limiteDuplas', evento.target.value)} />
-                </label>
+                    <label>
+                      Data de abertura das inscrições
+                      <input type="date" value={categoria.dataAberturaInscricao} onChange={(evento) => atualizarCategoria(indice, 'dataAberturaInscricao', evento.target.value)} />
+                    </label>
 
-                <label>
-                  Abertura das inscrições
-                  <input type="date" value={categoria.dataAberturaInscricao} onChange={(evento) => atualizarCategoria(indice, 'dataAberturaInscricao', evento.target.value)} />
-                </label>
+                    <label>
+                      Data de encerramento das inscrições
+                      <input type="date" value={categoria.dataEncerramentoInscricao} onChange={(evento) => atualizarCategoria(indice, 'dataEncerramentoInscricao', evento.target.value)} />
+                    </label>
 
-                <label>
-                  Encerramento das inscrições
-                  <input type="date" value={categoria.dataEncerramentoInscricao} onChange={(evento) => atualizarCategoria(indice, 'dataEncerramentoInscricao', evento.target.value)} />
-                </label>
+                    <label className="campo-largo">
+                      Observações
+                      <textarea value={categoria.observacao} onChange={(evento) => atualizarCategoria(indice, 'observacao', evento.target.value)} />
+                    </label>
+                  </div>
 
-                <label className="checkbox-label">
-                  <input type="checkbox" checked={categoria.permiteListaEspera} onChange={(evento) => atualizarCategoria(indice, 'permiteListaEspera', evento.target.checked)} />
-                  Permite lista de espera
-                </label>
+                  <div className="acoes-item">
+                    <button type="button" className="botao-primario" onClick={() => salvarCategoria(indice)}>
+                      Salvar categoria
+                    </button>
 
-                <label className="campo-largo">
-                  Observações
-                  <textarea value={categoria.observacao} onChange={(evento) => atualizarCategoria(indice, 'observacao', evento.target.value)} />
-                </label>
-              </div>
+                    <button type="button" className="botao-perigo" onClick={() => removerCategoria(indice)}>
+                      Remover categoria
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="campo-largo">
+                    <p>Inscrições: {obterRotuloStatusInscricao(categoria.statusInscricao)}</p>
+                    <p>Valor: {formatarMoeda(categoria.valorInscricao)}</p>
+                    {obterPeriodoInscricoes(categoria) && (
+                      <p>Período: {obterPeriodoInscricoes(categoria)}</p>
+                    )}
+                    {categoria.observacao && (
+                      <div>
+                        <p>Observação:</p>
+                        <p>{categoria.observacao}</p>
+                      </div>
+                    )}
+                  </div>
 
-              <div className="acoes-item">
-                <button type="button" className="botao-perigo" onClick={() => removerCategoria(indice)}>
-                  Remover categoria
-                </button>
-              </div>
+                  <div className="acoes-item">
+                    <button type="button" className="botao-secundario botao-editar" onClick={() => editarCategoria(indice)}>
+                      Editar categoria
+                    </button>
+
+                    <button type="button" className="botao-perigo" onClick={() => removerCategoria(indice)}>
+                      Remover categoria
+                    </button>
+                  </div>
+                </>
+              )}
             </article>
           ))}
 
