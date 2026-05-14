@@ -1,0 +1,55 @@
+:root {
+  --color-bg: #08090b;
+  --color-card: #111214;
+  --color-card-secondary: #1a1a1a;
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #b8b8b8;
+  --color-primary: #ffb300;
+  --color-primary-hover: #ff9800;
+  --color-border: rgba(255, 255, 255, 0.1);
+  --color-border-highlight: rgba(255, 176, 0, 0.45);
+  --radius: 12px;
+  --radius-lg: 16px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --cor-fundo: var(--color-bg);
+  --cor-superficie: var(--color-card);
+  --cor-primaria: var(--color-primary);
+  --cor-primaria-escura: var(--color-primary-hover);
+  --cor-terciaria: #202226;
+  --cor-texto: var(--color-text-primary);
+  --cor-texto-suave: var(--color-text-secondary);
+  --cor-texto-fundo-escuro: var(--color-text-primary);
+  --cor-borda: var(--color-border);
+  --cor-borda-forte: var(--color-border-highlight);
+  --cor-borda-campo: rgba(255, 255, 255, 0.16);
+  --cor-superficie-suave: var(--color-card-secondary);
+  --cor-erro: #ff6b7a;
+  --cor-perigo: #df4b55;
+  --cor-sucesso: #39d98a;
+  --cor-aviso: var(--color-primary);
+  --espaco-xs: 0.35rem;
+  --espaco-sm: 0.55rem;
+  --espaco-md: 0.85rem;
+  --espaco-lg: 1rem;
+  --raio-sm: var(--radius);
+  --raio-md: var(--radius);
+  --raio-lg: var(--radius-lg);
+  --raio-xl: 20px;
+  --altura-controle: 2.4rem;
+  --altura-controle-compacto: 2.1rem;
+  --sombra: 0 18px 44px rgba(0, 0, 0, 0.42);
+  --sombra-suave: 0 12px 30px rgba(0, 0, 0, 0.28);
+}
+
+.cartao-lista {
+  background: #111214;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 20px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+}

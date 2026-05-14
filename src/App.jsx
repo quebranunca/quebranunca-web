@@ -19,7 +19,7 @@ import { PaginaRanking } from './pages/PaginaRanking';
 import { RankingLiga } from './pages/PaginaRankingLiga';
 import { PaginaCategorias } from './pages/PaginaCategorias';
 import { PaginaInscricoesCampeonato } from './pages/PaginaInscricoesCampeonato';
-import { PaginaRegistrarPartidas } from './pages/PaginaRegistrarPartidas';
+import { PaginaRegistrarPartidas } from './pages/PaginaRegistrarPartidas1';
 import { PaginaConsultaPartidas } from './pages/PaginaConsultaPartidas';
 import { PaginaPartidasCampeonato } from './pages/PaginaPartidasCampeonato';
 import { PaginaMeusJogos } from './pages/PaginaMeusJogos';

@@ -303,76 +303,7 @@ export function HomeResumoUsuario({
                                            
             <Link to="/partidas/registrar" className="botao-primario home-botao">
               Registrar partida
-            </Link>       
-
-           {erroUltimoJogo ? (
-              <p className="home-resumo-usuario-vazio"></p>
-            ) : ultimoJogo ? (
-              <div className="home-ultimo-jogo">
-                <div className="home-ultimo-jogo-acoes">
-                  <div className="grupo-resumo-informacoes">
-                    <span className="grupo-resumo-rotulo grupo-resumo-grupo-nome">
-                      {obterGrupoPartida(ultimoJogo)}
-                    </span>
-
-                    <span className="grupo-resumo-rotulo">
-                      ({ultimoJogo.dataPartida
-                        ? formatarDataHora(ultimoJogo.dataPartida)
-                        : 'Data a definir'})
-                    </span>
-                  </div>
-                  <CompartilharPartidaBotao partidaId={ultimoJogo.id} />
-                </div>
-
-                <PlacarDupla
-                  label="Sua dupla"
-                  atletas={formatarAtletas(duplasUltimoJogo.minhaDupla)}
-                  placar={placarUltimoJogo.minhaDupla}
-                  vencedor={resultadoUltimoJogo?.texto === 'Vitória'}
-                />
-
-                <PlacarDupla
-                  label="Adversários"
-                  atletas={formatarAtletas(duplasUltimoJogo.duplaAdversaria)}
-                  placar={placarUltimoJogo.adversaria}
-                  vencedor={resultadoUltimoJogo?.texto === 'Derrota'}
-                />
-              </div>
-            ) : (
-              <p className="home-resumo-usuario-vazio"></p>
-            )}                 
-
-            <Link to="/grupos" className="botao-primario home-botao">
-              Ver todos os grupos
-            </Link>    
-            
-            {exibirResumoRanking && (
-              <div className="grupo-resumo-conteudo">
-                <section
-                  className={`grupo-resumo-bloco${podeAbrirRankingGrupo ? ' grupo-resumo-bloco-clicavel' : ''}`}
-                  aria-label="Resumo do ranking do grupo"
-                  role={podeAbrirRankingGrupo ? 'button' : undefined}
-                  tabIndex={podeAbrirRankingGrupo ? 0 : undefined}
-                  onClick={podeAbrirRankingGrupo ? aoAbrirRankingGrupo : undefined}
-                  onKeyDown={podeAbrirRankingGrupo ? aoTeclarRankingGrupo : undefined}
-                >
-                  <span className="grupo-resumo-rotulo">{obterGrupoPartida(ultimoJogo)} - Ranking</span>
-                  {rankingResumo.length > 0 ? (
-                    <ol className="grupo-resumo-ranking">
-                      {rankingResumo.map((atleta) => (
-                        <li key={`${atleta.posicao}-${atleta.nomeAtleta}`}>
-                          <span>{atleta.posicao}º</span>
-                          <strong>{obterNomeExibicaoAtleta(atleta)}</strong>
-                          <small>{formatarPontuacao(atleta.pontuacao)}</small>
-                        </li>
-                      ))}
-                    </ol>
-                  ) : (
-                    <p>Ranking ainda não disponível</p>
-                  )}
-                </section>
-              </div>
-            )}                               
+            </Link>                                                                 
           </>          
         )}        
       </article>
