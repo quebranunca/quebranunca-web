@@ -153,24 +153,7 @@ export function AppHeader({
               &larr;
             </span>
           </button>
-        )}
-
-        {autenticado && (
-          <NavLink
-            to="/app/partidas/registrar"
-            className="botao-registrar-partida-topo"
-            aria-label="Registrar partida"
-            title="Registrar partida"
-          >
-            <span className="botao-registrar-icone">
-              +
-            </span>
-
-            <span className="botao-registrar-texto">
-              Registrar partida
-            </span>
-          </NavLink>
-        )}
+        )}        
 
         {autenticado && (
           <NotificacoesBotao

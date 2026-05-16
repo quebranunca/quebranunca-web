@@ -154,7 +154,7 @@ export function PaginaRanking() {
   const [ligas, setLigas] = useState([]);
   const [regioes, setRegioes] = useState({ estados: [], cidades: [], bairros: [] });
   const [competicoes, setCompeticoes] = useState([]);
-  const [tipoConsulta, setTipoConsulta] = useState(usuarioAtleta ? 'competicao' : 'geral');
+  const [tipoConsulta, setTipoConsulta] = useState(usuarioAtleta ? 'grupo' : 'geral');
   const [ligaId, setLigaId] = useState('');
   const [competicaoId, setCompeticaoId] = useState('');
   const [estadoRegiao, setEstadoRegiao] = useState('');
@@ -449,7 +449,7 @@ export function PaginaRanking() {
 
   function selecionarTipoConsulta(valor) {
     setTipoConsulta(valor);
-    if (valor !== 'competicao') {
+    if (valor !== 'grupo') {
       setCategoriaId('');
     }
     atualizarParametros(
@@ -594,7 +594,7 @@ export function PaginaRanking() {
         ) : tipoConsulta === 'competicao' ? (
           <>
             <label>
-              Competição
+              Selecione um grupo
               <select value={competicaoId} onChange={(evento) => selecionarCompeticao(evento.target.value)}>
                 <option value="">Selecione</option>
                 {competicoes.map((competicao) => (

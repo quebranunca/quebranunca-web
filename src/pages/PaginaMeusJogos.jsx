@@ -128,9 +128,6 @@ export function PaginaMeusJogos() {
           <h2>Meus Jogos</h2>
           <p>Todos os jogos vinculados ao seu atleta, com duplas, lados, placar e validação.</p>
         </div>
-        <Link to="/partidas/registrar" className="botao-primario">
-          Registrar partida
-        </Link>
       </div>
 
       {!atletaLogadoId && (
