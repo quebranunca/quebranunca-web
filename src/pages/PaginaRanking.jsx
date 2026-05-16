@@ -1,22 +1,22 @@
-import { Fragment, useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { useAutenticacao } from '../hooks/useAutenticacao';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { FaChevronRight, FaFilter, FaMedal, FaTrophy } from 'react-icons/fa';
 import { competicoesServico } from '../services/competicoesServico';
 import { gruposServico } from '../services/gruposServico';
-import { ligasServico } from '../services/ligasServico';
 import { rankingServico } from '../services/rankingServico';
 import { extrairMensagemErro } from '../utils/erros';
-import { formatarDataHora } from '../utils/formatacao';
-import { ehAtleta } from '../utils/perfis';
 import { obterNomeExibicaoAtleta } from '../utils/atletaUtils';
-import { PlacarDupla } from '../components/partidas/PlacarDupla';
 
-const tiposConsulta = [
-  { valor: 'competicao', rotulo: 'Competições' },
-  { valor: 'liga', rotulo: 'Liga' },
-  { valor: 'regiao', rotulo: 'Região' },
-  { valor: 'geral', rotulo: 'Geral' }
+const ABAS_RANKING = [
+  { valor: 'geral', rotulo: 'Geral' },
+  { valor: 'grupos', rotulo: 'Grupos' },
+  { valor: 'competicoes', rotulo: 'Competições' },
+  { valor: 'regiao', rotulo: 'Região' }
 ];
+
+const TIPOS_COMPETICAO = {
+  grupo: 3
+};
 
 const generos = {
   1: 'Masculino',
@@ -24,30 +24,20 @@ const generos = {
   3: 'Misto'
 };
 
-const TIPOS_COMPETICAO = {
-  grupo: 3
-};
-
-const NOME_COMPETICAO_PARTIDAS_AVULSAS = 'Partidas avulsas';
-
-function ehCompeticaoPartidasAvulsas(competicao) {
-  return Number(competicao?.tipo) === TIPOS_COMPETICAO.grupo &&
-    (competicao?.nome || '').trim().toLowerCase() === NOME_COMPETICAO_PARTIDAS_AVULSAS.toLowerCase();
-}
-
 function normalizarRanking(lista, tipoConsulta) {
   const grupos = (lista || [])
     .map((grupo) => ({
       ...grupo,
-      chave: `${tipoConsulta}-${grupo.categoriaId}`,
+      chave: `${tipoConsulta}-${grupo.categoriaId}-${grupo.competicaoId}`,
       atletas: (grupo.atletas || []).map((atleta) => ({
         ...atleta,
+        pontos: Number(atleta.pontos || 0),
         pontosPendentes: Number(atleta.pontosPendentes || 0),
         partidas: atleta.partidas || []
       }))
     }));
 
-  if (tipoConsulta !== 'competicao') {
+  if (tipoConsulta !== 'competicoes') {
     return grupos;
   }
 
@@ -65,14 +55,6 @@ function normalizarRanking(lista, tipoConsulta) {
   });
 }
 
-function classeStatusPendencia(item) {
-  if (item.possuiUsuarioVinculado) {
-    return 'tag-status-sucesso';
-  }
-
-  return item.temEmail ? 'tag-status-alerta' : 'tag-status-erro';
-}
-
 function formatarPontuacao(valor) {
   const numero = Number(valor || 0);
   if (Number.isInteger(numero)) {
@@ -85,97 +67,93 @@ function formatarPontuacao(valor) {
   });
 }
 
+function calcularAproveitamento(item) {
+  if (!item?.jogos) {
+    return 0;
+  }
+
+  return Math.round((Number(item.vitorias || 0) / Number(item.jogos)) * 100);
+}
+
+function obterIniciais(item) {
+  const nome = obterNomeExibicaoAtleta(item);
+  return nome
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((parte) => parte[0])
+    .join('')
+    .toUpperCase() || 'Q';
+}
+
+function obterStatusVisual(item) {
+  if (item.possuiUsuarioVinculado && !item.cadastroPendente) {
+    return { texto: 'Ativo', classe: 'ativo' };
+  }
+
+  if (item.temEmail) {
+    return { texto: 'Pendente', classe: 'pendente' };
+  }
+
+  return { texto: 'Sem conta', classe: 'sem-conta' };
+}
+
 function formatarRegiaoAtleta(item) {
   const partes = [item.estado, item.cidade, item.bairro].filter(Boolean);
-  return partes.length > 0 ? partes.join(' / ') : '-';
+  return partes.length > 0 ? partes.join(' / ') : '';
 }
 
-function extrairDetalhePartidaRanking(partida) {
-  const confronto = String(partida.confronto || '').replace(/^Pontuação por colocação:\s*/i, '').trim();
-  const match = confronto.match(/^(.*?)\s+(\d+)\s+x\s+(\d+)\s+(.*)$/);
-
-  if (!match) {
-    return {
-      confronto,
-      duplaA: [],
-      duplaB: [],
-      placarA: null,
-      placarB: null
-    };
+function obterResumoFiltro({
+  abaRanking,
+  grupoSelecionado,
+  competicaoSelecionada,
+  categoriaSelecionada,
+  estadoRegiao,
+  cidadeRegiao,
+  bairroRegiao
+}) {
+  if (abaRanking === 'grupos') {
+    return grupoSelecionado?.nome || 'Selecione um grupo';
   }
 
-  return {
-    confronto,
-    duplaA: match[1].split('/').map((nome) => nome.trim()).filter(Boolean),
-    duplaB: match[4].split('/').map((nome) => nome.trim()).filter(Boolean),
-    placarA: Number(match[2]),
-    placarB: Number(match[3])
-  };
-}
-
-function formatarAtletasPlacarRanking(atletas) {
-  return atletas.length > 0 ? atletas : 'A definir';
-}
-
-function obterClasseResultadoRanking(resultado) {
-  const texto = String(resultado || '').toLowerCase();
-
-  if (texto.includes('vitória')) {
-    return 'tag-status-sucesso';
+  if (abaRanking === 'competicoes') {
+    return [competicaoSelecionada?.nome, categoriaSelecionada?.nome].filter(Boolean).join(' • ') || 'Selecione uma competição';
   }
 
-  if (texto.includes('derrota')) {
-    return 'tag-status-erro';
+  if (abaRanking === 'regiao') {
+    return [estadoRegiao, cidadeRegiao, bairroRegiao].filter(Boolean).join(' / ') || 'Brasil';
   }
 
-  return 'tag-status-alerta';
-}
-
-function obterTiposConsultaDisponiveis(usuarioAtleta, ligas, competicoes) {
-  const opcoes = [];
-
-  if ((competicoes || []).length > 0) {
-    opcoes.push(tiposConsulta.find((tipo) => tipo.valor === 'competicao'));
-  }
-
-  if (!usuarioAtleta && (ligas || []).length > 0) {
-    opcoes.push(tiposConsulta.find((tipo) => tipo.valor === 'liga'));
-  }
-
-  opcoes.push(tiposConsulta.find((tipo) => tipo.valor === 'regiao'));
-  opcoes.push(tiposConsulta.find((tipo) => tipo.valor === 'geral'));
-
-  return opcoes.filter(Boolean);
+  return 'Todos os atletas';
 }
 
 export function PaginaRanking() {
-  const { usuario } = useAutenticacao();
-  const usuarioAtleta = ehAtleta(usuario);
-  const [ligas, setLigas] = useState([]);
-  const [regioes, setRegioes] = useState({ estados: [], cidades: [], bairros: [] });
+  const navegar = useNavigate();
+  const [params, setParams] = useSearchParams();
+  const [grupos, setGrupos] = useState([]);
   const [competicoes, setCompeticoes] = useState([]);
-  const [tipoConsulta, setTipoConsulta] = useState(usuarioAtleta ? 'grupo' : 'geral');
-  const [ligaId, setLigaId] = useState('');
+  const [regioes, setRegioes] = useState({ estados: [], cidades: [], bairros: [] });
+  const [abaRanking, setAbaRanking] = useState('geral');
+  const [grupoId, setGrupoId] = useState('');
   const [competicaoId, setCompeticaoId] = useState('');
+  const [categoriaId, setCategoriaId] = useState('');
   const [estadoRegiao, setEstadoRegiao] = useState('');
   const [cidadeRegiao, setCidadeRegiao] = useState('');
   const [bairroRegiao, setBairroRegiao] = useState('');
-  const [categoriaId, setCategoriaId] = useState('');
   const [ranking, setRanking] = useState([]);
-  const [detalheAberto, setDetalheAberto] = useState(null);
+  const [filtrosAbertos, setFiltrosAbertos] = useState(false);
   const [carregandoBase, setCarregandoBase] = useState(true);
   const [carregandoRanking, setCarregandoRanking] = useState(false);
   const [erro, setErro] = useState('');
-  const [params, setParams] = useSearchParams();
-  const abrirPartidasMeuAtleta = params.get('partidas') === 'meu';
-  const opcoesTipoConsulta = useMemo(() => {
-    return obterTiposConsultaDisponiveis(usuarioAtleta, ligas, competicoes);
-  }, [usuarioAtleta, ligas, competicoes]);
+
+  const grupoSelecionado = useMemo(
+    () => grupos.find((grupo) => grupo.id === grupoId) || null,
+    [grupoId, grupos]
+  );
   const competicaoSelecionada = useMemo(
     () => competicoes.find((competicao) => competicao.id === competicaoId) || null,
     [competicaoId, competicoes]
   );
-  const competicaoSelecionadaEhGrupo = Number(competicaoSelecionada?.tipo) === 3;
   const cidadesRegiao = useMemo(() => {
     return (regioes.cidades || [])
       .filter((cidade) => !estadoRegiao || cidade.estado === estadoRegiao)
@@ -192,7 +170,7 @@ export function PaginaRanking() {
       .sort((a, b) => a.localeCompare(b, 'pt-BR'));
   }, [cidadeRegiao, estadoRegiao, regioes.bairros]);
   const categoriasRanking = useMemo(() => {
-    if (tipoConsulta !== 'competicao' || competicaoSelecionadaEhGrupo) {
+    if (abaRanking !== 'competicoes') {
       return [];
     }
 
@@ -212,8 +190,11 @@ export function PaginaRanking() {
 
         return a.nome.localeCompare(b.nome, 'pt-BR');
       });
-  }, [tipoConsulta, competicaoSelecionadaEhGrupo, ranking]);
-  const exibirFiltroCategoria = tipoConsulta === 'competicao' && categoriasRanking.length > 0;
+  }, [abaRanking, ranking]);
+  const categoriaSelecionada = useMemo(
+    () => categoriasRanking.find((categoria) => categoria.id === categoriaId) || null,
+    [categoriaId, categoriasRanking]
+  );
   const rankingFiltrado = useMemo(() => {
     if (!categoriaId) {
       return ranking;
@@ -221,24 +202,33 @@ export function PaginaRanking() {
 
     return ranking.filter((grupo) => grupo.categoriaId === categoriaId);
   }, [ranking, categoriaId]);
+  const resumoFiltro = obterResumoFiltro({
+    abaRanking,
+    grupoSelecionado,
+    competicaoSelecionada,
+    categoriaSelecionada,
+    estadoRegiao,
+    cidadeRegiao,
+    bairroRegiao
+  });
 
   useEffect(() => {
     carregarBase();
   }, []);
 
   useEffect(() => {
-    if (tipoConsulta === 'liga' && !ligaId) {
+    if (abaRanking === 'grupos' && !grupoId) {
       setRanking([]);
       return;
     }
 
-    if (tipoConsulta === 'competicao' && !competicaoId) {
+    if (abaRanking === 'competicoes' && !competicaoId) {
       setRanking([]);
       return;
     }
 
     carregarRanking();
-  }, [tipoConsulta, ligaId, competicaoId, estadoRegiao, cidadeRegiao, bairroRegiao]);
+  }, [abaRanking, grupoId, competicaoId, estadoRegiao, cidadeRegiao, bairroRegiao]);
 
   useEffect(() => {
     if (!categoriaId || categoriasRanking.length === 0) {
@@ -247,110 +237,52 @@ export function PaginaRanking() {
 
     const categoriaExiste = categoriasRanking.some((categoria) => categoria.id === categoriaId);
     if (!categoriaExiste) {
-      setCategoriaId('');
-      atualizarParametros(tipoConsulta, ligaId, competicaoId, estadoRegiao, cidadeRegiao, bairroRegiao, '');
+      selecionarCategoria('');
     }
-  }, [categoriaId, categoriasRanking, tipoConsulta, ligaId, competicaoId, estadoRegiao, cidadeRegiao, bairroRegiao]);
-
-  useEffect(() => {
-    if (!abrirPartidasMeuAtleta || !detalheAberto) {
-      return;
-    }
-
-    window.requestAnimationFrame(() => {
-      const elementos = Array.from(document.querySelectorAll(`[data-ranking-detalhe="${detalheAberto}"]`));
-      const elementoVisivel = elementos.find((elemento) => elemento.offsetParent !== null) || elementos[0];
-      elementoVisivel?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center'
-      });
-    });
-  }, [abrirPartidasMeuAtleta, detalheAberto]);
+  }, [categoriaId, categoriasRanking]);
 
   async function carregarBase() {
     setCarregandoBase(true);
     setErro('');
 
     try {
-      const [listaCompeticoesApi, listaGrupos, listaLigas, filtroInicial, filtroRegioes] = await Promise.all([
+      const [listaCompeticoes, listaGrupos, filtroRegioes] = await Promise.all([
         competicoesServico.listar(),
         gruposServico.listar(),
-        usuarioAtleta ? Promise.resolve([]) : ligasServico.listar(),
-        rankingServico.obterFiltroInicial(),
         rankingServico.listarRegioesDisponiveis()
       ]);
+      const competicoesCampeonato = listaCompeticoes.filter((competicao) => Number(competicao.tipo) !== TIPOS_COMPETICAO.grupo);
+      const tipoUrl = normalizarTipoUrl(params.get('tipo'));
+      const grupoUrl = params.get('grupoId') || '';
+      const competicaoUrl = params.get('competicaoId') || '';
+      const estadoUrl = params.get('estado') || '';
+      const cidadeUrl = params.get('cidade') || '';
+      const bairroUrl = params.get('bairro') || '';
 
-      const listaCompeticoes = [
-        ...listaCompeticoesApi,
-        ...listaGrupos.map((grupo) => ({ ...grupo, tipo: TIPOS_COMPETICAO.grupo }))
-      ];
-      let competicoesDisponiveis = listaCompeticoes;
-      if (usuarioAtleta) {
-        if (!usuario?.atletaId) {
-          competicoesDisponiveis = listaCompeticoes.filter(ehCompeticaoPartidasAvulsas);
-        } else {
-          competicoesDisponiveis = listaCompeticoes.filter((competicao) => competicao.tipo === TIPOS_COMPETICAO.grupo);
-        }
-      }
+      const abaInicial = tipoUrl ||
+        (grupoUrl ? 'grupos' : competicaoUrl ? 'competicoes' : 'geral');
+      const grupoInicial = grupoUrl && listaGrupos.some((grupo) => grupo.id === grupoUrl)
+        ? grupoUrl
+        : listaGrupos[0]?.id || '';
+      const competicaoInicial = competicaoUrl && competicoesCampeonato.some((competicao) => competicao.id === competicaoUrl)
+        ? competicaoUrl
+        : competicoesCampeonato[0]?.id || '';
 
-      setLigas(listaLigas);
+      setGrupos(listaGrupos);
+      setCompeticoes(competicoesCampeonato);
       setRegioes({
         estados: filtroRegioes?.estados || [],
         cidades: filtroRegioes?.cidades || [],
         bairros: filtroRegioes?.bairros || []
       });
-      setCompeticoes(competicoesDisponiveis);
-
-      const tiposConsultaDisponiveis = obterTiposConsultaDisponiveis(
-        usuarioAtleta,
-        listaLigas,
-        competicoesDisponiveis
-      );
-
-      const tipoUrl = params.get('tipo');
-      const ligaUrl = params.get('ligaId');
-      const competicaoUrl = params.get('grupoId') || params.get('competicaoId');
-      const categoriaUrl = params.get('categoriaId');
-      const estadoUrl = params.get('estado') || '';
-      const cidadeUrl = params.get('cidade') || '';
-      const bairroUrl = params.get('bairro') || '';
-      const haFiltroUrl = Boolean(tipoUrl || ligaUrl || competicaoUrl || categoriaUrl || estadoUrl || cidadeUrl || bairroUrl);
-      const competicaoHistoricoValida = filtroInicial?.competicaoId &&
-        competicoesDisponiveis.some((competicao) => competicao.id === filtroInicial.competicaoId)
-        ? filtroInicial.competicaoId
-        : '';
-      const tipoUrlValido = tiposConsultaDisponiveis.some((tipo) => tipo.valor === tipoUrl) ? tipoUrl : '';
-      const tipoHistoricoValido = tiposConsultaDisponiveis.some((tipo) => tipo.valor === filtroInicial?.tipoConsulta)
-        ? filtroInicial?.tipoConsulta
-        : '';
-
-      const ligaInicial = ligaUrl && listaLigas.some((liga) => liga.id === ligaUrl)
-        ? ligaUrl
-        : listaLigas[0]?.id || '';
-      const competicaoInicial = competicaoUrl && competicoesDisponiveis.some((competicao) => competicao.id === competicaoUrl)
-        ? competicaoUrl
-        : !haFiltroUrl && competicaoHistoricoValida
-          ? competicaoHistoricoValida
-          : competicoesDisponiveis[0]?.id || '';
-      const tipoConsultaPadrao = usuarioAtleta && competicoesDisponiveis.length > 0 ? 'competicao' : 'geral';
-      const tipoConsultaInicial = tipoUrlValido || tipoHistoricoValido || tipoConsultaPadrao;
-
-      setTipoConsulta(tipoConsultaInicial);
-      setLigaId(ligaInicial);
+      setAbaRanking(abaInicial);
+      setGrupoId(grupoInicial);
       setCompeticaoId(competicaoInicial);
+      setCategoriaId(params.get('categoriaId') || '');
       setEstadoRegiao(estadoUrl);
       setCidadeRegiao(cidadeUrl);
       setBairroRegiao(bairroUrl);
-      setCategoriaId(tipoConsultaInicial === 'competicao' ? categoriaUrl || '' : '');
-      atualizarParametros(
-        tipoConsultaInicial,
-        ligaInicial,
-        competicaoInicial,
-        estadoUrl,
-        cidadeUrl,
-        bairroUrl,
-        tipoConsultaInicial === 'competicao' ? categoriaUrl || '' : ''
-      );
+      atualizarParametros(abaInicial, grupoInicial, competicaoInicial, estadoUrl, cidadeUrl, bairroUrl, params.get('categoriaId') || '');
     } catch (error) {
       setErro(extrairMensagemErro(error));
     } finally {
@@ -361,38 +293,25 @@ export function PaginaRanking() {
   async function carregarRanking() {
     setCarregandoRanking(true);
     setErro('');
-    setDetalheAberto(null);
 
     try {
       let lista = [];
-      if (tipoConsulta === 'geral') {
+      if (abaRanking === 'geral') {
         lista = await rankingServico.listarAtletasGeral();
-      } else if (tipoConsulta === 'liga') {
-        lista = await rankingServico.listarAtletasPorLiga(ligaId);
-      } else if (tipoConsulta === 'regiao') {
+      } else if (abaRanking === 'grupos') {
+        lista = await rankingServico.listarAtletasPorGrupo(grupoId);
+      } else if (abaRanking === 'regiao') {
         lista = await rankingServico.listarAtletasPorRegiao({
           estado: estadoRegiao,
           cidade: cidadeRegiao,
           bairro: bairroRegiao
         });
       } else {
-        lista = competicaoSelecionadaEhGrupo
-          ? await rankingServico.listarAtletasPorGrupo(competicaoId)
-          : await rankingServico.listarAtletasPorCompeticao(competicaoId);
+        lista = await rankingServico.listarAtletasPorCompeticao(competicaoId);
       }
 
-      const rankingNormalizado = normalizarRanking(lista, tipoConsulta);
-      setRanking(rankingNormalizado);
-      if (tipoConsulta === 'geral' && abrirPartidasMeuAtleta && usuario?.atletaId) {
-        const grupoMeuAtleta = rankingNormalizado.find((grupo) => (
-          grupo.atletas.some((atleta) => atleta.atletaId === usuario.atletaId)
-        ));
-
-        if (grupoMeuAtleta) {
-          setDetalheAberto(`${grupoMeuAtleta.chave}-${usuario.atletaId}`);
-        }
-      }
-      atualizarParametros(tipoConsulta, ligaId, competicaoId, estadoRegiao, cidadeRegiao, bairroRegiao, categoriaId);
+      setRanking(normalizarRanking(lista, abaRanking));
+      atualizarParametros(abaRanking, grupoId, competicaoId, estadoRegiao, cidadeRegiao, bairroRegiao, categoriaId);
     } catch (error) {
       setErro(extrairMensagemErro(error));
       setRanking([]);
@@ -402,415 +321,339 @@ export function PaginaRanking() {
   }
 
   function atualizarParametros(
-    tipo,
-    novaLigaId,
+    aba,
+    novoGrupoId,
     novaCompeticaoId,
     novoEstadoRegiao = '',
     novaCidadeRegiao = '',
     novoBairroRegiao = '',
     novaCategoriaId = ''
   ) {
-    const proximos = { tipo };
-    if (tipo === 'geral' && params.get('partidas') === 'meu') {
-      proximos.partidas = 'meu';
+    const proximos = { tipo: aba };
+    if (aba === 'grupos' && novoGrupoId) {
+      proximos.grupoId = novoGrupoId;
     }
-
-    if (tipo === 'liga' && novaLigaId) {
-      proximos.ligaId = novaLigaId;
+    if (aba === 'competicoes' && novaCompeticaoId) {
+      proximos.competicaoId = novaCompeticaoId;
     }
-
-    if (tipo === 'competicao' && novaCompeticaoId) {
-      const competicaoParametro = competicoes.find((competicao) => competicao.id === novaCompeticaoId);
-      if (Number(competicaoParametro?.tipo) === TIPOS_COMPETICAO.grupo) {
-        proximos.grupoId = novaCompeticaoId;
-      } else {
-        proximos.competicaoId = novaCompeticaoId;
-      }
-    }
-
-    if (tipo === 'competicao' && novaCompeticaoId && novaCategoriaId) {
+    if (aba === 'competicoes' && novaCategoriaId) {
       proximos.categoriaId = novaCategoriaId;
     }
-
-    if (tipo === 'regiao') {
-      if (novoEstadoRegiao) {
-        proximos.estado = novoEstadoRegiao;
-      }
-      if (novaCidadeRegiao) {
-        proximos.cidade = novaCidadeRegiao;
-      }
-      if (novoBairroRegiao) {
-        proximos.bairro = novoBairroRegiao;
-      }
+    if (aba === 'regiao') {
+      if (novoEstadoRegiao) proximos.estado = novoEstadoRegiao;
+      if (novaCidadeRegiao) proximos.cidade = novaCidadeRegiao;
+      if (novoBairroRegiao) proximos.bairro = novoBairroRegiao;
     }
 
     setParams(proximos);
   }
 
-  function selecionarTipoConsulta(valor) {
-    setTipoConsulta(valor);
-    if (valor !== 'grupo') {
-      setCategoriaId('');
-    }
-    atualizarParametros(
-      valor,
-      ligaId,
-      competicaoId,
-      estadoRegiao,
-      cidadeRegiao,
-      bairroRegiao,
-      valor === 'competicao' ? categoriaId : ''
-    );
+  function selecionarAba(valor) {
+    setAbaRanking(valor);
+    setCategoriaId('');
+    setFiltrosAbertos(false);
+    atualizarParametros(valor, grupoId, competicaoId, estadoRegiao, cidadeRegiao, bairroRegiao, '');
   }
 
-  function selecionarLiga(valor) {
-    setLigaId(valor);
-    atualizarParametros(tipoConsulta, valor, competicaoId, estadoRegiao, cidadeRegiao, bairroRegiao, categoriaId);
+  function selecionarGrupo(valor) {
+    setGrupoId(valor);
+    atualizarParametros(abaRanking, valor, competicaoId, estadoRegiao, cidadeRegiao, bairroRegiao, categoriaId);
   }
 
   function selecionarCompeticao(valor) {
     setCompeticaoId(valor);
     setCategoriaId('');
-    atualizarParametros(tipoConsulta, ligaId, valor, estadoRegiao, cidadeRegiao, bairroRegiao, '');
+    atualizarParametros(abaRanking, grupoId, valor, estadoRegiao, cidadeRegiao, bairroRegiao, '');
   }
 
   function selecionarEstadoRegiao(valor) {
     setEstadoRegiao(valor);
     setCidadeRegiao('');
     setBairroRegiao('');
-    atualizarParametros(tipoConsulta, ligaId, competicaoId, valor, '', '', categoriaId);
+    atualizarParametros(abaRanking, grupoId, competicaoId, valor, '', '', categoriaId);
   }
 
   function selecionarCidadeRegiao(valor) {
     setCidadeRegiao(valor);
     setBairroRegiao('');
-    atualizarParametros(tipoConsulta, ligaId, competicaoId, estadoRegiao, valor, '', categoriaId);
+    atualizarParametros(abaRanking, grupoId, competicaoId, estadoRegiao, valor, '', categoriaId);
   }
 
   function selecionarBairroRegiao(valor) {
     setBairroRegiao(valor);
-    atualizarParametros(tipoConsulta, ligaId, competicaoId, estadoRegiao, cidadeRegiao, valor, categoriaId);
+    atualizarParametros(abaRanking, grupoId, competicaoId, estadoRegiao, cidadeRegiao, valor, categoriaId);
   }
 
   function selecionarCategoria(valor) {
     setCategoriaId(valor);
-    atualizarParametros(tipoConsulta, ligaId, competicaoId, estadoRegiao, cidadeRegiao, bairroRegiao, valor);
+    atualizarParametros(abaRanking, grupoId, competicaoId, estadoRegiao, cidadeRegiao, bairroRegiao, valor);
   }
 
-  function alternarDetalhe(chaveGrupo, atletaId) {
-    const chave = `${chaveGrupo}-${atletaId}`;
-    setDetalheAberto((anterior) => (anterior === chave ? null : chave));
-  }
-
-  function renderizarDetalhesAtleta(item) {
-    return (
-      <div className="ranking-detalhes">
-        <strong>Partidas</strong>
-        {item.partidas.length === 0 ? (
-          <p>Nenhuma partida detalhada.</p>
-        ) : (
-          <div className="ranking-detalhe-lista">
-            {item.partidas.map((partida) => {
-              const detalhe = extrairDetalhePartidaRanking(partida);
-              const duplaAVenceu = detalhe.placarA !== null && detalhe.placarB !== null && detalhe.placarA > detalhe.placarB;
-              const duplaBVenceu = detalhe.placarA !== null && detalhe.placarB !== null && detalhe.placarB > detalhe.placarA;
-              const classeResultado = obterClasseResultadoRanking(partida.resultado);
-
-              return (
-                <div key={partida.partidaId} className="ranking-detalhe-item">
-                  <div className="ranking-detalhe-topo">
-                    <div>
-                      <strong>{partida.nomeCompeticao}</strong>
-                      <span>{partida.nomeCategoria}</span>
-                    </div>
-                    <span className="ranking-detalhe-data">{formatarDataHora(partida.dataPartida)}</span>
-                  </div>
-
-                  {detalhe.placarA === null || detalhe.placarB === null ? (
-                    <strong className="ranking-detalhe-confronto-texto">{partida.confronto}</strong>
-                  ) : (
-                    <div className="ranking-detalhe-confronto ranking-detalhe-confronto-placar">
-                      <PlacarDupla
-                        label="Dupla 1"
-                        atletas={formatarAtletasPlacarRanking(detalhe.duplaA)}
-                        placar={detalhe.placarA}
-                        vencedor={duplaAVenceu}
-                      />
-
-                      <PlacarDupla
-                        label="Dupla 2"
-                        atletas={formatarAtletasPlacarRanking(detalhe.duplaB)}
-                        placar={detalhe.placarB}
-                        vencedor={duplaBVenceu}
-                      />
-                    </div>
-                  )}
-
-                  <div className="ranking-detalhe-rodape">
-                    <span className={`tag-status ${classeResultado}`}>{partida.resultado}</span>
-                    <span className="ranking-detalhe-pontos">
-                      Pontos no ranking <strong>{formatarPontuacao(partida.pontos)}</strong>
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-    );
+  function abrirAtleta(item, grupo) {
+    navegar(`/atletas/${item.atletaId}/dashboard`, {
+      state: {
+        atletaRanking: item,
+        grupoRanking: grupo
+      }
+    });
   }
 
   return (
-    <section className="pagina pagina-ranking">
-      <div className="cabecalho-pagina">
-        <h2>Ranking</h2>
-      </div>
+    <section className="pagina pagina-ranking ranking-app">
+      <header className="ranking-app-header">
+        <div>
+          <span>QNF Ranking</span>
+          <h2>Ranking</h2>
+        </div>
+        <FaTrophy aria-hidden="true" />
+      </header>
 
-      <div className="formulario-grid barra-selecao-fixa">
-        <label>
-          Tipo
-          <select value={tipoConsulta} onChange={(evento) => selecionarTipoConsulta(evento.target.value)}>
-            {opcoesTipoConsulta.map((tipo) => (
-              <option key={tipo.valor} value={tipo.valor}>
-                {tipo.rotulo}
-              </option>
-            ))}
-          </select>
-        </label>
+      <nav className="ranking-tabs scroll-discreto" aria-label="Tipos de ranking">
+        {ABAS_RANKING.map((aba) => (
+          <button
+            key={aba.valor}
+            type="button"
+            className={abaRanking === aba.valor ? 'ativo' : ''}
+            onClick={() => selecionarAba(aba.valor)}
+          >
+            {aba.rotulo}
+          </button>
+        ))}
+      </nav>
 
-        {tipoConsulta === 'liga' ? (
-          <label>
-            Liga
-            <select value={ligaId} onChange={(evento) => selecionarLiga(evento.target.value)}>
-              <option value="">Selecione</option>
-              {ligas.map((liga) => (
-                <option key={liga.id} value={liga.id}>
-                  {liga.nome}
-                </option>
-              ))}
-            </select>
-          </label>
-        ) : tipoConsulta === 'competicao' ? (
-          <>
-            <label>
-              Selecione um grupo
-              <select value={competicaoId} onChange={(evento) => selecionarCompeticao(evento.target.value)}>
-                <option value="">Selecione</option>
-                {competicoes.map((competicao) => (
-                  <option key={competicao.id} value={competicao.id}>
-                    {competicao.nome}
-                  </option>
-                ))}
-              </select>
-            </label>
+      <section className="ranking-filtros-shell">
+        <div className="ranking-filtros-resumo">
+          <div>
+            <span>{ABAS_RANKING.find((aba) => aba.valor === abaRanking)?.rotulo}</span>
+            <strong>{resumoFiltro}</strong>
+          </div>
+          <button
+            type="button"
+            className="botao-secundario botao-compacto"
+            onClick={() => setFiltrosAbertos((aberto) => !aberto)}
+            aria-expanded={filtrosAbertos}
+          >
+            <FaFilter aria-hidden="true" /> Filtros
+          </button>
+        </div>
 
-            {exibirFiltroCategoria && (
+        {filtrosAbertos && (
+          <div className="ranking-filtros">
+            {abaRanking === 'grupos' && (
               <label>
-                Categoria
-                <select value={categoriaId} onChange={(evento) => selecionarCategoria(evento.target.value)}>
-                  <option value="">Todas as categorias</option>
-                  {categoriasRanking.map((categoria) => (
-                    <option key={categoria.id} value={categoria.id}>
-                      {categoria.nome}
-                    </option>
+                Grupo
+                <select value={grupoId} onChange={(evento) => selecionarGrupo(evento.target.value)}>
+                  <option value="">Selecione</option>
+                  {grupos.map((grupo) => (
+                    <option key={grupo.id} value={grupo.id}>{grupo.nome}</option>
                   ))}
                 </select>
               </label>
             )}
-          </>
-        ) : tipoConsulta === 'regiao' ? (
-          <>
-            <label>
-              Estado
-              <select value={estadoRegiao} onChange={(evento) => selecionarEstadoRegiao(evento.target.value)}>
-                <option value="">Todos os estados</option>
-                {(regioes.estados || []).map((estado) => (
-                  <option key={estado} value={estado}>
-                    {estado}
-                  </option>
-                ))}
-              </select>
-            </label>
 
-            <label>
-              Cidade
-              <select value={cidadeRegiao} onChange={(evento) => selecionarCidadeRegiao(evento.target.value)}>
-                <option value="">Todas as cidades</option>
-                {cidadesRegiao.map((cidade) => (
-                  <option key={cidade} value={cidade}>
-                    {cidade}
-                  </option>
-                ))}
-              </select>
-            </label>
+            {abaRanking === 'competicoes' && (
+              <>
+                <label>
+                  Competição
+                  <select value={competicaoId} onChange={(evento) => selecionarCompeticao(evento.target.value)}>
+                    <option value="">Selecione</option>
+                    {competicoes.map((competicao) => (
+                      <option key={competicao.id} value={competicao.id}>{competicao.nome}</option>
+                    ))}
+                  </select>
+                </label>
 
-            <label>
-              Bairro
-              <select value={bairroRegiao} onChange={(evento) => selecionarBairroRegiao(evento.target.value)}>
-                <option value="">Todos os bairros</option>
-                {bairrosRegiao.map((bairro) => (
-                  <option key={bairro} value={bairro}>
-                    {bairro}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </>
-        ) : null}
-      </div>
+                {categoriasRanking.length > 0 && (
+                  <label>
+                    Categoria
+                    <select value={categoriaId} onChange={(evento) => selecionarCategoria(evento.target.value)}>
+                      <option value="">Todas as categorias</option>
+                      {categoriasRanking.map((categoria) => (
+                        <option key={categoria.id} value={categoria.id}>{categoria.nome}</option>
+                      ))}
+                    </select>
+                  </label>
+                )}
+              </>
+            )}
+
+            {abaRanking === 'regiao' && (
+              <div className="ranking-regiao-grid">
+                <label>
+                  Estado
+                  <select value={estadoRegiao} onChange={(evento) => selecionarEstadoRegiao(evento.target.value)}>
+                    <option value="">Todos</option>
+                    {(regioes.estados || []).map((estado) => (
+                      <option key={estado} value={estado}>{estado}</option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Cidade
+                  <select value={cidadeRegiao} onChange={(evento) => selecionarCidadeRegiao(evento.target.value)}>
+                    <option value="">Todas</option>
+                    {cidadesRegiao.map((cidade) => (
+                      <option key={cidade} value={cidade}>{cidade}</option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Bairro
+                  <select value={bairroRegiao} onChange={(evento) => selecionarBairroRegiao(evento.target.value)}>
+                    <option value="">Todos</option>
+                    {bairrosRegiao.map((bairro) => (
+                      <option key={bairro} value={bairro}>{bairro}</option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+            )}
+
+            {abaRanking === 'geral' && (
+              <p className="texto-ajuda">Ranking consolidado de todas as partidas registradas.</p>
+            )}
+          </div>
+        )}
+      </section>
 
       {erro && <p className="texto-erro">{erro}</p>}
 
-      {carregandoBase ? (
-        <p>Carregando ranking...</p>
-      ) : tipoConsulta === 'liga' && ligas.length === 0 ? (
-        <p>Nenhuma liga cadastrada.</p>
-      ) : tipoConsulta === 'competicao' && usuarioAtleta && competicoes.length === 0 ? (
-        <p>Seu atleta ainda não participa de nenhum grupo com ranking disponível.</p>
-      ) : tipoConsulta === 'competicao' && competicoes.length === 0 ? (
-        <p>Nenhuma competição cadastrada.</p>
-      ) : carregandoRanking ? (
-        <p>Carregando ranking...</p>
+      {carregandoBase || carregandoRanking ? (
+        <div className="ranking-estado">Carregando ranking...</div>
       ) : rankingFiltrado.length === 0 ? (
-        <p>Nenhuma pontuação encontrada para o filtro selecionado.</p>
+        <div className="ranking-estado">Nenhuma pontuação encontrada para o filtro selecionado.</div>
       ) : (
-        <div className="lista-cartoes ranking-lista">
+        <div className="ranking-secoes">
           {rankingFiltrado.map((grupo) => (
-            <article key={grupo.chave} className="cartao-lista">
-              <div>
-                {tipoConsulta === 'competicao' && !competicaoSelecionadaEhGrupo ? (
-                  <>
-                    <p>{grupo.nomeCategoria}</p>
-                    <p>{`Gênero: ${generos[grupo.genero] || '-'}`}</p>
-                    <p>Competição: {grupo.nomeCompeticao}</p>
-                  </>
-                ) : tipoConsulta !== 'competicao' ? (
-                  <p>{grupo.nomeCompeticao}</p>
-                ) : null}
-                {tipoConsulta === 'regiao' && <p>{grupo.nomeCategoria}</p>}
-              </div>
-
-              <div className="ranking-tabela-wrapper scroll-discreto">
-                <table className="ranking-tabela">
-                  <thead>
-                    <tr>
-                      <th>Pos.</th>
-                      <th>Atleta</th>
-                      {tipoConsulta === 'regiao' && <th>Região</th>}
-                      <th>Status</th>
-                      <th>Pontuação</th>
-                      <th>Bônus pendente</th>
-                      <th>Jogos</th>
-                      <th>Vitórias</th>
-                      <th>Derrotas</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {grupo.atletas.map((item) => {
-                      const chaveDetalhe = `${grupo.chave}-${item.atletaId}`;
-                      const aberto = detalheAberto === chaveDetalhe;
-
-                      return (
-                        <Fragment key={item.atletaId}>
-                          <tr>
-                            <td>{item.posicao}º</td>
-                            <td>
-                              <button
-                                type="button"
-                                className="botao-link"
-                                onClick={() => alternarDetalhe(grupo.chave, item.atletaId)}
-                                aria-expanded={aberto}
-                              >
-                                {obterNomeExibicaoAtleta(item)}
-                              </button>
-                            </td>
-                            {tipoConsulta === 'regiao' && <td>{formatarRegiaoAtleta(item)}</td>}
-                            <td>
-                              <span className={`tag-status ${classeStatusPendencia(item)}`}>
-                                {item.statusPendencia}
-                              </span>
-                            </td>
-                            <td>{formatarPontuacao(item.pontos)}</td>
-                            <td>{formatarPontuacao(item.pontosPendentes)}</td>
-                            <td>{item.jogos}</td>
-                            <td>{item.vitorias}</td>
-                            <td>{item.derrotas}</td>
-                          </tr>
-                          {aberto && (
-                            <tr className="ranking-linha-detalhe" data-ranking-detalhe={chaveDetalhe}>
-                              <td colSpan={tipoConsulta === 'regiao' ? 9 : 8}>
-                                {renderizarDetalhesAtleta(item)}
-                              </td>
-                            </tr>
-                          )}
-                        </Fragment>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-
-              <div className="ranking-mobile-cards scroll-discreto">
-                {grupo.atletas.map((item) => {
-                  const chaveDetalhe = `${grupo.chave}-${item.atletaId}`;
-                  const aberto = detalheAberto === chaveDetalhe;
-
-                  return (
-                    <article
-                      key={item.atletaId}
-                      className="ranking-mobile-card"
-                      data-ranking-detalhe={aberto ? chaveDetalhe : undefined}
-                    >
-                      <div className="ranking-mobile-topo">
-                        <span className="ranking-mobile-posicao">{item.posicao}º</span>
-                        <div className="ranking-mobile-identidade">
-                          <strong className="ranking-mobile-nome">{obterNomeExibicaoAtleta(item)}</strong>
-                          {tipoConsulta === 'regiao' && <span>{formatarRegiaoAtleta(item)}</span>}
-                          <span className={`tag-status ${classeStatusPendencia(item)}`}>
-                            {item.statusPendencia}
-                          </span>
-                        </div>
-                        <div className="ranking-mobile-pontos">
-                          <span>Pontos</span>
-                          <strong>{formatarPontuacao(item.pontos)}</strong>
-                          <small>Pendente +{formatarPontuacao(item.pontosPendentes)}</small>
-                        </div>
-                      </div>
-
-                      <div className="ranking-mobile-metricas">
-                        <div className="ranking-mobile-metrica">
-                          <span>Jogos</span>
-                          <strong>{item.jogos}</strong>
-                        </div>
-                        <div className="ranking-mobile-metrica">
-                          <span>Vitórias</span>
-                          <strong>{item.vitorias}</strong>
-                        </div>
-                        <div className="ranking-mobile-metrica">
-                          <span>Derrotas</span>
-                          <strong>{item.derrotas}</strong>
-                        </div>
-                      </div>
-
-                      <button
-                        type="button"
-                        className="botao-secundario botao-compacto ranking-mobile-detalhe-botao"
-                        onClick={() => alternarDetalhe(grupo.chave, item.atletaId)}
-                        aria-expanded={aberto}
-                      >
-                        {aberto ? 'Ocultar partidas' : 'Ver partidas'}
-                      </button>
-
-                      {aberto && renderizarDetalhesAtleta(item)}
-                    </article>
-                  );
-                })}
-              </div>
-            </article>
+            <RankingSecao
+              key={grupo.chave}
+              grupo={grupo}
+              abaRanking={abaRanking}
+              abrirAtleta={abrirAtleta}
+            />
           ))}
         </div>
       )}
     </section>
   );
+}
+
+function RankingSecao({ grupo, abaRanking, abrirAtleta }) {
+  const top3 = grupo.atletas.slice(0, 3);
+  const restante = grupo.atletas.slice(3);
+
+  return (
+    <section className="ranking-secao">
+      <div className="ranking-secao-titulo">
+        <div>
+          <span>{grupo.nomeCompeticao}</span>
+          <h3>{grupo.nomeCategoria}</h3>
+        </div>
+        {grupo.genero && <small>{generos[grupo.genero] || 'Categoria'}</small>}
+      </div>
+
+      {top3.length > 0 && (
+        <div className="ranking-podio-premium">
+          {[top3[1], top3[0], top3[2]].filter(Boolean).map((item) => (
+            <AtletaPodioCard
+              key={item.atletaId}
+              item={item}
+              grupo={grupo}
+              destaque={item.posicao === 1}
+              onClick={() => abrirAtleta(item, grupo)}
+            />
+          ))}
+        </div>
+      )}
+
+      <div className="ranking-lista-compacta">
+        {restante.map((item) => (
+          <AtletaRankingLinha
+            key={item.atletaId}
+            item={item}
+            grupo={grupo}
+            exibirRegiao={abaRanking === 'regiao'}
+            onClick={() => abrirAtleta(item, grupo)}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function AtletaPodioCard({ item, grupo, destaque, onClick }) {
+  const status = obterStatusVisual(item);
+
+  return (
+    <button
+      type="button"
+      className={`ranking-podio-card ${destaque ? 'destaque' : ''}`}
+      onClick={onClick}
+      aria-label={`Abrir dashboard de ${obterNomeExibicaoAtleta(item)}`}
+    >
+      <span className="ranking-posicao-premium">{item.posicao}º</span>
+      <AvatarAtleta item={item} destaque={destaque} />
+      <strong>{obterNomeExibicaoAtleta(item)}</strong>
+      <span className={`ranking-status-dot ${status.classe}`}>{status.texto}</span>
+      <div className="ranking-podio-pontos">
+        <strong>{formatarPontuacao(item.pontos)}</strong>
+        <span>pts</span>
+      </div>
+      <div className="ranking-podio-stats">
+        <span>{item.jogos} jogos</span>
+        <span>{item.vitorias}V</span>
+        <span>{item.derrotas}D</span>
+      </div>
+      <small>{grupo.nomeCategoria}</small>
+    </button>
+  );
+}
+
+function AtletaRankingLinha({ item, exibirRegiao, onClick }) {
+  const status = obterStatusVisual(item);
+  const aproveitamento = calcularAproveitamento(item);
+
+  return (
+    <button
+      type="button"
+      className="ranking-linha-compacta"
+      onClick={onClick}
+      aria-label={`Abrir dashboard de ${obterNomeExibicaoAtleta(item)}`}
+    >
+      <span className="ranking-linha-posicao">#{item.posicao}</span>
+      <AvatarAtleta item={item} />
+      <span className="ranking-linha-info">
+        <strong>{obterNomeExibicaoAtleta(item)}</strong>
+        {exibirRegiao && formatarRegiaoAtleta(item) && <small>{formatarRegiaoAtleta(item)}</small>}
+        <small>{item.jogos} jogos • {item.vitorias} vitórias • {item.derrotas} derrotas</small>
+        <small>{aproveitamento}% aproveitamento</small>
+      </span>
+      <span className="ranking-linha-pontos">
+        <strong>{formatarPontuacao(item.pontos)}</strong>
+        <small>pts</small>
+      </span>
+      <span className={`ranking-status-dot ${status.classe}`}>{status.texto}</span>
+      <FaChevronRight className="ranking-linha-seta" aria-hidden="true" />
+    </button>
+  );
+}
+
+function AvatarAtleta({ item, destaque = false }) {
+  return (
+    <span className={`ranking-avatar ${destaque ? 'destaque' : ''}`}>
+      {destaque ? <FaMedal aria-hidden="true" /> : obterIniciais(item)}
+    </span>
+  );
+}
+
+function normalizarTipoUrl(tipo) {
+  if (tipo === 'competicao') {
+    return 'grupos';
+  }
+
+  if (ABAS_RANKING.some((aba) => aba.valor === tipo)) {
+    return tipo;
+  }
+
+  return '';
 }

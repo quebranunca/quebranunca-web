@@ -190,6 +190,8 @@ export const ROTAS_APP_HEADER = [
   { path: '/perfil-usuario', title: 'Perfil Usuário', tipoTela: TIPOS_TELA.raiz },
   { path: '/app/pendencias', title: 'Pendências', tipoTela: TIPOS_TELA.acao },
   { path: '/atletas', title: 'Atletas', tipoTela: TIPOS_TELA.raiz },
+  { path: '/atletas/:atletaId', title: 'Atleta', tipoTela: TIPOS_TELA.contexto },
+  { path: '/atletas/:atletaId/dashboard', title: 'Atleta', tipoTela: TIPOS_TELA.contexto },
   { path: '/duplas', title: 'Duplas', tipoTela: TIPOS_TELA.raiz },
   { path: '/ligas', title: 'Ligas', tipoTela: TIPOS_TELA.raiz },
   { path: '/locais', title: 'Locais', tipoTela: TIPOS_TELA.raiz },

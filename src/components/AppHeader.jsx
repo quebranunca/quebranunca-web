@@ -41,8 +41,7 @@ function obterConfiguracaoHeader(pathname) {
 export function AppHeader({
   autenticado,
   usuario,
-  estadoAcesso,
-  aoSair
+  estadoAcesso
 }) {
   const location = useLocation();
 
@@ -161,21 +160,7 @@ export function AppHeader({
           />
         )}
 
-        {autenticado ? (
-          <button
-            type="button"
-            className="botao-terciario botao-topo-acao botao-sair-topo"
-            onClick={aoSair}
-            aria-label="Sair"
-            title="Sair"
-          >
-            <ConteudoBotao
-              icone="sair"
-              texto="Sair"
-              somenteIconeNoMobile={false}
-            />
-          </button>
-        ) : (
+        {!autenticado && (
           <NavLink
             to="/login"
             className="botao-terciario botao-topo-acao botao-entrar-topo"
