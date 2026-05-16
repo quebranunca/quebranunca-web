@@ -3,7 +3,6 @@ import { Link, NavLink } from 'react-router-dom';
 import logoLiga from '../../assets/logo-liga.svg';
 
 const mensagemRegistro = 'Para registrar sua partida, entre ou crie sua conta rapidinho.';
-const mensagemCadastro = 'A criação de conta acontece por convite. Entre para continuar ou solicite seu acesso.';
 
 export function PublicHeader() {
   const [menuAberto, setMenuAberto] = useState(false);
@@ -24,26 +23,11 @@ export function PublicHeader() {
         <NavLink to="/ranking" onClick={fecharMenu}>Rankings</NavLink>
         <a href="/#grupos" onClick={fecharMenu}>Grupos</a>
         <NavLink to="/competicoes" onClick={fecharMenu}>Campeonatos</NavLink>
-        <Link
-          to="/login"
-          state={{ mensagem: mensagemCadastro }}
-          className="public-header-link-mobile"
-          onClick={fecharMenu}
-        >
-          Criar Conta
-        </Link>
       </nav>
 
       <div className="public-header-actions">
         <Link to="/login" className="botao-terciario public-header-login">
           Entrar
-        </Link>
-        <Link
-          to="/login"
-          state={{ mensagem: mensagemCadastro }}
-          className="botao-secundario public-header-create"
-        >
-          Criar Conta
         </Link>
         <Link
           to="/login"

@@ -1,8 +1,6 @@
 import { Link } from 'react-router-dom';
 import logoLiga from '../../assets/logo-liga.svg';
 
-const mensagemCadastro = 'A criação de conta acontece por convite. Entre para continuar ou solicite seu acesso.';
-
 export function PublicFooter() {
   return (
     <footer className="public-footer">
@@ -20,7 +18,6 @@ export function PublicFooter() {
         <a href="/#grupos">Grupos</a>
         <Link to="/competicoes">Campeonatos</Link>
         <Link to="/login">Entrar</Link>
-        <Link to="/login" state={{ mensagem: mensagemCadastro }}>Criar Conta</Link>
       </nav>
 
       <nav aria-label="Links institucionais">

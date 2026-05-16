@@ -13,7 +13,6 @@ import {
 import { PlacarDupla } from '../partidas/PlacarDupla';
 
 const mensagemRegistro = 'Para registrar sua partida, entre ou crie sua conta rapidinho.';
-const mensagemCadastro = 'A criação de conta acontece por convite. Entre para continuar ou solicite seu acesso.';
 
 function obterNome(nome, apelido) {
   return apelido || nome || 'Atleta';
@@ -83,11 +82,11 @@ function PublicHero({ dashboard }) {
         <p>A plataforma do futevôlei para atletas, grupos e campeonatos.</p>
 
         <div className="public-hero-actions">
-          <Link to="/login" state={{ mensagem: mensagemCadastro }} className="botao-primario">
-            Criar Conta
-          </Link>
-          <Link to="/login" state={{ mensagem: mensagemRegistro }} className="botao-secundario">
+          <Link to="/login" state={{ mensagem: mensagemRegistro }} className="botao-primario">
             Registrar Partida
+          </Link>
+          <Link to="/login" className="botao-secundario">
+            Entrar
           </Link>
         </div>
       </div>
@@ -299,11 +298,11 @@ export function PublicHome({ dashboard, carregando, erro }) {
           <p>Registre partidas, acompanhe evolução, entre nos rankings e leve seu grupo para dentro do QNF.</p>
         </div>
         <div className="public-hero-actions">
-          <Link to="/login" state={{ mensagem: mensagemCadastro }} className="botao-primario">
-            Criar conta
-          </Link>
-          <Link to="/login" state={{ mensagem: mensagemRegistro }} className="botao-secundario">
+          <Link to="/login" state={{ mensagem: mensagemRegistro }} className="botao-primario">
             Registrar partida
+          </Link>
+          <Link to="/login" className="botao-secundario">
+            Entrar
           </Link>
         </div>
       </section>
