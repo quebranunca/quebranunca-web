@@ -1,8 +1,19 @@
 import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { AppHeader } from '../components/AppHeader';
+import { MobileBottomNavigation } from '../components/MobileBottomNavigation';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { obterItensNavegacao, obterItensNavegacaoPublica } from '../pages/navagacao';
+
+const ROTAS_SEM_BOTTOM_NAV = [
+  /^\/login$/,
+  /^\/cadastro\//,
+  /^\/partidas\/registrar$/,
+  /^\/partidas\/campeonato$/,
+  /^\/partidas\/consulta$/,
+  /^\/campeonatos\//,
+  /^\/grupos\/[^/]+\/atletas$/
+];
  
 export function LayoutPrincipal() {
   const { token, usuario, estadoAcesso, sair } = useAutenticacao();
@@ -14,6 +25,8 @@ export function LayoutPrincipal() {
   const itensMenu = autenticado
     ? obterItensNavegacao(usuario, estadoAcesso)
     : obterItensNavegacaoPublica();
+  const mostrarBottomNavMobile = autenticado &&
+    !ROTAS_SEM_BOTTOM_NAV.some((rota) => rota.test(location.pathname));
 
   useEffect(() => {
     setMenuAberto(false);
@@ -25,7 +38,11 @@ export function LayoutPrincipal() {
   }
 
   return (
-    <div className={`layout-app${homePublica ? ' layout-home-publica' : ''}`}>
+    <div
+      className={`layout-app${homePublica ? ' layout-home-publica' : ''}${
+        autenticado ? ' layout-autenticado' : ''
+      }${mostrarBottomNavMobile ? ' layout-com-bottom-nav' : ''}`}
+    >
       <AppHeader
         autenticado={autenticado}
         usuario={usuario}
@@ -66,6 +83,8 @@ export function LayoutPrincipal() {
       <main className="conteudo-principal">
         <Outlet />
       </main>
+
+      {mostrarBottomNavMobile && <MobileBottomNavigation usuario={usuario} />}
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { usuariosServico } from '../../services/usuariosServico';
 import '../../assets/estilo.css';
+import { RegistrarPartidaNovo } from '../partidas/RegistrarPartidaNovo';
 
 export function Atleta({  })
 {
@@ -11,31 +12,23 @@ export function Atleta({  })
   useEffect(() => {
     let ativo = true;
 
-    async function carregarResumo() {
-      try {
-        const dados = await usuariosServico.obterResumo();
+    async function carregarResumo() {      
+      const dados = await usuariosServico.obterResumo();
 
-        console.log('Resumo do usuário:', dados);
+      console.log('Resumo do usuário:', dados);
 
-        if (!ativo) return;
+      if (!ativo) return;
 
-        setResumoLocal({
-          nome: dados?.nome,
-          totalPartidas: dados?.totalPartidas,
-          totalVitorias: dados?.totalVitorias,
-          totalDerrotas: dados?.totalDerrotas,
-          percentualAproveitamento: dados?.percentualAproveitamento,
-          totalPartidasPendentes: dados?.totalPartidasPendentes,
-          pontos: dados?.pontos,
-          pontosPendentes: dados?.pontosPendentes
-        });
-      } catch (erro) {
-        if (ativo) {
-          console.error('Erro ao carregar resumo do usuário na Home.', erro);
-          setResumoLocal(undefined);
-          setErroLocal(true);
-        }
-      } 
+      setResumoLocal({
+        nome: dados?.nome,
+        totalPartidas: dados?.totalPartidas,
+        totalVitorias: dados?.totalVitorias,
+        totalDerrotas: dados?.totalDerrotas,
+        percentualAproveitamento: dados?.percentualAproveitamento,
+        totalPartidasPendentes: dados?.totalPartidasPendentes,
+        pontos: dados?.pontos,
+        pontosPendentes: dados?.pontosPendentes
+      });       
     }
 
     carregarResumo();
@@ -93,9 +86,7 @@ export function Atleta({  })
           </div>
         </Link>
 
-        <Link to="/partidas/registrar" className="botao-primario home-botao">
-          Registrar partida
-        </Link>           
+        <RegistrarPartidaNovo />      
       </article>
     </section>
   );

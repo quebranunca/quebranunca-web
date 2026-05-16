@@ -31,6 +31,7 @@ export function AppHeader({
   const mostrarMenu = telaRaiz || telaAcao;
   const mostrarVoltar = telaContexto;
   const rotaHome = autenticado ? ROTA_HOME_APP : '/';
+  const tituloMobile = configuracao.title === 'Home' ? 'QuebraNunca' : configuracao.title;
 
   function aoVoltar() {
     const indiceHistorico = window.history.state?.idx;
@@ -49,7 +50,10 @@ export function AppHeader({
         <img className="logo-interno" src={logoLiga} alt="Liga" />
         <div className="marca-texto">
           <p className="marca-subtitulo">Plataforma</p>
-          <h1 className="marca-titulo">QuebraNunca</h1>
+          <h1 className="marca-titulo">
+            <span className="marca-titulo-desktop">QuebraNunca</span>
+            <span className="marca-titulo-mobile">{tituloMobile}</span>
+          </h1>
         </div>
       </NavLink>
 
@@ -101,11 +105,22 @@ export function AppHeader({
         {autenticado && (
           <NotificacoesBotao autenticado={autenticado} />
         )}
+
+        {autenticado && (
+          <NavLink
+            to="/app/perfil"
+            className="botao-terciario botao-topo-icone app-header-perfil-mobile"
+            aria-label="Abrir perfil"
+            title="Abrir perfil"
+          >
+            <span aria-hidden="true">{usuario?.nome?.trim()?.charAt(0)?.toUpperCase() || 'P'}</span>
+          </NavLink>
+        )}
         
         {mostrarMenu && (
           <button
             type="button"
-            className="botao-terciario botao-topo-icone botao-menu-mobile"
+            className="botao-terciario botao-topo-icone botao-menu-mobile botao-menu-principal"
             onClick={aoAlternarMenu}
             aria-expanded={menuAberto}
             aria-controls="menu-principal-app"
@@ -129,7 +144,7 @@ export function AppHeader({
         )}
 
         {autenticado ? (
-          <button type="button" className="botao-terciario botao-topo-icone botao-menu-mobile" onClick={aoSair}>
+          <button type="button" className="botao-terciario botao-topo-icone botao-sair-topo" onClick={aoSair}>
             <ConteudoBotao icone="sair"/>
           </button>
         ) : (

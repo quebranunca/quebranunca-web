@@ -1,4 +1,5 @@
 import { http } from './http';
+import { localizacaoServico } from './localizacaoServico';
 
 export const partidasServico = {
   async listar({ competicaoId, grupoId, categoriaId }) {
@@ -25,8 +26,18 @@ export const partidasServico = {
     return resposta.data;
   },
 
+  async listarRegistradasPorMim() {
+    const resposta = await http.get('/partidas/registradas-por-mim');
+    return resposta.data;
+  },
+
   async obterCompartilhamento(id) {
     const resposta = await http.get(`/partidas/${id}/compartilhamento`);
+    return resposta.data;
+  },
+
+  async verificarDuplicidade(dados) {
+    const resposta = await http.post('/partidas/verificar-duplicidade', dados);
     return resposta.data;
   },
 
@@ -38,13 +49,23 @@ export const partidasServico = {
   },
 
   async criar(dados) {
-    const resposta = await http.post('/partidas', dados);
+    const localizacao = dados?.localizacao === undefined
+      ? await localizacaoServico.obterLocalizacaoAtual()
+      : dados.localizacao;
+    const resposta = await http.post('/partidas', {
+      ...dados,
+      ...(localizacao ? { localizacao } : {})
+    });
     return resposta.data;
   },
 
   async atualizar(id, dados) {
     const resposta = await http.put(`/partidas/${id}`, dados);
     return resposta.data;
+  },
+
+  async atualizarPartida(id, dados) {
+    return this.atualizar(id, dados);
   },
 
   async remover(id) {

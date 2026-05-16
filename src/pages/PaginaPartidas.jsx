@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ConteudoBotao, IconeAcao } from '../components/ConteudoBotao';
+import { ConfirmarDuplicidadePartidaModal } from '../components/partidas/ConfirmarDuplicidadePartidaModal';
 import { atletasServico } from '../services/atletasServico';
 import { categoriasServico } from '../services/categoriasServico';
 import { competicoesServico } from '../services/competicoesServico';
@@ -20,6 +21,7 @@ import {
 } from '../utils/formatacao';
 import { rolarParaElemento, rolarParaTopo } from '../utils/rolagem';
 import { ehAtleta, ehGestorCompeticao, PERFIS_USUARIO } from '../utils/perfis';
+import { criarPayloadVerificacaoDuplicidadePartida } from '../utils/partidas';
 import {
   obterNomeExibicaoAtleta,
   obterNomeExibicaoAtletaCampos,
@@ -508,6 +510,8 @@ export function PaginaPartidas({ modo = 'consulta' }) {
   const [erro, setErro] = useState('');
   const [mensagem, setMensagem] = useState('');
   const [feedbackPendencias, setFeedbackPendencias] = useState([]);
+  const [duplicidadePartida, setDuplicidadePartida] = useState(null);
+  const [payloadDuplicidadePendente, setPayloadDuplicidadePendente] = useState(null);
   const formularioRef = useRef(null);
   const tabelaJogosRef = useRef(null);
 
@@ -1325,47 +1329,30 @@ export function PaginaPartidas({ modo = 'consulta' }) {
     setTimeout(() => rolarParaElemento(formularioRef.current), 0);
   }
 
-  async function aoSubmeter(evento) {
-    evento.preventDefault();
-    setErro('');
-    setMensagem('');
-    setFeedbackPendencias([]);
-
-    if (competicaoSelecionada && !grupoSelecionado && !formulario.categoriaCompeticaoId) {
-      setErro('Selecione a categoria antes de salvar a partida.');
-      return;
+  function criarPayloadVerificacaoDuplicidadeFormulario(dados) {
+    if (usandoCadastroPorAtletas) {
+      return criarPayloadVerificacaoDuplicidadePartida(dados);
     }
 
-    if (placaresFormularioParciais) {
-      setErro('Informe os pontos das duas duplas para encerrar a partida.');
-      return;
-    }
+    const duplaA = duplas.find((dupla) => dupla.id === dados.duplaAId);
+    const duplaB = duplas.find((dupla) => dupla.id === dados.duplaBId);
 
-    setSalvando(true);
-
-    const dados = {
-      competicaoId: grupoSelecionado ? null : competicaoSelecionada?.id || null,
-      grupoId: grupoSelecionado ? competicaoSelecionada?.id || null : null,
-      nomeGrupo: competicaoSelecionada ? null : formulario.nomeGrupo.trim() || null,
-      categoriaCompeticaoId: formulario.categoriaCompeticaoId || null,
-      duplaAId: usandoCadastroPorAtletas ? null : formulario.duplaAId,
-      duplaBId: usandoCadastroPorAtletas ? null : formulario.duplaBId,
-      duplaAAtleta1Id: usandoCadastroPorAtletas ? formulario.duplaAAtleta1Id || null : null,
-      duplaAAtleta1Nome: usandoCadastroPorAtletas ? formulario.duplaAAtleta1Nome.trim() || null : null,
-      duplaAAtleta2Id: usandoCadastroPorAtletas ? formulario.duplaAAtleta2Id || null : null,
-      duplaAAtleta2Nome: usandoCadastroPorAtletas ? formulario.duplaAAtleta2Nome.trim() || null : null,
-      duplaBAtleta1Id: usandoCadastroPorAtletas ? formulario.duplaBAtleta1Id || null : null,
-      duplaBAtleta1Nome: usandoCadastroPorAtletas ? formulario.duplaBAtleta1Nome.trim() || null : null,
-      duplaBAtleta2Id: usandoCadastroPorAtletas ? formulario.duplaBAtleta2Id || null : null,
-      duplaBAtleta2Nome: usandoCadastroPorAtletas ? formulario.duplaBAtleta2Nome.trim() || null : null,
-      faseCampeonato: competicaoSelecionada?.tipo === 1 ? formulario.faseCampeonato || null : null,
-      status: statusFormularioEfetivo,
-      placarDuplaA: statusFormularioEfetivo === 2 && podeLancarResultado ? Number(formulario.placarDuplaA) : null,
-      placarDuplaB: statusFormularioEfetivo === 2 && podeLancarResultado ? Number(formulario.placarDuplaB) : null,
-      dataPartida: paraIsoUtc(formulario.dataPartida),
-      observacoes: formulario.observacoes || null
+    return {
+      dupla1: {
+        atletaDireita: duplaA?.nomeAtleta1,
+        atletaEsquerda: duplaA?.nomeAtleta2,
+        pontos: dados.placarDuplaA
+      },
+      dupla2: {
+        atletaDireita: duplaB?.nomeAtleta1,
+        atletaEsquerda: duplaB?.nomeAtleta2,
+        pontos: dados.placarDuplaB
+      },
+      data: dados.dataPartida || new Date().toISOString()
     };
+  }
 
+  async function salvarDadosPartida(dados) {
     try {
       let partidaSalva;
       if (partidaEdicaoId) {
@@ -1376,6 +1363,8 @@ export function PaginaPartidas({ modo = 'consulta' }) {
 
       const pendenciasSemContato = (partidaSalva?.atletasPendentes || []).filter((item) => !item.temEmail);
       cancelarEdicao();
+      setDuplicidadePartida(null);
+      setPayloadDuplicidadePendente(null);
       setMensagem(
         partidaEdicaoId
           ? competicaoComInscricoes && !tabelaJogosAprovada
@@ -1429,6 +1418,80 @@ export function PaginaPartidas({ modo = 'consulta' }) {
       setErro(extrairMensagemErro(error));
     } finally {
       setSalvando(false);
+    }
+  }
+
+  async function aoSubmeter(evento) {
+    evento.preventDefault();
+    setErro('');
+    setMensagem('');
+    setFeedbackPendencias([]);
+
+    if (competicaoSelecionada && !grupoSelecionado && !formulario.categoriaCompeticaoId) {
+      setErro('Selecione a categoria antes de salvar a partida.');
+      return;
+    }
+
+    if (placaresFormularioParciais) {
+      setErro('Informe os pontos das duas duplas para encerrar a partida.');
+      return;
+    }
+
+    setSalvando(true);
+
+    const dados = {
+      competicaoId: grupoSelecionado ? null : competicaoSelecionada?.id || null,
+      grupoId: grupoSelecionado ? competicaoSelecionada?.id || null : null,
+      nomeGrupo: competicaoSelecionada ? null : formulario.nomeGrupo.trim() || null,
+      categoriaCompeticaoId: formulario.categoriaCompeticaoId || null,
+      duplaAId: usandoCadastroPorAtletas ? null : formulario.duplaAId,
+      duplaBId: usandoCadastroPorAtletas ? null : formulario.duplaBId,
+      duplaAAtleta1Id: usandoCadastroPorAtletas ? formulario.duplaAAtleta1Id || null : null,
+      duplaAAtleta1Nome: usandoCadastroPorAtletas ? formulario.duplaAAtleta1Nome.trim() || null : null,
+      duplaAAtleta2Id: usandoCadastroPorAtletas ? formulario.duplaAAtleta2Id || null : null,
+      duplaAAtleta2Nome: usandoCadastroPorAtletas ? formulario.duplaAAtleta2Nome.trim() || null : null,
+      duplaBAtleta1Id: usandoCadastroPorAtletas ? formulario.duplaBAtleta1Id || null : null,
+      duplaBAtleta1Nome: usandoCadastroPorAtletas ? formulario.duplaBAtleta1Nome.trim() || null : null,
+      duplaBAtleta2Id: usandoCadastroPorAtletas ? formulario.duplaBAtleta2Id || null : null,
+      duplaBAtleta2Nome: usandoCadastroPorAtletas ? formulario.duplaBAtleta2Nome.trim() || null : null,
+      faseCampeonato: competicaoSelecionada?.tipo === 1 ? formulario.faseCampeonato || null : null,
+      status: statusFormularioEfetivo,
+      placarDuplaA: statusFormularioEfetivo === 2 && podeLancarResultado ? Number(formulario.placarDuplaA) : null,
+      placarDuplaB: statusFormularioEfetivo === 2 && podeLancarResultado ? Number(formulario.placarDuplaB) : null,
+      dataPartida: paraIsoUtc(formulario.dataPartida),
+      observacoes: formulario.observacoes || null,
+      permitirDuplicidade: false
+    };
+
+    if (!partidaEdicaoId && !dados.permitirDuplicidade) {
+      try {
+        const verificacao = await partidasServico.verificarDuplicidade(criarPayloadVerificacaoDuplicidadeFormulario(dados));
+
+        if (verificacao?.existeDuplicidade) {
+          setDuplicidadePartida(verificacao);
+          setPayloadDuplicidadePendente(dados);
+          setSalvando(false);
+          return;
+        }
+      } catch (error) {
+        setErro(extrairMensagemErro(error));
+        setSalvando(false);
+        return;
+      }
+    }
+
+    await salvarDadosPartida(dados);
+  }
+
+  function cancelarDuplicidadePartida() {
+    setDuplicidadePartida(null);
+    setPayloadDuplicidadePendente(null);
+  }
+
+  function confirmarDuplicidadePartida() {
+    if (payloadDuplicidadePendente) {
+      setSalvando(true);
+      salvarDadosPartida({ ...payloadDuplicidadePendente, permitirDuplicidade: true });
     }
   }
 
@@ -2346,6 +2409,15 @@ export function PaginaPartidas({ modo = 'consulta' }) {
           )}
         </div>
       ) : null}
+
+      {duplicidadePartida && (
+        <ConfirmarDuplicidadePartidaModal
+          mensagem={`${duplicidadePartida.mensagem || 'Já existe uma partida registrada hoje com os mesmos atletas e o mesmo placar.'} Deseja salvar mesmo assim?`}
+          salvando={salvando}
+          onCancelar={cancelarDuplicidadePartida}
+          onConfirmar={confirmarDuplicidadePartida}
+        />
+      )}
     </section>
   );
 }

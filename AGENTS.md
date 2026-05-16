@@ -24,6 +24,8 @@ Seguir o `AGENTS.md` da raiz. Neste diretório, além disso:
 - `Usuários` existe apenas para administrador; esconder rota e menu fora desse perfil
 - `Partidas` deve exibir a tabela de jogos da categoria; administrador e organizador podem gerar/alterar jogos, respeitando ownership da competição
 - `Partidas` em grupo deve permitir fluxo único: frontend coleta nomes completos ou seleção de atletas existentes, e a API reaproveita ou cria atleta e dupla no próprio registro da partida
+- Registro de partida deve consultar a validação de possível duplicidade do backend antes de salvar e exibir confirmação visual; não usar `window.confirm` para esse aviso quando houver modal visual no fluxo
+- `Minhas partidas registradas` deve listar partidas cadastradas pelo usuário logado e não deve ser misturada com `Meus Jogos`, que lista partidas em que o atleta vinculado participou
 - Em dupla eliminação, `Partidas` deve deixar claro se o jogo pertence à chave vencedora, perdedora, final ou final reset
 - `Ranking` já possui modos de liga e competição; o da liga é consolidado e o da competição segue separado por categoria
 - `Ranking` deve exibir atletas sem usuário como pendentes no mesmo ranking, sem tela ou cálculo paralelo de pontos
@@ -40,3 +42,4 @@ Seguir o `AGENTS.md` da raiz. Neste diretório, além disso:
 - `Meu Perfil` é a tela padrão para conclusão de `PrimeiroAcesso` e de `CadastroIncompleto`
 - Organizador e administrador não devem ser forçados a criar atleta para concluir o acesso
 - Preservar as rotas existentes sempre que possível; preferir aliases e redirecionamentos pontuais a uma quebra ampla de URLs
+- No mobile autenticado, priorizar layout mobile first com header simples e bottom navigation fixa; evitar sidebar, rodapé tradicional e menu hambúrguer como navegação principal.

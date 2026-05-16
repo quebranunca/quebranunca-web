@@ -62,6 +62,12 @@ const ITENS_NAVEGACAO = [
     visivel: ({ gestorCompeticao, atleta, estadoAtivo }) => estadoAtivo && (gestorCompeticao || atleta)
   },
   {
+    caminho: '/minhas-partidas-registradas',
+    nome: 'Minhas Partidas Registradas',
+    descricao: 'Veja e edite partidas que você cadastrou, mesmo quando não participou do jogo.',
+    visivel: ({ gestorCompeticao, atleta, estadoAtivo }) => estadoAtivo && (gestorCompeticao || atleta)
+  },
+  {
     caminho: '/ranking',
     nome: 'Ranking',
     descricao: 'Consulte os pontos por liga e competição.',
@@ -180,6 +186,7 @@ export const ROTAS_APP_HEADER = [
   { path: '/dashboard', title: 'Painel', tipoTela: TIPOS_TELA.raiz },
   { path: '/app/perfil', title: 'Meu Perfil', tipoTela: TIPOS_TELA.raiz },
   { path: '/app/meus-jogos', title: 'Meus Jogos', tipoTela: TIPOS_TELA.acao },
+  { path: '/minhas-partidas-registradas', title: 'Minhas Partidas Registradas', tipoTela: TIPOS_TELA.acao },
   { path: '/perfil-usuario', title: 'Perfil Usuário', tipoTela: TIPOS_TELA.raiz },
   { path: '/app/pendencias', title: 'Pendências', tipoTela: TIPOS_TELA.acao },
   { path: '/atletas', title: 'Atletas', tipoTela: TIPOS_TELA.raiz },

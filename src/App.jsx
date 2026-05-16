@@ -23,6 +23,7 @@ import { PaginaRegistrarPartidas } from './pages/PaginaRegistrarPartidas1';
 import { PaginaConsultaPartidas } from './pages/PaginaConsultaPartidas';
 import { PaginaPartidasCampeonato } from './pages/PaginaPartidasCampeonato';
 import { PaginaMeusJogos } from './pages/PaginaMeusJogos';
+import { MinhasPartidasRegistradasPagina } from './pages/MinhasPartidasRegistradasPagina';
 import { PaginaMeuPerfil } from './pages/PaginaMeuPerfil';
 import { PaginaPerfilUsuario } from './pages/PaginaPerfilUsuario';
 import { PaginaPendenciasAtletas } from './pages/PaginaPendenciasAtletas';
@@ -64,6 +65,17 @@ export default function App() {
               estadosPermitidos={[ESTADOS_ACESSO.ativo]}
             >
               <PaginaMeusJogos />
+            </RotaProtegida>
+          }
+        />
+        <Route
+          path="/minhas-partidas-registradas"
+          element={
+            <RotaProtegida
+              perfisPermitidos={[PERFIS_USUARIO.administrador, PERFIS_USUARIO.organizador, PERFIS_USUARIO.atleta]}
+              estadosPermitidos={[ESTADOS_ACESSO.ativo]}
+            >
+              <MinhasPartidasRegistradasPagina />
             </RotaProtegida>
           }
         />

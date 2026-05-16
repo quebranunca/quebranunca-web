@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
+import { ConfirmarDuplicidadePartidaModal } from '../components/partidas/ConfirmarDuplicidadePartidaModal';
 import { gruposServico } from '../services/gruposServico';
 import { partidasServico } from '../services/partidasServico';
+import { criarPayloadVerificacaoDuplicidadePartida } from '../utils/partidas';
 
 const estadoInicial = {
   grupoId: '',
@@ -19,6 +21,8 @@ export function PaginaRegistrarPartidas() {
   const [carregandoGrupos, setCarregandoGrupos] = useState(false);
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState('');
+  const [duplicidade, setDuplicidade] = useState(null);
+  const [payloadPendente, setPayloadPendente] = useState(null);
 
   useEffect(() => {
     async function carregarGrupos() {
@@ -44,24 +48,25 @@ export function PaginaRegistrarPartidas() {
     }));
   }
 
-  async function aoSubmeter(evento) {
-    evento.preventDefault();
-    setErro('');
-
+  function validarFormulario() {
     if (!formulario.duplaAAtleta1Nome.trim() ||
-        !formulario.duplaAAtleta2Nome.trim() ||
-        !formulario.duplaBAtleta1Nome.trim() ||
-        !formulario.duplaBAtleta2Nome.trim()) {
+      !formulario.duplaAAtleta2Nome.trim() ||
+      !formulario.duplaBAtleta1Nome.trim() ||
+      !formulario.duplaBAtleta2Nome.trim()) {
       setErro('Informe o nome dos 4 atletas.');
-      return;
+      return false;
     }
 
     if (formulario.placarDuplaA === '' || formulario.placarDuplaB === '') {
       setErro('Informe os pontos das duas duplas.');
-      return;
+      return false;
     }
 
-    const payload = {
+    return true;
+  }
+
+  function criarPayload(permitirDuplicidade = false) {
+    return {
       competicaoId: null,
       grupoId: formulario.grupoId || null,
       nomeGrupo: null,
@@ -86,19 +91,63 @@ export function PaginaRegistrarPartidas() {
       dataPartida: formulario.dataPartida
         ? new Date(formulario.dataPartida).toISOString()
         : null,
-      observacoes: null
+      observacoes: null,
+      permitirDuplicidade
     };
+  }
 
+  async function salvarPartida(payload) {
     try {
       setSalvando(true);
 
       await partidasServico.criar(payload);
 
       setFormulario(estadoInicial);
+      setDuplicidade(null);
+      setPayloadPendente(null);
     } catch (error) {
       setErro('Erro ao registrar partida.');
     } finally {
       setSalvando(false);
+    }
+  }
+
+  async function aoSubmeter(evento) {
+    evento.preventDefault();
+    setErro('');
+
+    if (!validarFormulario()) {
+      return;
+    }
+
+    const payload = criarPayload();
+
+    try {
+      setSalvando(true);
+      const verificacao = await partidasServico.verificarDuplicidade(criarPayloadVerificacaoDuplicidadePartida(payload));
+
+      if (verificacao?.existeDuplicidade) {
+        setDuplicidade(verificacao);
+        setPayloadPendente(payload);
+        setSalvando(false);
+        return;
+      }
+
+      await salvarPartida(payload);
+    } catch (error) {
+      setErro('Erro ao verificar duplicidade da partida.');
+      setSalvando(false);
+    }
+  }
+
+  function cancelarDuplicidade() {
+    setDuplicidade(null);
+    setPayloadPendente(null);
+  }
+
+  function confirmarDuplicidade() {
+    if (payloadPendente) {
+      salvarPartida({ ...payloadPendente, permitirDuplicidade: true });
     }
   }
 
@@ -211,6 +260,15 @@ export function PaginaRegistrarPartidas() {
           </button>
         </div>
       </form>
+
+      {duplicidade && (
+        <ConfirmarDuplicidadePartidaModal
+          mensagem={`${duplicidade.mensagem || 'Já existe uma partida registrada hoje com os mesmos atletas e o mesmo placar.'} Deseja salvar mesmo assim?`}
+          salvando={salvando}
+          onCancelar={cancelarDuplicidade}
+          onConfirmar={confirmarDuplicidade}
+        />
+      )}
     </section>
   );
 }

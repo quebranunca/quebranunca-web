@@ -154,3 +154,19 @@ export function ordenarPartidasRecentes(partidas) {
     return dataB - dataA;
   });
 }
+
+export function criarPayloadVerificacaoDuplicidadePartida(partida) {
+  return {
+    dupla1: {
+      atletaDireita: partida.duplaAAtleta1Nome,
+      atletaEsquerda: partida.duplaAAtleta2Nome,
+      pontos: partida.placarDuplaA
+    },
+    dupla2: {
+      atletaDireita: partida.duplaBAtleta1Nome,
+      atletaEsquerda: partida.duplaBAtleta2Nome,
+      pontos: partida.placarDuplaB
+    },
+    data: partida.dataPartida || new Date().toISOString()
+  };
+}

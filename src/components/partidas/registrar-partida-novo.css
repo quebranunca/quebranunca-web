@@ -1,0 +1,111 @@
+.registrar-partida-novo-sobreposicao {
+  align-items: center;
+  justify-content: center;
+  z-index: 11000;
+  background: rgba(18, 20, 22, 0.72);
+  backdrop-filter: blur(8px) saturate(0.8);
+  -webkit-backdrop-filter: blur(8px) saturate(0.8);
+}
+
+.registrar-partida-novo-modal {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+  transform: none;
+  border-radius: 0;
+  border-color: rgba(255, 255, 255, 0.14);
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.62);
+}
+
+.registrar-partida-novo-cabecalho {
+  width: min(420px, 100%);
+  gap: 0.85rem;
+  justify-content: center;
+  text-align: center;
+}
+
+.registrar-partida-novo-progresso {
+  display: inline-flex;
+  width: fit-content;
+  margin-bottom: 0.4rem;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--raio-sm);
+  background: var(--color-card-secondary);
+  color: var(--color-text-secondary);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.registrar-partida-novo-fechar {
+  position: absolute;
+  top: 0.55rem;
+  right: 0.65rem;
+  z-index: 2;
+  width: auto;
+  min-width: 0;
+  height: 1.9rem;
+  min-height: 1.9rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0 0.55rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.registrar-partida-novo-fechar strong {
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.registrar-partida-novo-fechar:hover:not(:disabled) {
+  background: var(--color-card-secondary);
+  border-color: var(--color-border);
+  color: var(--color-text-primary);
+}
+
+.registrar-partida-novo-formulario {
+  width: min(420px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-md);
+  align-items: stretch;
+}
+
+.registrar-partida-novo-acoes {
+  justify-content: center;
+}
+
+@media (max-width: 520px) {
+  .registrar-partida-novo-sobreposicao {
+    padding: 0.65rem;
+  }
+
+  .registrar-partida-novo-modal {
+    width: 100vw;
+    height: 100dvh;
+  }
+
+  .registrar-partida-novo-cabecalho {
+    flex-direction: column;
+  }
+
+  .registrar-partida-novo-acoes button {
+    width: 100%;
+  }
+}

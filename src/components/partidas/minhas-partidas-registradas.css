@@ -1,0 +1,109 @@
+.minhas-partidas-registradas-cabecalho,
+.minhas-partidas-registradas-card-topo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--espaco-md);
+}
+
+.minhas-partidas-registradas-cabecalho {
+  flex-wrap: wrap;
+}
+
+.minhas-partidas-registradas-lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--espaco-md);
+}
+
+.minhas-partidas-registradas-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-md);
+}
+
+.minhas-partidas-registradas-card h3,
+.minhas-partidas-registradas-card p {
+  margin: 0;
+}
+
+.minhas-partidas-registradas-status {
+  display: flex;
+  align-items: flex-end;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.minhas-partidas-registradas-confronto {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: var(--espaco-md);
+}
+
+.minhas-partidas-registradas-confronto .secao-dupla-partida p,
+.minhas-partidas-registradas-formulario .secao-dupla-partida p {
+  margin: 0;
+}
+
+.minhas-partidas-registradas-sobreposicao {
+  align-items: flex-end;
+}
+
+.minhas-partidas-registradas-modal {
+  position: relative;
+  width: min(620px, 100%);
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+}
+
+.minhas-partidas-registradas-fechar {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
+  z-index: 2;
+  width: 1.9rem;
+  min-width: 1.9rem;
+  height: 1.9rem;
+  min-height: 1.9rem;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 1.15rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.minhas-partidas-registradas-fechar:hover:not(:disabled) {
+  background: var(--color-card-secondary);
+  border-color: var(--color-border);
+  color: var(--color-text-primary);
+}
+
+.minhas-partidas-registradas-formulario {
+  box-shadow: none;
+}
+
+@media (min-width: 640px) {
+  .minhas-partidas-registradas-sobreposicao {
+    align-items: center;
+  }
+}
+
+@media (max-width: 560px) {
+  .minhas-partidas-registradas-card-topo,
+  .minhas-partidas-registradas-cabecalho {
+    flex-direction: column;
+  }
+
+  .minhas-partidas-registradas-status,
+  .minhas-partidas-registradas-cabecalho .botao-primario,
+  .minhas-partidas-registradas-formulario .acoes-formulario button {
+    width: 100%;
+  }
+
+  .minhas-partidas-registradas-status {
+    align-items: stretch;
+  }
+}
