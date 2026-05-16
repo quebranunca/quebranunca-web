@@ -37,6 +37,7 @@ Seguir o `AGENTS.md` da raiz. Neste diretório, além disso:
 
 ## Acesso no frontend
 - Centralizar guardas de rota, landing page e menu a partir de perfil e estado do usuário
+- Rotas públicas de leitura devem permanecer acessíveis para visitante e usuário logado; botões de criação/edição/exclusão só aparecem quando o usuário pode executar a ação
 - Perfis principais: Visitante, Atleta, Organizador e Administrador
 - Estados de acesso podem incluir `PrimeiroAcesso`, `CadastroIncompleto` e `Ativo`; se a API ainda não expuser o estado de forma explícita, o frontend pode inferi-lo de maneira previsível a partir da sessão atual
 - `Meu Perfil` é a tela padrão para conclusão de `PrimeiroAcesso` e de `CadastroIncompleto`

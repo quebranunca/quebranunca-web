@@ -3,11 +3,12 @@ import { useSearchParams } from 'react-router-dom';
 import { ConteudoBotao } from '../components/ConteudoBotao';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { atletasServico } from '../services/atletasServico';
+import { ESTADOS_ACESSO } from '../utils/acesso';
 import { extrairMensagemErro } from '../utils/erros';
 import { formatarData, normalizarDataParaApi, paraInputData } from '../utils/formatacao';
 import { nomeNivelAtleta, opcoesNivelAtleta } from '../utils/niveisAtleta';
 import { rolarParaElemento, rolarParaTopo } from '../utils/rolagem';
-import { ehOrganizador } from '../utils/perfis';
+import { PERFIS_USUARIO, ehAdministrador, ehOrganizador } from '../utils/perfis';
 import { obterNomeExibicaoAtleta } from '../utils/atletaUtils';
 
 const estadoInicial = {
@@ -33,8 +34,11 @@ const lados = [
 ];
 
 export function PaginaAtletas() {
-  const { usuario } = useAutenticacao();
+  const { usuario, estadoAcesso } = useAutenticacao();
+  const usuarioAtivo = estadoAcesso === ESTADOS_ACESSO.ativo;
+  const usuarioAdministrador = ehAdministrador(usuario);
   const usuarioOrganizador = ehOrganizador(usuario);
+  const usuarioGestorAtletas = usuarioAtivo && (usuarioAdministrador || usuarioOrganizador);
   const [params] = useSearchParams();
   const [atletas, setAtletas] = useState([]);
   const [formulario, setFormulario] = useState(estadoInicial);
@@ -47,7 +51,7 @@ export function PaginaAtletas() {
 
   useEffect(() => {
     carregarAtletas();
-  }, [usuarioOrganizador]);
+  }, [usuarioGestorAtletas, usuarioOrganizador]);
 
   useEffect(() => {
     const atletaId = params.get('atletaId');
@@ -67,7 +71,8 @@ export function PaginaAtletas() {
 
     try {
       const lista = await atletasServico.listar({
-        somenteInscritosMinhasCompeticoes: usuarioOrganizador
+        somenteInscritosMinhasCompeticoes: usuarioOrganizador,
+        dadosGerenciais: usuarioGestorAtletas
       });
       setAtletas(lista);
     } catch (error) {
@@ -113,6 +118,22 @@ export function PaginaAtletas() {
     setFormulario(estadoInicial);
     setFormularioAberto(true);
     setTimeout(() => rolarParaElemento(formularioRef.current), 0);
+  }
+
+  function podeEditarAtleta(atleta) {
+    if (!usuarioAtivo || !usuario) {
+      return false;
+    }
+
+    return usuarioGestorAtletas && (
+      usuarioAdministrador ||
+      atleta.usuarioCriadorId === usuario.id ||
+      atleta.id === usuario.atletaId
+    );
+  }
+
+  function podeExcluirAtleta() {
+    return usuarioAtivo && Number(usuario?.perfil) === PERFIS_USUARIO.administrador;
   }
 
   async function aoSubmeter(evento) {
@@ -178,7 +199,7 @@ export function PaginaAtletas() {
         </p>
       </div>
 
-      {!formularioAberto && (
+      {usuarioGestorAtletas && !formularioAberto && (
         <div className="acoes-item campo-largo">
           <button type="button" className="botao-primario" onClick={abrirFormulario}>
             Novo atleta
@@ -341,29 +362,35 @@ export function PaginaAtletas() {
               <div>
                 <h3>{obterNomeExibicaoAtleta(atleta)}</h3>
                 <p>Apelido: {atleta.apelido || '-'}</p>
-                <p>Telefone: {atleta.telefone || '-'}</p>
-                <p>E-mail: {atleta.email || '-'}</p>
+                {podeEditarAtleta(atleta) && atleta.telefone && <p>Telefone: {atleta.telefone}</p>}
+                {podeEditarAtleta(atleta) && atleta.email && <p>E-mail: {atleta.email}</p>}
                 <p>Instagram: {atleta.instagram || '-'}</p>
-                <p>CPF: {atleta.cpf || '-'}</p>
+                {podeEditarAtleta(atleta) && atleta.cpf && <p>CPF: {atleta.cpf}</p>}
                 <p>Nível: {nomeNivelAtleta(atleta.nivel)}</p>
                 <p>Bairro: {atleta.bairro || '-'}</p>
                 <p>Cidade: {atleta.cidade || '-'}</p>
                 <p>Estado: {atleta.estado || '-'}</p>
                 <p>Status: {atleta.cadastroPendente ? 'Cadastro pendente' : 'Cadastro completo'}</p>
                 <p>Lado: {lados.find((lado) => Number(lado.valor) === atleta.lado)?.rotulo || '-'}</p>
-                <p>Nascimento: {formatarData(atleta.dataNascimento)}</p>
+                {podeEditarAtleta(atleta) && <p>Nascimento: {formatarData(atleta.dataNascimento)}</p>}
                 <p>Criado por: {atleta.nomeUsuarioCriador || '-'}</p>
                 <p>Criado em: {formatarData(atleta.dataCriacao)}</p>
               </div>
 
-              <div className="acoes-item">
-                <button type="button" className="botao-secundario botao-editar" onClick={() => iniciarEdicao(atleta)}>
-                  Editar
-                </button>
-                <button type="button" className="botao-perigo" onClick={() => removerAtleta(atleta.id)}>
-                  Excluir
-                </button>
-              </div>
+              {(podeEditarAtleta(atleta) || podeExcluirAtleta()) && (
+                <div className="acoes-item">
+                  {podeEditarAtleta(atleta) && (
+                    <button type="button" className="botao-secundario botao-editar" onClick={() => iniciarEdicao(atleta)}>
+                      Editar
+                    </button>
+                  )}
+                  {podeExcluirAtleta() && (
+                    <button type="button" className="botao-perigo" onClick={() => removerAtleta(atleta.id)}>
+                      Excluir
+                    </button>
+                  )}
+                </div>
+              )}
             </article>
           ))}
 

@@ -2,7 +2,8 @@ import { http } from './http';
 
 export const atletasServico = {
   async listar(filtros = {}) {
-    const resposta = await http.get('/atletas', {
+    const url = filtros.dadosGerenciais ? '/atletas/gerencial' : '/atletas';
+    const resposta = await http.get(url, {
       params: filtros.somenteInscritosMinhasCompeticoes
         ? { somenteInscritosMinhasCompeticoes: true }
         : undefined

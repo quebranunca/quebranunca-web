@@ -233,9 +233,15 @@ export function PaginaGrupos() {
                   <span>Criado por: {grupo.nomeUsuarioOrganizador || 'Não informado'}</span>                             
                 </div>
                 <div className="acoes-item competicao-card-acoes">
-                  <button type="button" className="botao-primario" onClick={() => navegar(`/partidas/registrar?grupoId=${grupo.id}`)}>
-                    Registrar partida
-                  </button>
+                  {usuarioAtivo ? (
+                    <button type="button" className="botao-primario" onClick={() => navegar(`/partidas/registrar?grupoId=${grupo.id}`)}>
+                      Registrar partida
+                    </button>
+                  ) : (
+                    <button type="button" className="botao-secundario" onClick={() => navegar('/login')}>
+                      Entrar para registrar
+                    </button>
+                  )}
                   <button type="button" className="botao-primario" onClick={() => navegar(`/grupos/${grupo.id}/atletas`)}>
                     Atletas do grupo
                   </button>               

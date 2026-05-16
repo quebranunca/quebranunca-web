@@ -372,8 +372,8 @@ export function PaginaGrupoAtletas() {
                   <div>
                     <h3>{obterNomeExibicaoAtleta(item)}</h3>
                     <p>Apelido: {item.apelidoAtleta || '-'}</p>
-                    <p>Email: {item.emailAtleta || 'Pendente'}</p>
-                    <p>Cadastro no sistema: {item.cadastroPendente ? 'Pendente' : 'Completo'}</p>
+                    {gerenciavel && <p>Email: {item.emailAtleta || 'Pendente'}</p>}
+                    {gerenciavel && <p>Cadastro no sistema: {item.cadastroPendente ? 'Pendente' : 'Completo'}</p>}
                     <p>Usuário vinculado: {item.vinculadoAUsuario ? 'Sim' : 'Não'}</p>
                   </div>
 

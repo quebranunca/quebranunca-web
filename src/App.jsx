@@ -46,6 +46,14 @@ export default function App() {
         <Route path="/ranking/liga" element={<RankingLiga />} />
         <Route path="/competicoes" element={<PaginaCompeticoes />} />
         <Route path="/inscricoes" element={<PaginaInscricoesCampeonato />} />
+        <Route path="/atletas" element={<PaginaAtletas />} />
+        <Route path="/atletas/:atletaId" element={<PaginaAtletas />} />
+        <Route path="/grupos" element={<PaginaGrupos />} />
+        <Route path="/grupos/:grupoId" element={<PaginaGrupoAtletas />} />
+        <Route path="/grupos/:grupoId/atletas" element={<PaginaGrupoAtletas />} />
+        <Route path="/partidas" element={<RedirecionamentoPartidas />} />
+        <Route path="/partidas/consulta" element={<PaginaConsultaPartidas />} />
+        <Route path="/partidas/campeonato" element={<PaginaPartidasCampeonato />} />
       </Route>
 
       <Route
@@ -167,17 +175,6 @@ export default function App() {
           element={<Navigate to="/pendencias" replace />}
         />
         <Route
-          path="/atletas"
-          element={
-            <RotaProtegida
-              perfisPermitidos={[PERFIS_USUARIO.administrador, PERFIS_USUARIO.organizador]}
-              estadosPermitidos={[ESTADOS_ACESSO.ativo]}
-            >
-              <PaginaAtletas />
-            </RotaProtegida>
-          }
-        />
-        <Route
           path="/duplas"
           element={
             <RotaProtegida
@@ -277,39 +274,6 @@ export default function App() {
           }
         />
         <Route
-          path="/grupos"
-          element={
-            <RotaProtegida
-              perfisPermitidos={[PERFIS_USUARIO.administrador, PERFIS_USUARIO.organizador, PERFIS_USUARIO.atleta]}
-              estadosPermitidos={[ESTADOS_ACESSO.ativo]}
-            >
-              <PaginaGrupos />
-            </RotaProtegida>
-          }
-        />
-        <Route
-          path="/grupos/:grupoId/atletas"
-          element={
-            <RotaProtegida
-              perfisPermitidos={[PERFIS_USUARIO.administrador, PERFIS_USUARIO.organizador, PERFIS_USUARIO.atleta]}
-              estadosPermitidos={[ESTADOS_ACESSO.ativo]}
-            >
-              <PaginaGrupoAtletas />
-            </RotaProtegida>
-          }
-        />
-        <Route
-          path="/partidas"
-          element={
-            <RotaProtegida
-              perfisPermitidos={[PERFIS_USUARIO.administrador, PERFIS_USUARIO.organizador, PERFIS_USUARIO.atleta]}
-              estadosPermitidos={[ESTADOS_ACESSO.ativo]}
-            >
-              <RedirecionamentoPartidas />
-            </RotaProtegida>
-          }
-        />
-        <Route
           path="/partidas/registrar"
           element={
             <RotaProtegida
@@ -317,28 +281,6 @@ export default function App() {
               estadosPermitidos={[ESTADOS_ACESSO.ativo]}
             >
               <PaginaRegistrarPartidas />
-            </RotaProtegida>
-          }
-        />
-        <Route
-          path="/partidas/consulta"
-          element={
-            <RotaProtegida
-              perfisPermitidos={[PERFIS_USUARIO.administrador, PERFIS_USUARIO.organizador, PERFIS_USUARIO.atleta]}
-              estadosPermitidos={[ESTADOS_ACESSO.ativo]}
-            >
-              <PaginaConsultaPartidas />
-            </RotaProtegida>
-          }
-        />
-        <Route
-          path="/partidas/campeonato"
-          element={
-            <RotaProtegida
-              perfisPermitidos={[PERFIS_USUARIO.administrador, PERFIS_USUARIO.organizador, PERFIS_USUARIO.atleta]}
-              estadosPermitidos={[ESTADOS_ACESSO.ativo]}
-            >
-              <PaginaPartidasCampeonato />
             </RotaProtegida>
           }
         />

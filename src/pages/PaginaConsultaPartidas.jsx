@@ -71,7 +71,7 @@ export function PaginaConsultaPartidas() {
   }
 
   async function removerPartida(partida) {
-    if (!administradorLogado || !partida?.id) {
+    if (!podeRemoverPartida(partida)) {
       return;
     }
 
@@ -94,6 +94,12 @@ export function PaginaConsultaPartidas() {
         return proximosIds;
       });
     }
+  }
+
+  function podeRemoverPartida(partida) {
+    return Boolean(partida?.id && usuario && (
+      administradorLogado || partida.criadoPorUsuarioId === usuario.id
+    ));
   }
 
   return (
@@ -167,8 +173,8 @@ export function PaginaConsultaPartidas() {
                   </div>
 
                   <div className="acoes-item">
-                    {partida.status === 2 && <CompartilharPartidaBotao partidaId={partida.id} />}
-                    {administradorLogado && (
+                    {usuario && partida.status === 2 && <CompartilharPartidaBotao partidaId={partida.id} />}
+                    {podeRemoverPartida(partida) && (
                       <button
                         type="button"
                         className="botao-perigo botao-compacto"
