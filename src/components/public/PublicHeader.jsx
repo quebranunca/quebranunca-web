@@ -32,18 +32,7 @@ export function PublicHeader() {
           className="botao-primario public-header-register"
         >
           Registrar Partida
-        </Link>
-        <button
-          type="button"
-          className="botao-terciario public-header-menu"
-          onClick={() => setMenuAberto((aberto) => !aberto)}
-          aria-expanded={menuAberto}
-          aria-label={menuAberto ? 'Fechar menu' : 'Abrir menu'}
-        >
-          <span />
-          <span />
-          <span />
-        </button>
+        </Link>       
       </div>
     </header>
   );
