@@ -85,9 +85,6 @@ function PublicHero({ dashboard }) {
           <Link to="/login" state={{ mensagem: mensagemRegistro }} className="botao-primario">
             Registrar Partida
           </Link>
-          <Link to="/login" className="botao-secundario">
-            Entrar
-          </Link>
         </div>
       </div>
 

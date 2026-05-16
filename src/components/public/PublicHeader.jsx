@@ -26,9 +26,6 @@ export function PublicHeader() {
       </nav>
 
       <div className="public-header-actions">
-        <Link to="/login" className="botao-terciario public-header-login">
-          Entrar
-        </Link>
         <Link
           to="/login"
           state={{ mensagem: mensagemRegistro }}
