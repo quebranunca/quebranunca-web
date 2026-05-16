@@ -1,0 +1,69 @@
+import { useState } from 'react';
+import { Link, NavLink } from 'react-router-dom';
+import logoLiga from '../../assets/logo-liga.svg';
+
+const mensagemRegistro = 'Para registrar sua partida, entre ou crie sua conta rapidinho.';
+const mensagemCadastro = 'A criação de conta acontece por convite. Entre para continuar ou solicite seu acesso.';
+
+export function PublicHeader() {
+  const [menuAberto, setMenuAberto] = useState(false);
+
+  function fecharMenu() {
+    setMenuAberto(false);
+  }
+
+  return (
+    <header className="public-header">
+      <Link to="/" className="public-header-brand" onClick={fecharMenu} aria-label="QuebraNunca">
+        <img src={logoLiga} alt="QNF" />
+        <span>QuebraNunca</span>
+      </Link>
+
+      <nav className={`public-header-nav ${menuAberto ? 'aberto' : ''}`} aria-label="Navegação pública">
+        <NavLink to="/" onClick={fecharMenu}>Início</NavLink>
+        <NavLink to="/ranking" onClick={fecharMenu}>Rankings</NavLink>
+        <a href="/#grupos" onClick={fecharMenu}>Grupos</a>
+        <NavLink to="/competicoes" onClick={fecharMenu}>Campeonatos</NavLink>
+        <Link
+          to="/login"
+          state={{ mensagem: mensagemCadastro }}
+          className="public-header-link-mobile"
+          onClick={fecharMenu}
+        >
+          Criar Conta
+        </Link>
+      </nav>
+
+      <div className="public-header-actions">
+        <Link to="/login" className="botao-terciario public-header-login">
+          Entrar
+        </Link>
+        <Link
+          to="/login"
+          state={{ mensagem: mensagemCadastro }}
+          className="botao-secundario public-header-create"
+        >
+          Criar Conta
+        </Link>
+        <Link
+          to="/login"
+          state={{ mensagem: mensagemRegistro }}
+          className="botao-primario public-header-register"
+        >
+          Registrar Partida
+        </Link>
+        <button
+          type="button"
+          className="botao-terciario public-header-menu"
+          onClick={() => setMenuAberto((aberto) => !aberto)}
+          aria-expanded={menuAberto}
+          aria-label={menuAberto ? 'Fechar menu' : 'Abrir menu'}
+        >
+          <span />
+          <span />
+          <span />
+        </button>
+      </div>
+    </header>
+  );
+}

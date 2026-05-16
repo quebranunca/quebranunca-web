@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { AppHeader } from '../components/AppHeader';
 import { MobileBottomNavigation } from '../components/MobileBottomNavigation';
+import { PublicFooter } from '../components/public/PublicFooter';
+import { PublicHeader } from '../components/public/PublicHeader';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { obterItensNavegacao, obterItensNavegacaoPublica } from '../pages/navagacao';
 
@@ -35,6 +37,18 @@ export function LayoutPrincipal() {
   function aoSair() {
     sair();
     navegar('/', { replace: true });
+  }
+
+  if (!autenticado) {
+    return (
+      <div className={`layout-app layout-publico${homePublica ? ' layout-home-publica' : ''}`}>
+        <PublicHeader />
+        <main className="conteudo-principal">
+          <Outlet />
+        </main>
+        <PublicFooter />
+      </div>
+    );
   }
 
   return (

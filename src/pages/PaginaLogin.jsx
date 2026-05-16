@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { autenticacaoServico } from '../services/autenticacaoServico';
 import { extrairMensagemErro } from '../utils/erros';
@@ -27,6 +27,7 @@ export function PaginaLogin() {
 
   const { solicitarCodigoLogin, entrarComCodigo, token, rotaInicial } = useAutenticacao();
   const navegar = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     if (token) {
@@ -116,6 +117,11 @@ export function PaginaLogin() {
   return (
     <section className="pagina-login">
       <div className="painel-login">
+        {location.state?.mensagem && (
+          <div className="feedback sucesso">
+            {location.state.mensagem}
+          </div>
+        )}
         
         {USUARIOS_TESTE_DESENVOLVIMENTO.length > 0 && (
           <div className="acoes-formulario">
