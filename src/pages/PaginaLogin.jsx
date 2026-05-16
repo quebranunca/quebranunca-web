@@ -77,7 +77,7 @@ export function PaginaLogin() {
       }
 
       if (!emModoRecuperacao) {
-        navegar('/', { replace: true });
+        navegar(rotaInicial, { replace: true });
       }
     } catch (error) {
       setErro(extrairMensagemErro(error));

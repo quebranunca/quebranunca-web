@@ -144,12 +144,23 @@ export function AppHeader({
         )}
 
         {autenticado ? (
-          <button type="button" className="botao-terciario botao-topo-icone botao-sair-topo" onClick={aoSair}>
-            <ConteudoBotao icone="sair"/>
+          <button
+            type="button"
+            className="botao-terciario botao-topo-acao botao-sair-topo"
+            onClick={aoSair}
+            aria-label="Sair"
+            title="Sair"
+          >
+            <ConteudoBotao icone="sair" texto="Sair" somenteIconeNoMobile={false} />
           </button>
         ) : (
-          <NavLink to="/login" className="botao-terciario botao-topo-icone botao-menu-mobile">
-            <ConteudoBotao icone="entrar"/>
+          <NavLink
+            to="/login"
+            className="botao-terciario botao-topo-acao botao-entrar-topo"
+            aria-label="Entrar"
+            title="Entrar"
+          >
+            <ConteudoBotao icone="entrar" texto="Entrar" somenteIconeNoMobile={false} />
           </NavLink>
         )}
       </div>

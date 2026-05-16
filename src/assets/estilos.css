@@ -278,10 +278,34 @@ textarea {
   padding: 0.55rem 0.65rem;
 }
 
+.botao-topo-acao {
+  color: var(--color-text-primary);
+  flex-shrink: 0;
+  min-height: 2.55rem;
+  padding: 0.55rem 0.78rem;
+  border-radius: 999px;
+}
+
 .botao-topo-icone svg,
-.botao-menu-mobile svg {
+.botao-menu-mobile svg,
+.botao-topo-acao svg {
   width: 1.15rem;
   height: 1.15rem;
+}
+
+.conteudo-botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.38rem;
+  min-width: 0;
+  line-height: 1;
+}
+
+.conteudo-botao-texto {
+  font-size: 0.86rem;
+  font-weight: 800;
+  white-space: nowrap;
 }
 
 .app-header-icone {
@@ -4921,8 +4945,7 @@ a.botao-terciario:active {
     display: none;
   }
 
-  .layout-autenticado .botao-menu-principal,
-  .layout-autenticado .botao-sair-topo {
+  .layout-autenticado .botao-menu-principal {
     display: none;
   }
 
@@ -4946,14 +4969,13 @@ a.botao-terciario:active {
   }
 
   .botao-sair-topo {
-    width: 2.25rem;
-    min-width: 2.25rem;
     min-height: 2.25rem;
-    padding: 0.48rem;
+    padding: 0.48rem 0.62rem;
     border-radius: var(--raio-sm);
   }
 
-  .botao-topo-icone {
+  .botao-topo-icone,
+  .botao-topo-acao {
     min-width: 2.2rem;
     min-height: 2.2rem;
     padding: 0.46rem;
@@ -4961,9 +4983,18 @@ a.botao-terciario:active {
   }
 
   .botao-topo-icone svg,
-  .botao-menu-mobile svg {
+  .botao-menu-mobile svg,
+  .botao-topo-acao svg {
     width: 1.05rem;
     height: 1.05rem;
+  }
+
+  .conteudo-botao-icone-mobile .conteudo-botao-texto {
+    display: none;
+  }
+
+  .botao-topo-acao .conteudo-botao-texto {
+    font-size: 0.78rem;
   }
 
   .botao-mobile-icone {
