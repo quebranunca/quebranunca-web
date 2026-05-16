@@ -75,6 +75,44 @@ export function HomeDashboard({ dashboard, carregando, erro }) {
   const perfil = dashboard.perfil;
   const resumo = dashboard.resumo;
 
+  const heatmap = dashboard.heatmap || [];
+
+  const diasSemana = [
+    { indice: 1, nome: 'Seg' },
+    { indice: 2, nome: 'Ter' },
+    { indice: 3, nome: 'Qua' },
+    { indice: 4, nome: 'Qui' },
+    { indice: 5, nome: 'Sex' },
+    { indice: 6, nome: 'Sáb' },
+    { indice: 0, nome: 'Dom' }
+  ];
+
+  const frequenciaPorDiaSemana = diasSemana.map((diaSemana) => {
+    const total = heatmap
+      .filter((dia) => {
+        const data = new Date(`${dia.data}T00:00:00`);
+        return data.getDay() === diaSemana.indice;
+      })
+      .reduce((soma, dia) => soma + dia.quantidade, 0);
+
+    return {
+      ...diaSemana,
+      total
+    };
+  });
+
+  const maiorTotalDiaSemana = Math.max(
+    ...frequenciaPorDiaSemana.map((dia) => dia.total),
+    1
+  );
+
+  const totalDiasJogados = heatmap.filter((dia) => dia.quantidade > 0).length;
+
+  const totalJogosPeriodo = heatmap.reduce(
+    (total, dia) => total + dia.quantidade,
+    0
+  );
+
   return (
     <section className="pagina home-dashboard">
       <header className="home-dashboard-hero">
@@ -100,7 +138,19 @@ export function HomeDashboard({ dashboard, carregando, erro }) {
           </div>
         </div>
 
-        <RegistrarPartidaNovo />
+        <section className="home-dashboard-bloco">
+          <div className="home-dashboard-bloco-cabecalho">
+            <div>
+              <span>Insights</span>
+              <h3>Leitura rápida</h3>
+            </div>
+          </div>
+          <div className="home-dashboard-insights">
+            {dashboard.insights.map((insight) => (
+              <p key={insight}><FaBolt aria-hidden="true" /> {insight}</p>
+            ))}
+          </div>
+      </section>
       </header>
 
       <section className="home-dashboard-stats" aria-label="Estatísticas principais">
@@ -148,7 +198,7 @@ export function HomeDashboard({ dashboard, carregando, erro }) {
           ) : dashboard.ultimasPartidas.map((partida) => (
             <article key={partida.id} className="home-dashboard-partida">
               <div className={`home-dashboard-resultado ${partida.resultado === 'W' ? 'vitoria' : 'derrota'}`}>
-                {partida.resultado}
+                {partida.resultado === 'W' ? 'V' : 'D'}
               </div>
               <div className="home-dashboard-partida-conteudo">
                 <div className="home-dashboard-partida-topo">
@@ -182,33 +232,50 @@ export function HomeDashboard({ dashboard, carregando, erro }) {
         <div className="home-dashboard-bloco-cabecalho">
           <div>
             <span>Frequência</span>
-            <h3>Dias jogados</h3>
-          </div>
-        </div>
-        <div className="home-dashboard-heatmap">
-          {dashboard.heatmap.map((dia) => (
-            <span
-              key={dia.data}
-              className={`nivel-${obterNivelHeatmap(dia.quantidade)}`}
-              title={`${dia.data}: ${dia.quantidade} jogo(s)`}
-            />
-          ))}
-        </div>
-      </section>
+            <h3>Seu ritmo de jogo</h3>
 
-      <section className="home-dashboard-bloco">
-        <div className="home-dashboard-bloco-cabecalho">
-          <div>
-            <span>Insights</span>
-            <h3>Leitura rápida</h3>
+            <p className="home-dashboard-bloco-descricao">
+              {totalDiasJogados > 0
+                ? `Você jogou em ${totalDiasJogados} dia(s) e registrou ${totalJogosPeriodo} partida(s) no período.`
+                : 'Registre partidas para acompanhar sua frequência.'}
+            </p>
           </div>
         </div>
-        <div className="home-dashboard-insights">
-          {dashboard.insights.map((insight) => (
-            <p key={insight}><FaBolt aria-hidden="true" /> {insight}</p>
-          ))}
+
+        <div className="home-dashboard-grafico-frequencia">
+          <div className="home-dashboard-grafico-titulo">
+            Quantidade de jogos
+          </div>
+
+          <div className="home-dashboard-grafico-barras">
+            {frequenciaPorDiaSemana.map((dia) => {
+              const altura = dia.total > 0
+                ? Math.max(14, (dia.total / maiorTotalDiaSemana) * 100)
+                : 0;
+
+              return (
+                <div
+                  key={dia.nome}
+                  className="home-dashboard-grafico-coluna"
+                >
+                  <div className="home-dashboard-grafico-area-barra">
+                    <span className="home-dashboard-grafico-valor">
+                      {dia.total}
+                    </span>
+
+                    <span
+                      className="home-dashboard-grafico-barra"
+                      style={{ height: `${altura}%` }}
+                    />
+                  </div>
+
+                  <strong>{dia.nome}</strong>
+                </div>
+              );
+            })}
+          </div>
         </div>
-      </section>
+      </section>      
     </section>
   );
 }

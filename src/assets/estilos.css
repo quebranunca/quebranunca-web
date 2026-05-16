@@ -4793,6 +4793,57 @@ a.botao-terciario:active {
   text-align: right;
 }
 
+.botao-registrar-partida-topo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+
+  height: 42px;
+  padding: 0 1rem;
+
+  border-radius: 999px;
+
+  background: linear-gradient(135deg, #ffb000, #ff8c00);
+
+  color: #050505;
+  text-decoration: none;
+  font-weight: 700;
+
+  box-shadow: 0 6px 18px rgba(255, 176, 0, 0.28);
+
+  transition: all 0.2s ease;
+}
+
+.botao-registrar-partida-topo:hover {
+  transform: translateY(-1px);
+}
+
+.botao-registrar-icone {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.botao-registrar-texto {
+  font-size: 0.88rem;
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .botao-registrar-texto {
+    display: none;
+  }
+
+  .botao-registrar-partida-topo {
+    width: 42px;
+    padding: 0;
+  }
+
+  .botao-registrar-icone {
+    font-size: 1.2rem;
+  }
+}
+
 @media (min-width: 768px) {
   .home-secoes-publicas {
     grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);

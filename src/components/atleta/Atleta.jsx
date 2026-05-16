@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { usuariosServico } from '../../services/usuariosServico';
-import '../../assets/estilo.css';
 import { RegistrarPartidaNovo } from '../partidas/RegistrarPartidaNovo';
 
 export function Atleta({  })

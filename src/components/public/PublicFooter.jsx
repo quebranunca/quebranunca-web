@@ -1,9 +1,6 @@
-import { Link } from 'react-router-dom';
-import logoLiga from '../../assets/logo-liga.svg';
-
 export function PublicFooter() {
   return (
-    <footer className="public-footer">      
+    <footer className="public-footer">
       <nav aria-label="Links institucionais">
         <a href="https://www.quebranunca.com/quebranunca" target="_blank" rel="noreferrer">Instagram</a>
         <a href="mailto:contato@quebranunca.com.br">Contato</a>

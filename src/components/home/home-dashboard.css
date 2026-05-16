@@ -341,6 +341,100 @@
   background: var(--cor-primaria);
 }
 
+.home-dashboard-bloco-descricao {
+  margin-top: 0.35rem;
+  color: var(--cor-texto-suave);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.home-dashboard-grafico-frequencia {
+  margin-top: 1.25rem;
+}
+
+.home-dashboard-grafico-titulo {
+  margin-bottom: 0.85rem;
+  color: var(--cor-texto-suave);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.home-dashboard-grafico-barras {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.75rem;
+  align-items: end;
+  min-height: 220px;
+  padding-top: 1rem;
+}
+
+.home-dashboard-grafico-barras::before,
+.home-dashboard-grafico-barras::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  left: 0;
+  border-top: 1px dashed rgba(255, 255, 255, 0.06);
+}
+
+.home-dashboard-grafico-barras::before {
+  top: 35%;
+}
+
+.home-dashboard-grafico-barras::after {
+  top: 65%;
+}
+
+.home-dashboard-grafico-coluna {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.home-dashboard-grafico-area-barra {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 100%;
+  height: 170px;
+  padding-bottom: 1px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.home-dashboard-grafico-valor {
+  position: absolute;
+  bottom: calc(100% + 0.45rem);
+  color: var(--cor-texto);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.home-dashboard-grafico-barra {
+  width: 100%;
+  max-width: 38px;
+  border-radius: 10px 10px 4px 4px;
+  background: linear-gradient(180deg, var(--cor-primaria), var(--cor-primaria-escura));
+  box-shadow:
+    0 10px 22px rgba(255, 176, 0, 0.25),
+    0 0 12px rgba(255, 176, 0, 0.18);
+  transition:
+    height 0.25s ease,
+    transform 0.2s ease;
+}
+
+.home-dashboard-grafico-barra:hover {
+  transform: translateY(-2px);
+}
+
+.home-dashboard-grafico-coluna strong {
+  color: var(--cor-texto-suave);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
 .home-dashboard-insights {
   display: flex;
   flex-direction: column;
@@ -377,5 +471,26 @@
     grid-auto-flow: row;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     overflow: visible;
+  }
+}
+
+@media (max-width: 480px) {
+  .home-dashboard-grafico-barras {
+    gap: 0.45rem;
+    min-height: 160px;
+  }
+
+  .home-dashboard-grafico-area-barra {
+    height: 115px;
+  }
+
+  .home-dashboard-grafico-barra {
+    width: 76%;
+    max-width: 28px;
+  }
+
+  .home-dashboard-grafico-valor,
+  .home-dashboard-grafico-coluna strong {
+    font-size: 0.72rem;
   }
 }

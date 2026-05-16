@@ -15,8 +15,7 @@
   -webkit-backdrop-filter: blur(18px) saturate(1.15);
 }
 
-.public-header-brand,
-.public-footer-brand {
+.public-header-brand {
   display: inline-flex;
   align-items: center;
   gap: 0.65rem;
@@ -24,8 +23,7 @@
   font-weight: 900;
 }
 
-.public-header-brand img,
-.public-footer-brand img {
+.public-header-brand img {
   width: 38px;
   height: 38px;
   object-fit: contain;
@@ -91,16 +89,6 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: var(--raio-lg);
   background: rgba(15, 16, 18, 0.92);
-}
-
-.public-footer-brand {
-  align-items: flex-start;
-}
-
-.public-footer-brand p {
-  max-width: 28rem;
-  margin: 0.25rem 0 0;
-  color: var(--cor-texto-suave);
 }
 
 .public-footer nav {
@@ -539,7 +527,6 @@
     gap: 0.35rem;
   }
 
-  .public-header-login,
   .public-header-register {
     min-height: 2.25rem;
     padding: 0.46rem 0.68rem;
