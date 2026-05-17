@@ -1843,6 +1843,478 @@ code {
   line-height: 1;
 }
 
+.meus-jogos-pagina {
+  gap: 0.78rem;
+  padding-bottom: calc(var(--altura-bottom-nav, 4.45rem) + 1rem);
+}
+
+.meus-jogos-hero,
+.meus-jogos-resumo-premium,
+.meus-jogos-card-premium,
+.meus-jogos-estado,
+.meus-jogos-controles {
+  border: 1px solid rgba(255, 179, 0, 0.14);
+  background:
+    linear-gradient(145deg, rgba(255, 179, 0, 0.1), transparent 34%),
+    rgba(15, 18, 23, 0.94);
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.28);
+}
+
+.meus-jogos-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+  padding: 0.95rem;
+  border-radius: 22px;
+}
+
+.meus-jogos-hero span,
+.meus-jogos-resumo-topo span,
+.meus-jogos-metricas span,
+.meus-jogos-card-topo-premium > div > span,
+.meus-jogos-linha-placar span,
+.meus-jogos-modal-grid span,
+.meus-jogos-modal .modal-cabecalho span {
+  display: block;
+  color: var(--cor-primaria);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.meus-jogos-hero h1,
+.meus-jogos-hero p {
+  margin: 0;
+}
+
+.meus-jogos-hero h1 {
+  margin-top: 0.08rem;
+  color: var(--cor-texto);
+  font-size: clamp(1.32rem, 6vw, 1.9rem);
+  line-height: 1.05;
+}
+
+.meus-jogos-hero p {
+  margin-top: 0.18rem;
+  color: var(--cor-texto-suave);
+  font-size: 0.9rem;
+}
+
+.meus-jogos-registrar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+  flex: 0 0 auto;
+  border-radius: 999px;
+}
+
+.meus-jogos-resumo-premium {
+  display: grid;
+  gap: 0.7rem;
+  padding: 0.9rem;
+  border-radius: 20px;
+}
+
+.meus-jogos-resumo-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.meus-jogos-resumo-topo strong {
+  display: block;
+  margin-top: 0.08rem;
+  color: var(--cor-texto);
+  font-size: 1.62rem;
+  line-height: 1;
+}
+
+.meus-jogos-resumo-topo small {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--cor-texto-suave);
+  font-weight: 800;
+}
+
+.meus-jogos-resumo-topo svg {
+  width: 2.1rem;
+  height: 2.1rem;
+  color: var(--cor-primaria);
+  filter: drop-shadow(0 0 16px rgba(255, 179, 0, 0.24));
+}
+
+.meus-jogos-metricas,
+.meus-jogos-modal-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.48rem;
+}
+
+.meus-jogos-metricas div,
+.meus-jogos-modal-grid div {
+  min-width: 0;
+  padding: 0.62rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.meus-jogos-metricas strong,
+.meus-jogos-modal-grid strong {
+  display: block;
+  overflow: hidden;
+  margin-top: 0.12rem;
+  color: var(--cor-texto);
+  font-size: 1.06rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meus-jogos-controles {
+  display: grid;
+  gap: 0.58rem;
+  padding: 0.72rem;
+  border-radius: 18px;
+}
+
+.meus-jogos-filtros {
+  display: flex;
+  gap: 0.42rem;
+  overflow-x: auto;
+  padding-bottom: 0.05rem;
+  scroll-behavior: smooth;
+}
+
+.meus-jogos-filtros button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  flex: 0 0 auto;
+  min-height: 2.35rem;
+  padding: 0.48rem 0.72rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.045);
+  color: var(--cor-texto-suave);
+  font-weight: 900;
+  cursor: pointer;
+  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease, color 180ms ease;
+}
+
+.meus-jogos-filtros button.ativo {
+  border-color: rgba(255, 179, 0, 0.62);
+  background: rgba(255, 179, 0, 0.14);
+  color: var(--cor-primaria);
+}
+
+.meus-jogos-filtros button:hover {
+  transform: translateY(-1px);
+}
+
+.meus-jogos-ordenacao {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.6rem;
+  padding: 0 0.72rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.meus-jogos-ordenacao svg {
+  color: var(--cor-primaria);
+}
+
+.meus-jogos-ordenacao select {
+  min-height: 2.55rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--cor-texto);
+  box-shadow: none;
+}
+
+.meus-jogos-lista-premium {
+  display: grid;
+  gap: 0.62rem;
+}
+
+.meus-jogos-card-premium {
+  display: grid;
+  gap: 0.68rem;
+  padding: 0.76rem;
+  border-radius: 18px;
+  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+}
+
+.meus-jogos-card-premium:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 179, 0, 0.28);
+}
+
+.meus-jogos-card-topo-premium {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.7rem;
+}
+
+.meus-jogos-card-topo-premium > div:first-child {
+  min-width: 0;
+}
+
+.meus-jogos-card-topo-premium strong {
+  display: block;
+  overflow: hidden;
+  margin-top: 0.08rem;
+  color: var(--cor-texto);
+  font-size: 1rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meus-jogos-card-topo-premium small {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
+  margin-top: 0.22rem;
+  color: var(--cor-texto-suave);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.meus-jogos-badges {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.32rem;
+}
+
+.meus-jogos-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.48rem;
+  padding: 0.18rem 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.055);
+  color: var(--cor-texto-suave);
+  font-size: 0.7rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.meus-jogos-badge.vitoria,
+.meus-jogos-badge.validado {
+  border-color: rgba(57, 217, 138, 0.26);
+  background: rgba(57, 217, 138, 0.12);
+  color: var(--cor-sucesso);
+}
+
+.meus-jogos-badge.derrota {
+  border-color: rgba(255, 107, 122, 0.2);
+  background: rgba(255, 107, 122, 0.09);
+  color: #ff8b98;
+}
+
+.meus-jogos-badge.pendente {
+  border-color: rgba(255, 179, 0, 0.28);
+  background: rgba(255, 179, 0, 0.1);
+  color: var(--cor-primaria);
+}
+
+.meus-jogos-placar-premium {
+  display: grid;
+  gap: 0.42rem;
+}
+
+.meus-jogos-linha-placar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.7rem;
+  min-height: 3.15rem;
+  padding: 0.58rem 0.66rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.meus-jogos-linha-placar.minha-dupla {
+  border-color: rgba(255, 179, 0, 0.38);
+  background: rgba(255, 179, 0, 0.09);
+}
+
+.meus-jogos-linha-placar.vencedora {
+  box-shadow: inset 3px 0 0 rgba(57, 217, 138, 0.72);
+}
+
+.meus-jogos-linha-placar div {
+  min-width: 0;
+}
+
+.meus-jogos-linha-placar strong:not(.meus-jogos-placar-numero) {
+  display: block;
+  overflow: hidden;
+  margin-top: 0.1rem;
+  color: var(--cor-texto);
+  font-size: 0.92rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meus-jogos-placar-numero {
+  display: grid;
+  place-items: center;
+  min-width: 2.65rem;
+  min-height: 2.35rem;
+  padding: 0 0.5rem;
+  border-radius: 12px;
+  background: rgba(8, 9, 11, 0.76);
+  color: var(--cor-primaria);
+  font-size: 1.18rem;
+}
+
+.meus-jogos-card-acoes {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.48rem;
+  flex-wrap: wrap;
+}
+
+.meus-jogos-card-acoes .botao-compartilhar-partida,
+.meus-jogos-detalhes {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 2.28rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+}
+
+.meus-jogos-estado {
+  display: grid;
+  justify-items: start;
+  gap: 0.5rem;
+  padding: 1rem;
+  border-radius: 18px;
+  color: var(--cor-texto-suave);
+}
+
+.meus-jogos-estado > svg {
+  color: var(--cor-primaria);
+  font-size: 1.45rem;
+}
+
+.meus-jogos-estado strong {
+  color: var(--cor-texto);
+}
+
+.meus-jogos-estado p {
+  margin: 0;
+}
+
+.meus-jogos-loading {
+  width: 2rem;
+  height: 2rem;
+  border: 3px solid rgba(255, 255, 255, 0.08);
+  border-top-color: var(--cor-primaria);
+  border-radius: 50%;
+  animation: girar 0.8s linear infinite;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(8, 9, 11, 0.68);
+  backdrop-filter: blur(10px);
+}
+
+.meus-jogos-modal {
+  display: grid;
+  gap: 0.8rem;
+  max-height: min(86vh, 620px);
+  overflow-y: auto;
+  border-color: rgba(255, 179, 0, 0.2);
+  background:
+    linear-gradient(145deg, rgba(255, 179, 0, 0.1), transparent 34%),
+    var(--color-card);
+}
+
+.meus-jogos-modal .modal-cabecalho {
+  margin-bottom: 0;
+}
+
+.meus-jogos-observacoes {
+  margin: 0;
+  padding: 0.7rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.045);
+  color: var(--cor-texto-suave);
+}
+
+@media (min-width: 820px) {
+  .meus-jogos-pagina {
+    max-width: 980px;
+    margin-inline: auto;
+  }
+
+  .meus-jogos-controles {
+    grid-template-columns: minmax(0, 1fr) minmax(13rem, 0.24fr);
+    align-items: center;
+  }
+
+  .meus-jogos-metricas,
+  .meus-jogos-modal-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .meus-jogos-pagina {
+    padding-left: 0.72rem;
+    padding-right: 0.72rem;
+  }
+
+  .meus-jogos-hero,
+  .meus-jogos-card-topo-premium {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .meus-jogos-registrar {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .meus-jogos-metricas,
+  .meus-jogos-modal-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .meus-jogos-badges,
+  .meus-jogos-card-acoes {
+    justify-content: flex-start;
+  }
+
+  .meus-jogos-card-acoes > * {
+    flex: 1 1 auto;
+  }
+}
+
 .tag-status {
   display: inline-flex;
   align-items: center;
@@ -4662,19 +5134,31 @@ code {
 .pagina-login {
   min-height: calc(100vh - 9.5rem);
   display: grid;
+  grid-template-columns: minmax(0, 440px);
+  align-content: center;
+  justify-content: center;
+  gap: 0.85rem;
   place-items: center;
   padding: 0.5rem 0;
 }
 
-.painel-login {
+.painel-login,
+.solicitacao-acesso-card {
   width: min(440px, 100%);
   padding: 1.2rem;
   border-radius: var(--raio-lg);
   border: 1px solid var(--cor-borda);
-  background: var(--cor-superficie);
+  background:
+    radial-gradient(circle at 20% 0%, rgba(255, 179, 0, 0.12), transparent 34%),
+    var(--cor-superficie);
   box-shadow: var(--sombra-suave);
   animation: revelar 0.5s ease;
   color: var(--cor-texto);
+}
+
+.painel-login {
+  display: grid;
+  gap: 0.85rem;
 }
 
 .logo-login {
@@ -4692,7 +5176,185 @@ code {
 }
 
 .painel-login p {
-  color: #4f4f4f;
+  color: var(--cor-texto-suave);
+}
+
+.login-card-cabecalho {
+  display: grid;
+  gap: 0.18rem;
+  text-align: center;
+}
+
+.login-card-cabecalho span {
+  color: var(--cor-primaria);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.login-card-cabecalho h1 {
+  margin: 0;
+  color: var(--cor-texto);
+  font-size: clamp(1.35rem, 6vw, 1.85rem);
+  line-height: 1.05;
+}
+
+.login-card-cabecalho p {
+  margin: 0;
+  font-size: 0.92rem;
+}
+
+.campo-login-icone {
+  display: grid;
+  gap: 0.36rem;
+}
+
+.campo-login-icone > span {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.95rem;
+  padding: 0 0.72rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.95rem;
+  background: rgba(255, 255, 255, 0.055);
+  transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
+}
+
+.campo-login-icone > span:focus-within {
+  border-color: rgba(255, 179, 0, 0.66);
+  background: rgba(255, 255, 255, 0.075);
+  box-shadow: 0 0 0 3px rgba(255, 179, 0, 0.12);
+}
+
+.campo-login-icone svg {
+  color: var(--cor-primaria);
+}
+
+.campo-login-icone input {
+  min-height: 2.7rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.campo-login-icone input:focus {
+  outline: 0;
+  box-shadow: none;
+}
+
+.login-acoes-codigo {
+  margin-top: -0.22rem;
+}
+
+.login-acoes-codigo .botao-secundario {
+  width: 100%;
+  border-color: rgba(255, 179, 0, 0.42);
+  color: var(--cor-primaria);
+}
+
+.solicitacao-acesso-card {
+  padding: 0;
+  overflow: hidden;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.solicitacao-acesso-card.expandido {
+  border-color: rgba(255, 179, 0, 0.34);
+  box-shadow:
+    var(--sombra-suave),
+    0 0 28px rgba(255, 179, 0, 0.08);
+}
+
+.solicitacao-acesso-resumo {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.68rem;
+  width: 100%;
+  padding: 0.85rem 0.95rem;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.solicitacao-acesso-resumo > svg {
+  color: var(--cor-primaria);
+}
+
+.solicitacao-acesso-resumo strong,
+.solicitacao-acesso-resumo small {
+  display: block;
+}
+
+.solicitacao-acesso-resumo strong {
+  color: var(--cor-texto);
+}
+
+.solicitacao-acesso-resumo small {
+  margin-top: 0.08rem;
+  color: var(--cor-texto-suave);
+  font-size: 0.82rem;
+}
+
+.solicitacao-acesso-icone {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.8rem;
+  background: rgba(255, 179, 0, 0.12);
+  color: var(--cor-primaria);
+}
+
+.solicitacao-acesso-conteudo {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows 220ms ease, opacity 180ms ease;
+}
+
+.solicitacao-acesso-card.expandido .solicitacao-acesso-conteudo {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.solicitacao-acesso-form {
+  display: grid;
+  gap: 0.72rem;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0 0.95rem 0.95rem;
+}
+
+.solicitacao-acesso-form p {
+  margin: 0;
+  color: var(--cor-texto-suave);
+  font-size: 0.88rem;
+  line-height: 1.42;
+}
+
+.solicitacao-acesso-botao {
+  width: 100%;
+  border-color: rgba(255, 179, 0, 0.42);
+  color: var(--cor-primaria);
+}
+
+.solicitacao-acesso-botao:hover:not(:disabled),
+.login-acoes-codigo .botao-secundario:hover:not(:disabled) {
+  box-shadow: 0 0 24px rgba(255, 179, 0, 0.12);
+}
+
+.solicitacao-acesso-observacao {
+  display: block;
+  color: var(--cor-texto-suave);
+  font-size: 0.78rem;
+  line-height: 1.35;
 }
 
 .tela-carregamento {
@@ -6796,5 +7458,196 @@ a.botao-terciario:active {
 
   .grupos-rodadas {
     grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  }
+}
+
+.admin-solicitacoes {
+  gap: 0.95rem;
+}
+
+.admin-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background:
+    radial-gradient(circle at top right, rgba(245, 197, 66, 0.18), transparent 34%),
+    linear-gradient(135deg, rgba(17, 18, 22, 0.98), rgba(9, 10, 13, 0.96));
+  border-color: rgba(245, 197, 66, 0.24);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.28), 0 0 24px rgba(245, 197, 66, 0.08);
+}
+
+.admin-eyebrow {
+  display: inline-flex;
+  margin-bottom: 0.35rem;
+  color: #f5c542;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.admin-hero h3,
+.admin-solicitacao-card h3 {
+  margin: 0;
+}
+
+.admin-hero p,
+.admin-solicitacao-card p,
+.admin-estado p {
+  color: rgba(255, 255, 255, 0.68);
+}
+
+.admin-hero-icone {
+  display: grid;
+  place-items: center;
+  min-width: 3rem;
+  width: 3rem;
+  height: 3rem;
+  color: #f5c542;
+  border: 1px solid rgba(245, 197, 66, 0.3);
+  border-radius: 999px;
+  background: rgba(245, 197, 66, 0.08);
+}
+
+.admin-resumo-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.admin-resumo-card {
+  padding: 0.8rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  background: rgba(17, 18, 22, 0.86);
+}
+
+.admin-resumo-card.destaque {
+  border-color: rgba(245, 197, 66, 0.28);
+  background: rgba(245, 197, 66, 0.08);
+}
+
+.admin-resumo-card span,
+.admin-solicitacao-meta {
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 0.76rem;
+}
+
+.admin-resumo-card strong {
+  display: block;
+  margin-top: 0.18rem;
+  color: #fff;
+  font-size: 1.35rem;
+}
+
+.admin-lista-solicitacoes {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.admin-solicitacao-card {
+  display: grid;
+  gap: 0.8rem;
+  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.admin-solicitacao-card:hover {
+  transform: translateY(-1px);
+  border-color: rgba(245, 197, 66, 0.24);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.22);
+}
+
+.admin-solicitacao-topo,
+.admin-solicitacao-acoes {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.admin-solicitacao-acoes {
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.admin-solicitacao-acoes button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+}
+
+.admin-solicitacao-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.85rem;
+}
+
+.admin-status {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  padding: 0.26rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.78);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.admin-status.pendente,
+.admin-status.convite-enviado {
+  color: #f5c542;
+  border-color: rgba(245, 197, 66, 0.28);
+  background: rgba(245, 197, 66, 0.1);
+}
+
+.admin-status.aprovado,
+.admin-status.concluido {
+  color: #70e6a1;
+  border-color: rgba(112, 230, 161, 0.24);
+  background: rgba(112, 230, 161, 0.09);
+}
+
+.admin-status.rejeitado {
+  color: #d0d3da;
+  border-color: rgba(208, 211, 218, 0.18);
+  background: rgba(208, 211, 218, 0.07);
+}
+
+.botao-perigo-discreto {
+  color: #ffb4b4;
+  border-color: rgba(255, 180, 180, 0.24);
+}
+
+.admin-estado {
+  padding: 1rem;
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .admin-hero {
+    padding: 1rem;
+  }
+
+  .admin-resumo-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+
+  .admin-resumo-card {
+    padding: 0.7rem 0.6rem;
+  }
+
+  .admin-solicitacao-topo,
+  .admin-solicitacao-acoes {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .admin-solicitacao-acoes button {
+    width: 100%;
   }
 }

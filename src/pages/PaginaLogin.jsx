@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
+import { FaEnvelope, FaKey } from 'react-icons/fa';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { SolicitacaoAcessoAccordion } from '../components/login/SolicitacaoAcessoAccordion';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { autenticacaoServico } from '../services/autenticacaoServico';
 import { extrairMensagemErro } from '../utils/erros';
@@ -117,6 +119,12 @@ export function PaginaLogin() {
   return (
     <section className="pagina-login">
       <div className="painel-login">
+        <div className="login-card-cabecalho">
+          <span>QuebraNunca Futevôlei</span>
+          <h1>Entrar na plataforma</h1>
+          <p>Digite seu e-mail para receber o código de acesso.</p>
+        </div>
+
         {location.state?.mensagem && (
           <div className="feedback sucesso">
             {location.state.mensagem}
@@ -140,20 +148,23 @@ export function PaginaLogin() {
         )}
 
         <form onSubmit={aoSubmeter} className="formulario-grid unico">
-          <label>
+          <label className="campo-login-icone">
             E-mail
-            <input
-              type="email"
-              value={email}
-              onChange={(evento) => setEmail(evento.target.value)}
-              placeholder="voce@email.com"
-              required
-            />
+            <span>
+              <FaEnvelope aria-hidden="true" />
+              <input
+                type="email"
+                value={email}
+                onChange={(evento) => setEmail(evento.target.value)}
+                placeholder="voce@email.com"
+                required
+              />
+            </span>
           </label>
 
           {!emModoRecuperacao && (
             <>
-              <div className="acoes-formulario">
+              <div className="acoes-formulario login-acoes-codigo">
                 <button
                   type="button"
                   className="botao-secundario"
@@ -166,15 +177,18 @@ export function PaginaLogin() {
                 </button>
               </div>
 
-              <label>
+              <label className="campo-login-icone">
                 Código de acesso
-                <input
-                  type="text"
-                  value={codigoLogin}
-                  onChange={(evento) => setCodigoLogin(evento.target.value)}
-                  placeholder="Digite o código recebido por e-mail"
-                  required
-                />
+                <span>
+                  <FaKey aria-hidden="true" />
+                  <input
+                    type="text"
+                    value={codigoLogin}
+                    onChange={(evento) => setCodigoLogin(evento.target.value)}
+                    placeholder="Digite o código recebido por e-mail"
+                    required
+                  />
+                </span>
               </label>
             </>
           )}
@@ -192,15 +206,18 @@ export function PaginaLogin() {
                 </button>
               </div>
 
-              <label>
+              <label className="campo-login-icone">
                 Código de redefinição
-                <input
-                  type="text"
-                  value={codigoRedefinicao}
-                  onChange={(evento) => setCodigoRedefinicao(evento.target.value)}
-                  placeholder="Digite o código recebido"
-                  required
-                />
+                <span>
+                  <FaKey aria-hidden="true" />
+                  <input
+                    type="text"
+                    value={codigoRedefinicao}
+                    onChange={(evento) => setCodigoRedefinicao(evento.target.value)}
+                    placeholder="Digite o código recebido"
+                    required
+                  />
+                </span>
               </label>
 
               <label>
@@ -226,6 +243,8 @@ export function PaginaLogin() {
           </button>          
         </form>
       </div>
+
+      <SolicitacaoAcessoAccordion />
     </section>
   );
 }

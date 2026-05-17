@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { NavLink, matchPath, useLocation } from 'react-router-dom';
-import { FaHome, FaListAlt, FaPlus, FaTrophy, FaUser } from 'react-icons/fa';
+import { FaHome, FaListAlt, FaPlus, FaShieldAlt, FaTrophy, FaUser } from 'react-icons/fa';
 import { RegistrarPartidaNovoContainer } from '../containers/partidas/RegistrarPartidaNovoContainer';
+import { ehAdministrador } from '../utils/perfis';
 import './partidas/registrar-partida-novo.css';
 
 function itemAtivo(pathname, caminhos) {
@@ -11,6 +12,7 @@ function itemAtivo(pathname, caminhos) {
 export function MobileBottomNavigation({ usuario }) {
   const location = useLocation();
   const [registrarAberto, setRegistrarAberto] = useState(false);
+  const administrador = ehAdministrador(usuario);
   const caminhoJogos = usuario?.atletaId ? '/app/meus-jogos' : '/minhas-partidas-registradas';
   const jogosAtivo = itemAtivo(location.pathname, [
     '/app/meus-jogos',
@@ -30,13 +32,23 @@ export function MobileBottomNavigation({ usuario }) {
           <span>Home</span>
         </NavLink>
 
-        <NavLink
-          to={caminhoJogos}
-          className={() => `mobile-bottom-item ${jogosAtivo ? 'ativo' : ''}`}
-        >
-          <FaListAlt aria-hidden="true" />
-          <span>Jogos</span>
-        </NavLink>
+        {administrador ? (
+          <NavLink
+            to="/admin"
+            className={() => `mobile-bottom-item ${itemAtivo(location.pathname, ['/admin', '/admin/*']) ? 'ativo' : ''}`}
+          >
+            <FaShieldAlt aria-hidden="true" />
+            <span>Admin</span>
+          </NavLink>
+        ) : (
+          <NavLink
+            to={caminhoJogos}
+            className={() => `mobile-bottom-item ${jogosAtivo ? 'ativo' : ''}`}
+          >
+            <FaListAlt aria-hidden="true" />
+            <span>Jogos</span>
+          </NavLink>
+        )}
 
         <button
           type="button"

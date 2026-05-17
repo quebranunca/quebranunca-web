@@ -38,9 +38,15 @@ const ITENS_NAVEGACAO = [
   },
   {
     caminho: '/admin',
-    nome: 'Painel Admin',
+    nome: 'Admin',
     mostrarNoDashboard: false,
-    descricao: 'Acesse atalhos administrativos e parametrizações globais.',
+    descricao: 'Acesse o menu administrativo e controles globais da plataforma.',
+    visivel: ({ administrador, estadoAtivo }) => administrador && estadoAtivo
+  },
+  {
+    caminho: '/admin/solicitacoes-acesso',
+    nome: 'Solicitações de Acesso',
+    descricao: 'Aprove, rejeite e envie convites para quem pediu acesso.',
     visivel: ({ administrador, estadoAtivo }) => administrador && estadoAtivo
   },
   {
@@ -86,7 +92,7 @@ const ITENS_NAVEGACAO = [
     visivel: ({ estadoAtivo }) => estadoAtivo
   },
   {
-    caminho: '/atletas',
+    caminho: '/admin/atletas',
     nome: 'Atletas',
     descricao: 'Cadastre e organize os atletas do seu circuito.',
     visivel: ({ administrador, estadoAtivo }) => administrador && estadoAtivo
@@ -131,7 +137,13 @@ const ITENS_NAVEGACAO = [
     caminho: '/competicoes',
     nome: 'Competições',
     descricao: 'Veja e gerencie campeonatos, eventos e grupos disponíveis para o seu perfil.',
-    visivel: ({ gestorCompeticao, estadoAtivo }) => gestorCompeticao && estadoAtivo
+    visivel: ({ organizador, estadoAtivo }) => organizador && estadoAtivo
+  },
+  {
+    caminho: '/admin/competicoes',
+    nome: 'Competições',
+    descricao: 'Gerencie campeonatos, eventos e competições globais.',
+    visivel: ({ administrador, estadoAtivo }) => administrador && estadoAtivo
   },
   {
     caminho: '/campeonatos/novo',
@@ -143,10 +155,16 @@ const ITENS_NAVEGACAO = [
     caminho: '/grupos',
     nome: 'Grupos',
     descricao: 'Crie grupos, organize atletas e acompanhe os jogos lançados.',
-    visivel: ({ gestorCompeticao, atleta, estadoAtivo }) => estadoAtivo && (gestorCompeticao || atleta)
+    visivel: ({ organizador, atleta, estadoAtivo }) => estadoAtivo && (organizador || atleta)
   },
   {
-    caminho: '/categorias',
+    caminho: '/admin/grupos',
+    nome: 'Grupos',
+    descricao: 'Gerencie grupos, atletas vinculados e jogos lançados.',
+    visivel: ({ administrador, estadoAtivo }) => administrador && estadoAtivo
+  },
+  {
+    caminho: '/admin/categorias',
     nome: 'Categorias',
     descricao: 'Defina gênero e nível técnico por competição.',
     visivel: ({ administrador, estadoAtivo }) => administrador && estadoAtivo
@@ -158,15 +176,21 @@ const ITENS_NAVEGACAO = [
     visivel: ({ administrador }) => administrador
   },
   {
-    caminho: '/usuarios',
+    caminho: '/admin/usuarios',
     nome: 'Usuários',
     descricao: 'Gerencie perfis, status e vínculo com atletas.',
     visivel: ({ administrador, estadoAtivo }) => administrador && estadoAtivo
   },
   {
-    caminho: '/convites-cadastro',
+    caminho: '/admin/convites',
     nome: 'Convites',
     descricao: 'Crie e acompanhe convites fechados para novos organizadores.',
+    visivel: ({ administrador, estadoAtivo }) => administrador && estadoAtivo
+  },
+  {
+    caminho: '/admin/partidas',
+    nome: 'Partidas',
+    descricao: 'Consulte e gerencie partidas registradas na plataforma.',
     visivel: ({ administrador, estadoAtivo }) => administrador && estadoAtivo
   }
 ];
@@ -183,6 +207,14 @@ export const ROTAS_APP_HEADER = [
   { path: '/app/inicio', title: 'Painel', tipoTela: TIPOS_TELA.raiz },
   { path: '/app/organizacao', title: 'Painel', tipoTela: TIPOS_TELA.raiz },
   { path: '/admin', title: 'Painel Admin', tipoTela: TIPOS_TELA.raiz },
+  { path: '/admin/usuarios', title: 'Usuários', tipoTela: TIPOS_TELA.raiz },
+  { path: '/admin/solicitacoes-acesso', title: 'Solicitações', tipoTela: TIPOS_TELA.raiz },
+  { path: '/admin/convites', title: 'Convites', tipoTela: TIPOS_TELA.raiz },
+  { path: '/admin/atletas', title: 'Atletas', tipoTela: TIPOS_TELA.raiz },
+  { path: '/admin/grupos', title: 'Grupos', tipoTela: TIPOS_TELA.raiz },
+  { path: '/admin/competicoes', title: 'Competições', tipoTela: TIPOS_TELA.raiz },
+  { path: '/admin/categorias', title: 'Categorias', tipoTela: TIPOS_TELA.raiz },
+  { path: '/admin/partidas', title: 'Partidas', tipoTela: TIPOS_TELA.raiz },
   { path: '/dashboard', title: 'Painel', tipoTela: TIPOS_TELA.raiz },
   { path: '/app/perfil', title: 'Meu Perfil', tipoTela: TIPOS_TELA.raiz },
   { path: '/app/meus-jogos', title: 'Meus Jogos', tipoTela: TIPOS_TELA.acao },

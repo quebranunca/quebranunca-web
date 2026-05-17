@@ -30,6 +30,7 @@ import { PaginaPerfilUsuario } from './pages/PaginaPerfilUsuario';
 import { PaginaPendenciasAtletas } from './pages/PaginaPendenciasAtletas';
 import { PaginaUsuarios } from './pages/PaginaUsuarios';
 import { PaginaConvitesCadastro } from './pages/PaginaConvitesCadastro';
+import { PaginaSolicitacoesAcessoAdmin } from './pages/PaginaSolicitacoesAcessoAdmin';
 import { PaginaCadastroConvite } from './pages/PaginaCadastroConvite';
 import { RedirecionamentoPartidas } from './pages/RedirecionamentoPartidas';
 import { PERFIS_USUARIO } from './utils/perfis';
@@ -119,6 +120,94 @@ export default function App() {
               estadosPermitidos={[ESTADOS_ACESSO.ativo]}
             >
               <PaginaDashboard />
+            </RotaProtegida>
+          }
+        />
+        <Route
+          path="/admin/usuarios"
+          element={
+            <RotaProtegida
+              perfisPermitidos={[PERFIS_USUARIO.administrador]}
+              estadosPermitidos={[ESTADOS_ACESSO.ativo]}
+            >
+              <PaginaUsuarios />
+            </RotaProtegida>
+          }
+        />
+        <Route
+          path="/admin/solicitacoes-acesso"
+          element={
+            <RotaProtegida
+              perfisPermitidos={[PERFIS_USUARIO.administrador]}
+              estadosPermitidos={[ESTADOS_ACESSO.ativo]}
+            >
+              <PaginaSolicitacoesAcessoAdmin />
+            </RotaProtegida>
+          }
+        />
+        <Route
+          path="/admin/convites"
+          element={
+            <RotaProtegida
+              perfisPermitidos={[PERFIS_USUARIO.administrador]}
+              estadosPermitidos={[ESTADOS_ACESSO.ativo]}
+            >
+              <PaginaConvitesCadastro />
+            </RotaProtegida>
+          }
+        />
+        <Route
+          path="/admin/atletas"
+          element={
+            <RotaProtegida
+              perfisPermitidos={[PERFIS_USUARIO.administrador]}
+              estadosPermitidos={[ESTADOS_ACESSO.ativo]}
+            >
+              <PaginaAtletas />
+            </RotaProtegida>
+          }
+        />
+        <Route
+          path="/admin/grupos"
+          element={
+            <RotaProtegida
+              perfisPermitidos={[PERFIS_USUARIO.administrador]}
+              estadosPermitidos={[ESTADOS_ACESSO.ativo]}
+            >
+              <PaginaGrupos />
+            </RotaProtegida>
+          }
+        />
+        <Route
+          path="/admin/competicoes"
+          element={
+            <RotaProtegida
+              perfisPermitidos={[PERFIS_USUARIO.administrador]}
+              estadosPermitidos={[ESTADOS_ACESSO.ativo]}
+            >
+              <PaginaCompeticoes />
+            </RotaProtegida>
+          }
+        />
+        <Route
+          path="/admin/categorias"
+          element={
+            <RotaProtegida
+              perfisPermitidos={[PERFIS_USUARIO.administrador]}
+              estadosPermitidos={[ESTADOS_ACESSO.ativo]}
+            >
+              <PaginaCategorias />
+            </RotaProtegida>
+          }
+        />
+        <Route
+          path="/admin/partidas"
+          element={
+            <RotaProtegida
+              perfisPermitidos={[PERFIS_USUARIO.administrador]}
+              estadosPermitidos={[ESTADOS_ACESSO.ativo]}
+            >
+              <PaginaConsultaPartidas />
             </RotaProtegida>
           }
         />
