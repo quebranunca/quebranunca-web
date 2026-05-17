@@ -173,7 +173,12 @@ export function PaginaConsultaPartidas() {
                   </div>
 
                   <div className="acoes-item">
-                    {usuario && partida.status === 2 && <CompartilharPartidaBotao partidaId={partida.id} />}
+                    {partida.status === 2 && (
+                      <CompartilharPartidaBotao
+                        partidaId={partida.id}
+                        url={`/partidas/consulta?grupoId=${partida.grupoId || grupoId}`}
+                      />
+                    )}
                     {podeRemoverPartida(partida) && (
                       <button
                         type="button"

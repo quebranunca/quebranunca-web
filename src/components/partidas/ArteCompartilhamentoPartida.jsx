@@ -76,6 +76,7 @@ export const ArteCompartilhamentoPartida = forwardRef(function ArteCompartilhame
 ) {
   const ranking = dados?.rankingGrupo;
   const resultadoVitoria = dados?.resultadoAtletaLogado === 'Vitoria';
+  const possuiResultadoAtleta = dados?.resultadoAtletaLogado === 'Vitoria' || dados?.resultadoAtletaLogado === 'Derrota';
   const grupoNome = dados?.grupoNome || 'Partida registrada';
 
   return (
@@ -108,8 +109,12 @@ export const ArteCompartilhamentoPartida = forwardRef(function ArteCompartilhame
       </section>
 
       <section className={`arte-partida-resultado ${resultadoVitoria ? 'vitoria' : 'derrota'}`}>
-        <span>Seu resultado</span>
-        <strong>{resultadoVitoria ? 'Vitória' : 'Derrota'}</strong>
+        <span>{possuiResultadoAtleta ? 'Seu resultado' : 'Resultado'}</span>
+        <strong>
+          {possuiResultadoAtleta
+            ? resultadoVitoria ? 'Vitória' : 'Derrota'
+            : 'Partida registrada'}
+        </strong>
       </section>
 
       {ranking && (

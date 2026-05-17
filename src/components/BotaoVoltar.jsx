@@ -1,8 +1,9 @@
 import { useNavigate } from 'react-router-dom';
+import { FaChevronLeft } from 'react-icons/fa';
 
-export function BotaoVoltar({
+export function HeaderBackButton({
   mostrarTexto = true,
-  rotaFallback = '/',
+  rotaFallback = '/app',
   fallback,
   rotulo = 'Voltar'
 }) {
@@ -23,13 +24,19 @@ export function BotaoVoltar({
   return (
     <button
       type="button"
-      className="botao-terciario botao-voltar"
+      className="botao-terciario botao-voltar header-back-button"
       onClick={aoVoltar}
       aria-label={rotulo}
       title={rotulo}
     >
-      <span className="botao-voltar-icone" aria-hidden="true">&larr;</span>
+      <span className="botao-voltar-icone" aria-hidden="true">
+        <FaChevronLeft />
+      </span>
       {mostrarTexto && <span>{rotulo}</span>}
     </button>
   );
+}
+
+export function BotaoVoltar(props) {
+  return <HeaderBackButton {...props} />;
 }

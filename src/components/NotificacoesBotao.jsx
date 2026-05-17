@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { FaBell } from 'react-icons/fa';
 import { http } from '../services/http';
 
-export function NotificacoesBotao({ autenticado }) {
+export function NotificacoesBotao({ autenticado, contador = null }) {
   const navegar = useNavigate();
   const [temPendencia, setTemPendencia] = useState(false);
 
@@ -36,18 +37,17 @@ export function NotificacoesBotao({ autenticado }) {
         temPendencia ? 'tem-notificacao' : ''
       }`}
       onClick={aoAbrirPendencias}
+      aria-label={temPendencia ? 'Abrir pendências e notificações' : 'Abrir notificações'}
+      title="Pendências"
     >
-      <span className="icone-notificacao">
-        <svg viewBox="0 0 24 24" className="icone-svg" aria-hidden="true">
-          <path
-            d="M18 8a6 6 0 1 0-12 0v5l-2 2v1h16v-1l-2-2V8"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          />
-        </svg>
+      <span className="icone-notificacao" aria-hidden="true">
+        <FaBell />
 
-        {temPendencia && <span className="indicador-alerta" />}
+        {temPendencia && (
+          <span className="indicador-alerta">
+            {contador ? contador : ''}
+          </span>
+        )}
       </span>
     </button>
   );

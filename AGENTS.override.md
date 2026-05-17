@@ -6,6 +6,7 @@
 - Sempre que exibir o nome de um atleta no frontend, priorizar o apelido. Caso não exista apelido preenchido, usar o nome. Centralizar essa lógica em utilitário reutilizável e evitar duplicação.
 - Não colocar regra de negócio da competição no cliente; refletir dados e validações vindos da API
 - Exibir feedback claro para carregamento, erro, sucesso e ações destrutivas
+- Ações de compartilhamento devem ser públicas para quem consegue visualizar o recurso, sem liberar edição, exclusão ou administração, e devem reaproveitar o padrão existente da plataforma.
 - Quando um endpoint existir no repositório, mas a tela receber `404` ou falha de conexão, verificar primeiro a instância local da API, o `baseURL` em `src/services/http.js`, o proxy do Vite e o `.env` antes de alterar código
 - Em problema de integração local, preferir reiniciar ou atualizar o backend e alinhar a porta usada pelo frontend com a porta realmente disponível da API
 - Não deixar `.env` local, export de build ou configuração temporária de porta/API entrar na branch `master`

@@ -4,6 +4,7 @@ import { FaChevronRight, FaFilter, FaMedal, FaTrophy } from 'react-icons/fa';
 import { competicoesServico } from '../services/competicoesServico';
 import { gruposServico } from '../services/gruposServico';
 import { rankingServico } from '../services/rankingServico';
+import { CompartilharRankingBotao } from '../components/ranking/CompartilharRankingBotao';
 import { extrairMensagemErro } from '../utils/erros';
 import { obterNomeExibicaoAtleta } from '../utils/atletaUtils';
 
@@ -405,7 +406,13 @@ export function PaginaRanking() {
           <span>QNF Ranking</span>
           <h2>Ranking</h2>
         </div>
-        <FaTrophy aria-hidden="true" />
+        <div className="ranking-app-header-acoes">
+          <CompartilharRankingBotao
+            contexto={resumoFiltro}
+            titulo="Ranking QuebraNunca"
+          />
+          <FaTrophy aria-hidden="true" />
+        </div>
       </header>
 
       <nav className="ranking-tabs scroll-discreto" aria-label="Tipos de ranking">

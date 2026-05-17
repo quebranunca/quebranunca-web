@@ -1,11 +1,11 @@
 import {
   NavLink,
   matchPath,
-  useLocation,
-  useNavigate
+  useLocation
 } from 'react-router-dom';
 
 import { ConteudoBotao } from './ConteudoBotao';
+import { HeaderBackButton } from './BotaoVoltar';
 import { NotificacoesBotao } from './NotificacoesBotao';
 
 import logoLiga from '../assets/logo-liga.svg';
@@ -19,6 +19,13 @@ import { nomePerfil } from '../utils/perfis';
 import { nomeEstadoAcesso } from '../utils/acesso';
 
 const ROTA_HOME_APP = '/app';
+const ROTAS_PRINCIPAIS_SEM_VOLTAR = new Set([
+  '/',
+  '/app',
+  '/app/meus-jogos',
+  '/ranking',
+  '/app/perfil'
+]);
 
 function obterConfiguracaoHeader(pathname) {
   return (
@@ -45,13 +52,12 @@ export function AppHeader({
 }) {
   const location = useLocation();
 
-  const navegar = useNavigate();
-
   const configuracao =
     obterConfiguracaoHeader(location.pathname);
 
-  const telaContexto =
-    configuracao.tipoTela === TIPOS_TELA.contexto;
+  const telaInterna =
+    autenticado &&
+    !ROTAS_PRINCIPAIS_SEM_VOLTAR.has(location.pathname);
 
   const rotaHome =
     autenticado
@@ -63,50 +69,54 @@ export function AppHeader({
       ? 'QuebraNunca'
       : configuracao.title;
 
-  function aoVoltar() {
-    const indiceHistorico =
-      window.history.state?.idx;
-
-    if (
-      typeof indiceHistorico === 'number'
-      && indiceHistorico > 0
-    ) {
-      navegar(-1);
-      return;
-    }
-
-    navegar(ROTA_HOME_APP);
-  }
-
   return (
-    <header className="topo-app">
-      <NavLink
-        to={rotaHome}
-        className="marca-topo"
-        aria-label="Ir para a home"
-      >
-        <img
-          className="logo-interno"
-          src={logoLiga}
-          alt="Liga"
-        />
+    <header className={`topo-app ${telaInterna ? 'topo-app-interno' : 'topo-app-principal'}`}>
+      {telaInterna ? (
+        <div className="marca-topo marca-topo-interna">
+          <HeaderBackButton
+            mostrarTexto={false}
+            rotaFallback={ROTA_HOME_APP}
+          />
 
-        <div className="marca-texto">
-          <p className="marca-subtitulo">
-            Plataforma
-          </p>
+          <div className="marca-texto">
+            <p className="marca-subtitulo">
+              Plataforma
+            </p>
 
-          <h1 className="marca-titulo">
-            <span className="marca-titulo-desktop">
-              QuebraNunca
-            </span>
-
-            <span className="marca-titulo-mobile">
-              {tituloMobile}
-            </span>
-          </h1>
+            <h1 className="marca-titulo">
+              {configuracao.title}
+            </h1>
+          </div>
         </div>
-      </NavLink>
+      ) : (
+        <NavLink
+          to={rotaHome}
+          className="marca-topo"
+          aria-label="Ir para a home"
+        >
+          <img
+            className="logo-interno"
+            src={logoLiga}
+            alt="Liga"
+          />
+
+          <div className="marca-texto">
+            <p className="marca-subtitulo">
+              Plataforma
+            </p>
+
+            <h1 className="marca-titulo">
+              <span className="marca-titulo-desktop">
+                QuebraNunca
+              </span>
+
+              <span className="marca-titulo-mobile">
+                {tituloMobile}
+              </span>
+            </h1>
+          </div>
+        </NavLink>
+      )}
 
       <div className="usuario-topo">
         <span className="usuario-identidade">
@@ -136,23 +146,6 @@ export function AppHeader({
             </>
           )}
         </span>
-
-        {telaContexto && (
-          <button
-            type="button"
-            className="botao-terciario botao-topo-icone"
-            onClick={aoVoltar}
-            aria-label="Voltar"
-            title="Voltar"
-          >
-            <span
-              className="app-header-icone"
-              aria-hidden="true"
-            >
-              &larr;
-            </span>
-          </button>
-        )}        
 
         {autenticado && (
           <NotificacoesBotao

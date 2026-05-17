@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { toBlob } from 'html-to-image';
 import { useNotification } from '../../contexts/NotificationContext';
 import { partidasServico } from '../../services/partidasServico';
+import { obterUrlAbsoluta } from '../../utils/compartilhamento';
 import { extrairMensagemErro } from '../../utils/erros';
 import { ArteCompartilhamentoPartida } from './ArteCompartilhamentoPartida';
 import { IoShareSocialSharp } from 'react-icons/io5';
@@ -25,7 +26,19 @@ function baixarArquivo(blob, nomeArquivo) {
   URL.revokeObjectURL(url);
 }
 
-export function CompartilharPartidaBotao({ partidaId }) {
+function obterUrlPartida(partidaId, url) {
+  if (url) {
+    return obterUrlAbsoluta(url);
+  }
+
+  if (typeof window === 'undefined') {
+    return '';
+  }
+
+  return obterUrlAbsoluta(`${window.location.pathname}${window.location.search || ''}`);
+}
+
+export function CompartilharPartidaBotao({ partidaId, url }) {
   const { showNotification } = useNotification();
   const arteRef = useRef(null);
   const [dados, setDados] = useState(null);
@@ -62,7 +75,8 @@ export function CompartilharPartidaBotao({ partidaId }) {
         await navigator.share({
           files: [arquivo],
           title: 'Partida registrada no QuebraNunca',
-          text: 'Minha partida no QuebraNunca Futevôlei'
+          text: 'Partida registrada no QuebraNunca Futevôlei',
+          url: obterUrlPartida(partidaId, url)
         });
         return;
       }
