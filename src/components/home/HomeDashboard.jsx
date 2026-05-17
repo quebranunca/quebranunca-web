@@ -258,16 +258,16 @@ export function HomeDashboard({ dashboard, carregando, erro }) {
             <p className="home-dashboard-vazio">Nenhuma partida registrada no seu histórico.</p>
           ) : ultimasPartidas.map((partida) => (
             <article key={partida.id} className="home-dashboard-partida">
+              <div className="home-dashboard-partida-topo">
+                <span>{formatarData(partida.dataPartida)}</span>
+              </div>
+
               <div className={`home-dashboard-resultado ${partida.resultado === 'W' ? 'vitoria' : 'derrota'}`}>
                 <strong>{partida.resultado === 'W' ? 'V' : 'D'}</strong>
                 <span>{partida.resultado === 'W' ? 'Vitória' : 'Derrota'}</span>
               </div>
 
-              <div className="home-dashboard-partida-conteudo">
-                <div className="home-dashboard-partida-topo">
-                  <span>{formatarData(partida.dataPartida)}</span>
-                </div>
-
+              <div className="home-dashboard-partida-conteudo">                
                 <div className="home-dashboard-placar">
                   <PlacarDupla
                     label="Sua dupla"
