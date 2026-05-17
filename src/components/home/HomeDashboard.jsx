@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   FaBolt,
@@ -12,6 +12,8 @@ import {
   FaTrophy,
   FaUserFriends
 } from 'react-icons/fa';
+import logoLiga from '../../assets/logo-liga.svg';
+import { NotificacoesBotao } from '../NotificacoesBotao';
 import { PartidaCardPremium } from '../partidas/PartidaCardPremium';
 
 function nomeAtleta(nome, apelido) {
@@ -69,6 +71,34 @@ function obterResultadoPartidaHome(partida) {
   return partida?.resultado || 'Pendente';
 }
 
+function obterSaudacao() {
+  const hora = new Date().getHours();
+
+  if (hora < 12) {
+    return 'Bom dia';
+  }
+
+  if (hora < 18) {
+    return 'Boa tarde';
+  }
+
+  return 'Boa noite';
+}
+
+function obterBadgeMomento(resumo, perfil, totalJogosPeriodo) {
+  const sequencia = Number(resumo?.sequenciaAtual ?? 0);
+
+  if (sequencia >= 2) {
+    return `${sequencia} vitórias seguidas`;
+  }
+
+  if (totalJogosPeriodo > 0) {
+    return `${totalJogosPeriodo} jogo${totalJogosPeriodo > 1 ? 's' : ''} esta semana`;
+  }
+
+  return perfil?.textoSequencia || 'Pronto para o próximo jogo';
+}
+
 function HomeEstado({ titulo, mensagem }) {
   return (
     <section className="pagina home-dashboard">
@@ -104,6 +134,7 @@ export function HomeDashboard({ dashboard, carregando, erro }) {
   const insights = dashboard.insights || [];
   const insightsVisiveis = insightsExpandidos ? insights : insights.slice(0, 3);
   const nomePrincipal = nomeAtleta(perfil.nome, perfil.apelido);
+  const saudacao = obterSaudacao();
 
   const diasSemana = [
     { indice: 1, nome: 'Seg' },
@@ -133,6 +164,7 @@ export function HomeDashboard({ dashboard, carregando, erro }) {
 
   const totalDiasJogados = heatmap.filter((dia) => dia.quantidade > 0).length;
   const totalJogosPeriodo = heatmap.reduce((total, dia) => total + dia.quantidade, 0);
+  const badgeMomento = obterBadgeMomento(resumo, perfil, totalJogosPeriodo);
 
   const resumoRapido = [
     {
@@ -167,6 +199,13 @@ export function HomeDashboard({ dashboard, carregando, erro }) {
 
   return (
     <section className="pagina home-dashboard">
+      <HomeDashboardHeader
+        nome={nomePrincipal}
+        categoria={perfil.categoriaPrincipal}
+        posicaoRanking={perfil.posicaoRanking}
+        saudacao={saudacao}
+      />
+
       <header className="home-dashboard-hero">
         <div className="home-dashboard-atleta-card">
           <div className="home-dashboard-avatar">{obterIniciais(nomePrincipal)}</div>
@@ -184,6 +223,11 @@ export function HomeDashboard({ dashboard, carregando, erro }) {
             <span aria-hidden="true" />
             Ativo
           </span>
+        </div>
+
+        <div className="home-dashboard-momento-badge">
+          <FaFire aria-hidden="true" />
+          <span>{badgeMomento}</span>
         </div>
 
         <div className="home-dashboard-hero-acoes">
@@ -235,7 +279,7 @@ export function HomeDashboard({ dashboard, carregando, erro }) {
             className="home-dashboard-link-botao"
             onClick={() => setInsightsExpandidos((valor) => !valor)}
           >
-            {insightsExpandidos ? 'Ver menos insights' : 'Ver mais insights'}
+            {insightsExpandidos ? 'Ver menos' : 'Ver todos'}
           </button>
         )}
       </section>
@@ -318,6 +362,50 @@ export function HomeDashboard({ dashboard, carregando, erro }) {
         </div>
       </section>
     </section>
+  );
+}
+
+function HomeDashboardHeader({ nome, categoria, posicaoRanking, saudacao }) {
+  const [compacto, setCompacto] = useState(false);
+  const resumoAtleta = [
+    categoria,
+    posicaoRanking ? `#${posicaoRanking} no ranking` : ''
+  ].filter(Boolean).join(' • ');
+
+  useEffect(() => {
+    const areaRolagem = document.querySelector('.conteudo-principal') || window;
+
+    function aoScroll() {
+      const posicao = areaRolagem === window
+        ? window.scrollY
+        : areaRolagem.scrollTop;
+
+      setCompacto(posicao > 18);
+    }
+
+    aoScroll();
+    areaRolagem.addEventListener('scroll', aoScroll, { passive: true });
+
+    return () => areaRolagem.removeEventListener('scroll', aoScroll);
+  }, []);
+
+  return (
+    <div className={`home-dashboard-topo-premium ${compacto ? 'compacto' : ''}`}>
+      <div className="home-dashboard-topo-identidade">
+        <img src={logoLiga} alt="QuebraNunca" />
+        <div>
+          <strong>{saudacao}, {nome}</strong>
+          <span>{resumoAtleta || 'QuebraNunca Futevôlei'}</span>
+        </div>
+      </div>
+
+      <div className="home-dashboard-topo-acoes">
+        <NotificacoesBotao autenticado />
+        <div className="home-dashboard-topo-avatar" aria-hidden="true">
+          {obterIniciais(nome)}
+        </div>
+      </div>
+    </div>
   );
 }
 

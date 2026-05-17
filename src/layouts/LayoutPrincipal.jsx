@@ -24,6 +24,7 @@ export function LayoutPrincipal() {
   const [menuAberto, setMenuAberto] = useState(false);
   const autenticado = Boolean(token);
   const homePublica = !autenticado && location.pathname === '/';
+  const homeDashboardApp = autenticado && location.pathname === '/app';
   const itensMenu = autenticado
     ? obterItensNavegacao(usuario, estadoAcesso)
     : obterItensNavegacaoPublica();
@@ -55,7 +56,9 @@ export function LayoutPrincipal() {
     <div
       className={`layout-app${homePublica ? ' layout-home-publica' : ''}${
         autenticado ? ' layout-autenticado' : ''
-      }${mostrarBottomNavMobile ? ' layout-com-bottom-nav' : ''}`}
+      }${mostrarBottomNavMobile ? ' layout-com-bottom-nav' : ''}${
+        homeDashboardApp ? ' layout-home-dashboard-app' : ''
+      }`}
     >
       <AppHeader
         autenticado={autenticado}
