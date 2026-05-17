@@ -12,40 +12,20 @@ import {
   FaTrophy,
   FaUserFriends
 } from 'react-icons/fa';
-import { PlacarDupla } from '../partidas/PlacarDupla';
+import { PartidaCardPremium } from '../partidas/PartidaCardPremium';
 
 function nomeAtleta(nome, apelido) {
   return apelido || nome || 'Atleta';
 }
 
 function obterIniciais(nome) {
-  const partes = String(nome || 'QNF')
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean);
+  const partes = String(nome || 'QNF').trim().split(/\s+/).filter(Boolean);
 
   if (!partes.length) {
     return 'QNF';
   }
 
-  return partes
-    .slice(0, 2)
-    .map((parte) => parte[0])
-    .join('')
-    .toUpperCase();
-}
-
-function formatarData(valor) {
-  if (!valor) {
-    return '';
-  }
-
-  return new Intl.DateTimeFormat('pt-BR', {
-    day: '2-digit',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit'
-  }).format(new Date(valor));
+  return partes.slice(0, 2).map((parte) => parte[0]).join('').toUpperCase();
 }
 
 function obterIconeInsight(insight) {
@@ -71,6 +51,22 @@ function obterNivelHeatmap(quantidade) {
   if (quantidade === 1) return 1;
   if (quantidade === 2) return 2;
   return 3;
+}
+
+function obterContextoPartidaHome(partida) {
+  return partida?.grupo || partida?.categoria || partida?.competicao || 'Geral';
+}
+
+function obterResultadoPartidaHome(partida) {
+  if (partida?.resultado === 'W') {
+    return 'Vitória';
+  }
+
+  if (partida?.resultado === 'L') {
+    return 'Derrota';
+  }
+
+  return partida?.resultado || 'Pendente';
 }
 
 function HomeEstado({ titulo, mensagem }) {
@@ -99,7 +95,7 @@ export function HomeDashboard({ dashboard, carregando, erro }) {
     return <HomeEstado titulo="Registre partidas para montar sua Home." />;
   }
 
-  const perfil = dashboard.perfil;
+  const perfil = dashboard.perfil || {};
   const resumo = dashboard.resumo || {};
   const heatmap = dashboard.heatmap || [];
   const ultimasPartidas = (dashboard.ultimasPartidas || []).slice(0, 3);
@@ -127,10 +123,7 @@ export function HomeDashboard({ dashboard, carregando, erro }) {
       })
       .reduce((soma, dia) => soma + dia.quantidade, 0);
 
-    return {
-      ...diaSemana,
-      total
-    };
+    return { ...diaSemana, total };
   });
 
   const maiorTotalDiaSemana = Math.max(
@@ -176,9 +169,7 @@ export function HomeDashboard({ dashboard, carregando, erro }) {
     <section className="pagina home-dashboard">
       <header className="home-dashboard-hero">
         <div className="home-dashboard-atleta-card">
-          <div className="home-dashboard-avatar">
-            {obterIniciais(nomePrincipal)}
-          </div>
+          <div className="home-dashboard-avatar">{obterIniciais(nomePrincipal)}</div>
 
           <div className="home-dashboard-atleta-info">
             <span>Seu momento</span>
@@ -210,6 +201,7 @@ export function HomeDashboard({ dashboard, carregando, erro }) {
       <section className="home-dashboard-resumo" aria-label="Resumo rápido">
         {resumoRapido.map((item) => {
           const Icone = item.icone;
+
           return (
             <article key={item.id} className="home-dashboard-mini-card">
               <Icone aria-hidden="true" />
@@ -227,12 +219,14 @@ export function HomeDashboard({ dashboard, carregando, erro }) {
         <div className="home-dashboard-insights">
           {insightsVisiveis.length === 0 ? (
             <p className="home-dashboard-vazio">Registre mais partidas para gerar insights.</p>
-          ) : insightsVisiveis.map((insight) => (
-            <p key={insight}>
-              {obterIconeInsight(insight)}
-              <span>{insight}</span>
-            </p>
-          ))}
+          ) : (
+            insightsVisiveis.map((insight) => (
+              <p key={insight}>
+                {obterIconeInsight(insight)}
+                <span>{insight}</span>
+              </p>
+            ))
+          )}
         </div>
 
         {insights.length > 3 && (
@@ -253,39 +247,18 @@ export function HomeDashboard({ dashboard, carregando, erro }) {
           acao={<Link to="/app/meus-jogos">Ver todas</Link>}
         />
 
-        <div className="home-dashboard-partidas">
-          {ultimasPartidas.length === 0 ? (
-            <p className="home-dashboard-vazio">Nenhuma partida registrada no seu histórico.</p>
-          ) : ultimasPartidas.map((partida) => (
-            <article key={partida.id} className="home-dashboard-partida">
-              <div className="home-dashboard-partida-topo">
-                <span>{formatarData(partida.dataPartida)}</span>
-              </div>
-
-              <div className={`home-dashboard-resultado ${partida.resultado === 'W' ? 'vitoria' : 'derrota'}`}>
-                <strong>{partida.resultado === 'W' ? 'V' : 'D'}</strong>
-                <span>{partida.resultado === 'W' ? 'Vitória' : 'Derrota'}</span>
-              </div>
-
-              <div className="home-dashboard-partida-conteudo">                
-                <div className="home-dashboard-placar">
-                  <PlacarDupla
-                    label="Sua dupla"
-                    atletas={`Você e ${partida.parceiro}`}
-                    placar={partida.placarSuaDupla}
-                    vencedor={partida.resultado === 'W'}
-                  />
-                  <PlacarDupla
-                    label="Adversários"
-                    atletas={partida.adversarios}
-                    placar={partida.placarAdversarios}
-                    vencedor={partida.resultado !== 'W'}
-                  />
-                </div>
-              </div>
-            </article>
-          ))}
-        </div>
+        {ultimasPartidas.length === 0 ? (
+          <p className="home-dashboard-vazio">Suas últimas partidas aparecerão aqui.</p>
+        ) : (
+          <div className="meus-jogos-lista-premium">
+            {ultimasPartidas.map((partida) => (
+              <PartidaHomeCard
+                key={partida.id}
+                partida={partida}
+              />
+            ))}
+          </div>
+        )}
       </section>
 
       <section className="home-dashboard-bloco">
@@ -313,9 +286,11 @@ export function HomeDashboard({ dashboard, carregando, erro }) {
         <CabecalhoHome
           eyebrow="Frequência"
           titulo="Ritmo da semana"
-          descricao={totalDiasJogados > 0
-            ? `${totalJogosPeriodo} partida(s) em ${totalDiasJogados} dia(s) no período.`
-            : 'Registre partidas para acompanhar sua frequência.'}
+          descricao={
+            totalDiasJogados > 0
+              ? `${totalJogosPeriodo} partida(s) em ${totalDiasJogados} dia(s) no período.`
+              : 'Registre partidas para acompanhar sua frequência.'
+          }
         />
 
         <div className="home-dashboard-grafico-frequencia">
@@ -358,6 +333,34 @@ function CabecalhoHome({ eyebrow, titulo, descricao, acao }) {
     </div>
   );
 }
+function PartidaHomeCard({ partida }) {
+  const resultado = obterResultadoPartidaHome(partida);
+
+  return (
+    <PartidaCardPremium
+      contexto={obterContextoPartidaHome(partida)}
+      status={partida.status || 'Encerrada'}
+      dataPartida={partida.dataPartida}
+      resultado={resultado}
+      statusAprovacao={partida.statusAprovacao}
+      duplaA={{
+        label: 'Sua dupla',
+        atletas: partida.parceiro ? `Você e ${partida.parceiro}` : 'Sua dupla',
+        placar: partida.placarSuaDupla ?? 0,
+        destaque: true,
+        vencedora: resultado === 'Vitória'
+      }}
+      duplaB={{
+        label: 'Adversários',
+        atletas: partida.adversarios || 'Adversários',
+        placar: partida.placarAdversarios ?? 0,
+        destaque: false,
+        vencedora: resultado === 'Derrota'
+      }}
+      detalhesHref="/app/meus-jogos"
+    />
+  );
+}
 
 function DashboardRelacoes({ titulo, itens, tipo, icone: Icone, vazio }) {
   return (
@@ -370,23 +373,27 @@ function DashboardRelacoes({ titulo, itens, tipo, icone: Icone, vazio }) {
       <div className="home-dashboard-relacoes">
         {itens.length === 0 ? (
           <p className="home-dashboard-vazio">{vazio}</p>
-        ) : itens.slice(0, 6).map((item) => (
-          <Link
-            key={item.atletaId}
-            to={`/atletas/${item.atletaId}/dashboard`}
-            className="home-dashboard-relacao"
-          >
-            <div className="home-dashboard-relacao-avatar">
-              {obterIniciais(nomeAtleta(item.nome, item.apelido))}
-            </div>
-            <div>
-              <strong>{nomeAtleta(item.nome, item.apelido)}</strong>
-              <span>{item.partidas} {tipo === 'parceiro' ? 'jogos juntos' : 'jogos enfrentados'}</span>
-              <small>{item.aproveitamento}% aproveitamento</small>
-            </div>
-            <FaChevronRight aria-hidden="true" />
-          </Link>
-        ))}
+        ) : (
+          itens.slice(0, 6).map((item) => (
+            <Link
+              key={item.atletaId}
+              to={`/atletas/${item.atletaId}/dashboard`}
+              className="home-dashboard-relacao"
+            >
+              <div className="home-dashboard-relacao-avatar">
+                {obterIniciais(nomeAtleta(item.nome, item.apelido))}
+              </div>
+              <div>
+                <strong>{nomeAtleta(item.nome, item.apelido)}</strong>
+                <span>
+                  {item.partidas} {tipo === 'parceiro' ? 'jogos juntos' : 'jogos enfrentados'}
+                </span>
+                <small>{item.aproveitamento}% aproveitamento</small>
+              </div>
+              <FaChevronRight aria-hidden="true" />
+            </Link>
+          ))
+        )}
       </div>
     </section>
   );

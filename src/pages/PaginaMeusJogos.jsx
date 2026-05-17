@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import { FaCalendarAlt, FaChevronRight, FaFilter, FaGamepad, FaMedal, FaPlus, FaSortAmountDown, FaTrophy } from 'react-icons/fa';
+import { FaFilter, FaGamepad, FaMedal, FaPlus, FaSortAmountDown, FaTrophy } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { partidasServico } from '../services/partidasServico';
 import { CompartilharPartidaBotao } from '../components/partidas/CompartilharPartidaBotao';
+import { PartidaCardPremium } from '../components/partidas/PartidaCardPremium';
 import { extrairMensagemErro } from '../utils/erros';
-import { formatarDataHora } from '../utils/formatacao';
 import {
   atletaEstaNaDuplaA,
   atletaEstaNaDuplaB,
@@ -80,29 +80,6 @@ function formatarPontuacao(valor) {
 
 function obterContextoPartida(partida) {
   return partida.nomeGrupo || partida.nomeCategoria || 'Partida';
-}
-
-function obterClasseResultado(resultado) {
-  if (resultado.texto === 'Vitória') {
-    return 'vitoria';
-  }
-
-  if (resultado.texto === 'Derrota') {
-    return 'derrota';
-  }
-
-  return 'pendente';
-}
-
-function obterClasseValidacao(statusAprovacao) {
-  switch (Number(statusAprovacao)) {
-    case STATUS_APROVACAO_PARTIDA.aprovada:
-      return 'validado';
-    case STATUS_APROVACAO_PARTIDA.contestada:
-      return 'derrota';
-    default:
-      return 'pendente';
-  }
 }
 
 function obterPlacar(partida, dupla) {
@@ -341,49 +318,33 @@ function PartidaCard({ partida, atletaLogadoId, onDetalhes }) {
   const duplaBVencedora = partida.duplaVencedoraId && partida.duplaVencedoraId === partida.duplaBId;
 
   return (
-    <article className="meus-jogos-card-premium">
-      <div className="meus-jogos-card-topo-premium">
-        <div>
-          <span>{obterContextoPartida(partida)}</span>
-          <strong>{partida.faseCampeonato || obterNomeStatusPartida(partida.status)}</strong>
-          <small><FaCalendarAlt aria-hidden="true" /> {partida.dataPartida ? formatarDataHora(partida.dataPartida) : 'Data a definir'}</small>
-        </div>
-
-        <div className="meus-jogos-badges">
-          <span className={`meus-jogos-badge ${obterClasseResultado(resultado)}`}>
-            {resultado.texto}
-          </span>
-          <span className={`meus-jogos-badge ${obterClasseValidacao(partida.statusAprovacao)}`}>
-            {obterNomeStatusAprovacao(partida.statusAprovacao)}
-          </span>
-        </div>
-      </div>
-
-      <div className="meus-jogos-placar-premium">
-        <LinhaPlacar
-          label={minhaDuplaEhA ? 'Sua dupla' : 'Dupla 1'}
-          atletas={formatarAtletasPlacar(atletas.duplaA)}
-          placar={obterPlacar(partida, 'A')}
-          destaque={minhaDuplaEhA}
-          vencedora={duplaAVencedora}
-        />
-        <LinhaPlacar
-          label={minhaDuplaEhB ? 'Sua dupla' : 'Adversários'}
-          atletas={formatarAtletasPlacar(atletas.duplaB)}
-          placar={obterPlacar(partida, 'B')}
-          destaque={minhaDuplaEhB}
-          vencedora={duplaBVencedora}
-        />
-      </div>
-
-      <div className="meus-jogos-card-acoes">
-        {Number(partida.status) === STATUS_PARTIDA.encerrada && <CompartilharPartidaBotao partidaId={partida.id} />}
-        <button type="button" className="botao-secundario botao-compacto meus-jogos-detalhes" onClick={onDetalhes}>
-          Detalhes
-          <FaChevronRight aria-hidden="true" />
-        </button>
-      </div>
-    </article>
+    <PartidaCardPremium
+      contexto={obterContextoPartida(partida)}
+      status={partida.faseCampeonato || obterNomeStatusPartida(partida.status)}
+      dataPartida={partida.dataPartida}
+      resultado={resultado.texto}
+      statusAprovacao={partida.statusAprovacao}
+      duplaA={{
+        label: minhaDuplaEhA ? 'Sua dupla' : 'Dupla 1',
+        atletas: formatarAtletasPlacar(atletas.duplaA),
+        placar: obterPlacar(partida, 'A'),
+        destaque: minhaDuplaEhA,
+        vencedora: duplaAVencedora
+      }}
+      duplaB={{
+        label: minhaDuplaEhB ? 'Sua dupla' : 'Adversários',
+        atletas: formatarAtletasPlacar(atletas.duplaB),
+        placar: obterPlacar(partida, 'B'),
+        destaque: minhaDuplaEhB,
+        vencedora: duplaBVencedora
+      }}
+      acaoCompartilhar={
+        Number(partida.status) === STATUS_PARTIDA.encerrada
+          ? <CompartilharPartidaBotao partidaId={partida.id} />
+          : null
+      }
+      onDetalhes={onDetalhes}
+    />
   );
 }
 
