@@ -1318,6 +1318,17 @@ code {
   max-width: 12rem;
 }
 
+.atleta-dashboard-compartilhar {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+}
+
+.atleta-dashboard-compartilhar .botao-compartilhar-atleta-dashboard {
+  min-height: 2.35rem;
+  border-radius: 999px;
+}
+
 .ranking-tabs {
   display: flex;
   gap: 0.45rem;
@@ -3693,6 +3704,96 @@ code {
   color: #fff;
   font-family: 'Space Grotesk', sans-serif;
   font-size: 42px;
+}
+
+.arte-compartilhamento-card {
+  gap: 42px;
+}
+
+.arte-ranking-compartilhavel {
+  gap: 18px;
+}
+
+.arte-ranking-compartilhavel .arte-ranking-linha {
+  grid-template-columns: 104px minmax(0, 1fr) auto;
+  min-height: 108px;
+}
+
+.arte-ranking-compartilhavel .arte-ranking-linha span {
+  color: #ffb300;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 38px;
+}
+
+.arte-ranking-compartilhavel .arte-ranking-linha strong {
+  font-size: 38px;
+}
+
+.arte-compartilhamento-vazio {
+  margin: 0;
+  color: #b8b8b8;
+  font-size: 34px;
+  font-weight: 800;
+}
+
+.arte-atleta-destaque {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 12px;
+  padding: 42px;
+  border: 1px solid rgba(255, 179, 0, 0.18);
+  border-radius: 34px;
+  background: linear-gradient(135deg, #ffb300, #ff7a00);
+  color: #08090b;
+  box-shadow: 0 24px 70px rgba(255, 122, 0, 0.24);
+}
+
+.arte-atleta-destaque span {
+  font-size: 30px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.arte-atleta-destaque strong {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 112px;
+  line-height: 1;
+}
+
+.arte-atleta-metricas {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+}
+
+.arte-atleta-metrica {
+  min-height: 188px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 32px;
+  border: 1px solid rgba(255, 179, 0, 0.18);
+  border-radius: 30px;
+  background: rgba(8, 9, 11, 0.68);
+}
+
+.arte-atleta-metrica span {
+  color: #b8b8b8;
+  font-size: 28px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.arte-atleta-metrica strong {
+  color: #fff;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 58px;
+  line-height: 1;
+  overflow-wrap: anywhere;
 }
 
 .dupla-linha {
@@ -7188,6 +7289,16 @@ a.botao-terciario:active {
 
   .atleta-dashboard-pontos {
     min-width: 4.5rem;
+  }
+
+  .atleta-dashboard-compartilhar {
+    grid-column: 1 / -1;
+    justify-content: stretch;
+  }
+
+  .atleta-dashboard-compartilhar .botao-compartilhar-atleta-dashboard {
+    width: 100%;
+    justify-content: center;
   }
 
   .atleta-dashboard-resumo,

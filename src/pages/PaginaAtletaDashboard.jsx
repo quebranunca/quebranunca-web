@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 import { FaChartLine, FaGamepad, FaMedal, FaTrophy } from 'react-icons/fa';
+import { CompartilharAtletaDashboardBotao } from '../components/atleta/CompartilharAtletaDashboardBotao';
 import { PlacarDupla } from '../components/partidas/PlacarDupla';
 import { atletasServico } from '../services/atletasServico';
 import { rankingServico } from '../services/rankingServico';
@@ -174,6 +175,14 @@ export function PaginaAtletaDashboard() {
         <div className="atleta-dashboard-pontos">
           <strong>{formatarPontuacao(atletaRanking?.pontos)}</strong>
           <span>pontos</span>
+        </div>
+        <div className="atleta-dashboard-compartilhar">
+          <CompartilharAtletaDashboardBotao
+            atleta={atleta}
+            atletaRanking={atletaRanking}
+            grupoRanking={grupoRanking}
+            sequencia={sequencia}
+          />
         </div>
       </header>
 

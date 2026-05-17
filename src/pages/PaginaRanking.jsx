@@ -410,6 +410,7 @@ export function PaginaRanking() {
           <CompartilharRankingBotao
             contexto={resumoFiltro}
             titulo="Ranking QuebraNunca"
+            ranking={rankingFiltrado}
           />
           <FaTrophy aria-hidden="true" />
         </div>

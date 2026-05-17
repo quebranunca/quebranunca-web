@@ -3,27 +3,24 @@ import { IoShareSocialSharp } from 'react-icons/io5';
 import { useNotification } from '../../contexts/NotificationContext';
 import { compartilharImagem } from '../../utils/compartilhamento';
 import { extrairMensagemErro } from '../../utils/erros';
-import { RankingCompartilhavelCard } from './RankingCompartilhavelCard';
+import { obterNomeExibicaoAtleta } from '../../utils/atletaUtils';
+import { AtletaDashboardCompartilhavelCard } from './AtletaDashboardCompartilhavelCard';
 
-function montarTexto(contexto) {
-  return contexto
-    ? `Confira o ranking de ${contexto} no QuebraNunca Futevôlei`
-    : 'Confira o ranking do QuebraNunca Futevôlei';
-}
-
-export function CompartilharRankingBotao({
-  titulo = 'Ranking QuebraNunca',
-  contexto,
-  url,
-  ranking = []
+export function CompartilharAtletaDashboardBotao({
+  atleta,
+  atletaRanking,
+  grupoRanking,
+  sequencia,
+  url
 }) {
   const { showNotification } = useNotification();
   const arteRef = useRef(null);
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState('');
+  const nome = obterNomeExibicaoAtleta(atleta) || 'Atleta QuebraNunca';
 
   async function compartilhar() {
-    if (carregando) {
+    if (carregando || !atleta) {
       return;
     }
 
@@ -33,16 +30,16 @@ export function CompartilharRankingBotao({
     try {
       const resultado = await compartilharImagem({
         elemento: () => arteRef.current,
-        nomeArquivo: 'quebranunca-ranking.png',
-        titulo,
-        texto: montarTexto(contexto),
+        nomeArquivo: `quebranunca-atleta-${atleta.id || atleta.atletaId || 'dashboard'}.png`,
+        titulo: `Dashboard de ${nome}`,
+        texto: `Confira o dashboard de ${nome} no QuebraNunca Futevôlei`,
         url
       });
 
       if (resultado === 'baixado') {
         showNotification({
           type: 'info',
-          title: 'Imagem do ranking gerada',
+          title: 'Imagem do dashboard gerada',
           message: 'Compartilhamento direto não é suportado neste dispositivo. A imagem foi baixada para você postar.',
           duration: 5000
         });
@@ -56,7 +53,7 @@ export function CompartilharRankingBotao({
       setErro(mensagem);
       showNotification({
         type: 'error',
-        title: 'Erro ao compartilhar ranking',
+        title: 'Erro ao compartilhar dashboard',
         message: mensagem,
         duration: 5000
       });
@@ -69,11 +66,11 @@ export function CompartilharRankingBotao({
     <>
       <button
         type="button"
-        className="botao-compartilhar-partida botao-compartilhar-ranking botao-compacto"
+        className="botao-compartilhar-partida botao-compartilhar-atleta-dashboard botao-compacto"
         onClick={compartilhar}
-        disabled={carregando}
-        aria-label="Compartilhar ranking"
-        title="Compartilhar ranking"
+        disabled={carregando || !atleta}
+        aria-label="Compartilhar dashboard do atleta"
+        title="Compartilhar dashboard do atleta"
       >
         <IoShareSocialSharp aria-hidden="true" />
         {carregando ? 'Compartilhando...' : 'Compartilhar'}
@@ -81,7 +78,13 @@ export function CompartilharRankingBotao({
 
       {erro && <span className="compartilhar-partida-erro" role="alert">{erro}</span>}
       <div className="compartilhar-partida-render" aria-hidden="true">
-        <RankingCompartilhavelCard ref={arteRef} ranking={ranking} contexto={contexto} />
+        <AtletaDashboardCompartilhavelCard
+          ref={arteRef}
+          atleta={atleta}
+          atletaRanking={atletaRanking}
+          grupoRanking={grupoRanking}
+          sequencia={sequencia}
+        />
       </div>
     </>
   );
