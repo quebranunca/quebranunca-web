@@ -259,8 +259,7 @@ export function HomeDashboard({ dashboard, carregando, erro }) {
           ) : ultimasPartidas.map((partida) => (
             <article key={partida.id} className="home-dashboard-partida">
               <div className={`home-dashboard-resultado ${partida.resultado === 'W' ? 'vitoria' : 'derrota'}`}>
-                <strong>{partida.resultado === 'W' ? 'V' : 'D'}</strong>
-                <span>{partida.resultado === 'W' ? 'Vitória' : 'Derrota'}</span>
+                <strong>{partida.resultado === 'W' ? 'V' : 'D'}</strong>                
               </div>
 
               <div className="home-dashboard-partida-conteudo">
