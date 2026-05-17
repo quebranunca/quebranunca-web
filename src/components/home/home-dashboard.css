@@ -156,6 +156,7 @@
   display: grid;
   grid-template-columns: repeat(4, minmax(5rem, 1fr));
   gap: 0.52rem;
+  min-width: 0;
   overflow-x: auto;
   padding-bottom: 0.05rem;
   scroll-snap-type: x proximity;
@@ -164,8 +165,10 @@
 
 .home-dashboard-mini-card {
   display: grid;
+  grid-template-rows: auto auto auto auto;
   gap: 0.14rem;
-  min-width: 5rem;
+  flex: 1;
+  min-width: 0;
   padding: 0.68rem;
   border-radius: 16px;
   scroll-snap-align: start;
@@ -176,14 +179,33 @@
   color: var(--cor-primaria);
 }
 
+.home-dashboard-mini-card span,
 .home-dashboard-mini-card strong {
+  min-width: 0;
+}
+
+.home-dashboard-mini-card span {
+  overflow: hidden;
+  width: 100%;
+  max-width: 100%;
+  letter-spacing: 0.01em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-dashboard-mini-card strong {
+  overflow: hidden;
   color: var(--cor-texto);
   font-size: 1.25rem;
   line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .home-dashboard-mini-card small {
   overflow: hidden;
+  min-width: 0;
+  max-width: 100%;
   color: var(--cor-texto-suave);
   font-size: 0.72rem;
   font-weight: 700;
@@ -567,7 +589,20 @@
   }
 
   .home-dashboard-resumo {
-    grid-template-columns: repeat(4, 5.45rem);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .home-dashboard-mini-card {
+    padding-inline: 0.56rem;
+  }
+
+  .home-dashboard-mini-card span {
+    font-size: 0.66rem;
+    letter-spacing: 0;
+  }
+
+  .home-dashboard-mini-card small {
+    font-size: 0.68rem;
   }
 
   .home-dashboard-bloco-cabecalho {
