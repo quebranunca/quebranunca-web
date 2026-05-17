@@ -70,6 +70,14 @@ function LinhaRanking({ rotulo, atleta, destaque }) {
   );
 }
 
+function obterTextoResultado(resultado, vitoria) {
+  if (resultado === 'Vitoria' || resultado === 'Derrota') {
+    return vitoria ? 'Vitória' : 'Derrota';
+  }
+
+  return 'Partida registrada';
+}
+
 export const ArteCompartilhamentoPartida = forwardRef(function ArteCompartilhamentoPartida(
   { dados },
   ref
@@ -110,11 +118,7 @@ export const ArteCompartilhamentoPartida = forwardRef(function ArteCompartilhame
 
       <section className={`arte-partida-resultado ${resultadoVitoria ? 'vitoria' : 'derrota'}`}>
         <span>{possuiResultadoAtleta ? 'Seu resultado' : 'Resultado'}</span>
-        <strong>
-          {possuiResultadoAtleta
-            ? resultadoVitoria ? 'Vitória' : 'Derrota'
-            : 'Partida registrada'}
-        </strong>
+        <strong>{obterTextoResultado(dados?.resultadoAtletaLogado, resultadoVitoria)}</strong>
       </section>
 
       {ranking && (
