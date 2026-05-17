@@ -3759,6 +3759,7 @@ code {
   font-family: 'Space Grotesk', sans-serif;
   font-size: 112px;
   line-height: 1;
+  overflow-wrap: anywhere;
 }
 
 .arte-atleta-metricas {
