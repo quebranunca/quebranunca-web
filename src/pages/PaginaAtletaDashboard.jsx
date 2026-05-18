@@ -170,19 +170,19 @@ export function PaginaAtletaDashboard() {
           <span>Atleta</span>
           <h2>{obterNomeExibicaoAtleta(atleta)}</h2>
           <p>{grupoRanking?.nomeCompeticao || 'Ranking geral'} {atletaRanking?.posicao ? `• #${atletaRanking.posicao}` : ''}</p>
-          <span className={`ranking-status-dot ${status.classe}`}>{status.texto}</span>
+          <div className="atleta-dashboard-identidade-acoes">
+            <span className={`ranking-status-dot ${status.classe}`}>{status.texto}</span>
+            <CompartilharAtletaDashboardBotao
+              atleta={atleta}
+              atletaRanking={atletaRanking}
+              grupoRanking={grupoRanking}
+              sequencia={sequencia}
+            />
+          </div>
         </div>
         <div className="atleta-dashboard-pontos">
           <strong>{formatarPontuacao(atletaRanking?.pontos)}</strong>
           <span>pontos</span>
-        </div>
-        <div className="atleta-dashboard-compartilhar">
-          <CompartilharAtletaDashboardBotao
-            atleta={atleta}
-            atletaRanking={atletaRanking}
-            grupoRanking={grupoRanking}
-            sequencia={sequencia}
-          />
         </div>
       </header>
 

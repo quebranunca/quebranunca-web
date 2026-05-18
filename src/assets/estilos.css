@@ -1669,12 +1669,20 @@ code {
   min-width: 0;
   flex: 1;
   display: grid;
-  gap: 0.18rem;
+  gap: 0.28rem;
 }
 
 .atleta-dashboard-identidade p {
   margin: 0;
   color: var(--color-text-secondary);
+}
+
+.atleta-dashboard-identidade-acoes {
+  display: flex;
+  align-items: center;
+  gap: 0.48rem;
+  min-width: 0;
+  flex-wrap: wrap;
 }
 
 .atleta-dashboard-pontos {
@@ -7310,13 +7318,12 @@ a.botao-terciario:active {
     min-width: 4.5rem;
   }
 
-  .atleta-dashboard-compartilhar {
-    grid-column: 1 / -1;
-    justify-content: stretch;
+  .atleta-dashboard-identidade-acoes {
+    align-items: stretch;
+    gap: 0.42rem;
   }
 
-  .atleta-dashboard-compartilhar .botao-compartilhar-atleta-dashboard {
-    width: 100%;
+  .atleta-dashboard-identidade-acoes .botao-compartilhar-atleta-dashboard {
     justify-content: center;
   }
 
