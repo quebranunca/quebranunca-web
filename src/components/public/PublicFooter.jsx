@@ -5,7 +5,7 @@ export function PublicFooter() {
         <a href="https://www.quebranunca.com/quebranunca" target="_blank" rel="noreferrer">Instagram</a>
         <a href="mailto:contato@quebranunca.com.br">Contato</a>
         <a href="/#termos">Termos</a>
-        <a href="/#privacidade">Privacidade</a>
+        <a href="/privacidade">Privacidade</a>
       </nav>
     </footer>
   );

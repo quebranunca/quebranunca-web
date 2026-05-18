@@ -1,6 +1,7 @@
 import { createContext, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { definirManipuladorNaoAutorizado, definirTokenAutorizacao } from '../services/http';
 import { autenticacaoServico } from '../services/autenticacaoServico';
+import { sincronizarPermissaoLocalizacao } from '../services/privacidadeServico';
 import { obterEstadoAcessoUsuario, obterRotaPadraoEstado } from '../utils/acesso';
 
 const CHAVE_ARMAZENAMENTO = 'plataforma_futevolei_autenticacao';
@@ -117,6 +118,7 @@ export function ProvedorAutenticacao({ children }) {
     };
 
     setSessao(proximaSessao);
+    sincronizarPermissaoLocalizacao(Boolean(resposta.usuario?.permitirUsoLocalizacao));
     definirTokenAutorizacao(resposta.token);
     localStorage.setItem(CHAVE_ARMAZENAMENTO, JSON.stringify(proximaSessao));
   }, []);
@@ -124,6 +126,7 @@ export function ProvedorAutenticacao({ children }) {
   const sair = useCallback(() => {
     limparTemporizadorRenovacao();
     setSessao(null);
+    sincronizarPermissaoLocalizacao(false);
     definirTokenAutorizacao(null);
     localStorage.removeItem(CHAVE_ARMAZENAMENTO);
   }, [limparTemporizadorRenovacao]);
@@ -138,6 +141,7 @@ export function ProvedorAutenticacao({ children }) {
         ...sessaoAtual,
         usuario: proximoUsuario
       };
+      sincronizarPermissaoLocalizacao(Boolean(proximoUsuario?.permitirUsoLocalizacao));
       localStorage.setItem(CHAVE_ARMAZENAMENTO, JSON.stringify(proximaSessao));
       return proximaSessao;
     });
@@ -188,6 +192,7 @@ export function ProvedorAutenticacao({ children }) {
 
         definirTokenAutorizacao(sessaoAtiva.token);
         setSessao(sessaoAtiva);
+        sincronizarPermissaoLocalizacao(Boolean(sessaoAtiva.usuario?.permitirUsoLocalizacao));
 
         if (!sessaoAtiva.usuario) {
           const usuarioAtual = await autenticacaoServico.me();
@@ -200,6 +205,7 @@ export function ProvedorAutenticacao({ children }) {
               ...sessaoAtual,
               usuario: usuarioAtual
             };
+            sincronizarPermissaoLocalizacao(Boolean(usuarioAtual?.permitirUsoLocalizacao));
             localStorage.setItem(CHAVE_ARMAZENAMENTO, JSON.stringify(proximaSessao));
             return proximaSessao;
           });
@@ -264,13 +270,21 @@ export function ProvedorAutenticacao({ children }) {
     conviteIdPublico,
     codigoConvite,
     nome,
-    email
+    email,
+    aceitouPoliticaPrivacidade,
+    aceitouTermosUso,
+    aceitouUsoLocalizacao,
+    aceitouUsoImagem
   }) => {
     const resposta = await autenticacaoServico.registrarPorConvite({
       conviteIdPublico,
       codigoConvite,
       nome,
-      email
+      email,
+      aceitouPoliticaPrivacidade,
+      aceitouTermosUso,
+      aceitouUsoLocalizacao,
+      aceitouUsoImagem
     });
     salvarAutenticacao(resposta, { primeiroAcessoPendente: true });
     return resposta;

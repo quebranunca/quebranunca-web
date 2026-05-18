@@ -18,6 +18,7 @@ Seguir o `AGENTS.md` da raiz. Neste diretório, além disso:
 - `Locais` é cadastro próprio e `Competições` apenas referencia o local escolhido
 - `Inscrições` aceita dupla existente ou criação no fluxo a partir de `Jogador 1` e `Jogador 2`
 - `Meu Perfil` existe para qualquer usuário e concentra vínculo `Usuario` ↔ `Atleta`
+- `Meu Perfil` também concentra preferências de privacidade; e-mail público, localização e imagem/foto devem respeitar as preferências retornadas pela API
 - Usuário comum (`Atleta`) não vincula atleta existente; cria apenas o próprio atleta com o mesmo nome e e-mail do usuário
 - `Competições` para atleta funciona como vitrine de campeonatos com inscrições abertas; para gestor continua sendo tela de gestão
 - `Inscrições` para atleta permite escolher campeonato/categoria e se inscrever com dupla própria ou parceiro ainda pendente
@@ -33,12 +34,14 @@ Seguir o `AGENTS.md` da raiz. Neste diretório, além disso:
 - `Pendências` centraliza aprovar/contestar partidas e completar contato de atleta pendente; o frontend só reflete as pendências e ações retornadas pela API
 - `Modelos de importação` já oferece download e upload CSV por tipo de cadastro
 - Aceite de convite deve tratar o código no formato curto `000-000`, sem depender do frontend para definir perfil, validade ou regras de uso do convite
+- Aceite de convite deve exigir Política de Privacidade e Termos de Uso; localização e imagem/foto são consentimentos separados e opcionais
 - E-mail e WhatsApp são canais do mesmo convite; a interface não deve sugerir que reenviar por outro canal cria convite ou código diferente
 - Todo campo de seleção (dropdown) deve possuir indicação visual clara (ex: ícone de seta) para melhorar a usabilidade
 
 ## Acesso no frontend
 - Centralizar guardas de rota, landing page e menu a partir de perfil e estado do usuário
 - Rotas públicas de leitura devem permanecer acessíveis para visitante e usuário logado; botões de criação/edição/exclusão só aparecem quando o usuário pode executar a ação
+- Páginas públicas não devem exibir e-mail ou dados pessoais sensíveis sem permissão explícita; manter estados vazios/ocultos sem quebrar ranking, partidas e dashboards
 - Perfis principais: Visitante, Atleta, Organizador e Administrador
 - Estados de acesso podem incluir `PrimeiroAcesso`, `CadastroIncompleto` e `Ativo`; se a API ainda não expuser o estado de forma explícita, o frontend pode inferi-lo de maneira previsível a partir da sessão atual
 - `Meu Perfil` é a tela padrão para conclusão de `PrimeiroAcesso` e de `CadastroIncompleto`

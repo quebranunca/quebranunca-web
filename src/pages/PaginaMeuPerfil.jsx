@@ -10,15 +10,17 @@ import {
   FaPhone,
   FaRegUser,
   FaSave,
+  FaShieldAlt,
   FaSignOutAlt,
   FaTrashAlt,
   FaTrophy,
   FaUserEdit
 } from 'react-icons/fa';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { atletasServico } from '../services/atletasServico';
 import { dashboardServico } from '../services/dashboardServico';
+import { privacidadeServico } from '../services/privacidadeServico';
 import { usuariosServico } from '../services/usuariosServico';
 import { useNotification } from '../contexts/NotificationContext';
 import { extrairMensagemErro } from '../utils/erros';
@@ -58,8 +60,18 @@ const abasPerfil = [
   { id: 'resumo', rotulo: 'Resumo', icone: FaChartLine },
   { id: 'perfil', rotulo: 'Perfil', icone: FaRegUser },
   { id: 'contato', rotulo: 'Contato', icone: FaPhone },
+  { id: 'privacidade', rotulo: 'Privacidade', icone: FaShieldAlt },
   { id: 'configuracoes', rotulo: 'Configurações', icone: FaCog }
 ];
+
+const preferenciasPrivacidadeIniciais = {
+  perfilPublico: true,
+  exibirEmail: false,
+  permitirUsoLocalizacao: false,
+  permitirUsoImagem: false,
+  possuiFotoPerfil: false,
+  exclusaoSolicitada: false
+};
 
 const mensagemErroAcessoOrganizador =
   'O organizador só pode alterar atletas inscritos em competições vinculadas ao próprio usuário.';
@@ -258,7 +270,9 @@ export function PaginaMeuPerfil() {
   const [carregando, setCarregando] = useState(true);
   const [salvandoUsuario, setSalvandoUsuario] = useState(false);
   const [salvandoAtleta, setSalvandoAtleta] = useState(false);
+  const [salvandoPrivacidade, setSalvandoPrivacidade] = useState(false);
   const [excluindoPerfil, setExcluindoPerfil] = useState(false);
+  const [preferenciasPrivacidade, setPreferenciasPrivacidade] = useState(preferenciasPrivacidadeIniciais);
   const [cidadesEstado, setCidadesEstado] = useState([]);
   const [carregandoCidades, setCarregandoCidades] = useState(false);
   const [erro, setErro] = useState('');
@@ -343,6 +357,16 @@ export function PaginaMeuPerfil() {
 
       setUsuarioDetalhe(proximoUsuarioDetalhe);
       setEditandoPerfil(false);
+
+      try {
+        const preferencias = await privacidadeServico.obterMinhasPreferencias();
+        setPreferenciasPrivacidade({
+          ...preferenciasPrivacidadeIniciais,
+          ...preferencias
+        });
+      } catch {
+        setPreferenciasPrivacidade(preferenciasPrivacidadeIniciais);
+      }
 
       if (proximoUsuarioDetalhe.atletaId) {
         try {
@@ -551,7 +575,7 @@ export function PaginaMeuPerfil() {
     setMensagem('');
 
     try {
-      await usuariosServico.excluirMeuPerfil();
+      await privacidadeServico.solicitarExclusao();
       sair();
       sessionStorage.clear();
       showNotification({
@@ -601,6 +625,55 @@ export function PaginaMeuPerfil() {
   function sairDoPerfil() {
     sair();
     navigate('/', { replace: true });
+  }
+
+  function atualizarPreferenciaPrivacidade(campo, valor) {
+    setPreferenciasPrivacidade((anterior) => ({
+      ...anterior,
+      [campo]: valor
+    }));
+  }
+
+  async function salvarPreferenciasPrivacidade(evento) {
+    evento?.preventDefault();
+    setSalvandoPrivacidade(true);
+
+    try {
+      const preferenciasAtualizadas = await privacidadeServico.atualizarMinhasPreferencias({
+        perfilPublico: preferenciasPrivacidade.perfilPublico,
+        exibirEmail: preferenciasPrivacidade.exibirEmail,
+        permitirUsoLocalizacao: preferenciasPrivacidade.permitirUsoLocalizacao,
+        permitirUsoImagem: preferenciasPrivacidade.permitirUsoImagem
+      });
+
+      setPreferenciasPrivacidade({
+        ...preferenciasPrivacidadeIniciais,
+        ...preferenciasAtualizadas
+      });
+      const proximoUsuarioDetalhe = {
+        ...(usuarioDetalhe || usuario),
+        perfilPublico: preferenciasAtualizadas.perfilPublico,
+        exibirEmail: preferenciasAtualizadas.exibirEmail,
+        permitirUsoLocalizacao: preferenciasAtualizadas.permitirUsoLocalizacao,
+        permitirUsoImagem: preferenciasAtualizadas.permitirUsoImagem
+      };
+      setUsuarioDetalhe(proximoUsuarioDetalhe);
+      atualizarUsuarioLocal(proximoUsuarioDetalhe);
+
+      showNotification({
+        type: 'success',
+        title: 'Privacidade atualizada',
+        message: 'Suas preferências foram salvas com sucesso.'
+      });
+    } catch (error) {
+      showNotification({
+        type: 'error',
+        title: 'Erro ao salvar privacidade',
+        message: extrairMensagemErro(error)
+      });
+    } finally {
+      setSalvandoPrivacidade(false);
+    }
   }
 
   const usuarioEhAtleta = Number(usuarioDetalhe?.perfil || usuario?.perfil) === PERFIS_USUARIO.atleta;
@@ -979,6 +1052,90 @@ export function PaginaMeuPerfil() {
                 </div>
               </div>
             )}
+          </form>
+        )}
+
+        {abaAtiva === 'privacidade' && (
+          <form className="perfil-tab-fade perfil-configuracoes" onSubmit={salvarPreferenciasPrivacidade}>
+            <article className="perfil-config-card">
+              <div>
+                <span>Privacidade</span>
+                <h2>Preferências do perfil</h2>
+                <p>Controle como seus dados pessoais podem aparecer ou ser usados nos recursos da plataforma.</p>
+              </div>
+
+              <div className="perfil-privacidade-lista">
+                <label className="perfil-switch-linha">
+                  <input
+                    type="checkbox"
+                    checked={preferenciasPrivacidade.perfilPublico}
+                    onChange={(evento) => atualizarPreferenciaPrivacidade('perfilPublico', evento.target.checked)}
+                  />
+                  <span aria-hidden="true" />
+                  <strong>Perfil público</strong>
+                  <small>Permite que seu perfil esportivo seja encontrado nas áreas públicas quando aplicável.</small>
+                </label>
+
+                <label className="perfil-switch-linha">
+                  <input
+                    type="checkbox"
+                    checked={preferenciasPrivacidade.exibirEmail}
+                    onChange={(evento) => atualizarPreferenciaPrivacidade('exibirEmail', evento.target.checked)}
+                  />
+                  <span aria-hidden="true" />
+                  <strong>Exibir e-mail publicamente</strong>
+                  <small>Por padrão o e-mail fica oculto nas páginas públicas.</small>
+                </label>
+
+                <label className="perfil-switch-linha">
+                  <input
+                    type="checkbox"
+                    checked={preferenciasPrivacidade.permitirUsoLocalizacao}
+                    onChange={(evento) => atualizarPreferenciaPrivacidade('permitirUsoLocalizacao', evento.target.checked)}
+                  />
+                  <span aria-hidden="true" />
+                  <strong>Permitir uso de localização</strong>
+                  <small>A localização segue opcional e só é enviada em novos registros quando autorizada.</small>
+                </label>
+
+                <label className="perfil-switch-linha">
+                  <input
+                    type="checkbox"
+                    checked={preferenciasPrivacidade.permitirUsoImagem}
+                    onChange={(evento) => atualizarPreferenciaPrivacidade('permitirUsoImagem', evento.target.checked)}
+                  />
+                  <span aria-hidden="true" />
+                  <strong>Permitir uso de foto/imagem</strong>
+                  <small>Autoriza o uso da sua imagem em recursos do perfil quando esse recurso estiver disponível.</small>
+                </label>
+              </div>
+
+              <div className="perfil-config-acoes">
+                <button type="submit" className="botao-primario" disabled={salvandoPrivacidade}>
+                  <FaSave aria-hidden="true" />
+                  {salvandoPrivacidade ? 'Salvando...' : 'Salvar privacidade'}
+                </button>
+                <Link className="botao-secundario" to="/privacidade" target="_blank" rel="noreferrer">
+                  Política de Privacidade
+                </Link>
+              </div>
+            </article>
+
+            <article className="perfil-config-card">
+              <div>
+                <span>Foto do perfil</span>
+                <h2>Imagem pessoal</h2>
+                <p>
+                  A remoção de foto será aplicada quando houver imagem de perfil cadastrada. Hoje seu perfil usa apenas
+                  iniciais geradas pela plataforma.
+                </p>
+              </div>
+
+              <button type="button" className="botao-secundario" disabled={!preferenciasPrivacidade.possuiFotoPerfil}>
+                <FaTrashAlt aria-hidden="true" />
+                Remover foto
+              </button>
+            </article>
           </form>
         )}
 

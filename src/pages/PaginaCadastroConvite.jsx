@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import logoLiga from '../assets/logo-liga.svg';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { convitesCadastroServico } from '../services/convitesCadastroServico';
@@ -11,6 +11,10 @@ export function PaginaCadastroConvite() {
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [codigoConvite, setCodigoConvite] = useState('');
+  const [aceitouPoliticaPrivacidade, setAceitouPoliticaPrivacidade] = useState(false);
+  const [aceitouTermosUso, setAceitouTermosUso] = useState(false);
+  const [aceitouUsoLocalizacao, setAceitouUsoLocalizacao] = useState(false);
+  const [aceitouUsoImagem, setAceitouUsoImagem] = useState(false);
   const [erro, setErro] = useState('');
   const [carregandoConvite, setCarregandoConvite] = useState(true);
   const [salvando, setSalvando] = useState(false);
@@ -67,6 +71,11 @@ export function PaginaCadastroConvite() {
       return;
     }
 
+    if (!aceitouPoliticaPrivacidade || !aceitouTermosUso) {
+      setErro('É necessário aceitar a Política de Privacidade e os Termos de Uso para continuar.');
+      return;
+    }
+
     setSalvando(true);
 
     try {
@@ -74,7 +83,11 @@ export function PaginaCadastroConvite() {
         conviteIdPublico: identificadorPublico,
         codigoConvite: codigoConvite.trim(),
         nome: nome.trim(),
-        email: email.trim()
+        email: email.trim(),
+        aceitouPoliticaPrivacidade,
+        aceitouTermosUso,
+        aceitouUsoLocalizacao,
+        aceitouUsoImagem
       });
       navegar('/app/perfil', { replace: true });
     } catch (error) {
@@ -130,6 +143,46 @@ export function PaginaCadastroConvite() {
                       placeholder="Informe o código recebido"
                       required
                     />
+                  </label>
+
+                  <label className="campo-checkbox">
+                    <input
+                      type="checkbox"
+                      checked={aceitouPoliticaPrivacidade}
+                      onChange={(evento) => setAceitouPoliticaPrivacidade(evento.target.checked)}
+                      required
+                    />
+                    <span>
+                      Li e aceito a <Link to="/privacidade" target="_blank" rel="noreferrer">Política de Privacidade</Link>.
+                    </span>
+                  </label>
+
+                  <label className="campo-checkbox">
+                    <input
+                      type="checkbox"
+                      checked={aceitouTermosUso}
+                      onChange={(evento) => setAceitouTermosUso(evento.target.checked)}
+                      required
+                    />
+                    <span>Aceito os Termos de Uso da plataforma.</span>
+                  </label>
+
+                  <label className="campo-checkbox">
+                    <input
+                      type="checkbox"
+                      checked={aceitouUsoLocalizacao}
+                      onChange={(evento) => setAceitouUsoLocalizacao(evento.target.checked)}
+                    />
+                    <span>Permitir uso de localização ao registrar partidas.</span>
+                  </label>
+
+                  <label className="campo-checkbox">
+                    <input
+                      type="checkbox"
+                      checked={aceitouUsoImagem}
+                      onChange={(evento) => setAceitouUsoImagem(evento.target.checked)}
+                    />
+                    <span>Permitir uso de foto/imagem em recursos visuais da plataforma.</span>
                   </label>
 
                   <button type="submit" className="botao-primario" disabled={salvando}>

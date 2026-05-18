@@ -1,7 +1,13 @@
+import { CHAVE_PERMISSAO_LOCALIZACAO } from './privacidadeServico';
+
 const TEMPO_LIMITE_GEOLOCALIZACAO_MS = 5000;
 
 export const localizacaoServico = {
   obterLocalizacaoAtual() {
+    if (localStorage.getItem(CHAVE_PERMISSAO_LOCALIZACAO) !== 'true') {
+      return Promise.resolve(null);
+    }
+
     if (typeof navigator === 'undefined' || !('geolocation' in navigator)) {
       return Promise.resolve(null);
     }

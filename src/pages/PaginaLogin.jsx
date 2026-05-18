@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { FaEnvelope, FaKey } from 'react-icons/fa';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { SolicitacaoAcessoAccordion } from '../components/login/SolicitacaoAcessoAccordion';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { autenticacaoServico } from '../services/autenticacaoServico';
@@ -242,6 +242,10 @@ export function PaginaLogin() {
               : (emModoRecuperacao ? 'Redefinir senha' : 'Entrar')}
           </button>          
         </form>
+
+        <p className="login-link-privacidade">
+          Ao acessar, consulte a <Link to="/privacidade">Política de Privacidade</Link>.
+        </p>
       </div>
 
       <SolicitacaoAcessoAccordion />

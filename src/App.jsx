@@ -27,6 +27,7 @@ import { PaginaMeusJogos } from './pages/PaginaMeusJogos';
 import { MinhasPartidasRegistradasPagina } from './pages/MinhasPartidasRegistradasPagina';
 import { PaginaMeuPerfil } from './pages/PaginaMeuPerfil';
 import { PaginaPerfilUsuario } from './pages/PaginaPerfilUsuario';
+import { PaginaPrivacidade } from './pages/PaginaPrivacidade';
 import { PaginaPendenciasAtletas } from './pages/PaginaPendenciasAtletas';
 import { PaginaUsuarios } from './pages/PaginaUsuarios';
 import { PaginaConvitesCadastro } from './pages/PaginaConvitesCadastro';
@@ -44,6 +45,7 @@ export default function App() {
       <Route element={<LayoutPrincipal />}>
         <Route path="/" element={<PaginaHome />} />
         <Route path="/login" element={<PaginaLogin />} />        
+        <Route path="/privacidade" element={<PaginaPrivacidade />} />
         <Route path="/ranking" element={<PaginaRanking />} />
         <Route path="/ranking/liga" element={<RankingLiga />} />
         <Route path="/competicoes" element={<PaginaCompeticoes />} />
