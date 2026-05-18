@@ -59,7 +59,7 @@ export function MinhasPartidasRegistradasPagina() {
     setErroEdicao('');
 
     try {
-      await partidasServico.atualizarPartida(partidaEmEdicao.id, dados);
+      await partidasServico.atualizarBasica(partidaEmEdicao.id, dados);
       await carregarPartidas();
       setPartidaEmEdicao(null);
       showNotification({

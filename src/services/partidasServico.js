@@ -68,6 +68,11 @@ export const partidasServico = {
     return this.atualizar(id, dados);
   },
 
+  async atualizarBasica(id, dados) {
+    const resposta = await http.put(`/partidas/${id}/edicao-basica`, dados);
+    return resposta.data;
+  },
+
   async remover(id) {
     await http.delete(`/partidas/${id}`);
   }

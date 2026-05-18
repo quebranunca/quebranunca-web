@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { FaFilter, FaGamepad, FaMedal, FaPlus, FaSortAmountDown, FaTrophy } from 'react-icons/fa';
+import { FaEdit, FaFilter, FaGamepad, FaMedal, FaPlus, FaSortAmountDown, FaTrophy } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { partidasServico } from '../services/partidasServico';
 import { CompartilharPartidaBotao } from '../components/partidas/CompartilharPartidaBotao';
+import { EditarPartidaRegistradaModal } from '../components/partidas/EditarPartidaRegistradaModal';
 import { PartidaCardPremium } from '../components/partidas/PartidaCardPremium';
+import { useNotification } from '../contexts/NotificationContext';
 import { extrairMensagemErro } from '../utils/erros';
 import {
   atletaEstaNaDuplaA,
@@ -18,6 +20,7 @@ import {
   STATUS_PARTIDA
 } from '../utils/partidas';
 import { obterNomeExibicaoAtleta } from '../utils/atletaUtils';
+import { podeEditarPartida } from '../utils/permissoesPartida';
 
 const filtrosJogos = [
   { id: 'todos', rotulo: 'Todos' },
@@ -122,44 +125,84 @@ function partidaPassaFiltro(partida, filtro, atletaLogadoId) {
 
 export function PaginaMeusJogos() {
   const { usuario } = useAutenticacao();
+  const { showNotification } = useNotification();
   const atletaLogadoId = usuario?.atletaId;
   const [partidas, setPartidas] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState('');
+  const [erroEdicao, setErroEdicao] = useState('');
   const [filtroAtivo, setFiltroAtivo] = useState('todos');
   const [ordem, setOrdem] = useState('recentes');
   const [partidaDetalhe, setPartidaDetalhe] = useState(null);
+  const [partidaEmEdicao, setPartidaEmEdicao] = useState(null);
+  const [salvandoEdicao, setSalvandoEdicao] = useState(false);
 
-  useEffect(() => {
-    let ativo = true;
-
-    async function carregarPartidas() {
+  async function carregarPartidas({ manterCarregando = true } = {}) {
+    if (manterCarregando) {
       setCarregando(true);
-      setErro('');
+    }
+    setErro('');
 
-      try {
-        const lista = await partidasServico.listarMinhas();
-        if (ativo) {
-          setPartidas(ordenarPartidasRecentes(lista || []));
-        }
-      } catch (error) {
-        if (ativo) {
-          setErro(extrairMensagemErro(error));
-          setPartidas([]);
-        }
-      } finally {
-        if (ativo) {
-          setCarregando(false);
-        }
+    try {
+      const lista = await partidasServico.listarMinhas();
+      setPartidas(ordenarPartidasRecentes(lista || []));
+    } catch (error) {
+      setErro(extrairMensagemErro(error));
+      setPartidas([]);
+    } finally {
+      if (manterCarregando) {
+        setCarregando(false);
       }
     }
+  }
 
+  useEffect(() => {
     carregarPartidas();
-
-    return () => {
-      ativo = false;
-    };
   }, []);
+
+  function abrirEdicao(partida) {
+    setErroEdicao('');
+    setPartidaDetalhe(null);
+    setPartidaEmEdicao(partida);
+  }
+
+  function fecharEdicao() {
+    if (!salvandoEdicao) {
+      setErroEdicao('');
+      setPartidaEmEdicao(null);
+    }
+  }
+
+  async function salvarEdicao(dados) {
+    if (!partidaEmEdicao) {
+      return;
+    }
+
+    setSalvandoEdicao(true);
+    setErroEdicao('');
+
+    try {
+      await partidasServico.atualizarBasica(partidaEmEdicao.id, dados);
+      const lista = await partidasServico.listarMinhas();
+      setPartidas(ordenarPartidasRecentes(lista || []));
+      setPartidaEmEdicao(null);
+      showNotification({
+        type: 'success',
+        title: 'Partida atualizada',
+        message: 'Partida atualizada com sucesso.'
+      });
+    } catch (error) {
+      const mensagem = extrairMensagemErro(error);
+      setErroEdicao(mensagem);
+      showNotification({
+        type: 'error',
+        title: 'Erro ao editar partida',
+        message: mensagem
+      });
+    } finally {
+      setSalvandoEdicao(false);
+    }
+  }
 
   const resumo = useMemo(() => {
     return partidas.reduce((acumulado, partida) => {
@@ -284,6 +327,7 @@ export function PaginaMeusJogos() {
               partida={partida}
               atletaLogadoId={atletaLogadoId}
               onDetalhes={() => setPartidaDetalhe(partida)}
+              onEditar={podeEditarPartida(partida, usuario) ? () => abrirEdicao(partida) : null}
             />
           ))}
         </div>
@@ -294,6 +338,17 @@ export function PaginaMeusJogos() {
           partida={partidaDetalhe}
           atletaLogadoId={atletaLogadoId}
           onFechar={() => setPartidaDetalhe(null)}
+          onEditar={podeEditarPartida(partidaDetalhe, usuario) ? () => abrirEdicao(partidaDetalhe) : null}
+        />
+      )}
+
+      {partidaEmEdicao && (
+        <EditarPartidaRegistradaModal
+          partida={partidaEmEdicao}
+          salvando={salvandoEdicao}
+          erro={erroEdicao}
+          onSalvar={salvarEdicao}
+          onFechar={fecharEdicao}
         />
       )}
     </section>
@@ -309,7 +364,7 @@ function ResumoMetrica({ rotulo, valor }) {
   );
 }
 
-function PartidaCard({ partida, atletaLogadoId, onDetalhes }) {
+function PartidaCard({ partida, atletaLogadoId, onDetalhes, onEditar }) {
   const atletas = obterAtletasPartida(partida, atletaLogadoId);
   const resultado = obterResultadoAtleta(partida, atletaLogadoId);
   const minhaDuplaEhA = atletaEstaNaDuplaA(partida, atletaLogadoId);
@@ -339,9 +394,21 @@ function PartidaCard({ partida, atletaLogadoId, onDetalhes }) {
         vencedora: duplaBVencedora
       }}
       acaoCompartilhar={
-        Number(partida.status) === STATUS_PARTIDA.encerrada
-          ? <CompartilharPartidaBotao partidaId={partida.id} />
-          : null
+        <>
+          {onEditar && (
+            <button
+              type="button"
+              className="botao-secundario botao-compacto botao-editar-partida-discreto"
+              onClick={onEditar}
+              aria-label="Editar partida"
+              title="Editar partida"
+            >
+              <FaEdit aria-hidden="true" />
+              Editar
+            </button>
+          )}
+          {Number(partida.status) === STATUS_PARTIDA.encerrada && <CompartilharPartidaBotao partidaId={partida.id} />}
+        </>
       }
       onDetalhes={onDetalhes}
     />
@@ -360,7 +427,7 @@ function LinhaPlacar({ label, atletas, placar, destaque, vencedora }) {
   );
 }
 
-function DetalhesPartidaModal({ partida, atletaLogadoId, onFechar }) {
+function DetalhesPartidaModal({ partida, atletaLogadoId, onFechar, onEditar }) {
   const atletas = obterAtletasPartida(partida, atletaLogadoId);
   const resultado = obterResultadoAtleta(partida, atletaLogadoId);
 
@@ -372,9 +439,17 @@ function DetalhesPartidaModal({ partida, atletaLogadoId, onFechar }) {
             <span>Detalhes da partida</span>
             <h3>{obterContextoPartida(partida)}</h3>
           </div>
-          <button type="button" className="botao-secundario botao-compacto" onClick={onFechar}>
-            Fechar
-          </button>
+          <div className="acoes-item acoes-item-compactas">
+            {onEditar && (
+              <button type="button" className="botao-secundario botao-compacto botao-editar-partida-discreto" onClick={onEditar}>
+                <FaEdit aria-hidden="true" />
+                Editar partida
+              </button>
+            )}
+            <button type="button" className="botao-secundario botao-compacto" onClick={onFechar}>
+              Fechar
+            </button>
+          </div>
         </div>
 
         <div className="meus-jogos-modal-grid">

@@ -1,13 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { FaEdit } from 'react-icons/fa';
 import { gruposServico } from '../services/gruposServico';
 import { partidasServico } from '../services/partidasServico';
 import { useAutenticacao } from '../hooks/useAutenticacao';
+import { useNotification } from '../contexts/NotificationContext';
 import { extrairMensagemErro } from '../utils/erros';
 import { formatarDataHora } from '../utils/formatacao';
 import { ehAdministrador } from '../utils/perfis';
+import { podeEditarPartida } from '../utils/permissoesPartida';
 import { PlacarDupla } from '../components/partidas/PlacarDupla';
 import { CompartilharPartidaBotao } from '../components/partidas/CompartilharPartidaBotao';
+import { EditarPartidaRegistradaModal } from '../components/partidas/EditarPartidaRegistradaModal';
 
 function obterGrupoPartida(partida) {
   return partida?.nomeGrupo || 'Grupo';
@@ -15,6 +19,7 @@ function obterGrupoPartida(partida) {
 
 export function PaginaConsultaPartidas() {
   const { usuario } = useAutenticacao();
+  const { showNotification } = useNotification();
   const administradorLogado = ehAdministrador(usuario);
 
   const [params, setParams] = useSearchParams();
@@ -25,6 +30,9 @@ export function PaginaConsultaPartidas() {
   const [erro, setErro] = useState('');
   const [carregando, setCarregando] = useState(true);
   const [excluindoPartidaIds, setExcluindoPartidaIds] = useState({});
+  const [partidaEmEdicao, setPartidaEmEdicao] = useState(null);
+  const [salvandoEdicao, setSalvandoEdicao] = useState(false);
+  const [erroEdicao, setErroEdicao] = useState('');
 
   useEffect(() => {
     carregarBase();
@@ -100,6 +108,48 @@ export function PaginaConsultaPartidas() {
     return Boolean(partida?.id && usuario && (
       administradorLogado || partida.criadoPorUsuarioId === usuario.id
     ));
+  }
+
+  function abrirEdicao(partida) {
+    setErroEdicao('');
+    setPartidaEmEdicao(partida);
+  }
+
+  function fecharEdicao() {
+    if (!salvandoEdicao) {
+      setErroEdicao('');
+      setPartidaEmEdicao(null);
+    }
+  }
+
+  async function salvarEdicao(dados) {
+    if (!partidaEmEdicao) {
+      return;
+    }
+
+    setSalvandoEdicao(true);
+    setErroEdicao('');
+
+    try {
+      await partidasServico.atualizarBasica(partidaEmEdicao.id, dados);
+      await carregarPartidasPorGrupo(grupoId);
+      setPartidaEmEdicao(null);
+      showNotification({
+        type: 'success',
+        title: 'Partida atualizada',
+        message: 'Partida atualizada com sucesso.'
+      });
+    } catch (error) {
+      const mensagem = extrairMensagemErro(error);
+      setErroEdicao(mensagem);
+      showNotification({
+        type: 'error',
+        title: 'Erro ao editar partida',
+        message: mensagem
+      });
+    } finally {
+      setSalvandoEdicao(false);
+    }
   }
 
   return (
@@ -179,6 +229,16 @@ export function PaginaConsultaPartidas() {
                         url={`/partidas/consulta?grupoId=${partida.grupoId || grupoId}`}
                       />
                     )}
+                    {podeEditarPartida(partida, usuario) && (
+                      <button
+                        type="button"
+                        className="botao-secundario botao-compacto botao-editar-partida-discreto"
+                        onClick={() => abrirEdicao(partida)}
+                      >
+                        <FaEdit aria-hidden="true" />
+                        Editar
+                      </button>
+                    )}
                     {podeRemoverPartida(partida) && (
                       <button
                         type="button"
@@ -203,6 +263,16 @@ export function PaginaConsultaPartidas() {
             )}
           </div>
         </section>
+      )}
+
+      {partidaEmEdicao && (
+        <EditarPartidaRegistradaModal
+          partida={partidaEmEdicao}
+          salvando={salvandoEdicao}
+          erro={erroEdicao}
+          onSalvar={salvarEdicao}
+          onFechar={fecharEdicao}
+        />
       )}
     </section>
   );

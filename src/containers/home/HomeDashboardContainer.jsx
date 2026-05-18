@@ -9,34 +9,34 @@ export function HomeDashboardContainer() {
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState('');
 
-  useEffect(() => {
-    let ativo = true;
+  async function carregarDashboard(estaAtivo = () => true) {
+    setCarregando(true);
+    setErro('');
 
-    async function carregarDashboard() {
-      try {
-        setCarregando(true);
-        setErro('');
-        const dados = await dashboardServico.obterDashboardAtleta();
-        if (ativo) {
-          setDashboard(dados);
-        }
-      } catch (falha) {
-        if (ativo) {
-          setErro(extrairMensagemErro(falha));
-        }
-      } finally {
-        if (ativo) {
-          setCarregando(false);
-        }
+    try {
+      const dados = await dashboardServico.obterDashboardAtleta();
+      if (estaAtivo()) {
+        setDashboard(dados);
+      }
+    } catch (falha) {
+      if (estaAtivo()) {
+        setErro(extrairMensagemErro(falha));
+      }
+    } finally {
+      if (estaAtivo()) {
+        setCarregando(false);
       }
     }
+  }
 
-    carregarDashboard();
+  useEffect(() => {
+    let ativo = true;
+    carregarDashboard(() => ativo);
 
     return () => {
       ativo = false;
     };
   }, []);
 
-  return <HomeDashboard dashboard={dashboard} carregando={carregando} erro={erro} />;
+  return <HomeDashboard dashboard={dashboard} carregando={carregando} erro={erro} onAtualizar={carregarDashboard} />;
 }

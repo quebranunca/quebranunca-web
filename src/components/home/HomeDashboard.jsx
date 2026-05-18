@@ -4,6 +4,7 @@ import {
   FaBolt,
   FaChartLine,
   FaChevronRight,
+  FaEdit,
   FaFire,
   FaGamepad,
   FaMedal,
@@ -13,7 +14,13 @@ import {
   FaUserFriends
 } from 'react-icons/fa';
 import logoLiga from '../../assets/logo-liga.svg';
+import { useAutenticacao } from '../../hooks/useAutenticacao';
+import { useNotification } from '../../contexts/NotificationContext';
+import { partidasServico } from '../../services/partidasServico';
+import { extrairMensagemErro } from '../../utils/erros';
+import { podeEditarPartida } from '../../utils/permissoesPartida';
 import { NotificacoesBotao } from '../NotificacoesBotao';
+import { EditarPartidaRegistradaModal } from '../partidas/EditarPartidaRegistradaModal';
 import { PartidaCardPremium } from '../partidas/PartidaCardPremium';
 
 function nomeAtleta(nome, apelido) {
@@ -110,8 +117,13 @@ function HomeEstado({ titulo, mensagem }) {
   );
 }
 
-export function HomeDashboard({ dashboard, carregando, erro }) {
+export function HomeDashboard({ dashboard, carregando, erro, onAtualizar }) {
+  const { usuario } = useAutenticacao();
+  const { showNotification } = useNotification();
   const [insightsExpandidos, setInsightsExpandidos] = useState(false);
+  const [partidaEmEdicao, setPartidaEmEdicao] = useState(null);
+  const [salvandoEdicao, setSalvandoEdicao] = useState(false);
+  const [erroEdicao, setErroEdicao] = useState('');
 
   if (carregando) {
     return <HomeEstado titulo="Carregando seu painel..." />;
@@ -196,6 +208,48 @@ export function HomeDashboard({ dashboard, carregando, erro }) {
       icone: FaFire
     }
   ];
+
+  function abrirEdicao(partida) {
+    setErroEdicao('');
+    setPartidaEmEdicao(partida);
+  }
+
+  function fecharEdicao() {
+    if (!salvandoEdicao) {
+      setErroEdicao('');
+      setPartidaEmEdicao(null);
+    }
+  }
+
+  async function salvarEdicao(dados) {
+    if (!partidaEmEdicao) {
+      return;
+    }
+
+    setSalvandoEdicao(true);
+    setErroEdicao('');
+
+    try {
+      await partidasServico.atualizarBasica(partidaEmEdicao.id, dados);
+      await onAtualizar?.();
+      setPartidaEmEdicao(null);
+      showNotification({
+        type: 'success',
+        title: 'Partida atualizada',
+        message: 'Partida atualizada com sucesso.'
+      });
+    } catch (falha) {
+      const mensagem = extrairMensagemErro(falha);
+      setErroEdicao(mensagem);
+      showNotification({
+        type: 'error',
+        title: 'Erro ao editar partida',
+        message: mensagem
+      });
+    } finally {
+      setSalvandoEdicao(false);
+    }
+  }
 
   return (
     <section className="pagina home-dashboard">
@@ -299,6 +353,7 @@ export function HomeDashboard({ dashboard, carregando, erro }) {
               <PartidaHomeCard
                 key={partida.id}
                 partida={partida}
+                onEditar={podeEditarPartida(partida, usuario) ? () => abrirEdicao(partida) : null}
               />
             ))}
           </div>
@@ -361,6 +416,16 @@ export function HomeDashboard({ dashboard, carregando, erro }) {
           </div>
         </div>
       </section>
+
+      {partidaEmEdicao && (
+        <EditarPartidaRegistradaModal
+          partida={partidaEmEdicao}
+          salvando={salvandoEdicao}
+          erro={erroEdicao}
+          onSalvar={salvarEdicao}
+          onFechar={fecharEdicao}
+        />
+      )}
     </section>
   );
 }
@@ -421,7 +486,7 @@ function CabecalhoHome({ eyebrow, titulo, descricao, acao }) {
     </div>
   );
 }
-function PartidaHomeCard({ partida }) {
+function PartidaHomeCard({ partida, onEditar }) {
   const resultado = obterResultadoPartidaHome(partida);
 
   return (
@@ -445,6 +510,20 @@ function PartidaHomeCard({ partida }) {
         destaque: false,
         vencedora: resultado === 'Derrota'
       }}
+      acaoCompartilhar={
+        onEditar ? (
+          <button
+            type="button"
+            className="botao-secundario botao-compacto botao-editar-partida-discreto"
+            onClick={onEditar}
+            aria-label="Editar partida"
+            title="Editar partida"
+          >
+            <FaEdit aria-hidden="true" />
+            Editar
+          </button>
+        ) : null
+      }
       detalhesHref="/app/meus-jogos"
     />
   );

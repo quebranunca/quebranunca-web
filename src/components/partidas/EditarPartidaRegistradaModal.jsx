@@ -47,27 +47,31 @@ function validarFormulario(formulario) {
 }
 
 function criarPayload(partida, formulario) {
+  const atletaPayload = (id, nomeOriginal, nomeAtual) => {
+    const nomeLimpo = limparTexto(nomeAtual);
+    const manteveMesmoNome = limparTexto(nomeOriginal) === nomeLimpo;
+
+    return {
+      atletaId: manteveMesmoNome ? id || null : null,
+      nome: nomeLimpo
+    };
+  };
+  const duplaAAtleta1 = atletaPayload(partida.duplaAAtleta1Id, partida.nomeDuplaAAtleta1, formulario.dupla1.atletaDireita);
+  const duplaAAtleta2 = atletaPayload(partida.duplaAAtleta2Id, partida.nomeDuplaAAtleta2, formulario.dupla1.atletaEsquerda);
+  const duplaBAtleta1 = atletaPayload(partida.duplaBAtleta1Id, partida.nomeDuplaBAtleta1, formulario.dupla2.atletaDireita);
+  const duplaBAtleta2 = atletaPayload(partida.duplaBAtleta2Id, partida.nomeDuplaBAtleta2, formulario.dupla2.atletaEsquerda);
+
   return {
-    competicaoId: null,
-    grupoId: partida.grupoId || null,
-    nomeGrupo: partida.nomeGrupo || null,
-    categoriaCompeticaoId: partida.categoriaCompeticaoId || null,
-    duplaAId: null,
-    duplaBId: null,
-    duplaAAtleta1Id: null,
-    duplaAAtleta1Nome: limparTexto(formulario.dupla1.atletaDireita),
-    duplaAAtleta2Id: null,
-    duplaAAtleta2Nome: limparTexto(formulario.dupla1.atletaEsquerda),
-    duplaBAtleta1Id: null,
-    duplaBAtleta1Nome: limparTexto(formulario.dupla2.atletaDireita),
-    duplaBAtleta2Id: null,
-    duplaBAtleta2Nome: limparTexto(formulario.dupla2.atletaEsquerda),
-    faseCampeonato: partida.faseCampeonato || null,
-    status: partida.status,
+    duplaAAtleta1Id: duplaAAtleta1.atletaId,
+    duplaAAtleta1Nome: duplaAAtleta1.nome,
+    duplaAAtleta2Id: duplaAAtleta2.atletaId,
+    duplaAAtleta2Nome: duplaAAtleta2.nome,
+    duplaBAtleta1Id: duplaBAtleta1.atletaId,
+    duplaBAtleta1Nome: duplaBAtleta1.nome,
+    duplaBAtleta2Id: duplaBAtleta2.atletaId,
+    duplaBAtleta2Nome: duplaBAtleta2.nome,
     placarDuplaA: Number(formulario.dupla1.pontos),
-    placarDuplaB: Number(formulario.dupla2.pontos),
-    dataPartida: partida.dataPartida || null,
-    observacoes: partida.observacoes || null
+    placarDuplaB: Number(formulario.dupla2.pontos)
   };
 }
 

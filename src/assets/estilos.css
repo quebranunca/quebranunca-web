@@ -3456,6 +3456,20 @@ code {
   border-color: rgba(255, 179, 0, 0.56);
 }
 
+.botao-editar-partida-discreto {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-color: rgba(255, 179, 0, 0.18);
+  background: rgba(255, 255, 255, 0.055);
+  color: var(--color-text-primary);
+}
+
+.botao-editar-partida-discreto:hover:not(:disabled) {
+  border-color: rgba(255, 179, 0, 0.42);
+  background: rgba(255, 179, 0, 0.12);
+}
+
 .compartilhar-partida-erro {
   display: block;
   width: 100%;
