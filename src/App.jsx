@@ -6,6 +6,7 @@ import { PaginaHome } from './pages/PaginaHome';
 import { PaginaDashboard } from './pages/PaginaDashboard';
 import { PaginaAtletas } from './pages/PaginaAtletas';
 import { PaginaAtletaDashboard } from './pages/PaginaAtletaDashboard';
+import { PaginaDuplaDashboard } from './pages/PaginaDuplaDashboard';
 import { PaginaDuplas } from './pages/PaginaDuplas';
 import { PaginaLigas } from './pages/PaginaLigas';
 import { PaginaLocais } from './pages/PaginaLocais';
@@ -53,6 +54,7 @@ export default function App() {
         <Route path="/atletas" element={<PaginaAtletas />} />
         <Route path="/atletas/:atletaId" element={<PaginaAtletaDashboard />} />
         <Route path="/atletas/:atletaId/dashboard" element={<PaginaAtletaDashboard />} />
+        <Route path="/duplas/:atleta1Id/:atleta2Id" element={<PaginaDuplaDashboard />} />
         <Route path="/grupos" element={<PaginaGrupos />} />
         <Route path="/grupos/:grupoId" element={<PaginaGrupoAtletas />} />
         <Route path="/grupos/:grupoId/atletas" element={<PaginaGrupoAtletas />} />

@@ -4,6 +4,7 @@ import { competicoesServico } from '../services/competicoesServico';
 import { gruposServico } from '../services/gruposServico';
 import { categoriasServico } from '../services/categoriasServico';
 import { partidasServico } from '../services/partidasServico';
+import { DuplaLink } from '../components/duplas/DuplaLink';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { extrairMensagemErro } from '../utils/erros';
 import { formatarDataHora } from '../utils/formatacao';
@@ -1037,12 +1038,20 @@ export function PaginaConsultaPartidas() {
 
                 <div className={`chave-jogo-linha ${duplaAVenceu ? 'vencedora' : ''}`}>
                   <span className="chave-jogo-pontuacao-texto">{partida.status === 2 ? partida.placarDuplaA : '-'}</span>
-                  <strong>{obterNomeExibicaoDupla(partida.nomeDuplaA)}</strong>
+                  <strong>
+                    <DuplaLink atleta1Id={partida.duplaAAtleta1Id} atleta2Id={partida.duplaAAtleta2Id}>
+                      {obterNomeExibicaoDupla(partida.nomeDuplaA)}
+                    </DuplaLink>
+                  </strong>
                 </div>
 
                 <div className={`chave-jogo-linha ${duplaBVenceu ? 'vencedora' : ''}`}>
                   <span className="chave-jogo-pontuacao-texto">{partida.status === 2 ? partida.placarDuplaB : '-'}</span>
-                  <strong>{obterNomeExibicaoDupla(partida.nomeDuplaB)}</strong>
+                  <strong>
+                    <DuplaLink atleta1Id={partida.duplaBAtleta1Id} atleta2Id={partida.duplaBAtleta2Id}>
+                      {obterNomeExibicaoDupla(partida.nomeDuplaB)}
+                    </DuplaLink>
+                  </strong>
                 </div>
 
                 {administradorLogado && (
@@ -1087,12 +1096,20 @@ export function PaginaConsultaPartidas() {
           {jogo.nomeFase && <p className="jogo-grupo-fase">{jogo.nomeFase}</p>}
 
           <div className={`jogo-grupo-time ${duplaAVenceu ? 'vencedora' : ''}`}>
-            <strong>{obterNomeExibicaoDupla(jogo.nomeDuplaA)}</strong>
+            <strong>
+              <DuplaLink atleta1Id={jogo.duplaAAtleta1Id} atleta2Id={jogo.duplaAAtleta2Id}>
+                {obterNomeExibicaoDupla(jogo.nomeDuplaA)}
+              </DuplaLink>
+            </strong>
             <span>{jogo.status === 2 ? jogo.placarDuplaA : '-'}</span>
           </div>
 
           <div className={`jogo-grupo-time ${duplaBVenceu ? 'vencedora' : ''}`}>
-            <strong>{obterNomeExibicaoDupla(jogo.nomeDuplaB)}</strong>
+            <strong>
+              <DuplaLink atleta1Id={jogo.duplaBAtleta1Id} atleta2Id={jogo.duplaBAtleta2Id}>
+                {obterNomeExibicaoDupla(jogo.nomeDuplaB)}
+              </DuplaLink>
+            </strong>
             <span>{jogo.status === 2 ? jogo.placarDuplaB : '-'}</span>
           </div>
 
@@ -1314,11 +1331,19 @@ export function PaginaConsultaPartidas() {
                 <article key={partida.id} className="cartao-lista partida-lista-card">
                   <div className="partida-lista-topo">
                     <h3 className="partida-confronto">
-                      <span>{obterNomeExibicaoDupla(partida.nomeDuplaA)}</span>
+                      <span>
+                        <DuplaLink atleta1Id={partida.duplaAAtleta1Id} atleta2Id={partida.duplaAAtleta2Id}>
+                          {obterNomeExibicaoDupla(partida.nomeDuplaA)}
+                        </DuplaLink>
+                      </span>
                       <span className="partida-placar-valor">
                         {partida.status === 2 ? `${partida.placarDuplaA} x ${partida.placarDuplaB}` : 'x'}
                       </span>
-                      <span>{obterNomeExibicaoDupla(partida.nomeDuplaB)}</span>
+                      <span>
+                        <DuplaLink atleta1Id={partida.duplaBAtleta1Id} atleta2Id={partida.duplaBAtleta2Id}>
+                          {obterNomeExibicaoDupla(partida.nomeDuplaB)}
+                        </DuplaLink>
+                      </span>
                     </h3>
                     <span className={`tag-status ${partida.status === 2 ? 'tag-status-sucesso' : 'tag-status-alerta'}`}>
                       {obterNomeStatus(partida.status)}

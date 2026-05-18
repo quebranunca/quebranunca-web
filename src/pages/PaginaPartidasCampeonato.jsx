@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { IconeAcao } from '../components/ConteudoBotao';
+import { DuplaLink } from '../components/duplas/DuplaLink';
 import { CompartilharPartidaBotao } from '../components/partidas/CompartilharPartidaBotao';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { categoriasServico } from '../services/categoriasServico';
@@ -823,12 +824,20 @@ export function PaginaPartidasCampeonato() {
 
                   <div className={`chave-jogo-linha ${duplaAVenceu ? 'vencedora' : ''}`}>
                     <span className="chave-jogo-pontuacao-texto">{partida.status === 2 ? partida.placarDuplaA : '-'}</span>
-                    <strong>{obterNomeExibicaoDupla(partida.nomeDuplaA)}</strong>
+                    <strong>
+                      <DuplaLink atleta1Id={partida.duplaAAtleta1Id} atleta2Id={partida.duplaAAtleta2Id}>
+                        {obterNomeExibicaoDupla(partida.nomeDuplaA)}
+                      </DuplaLink>
+                    </strong>
                   </div>
 
                   <div className={`chave-jogo-linha ${duplaBVenceu ? 'vencedora' : ''}`}>
                     <span className="chave-jogo-pontuacao-texto">{partida.status === 2 ? partida.placarDuplaB : '-'}</span>
-                    <strong>{obterNomeExibicaoDupla(partida.nomeDuplaB)}</strong>
+                    <strong>
+                      <DuplaLink atleta1Id={partida.duplaBAtleta1Id} atleta2Id={partida.duplaBAtleta2Id}>
+                        {obterNomeExibicaoDupla(partida.nomeDuplaB)}
+                      </DuplaLink>
+                    </strong>
                   </div>
 
                   {podeEditarResultado && (
@@ -1041,11 +1050,19 @@ export function PaginaPartidasCampeonato() {
               <article key={partida.id} className="cartao-lista partida-lista-card">
                 <div className="partida-lista-topo">
                   <h3 className="partida-confronto">
-                    <span>{obterNomeExibicaoDupla(partida.nomeDuplaA)}</span>
+                    <span>
+                      <DuplaLink atleta1Id={partida.duplaAAtleta1Id} atleta2Id={partida.duplaAAtleta2Id}>
+                        {obterNomeExibicaoDupla(partida.nomeDuplaA)}
+                      </DuplaLink>
+                    </span>
                     <span className="partida-placar-valor">
                       {partida.status === 2 ? `${partida.placarDuplaA} x ${partida.placarDuplaB}` : 'x'}
                     </span>
-                    <span>{obterNomeExibicaoDupla(partida.nomeDuplaB)}</span>
+                    <span>
+                      <DuplaLink atleta1Id={partida.duplaBAtleta1Id} atleta2Id={partida.duplaBAtleta2Id}>
+                        {obterNomeExibicaoDupla(partida.nomeDuplaB)}
+                      </DuplaLink>
+                    </span>
                   </h3>
                   <span className={`tag-status ${partida.status === 2 ? 'tag-status-sucesso' : 'tag-status-alerta'}`}>
                     {obterNomeStatus(partida.status, partida.ativa)}

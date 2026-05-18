@@ -39,6 +39,8 @@ export function MinhaPartidaRegistradaCard({ partida, onEditar, onExcluir, exclu
           atletas={`${formatarAtleta(partida.nomeDuplaAAtleta1, 'Direita')} e ${formatarAtleta(partida.nomeDuplaAAtleta2, 'Esquerda')}`}
           placar={partida.placarDuplaA}
           vencedor={partida.duplaVencedoraId === partida.duplaAId}
+          atleta1Id={partida.duplaAAtleta1Id}
+          atleta2Id={partida.duplaAAtleta2Id}
         />
 
         <PlacarDupla
@@ -46,6 +48,8 @@ export function MinhaPartidaRegistradaCard({ partida, onEditar, onExcluir, exclu
           atletas={`${formatarAtleta(partida.nomeDuplaBAtleta1, 'Direita')} e ${formatarAtleta(partida.nomeDuplaBAtleta2, 'Esquerda')}`}
           placar={partida.placarDuplaB}
           vencedor={partida.duplaVencedoraId === partida.duplaBId}
+          atleta1Id={partida.duplaBAtleta1Id}
+          atleta2Id={partida.duplaBAtleta2Id}
         />
       </div>
 

@@ -1,10 +1,12 @@
-import { obterNomeExibicaoAtleta, obterNomeExibicaoDupla } from '../../utils/atletaUtils';
+import { DuplaLink } from '../duplas/DuplaLink';
 
 export function PlacarDupla({
   label,
   atletas,
   placar,
-  vencedor = false
+  vencedor = false,
+  atleta1Id,
+  atleta2Id
 }) {
   return (
     <div className="dupla-linha">
@@ -12,7 +14,9 @@ export function PlacarDupla({
 
       <div className={`dupla-conteudo ${vencedor ? 'vencedor' : ''}`}>
         <div className="dupla-nome">
-          {atletas}
+          <DuplaLink atleta1Id={atleta1Id} atleta2Id={atleta2Id}>
+            {atletas}
+          </DuplaLink>
         </div>
 
         <div className="dupla-placar">

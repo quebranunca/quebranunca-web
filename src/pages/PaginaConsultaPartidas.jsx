@@ -204,6 +204,8 @@ export function PaginaConsultaPartidas() {
                       label="Dupla A"
                       atletas={partida.nomeDuplaA}
                       placar={partida.placarDuplaA}
+                      atleta1Id={partida.duplaAAtleta1Id}
+                      atleta2Id={partida.duplaAAtleta2Id}
                       vencedor={
                         partida.nomeDuplaVencedora === partida.nomeDuplaA
                           ? 'Vitória'
@@ -215,6 +217,8 @@ export function PaginaConsultaPartidas() {
                       label="Dupla B"
                       atletas={partida.nomeDuplaB}
                       placar={partida.placarDuplaB}
+                      atleta1Id={partida.duplaBAtleta1Id}
+                      atleta2Id={partida.duplaBAtleta2Id}
                       vencedor={
                         partida.nomeDuplaVencedora === partida.nomeDuplaB
                           ? 'Vitória'

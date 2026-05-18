@@ -1,5 +1,6 @@
 import { FaCalendarAlt, FaChevronRight } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
+import { DuplaLink } from '../duplas/DuplaLink';
 import { formatarDataHora } from '../../utils/formatacao';
 import {
   obterNomeStatusAprovacao,
@@ -109,12 +110,16 @@ export function PartidaCardPremium({
   );
 }
 
-function LinhaPlacar({ label, atletas, placar, destaque, vencedora }) {
+function LinhaPlacar({ label, atletas, placar, destaque, vencedora, atleta1Id, atleta2Id }) {
   return (
     <div className={`meus-jogos-linha-placar ${destaque ? 'minha-dupla' : ''} ${vencedora ? 'vencedora' : ''}`}>
       <div>
         <span>{label}</span>
-        <strong>{atletas || 'A definir'}</strong>
+        <strong>
+          <DuplaLink atleta1Id={atleta1Id} atleta2Id={atleta2Id}>
+            {atletas || 'A definir'}
+          </DuplaLink>
+        </strong>
       </div>
       <strong className="meus-jogos-placar-numero">{placar ?? '-'}</strong>
     </div>

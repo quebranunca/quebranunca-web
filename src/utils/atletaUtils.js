@@ -112,3 +112,13 @@ export function obterNomeExibicaoDuplaCampos(nomeAtleta1, apelidoAtleta1, nomeAt
 
   return atletas.join(' e ');
 }
+
+export function normalizarIdsDupla(atleta1Id, atleta2Id) {
+  const ids = [atleta1Id, atleta2Id].filter(Boolean).map(String);
+  return ids.length === 2 ? ids.sort((a, b) => a.localeCompare(b)).join('/') : '';
+}
+
+export function montarUrlDashboardDupla(atleta1Id, atleta2Id) {
+  const ids = normalizarIdsDupla(atleta1Id, atleta2Id);
+  return ids ? `/duplas/${ids}` : '';
+}

@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { partidasServico } from '../services/partidasServico';
 import { CompartilharPartidaBotao } from '../components/partidas/CompartilharPartidaBotao';
+import { DuplaLink } from '../components/duplas/DuplaLink';
 import { EditarPartidaRegistradaModal } from '../components/partidas/EditarPartidaRegistradaModal';
 import { PartidaCardPremium } from '../components/partidas/PartidaCardPremium';
 import { useNotification } from '../contexts/NotificationContext';
@@ -383,6 +384,8 @@ function PartidaCard({ partida, atletaLogadoId, onDetalhes, onEditar }) {
       duplaA={{
         label: minhaDuplaEhA ? 'Sua dupla' : 'Dupla 1',
         atletas: formatarAtletasPlacar(atletas.duplaA),
+        atleta1Id: partida.duplaAAtleta1Id,
+        atleta2Id: partida.duplaAAtleta2Id,
         placar: obterPlacar(partida, 'A'),
         destaque: minhaDuplaEhA,
         vencedora: duplaAVencedora
@@ -390,6 +393,8 @@ function PartidaCard({ partida, atletaLogadoId, onDetalhes, onEditar }) {
       duplaB={{
         label: minhaDuplaEhB ? 'Sua dupla' : 'Adversários',
         atletas: formatarAtletasPlacar(atletas.duplaB),
+        atleta1Id: partida.duplaBAtleta1Id,
+        atleta2Id: partida.duplaBAtleta2Id,
         placar: obterPlacar(partida, 'B'),
         destaque: minhaDuplaEhB,
         vencedora: duplaBVencedora
@@ -416,12 +421,16 @@ function PartidaCard({ partida, atletaLogadoId, onDetalhes, onEditar }) {
   );
 }
 
-function LinhaPlacar({ label, atletas, placar, destaque, vencedora }) {
+function LinhaPlacar({ label, atletas, placar, destaque, vencedora, atleta1Id, atleta2Id }) {
   return (
     <div className={`meus-jogos-linha-placar ${destaque ? 'minha-dupla' : ''} ${vencedora ? 'vencedora' : ''}`}>
       <div>
         <span>{label}</span>
-        <strong>{atletas}</strong>
+        <strong>
+          <DuplaLink atleta1Id={atleta1Id} atleta2Id={atleta2Id}>
+            {atletas}
+          </DuplaLink>
+        </strong>
       </div>
       <strong className="meus-jogos-placar-numero">{placar}</strong>
     </div>
@@ -467,6 +476,8 @@ function DetalhesPartidaModal({ partida, atletaLogadoId, onFechar, onEditar }) {
             placar={obterPlacar(partida, 'A')}
             destaque={atletaEstaNaDuplaA(partida, atletaLogadoId)}
             vencedora={partida.duplaVencedoraId === partida.duplaAId}
+            atleta1Id={partida.duplaAAtleta1Id}
+            atleta2Id={partida.duplaAAtleta2Id}
           />
           <LinhaPlacar
             label="Dupla 2"
@@ -474,6 +485,8 @@ function DetalhesPartidaModal({ partida, atletaLogadoId, onFechar, onEditar }) {
             placar={obterPlacar(partida, 'B')}
             destaque={atletaEstaNaDuplaB(partida, atletaLogadoId)}
             vencedora={partida.duplaVencedoraId === partida.duplaBId}
+            atleta1Id={partida.duplaBAtleta1Id}
+            atleta2Id={partida.duplaBAtleta2Id}
           />
         </div>
 

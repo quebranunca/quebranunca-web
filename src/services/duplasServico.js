@@ -15,6 +15,11 @@ export const duplasServico = {
     return resposta.data;
   },
 
+  async obterDashboard(atleta1Id, atleta2Id) {
+    const resposta = await http.get(`/duplas/${atleta1Id}/${atleta2Id}/dashboard`);
+    return resposta.data;
+  },
+
   async criar(dados) {
     const resposta = await http.post('/duplas', dados);
     return resposta.data;
