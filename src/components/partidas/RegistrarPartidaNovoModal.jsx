@@ -3,6 +3,7 @@ import {
   FaCheck,
   FaChevronLeft,
   FaClipboardCheck,
+  FaImage,
   FaTimes,
   FaTrophy,
   FaUserFriends
@@ -300,7 +301,7 @@ function EtapaResumo({ resumo, confirmar = false }) {
   );
 }
 
-function TelaSucesso({ sucesso, onVerPartida, onRegistrarRevanche, onFechar }) {
+function TelaSucesso({ sucesso, onAdicionarMidia, onVerPartida, onRegistrarRevanche, onFechar }) {
   const resumo = sucesso?.resumo;
 
   return (
@@ -330,6 +331,10 @@ function TelaSucesso({ sucesso, onVerPartida, onRegistrarRevanche, onFechar }) {
       </div>
 
       <div className="registrar-partida-novo-acoes registrar-partida-novo-acoes-sucesso">
+        <button type="button" className="botao-primario" onClick={onAdicionarMidia}>
+          <FaImage aria-hidden="true" />
+          Adicionar foto ou vídeo
+        </button>
         <button type="button" className="botao-primario" onClick={onVerPartida}>
           Ver partida
         </button>
@@ -383,6 +388,7 @@ export function RegistrarPartidaNovoModal({
   onConfirmarEtapa,
   onVoltar,
   onFechar,
+  onAdicionarMidia,
   onVerPartida,
   onRegistrarRevanche
 }) {
@@ -461,6 +467,7 @@ export function RegistrarPartidaNovoModal({
         {sucesso ? (
           <TelaSucesso
             sucesso={sucesso}
+            onAdicionarMidia={onAdicionarMidia}
             onVerPartida={onVerPartida}
             onRegistrarRevanche={onRegistrarRevanche}
             onFechar={onFechar}

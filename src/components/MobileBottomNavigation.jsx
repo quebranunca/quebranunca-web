@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { NavLink, matchPath, useLocation } from 'react-router-dom';
-import { FaHome, FaListAlt, FaPlus, FaShieldAlt, FaTrophy, FaUser } from 'react-icons/fa';
+import { FaHome, FaListAlt, FaPlus, FaShieldAlt, FaStream, FaUser } from 'react-icons/fa';
 import { RegistrarPartidaNovoContainer } from '../containers/partidas/RegistrarPartidaNovoContainer';
 import { ehAdministrador } from '../utils/perfis';
 import './partidas/registrar-partida-novo.css';
@@ -65,11 +65,11 @@ export function MobileBottomNavigation({ usuario }) {
         </button>
 
         <NavLink
-          to="/ranking"
+          to="/feed"
           className={({ isActive }) => `mobile-bottom-item ${isActive ? 'ativo' : ''}`}
         >
-          <FaTrophy aria-hidden="true" />
-          <span>Ranking</span>
+          <FaStream aria-hidden="true" />
+          <span>Feed</span>
         </NavLink>
 
         <NavLink

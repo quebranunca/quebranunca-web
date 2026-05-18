@@ -35,6 +35,7 @@ import { PaginaConvitesCadastro } from './pages/PaginaConvitesCadastro';
 import { PaginaSolicitacoesAcessoAdmin } from './pages/PaginaSolicitacoesAcessoAdmin';
 import { PaginaCadastroConvite } from './pages/PaginaCadastroConvite';
 import { RedirecionamentoPartidas } from './pages/RedirecionamentoPartidas';
+import { FeedPartidasPage } from './pages/FeedPartidasPage';
 import { PERFIS_USUARIO } from './utils/perfis';
 import { ESTADOS_ACESSO } from './utils/acesso';
 
@@ -59,6 +60,7 @@ export default function App() {
         <Route path="/grupos/:grupoId" element={<PaginaGrupoAtletas />} />
         <Route path="/grupos/:grupoId/atletas" element={<PaginaGrupoAtletas />} />
         <Route path="/partidas" element={<RedirecionamentoPartidas />} />
+        <Route path="/feed" element={<FeedPartidasPage />} />
         <Route path="/partidas/consulta" element={<PaginaConsultaPartidas />} />
         <Route path="/partidas/campeonato" element={<PaginaPartidasCampeonato />} />
       </Route>
@@ -71,6 +73,7 @@ export default function App() {
         }
       >
         <Route path="/app" element={<PaginaHome />} />
+        <Route path="/app/feed" element={<FeedPartidasPage />} />
         <Route path="/app/registrar-partida" element={<Navigate to="/partidas/registrar" replace />} />
         <Route
           path="/app/meus-jogos"

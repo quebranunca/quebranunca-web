@@ -17,12 +17,15 @@ import logoLiga from '../../assets/logo-liga.svg';
 import { useAutenticacao } from '../../hooks/useAutenticacao';
 import { useNotification } from '../../contexts/NotificationContext';
 import { partidasServico } from '../../services/partidasServico';
+import { partidaFeedServico } from '../../services/partidaFeedServico';
 import { extrairMensagemErro } from '../../utils/erros';
 import { podeEditarPartida } from '../../utils/permissoesPartida';
 import { NotificacoesBotao } from '../NotificacoesBotao';
 import { AvatarUsuario } from '../AvatarUsuario';
 import { EditarPartidaRegistradaModal } from '../partidas/EditarPartidaRegistradaModal';
+import { FeedPartidaCard } from '../partidas/FeedPartidaCard';
 import { PartidaCardPremium } from '../partidas/PartidaCardPremium';
+import '../partidas/feed-partidas.css';
 
 function nomeAtleta(nome, apelido) {
   return apelido || nome || 'Atleta';
@@ -141,6 +144,39 @@ export function HomeDashboard({ dashboard, carregando, erro, onAtualizar }) {
   const [partidaEmEdicao, setPartidaEmEdicao] = useState(null);
   const [salvandoEdicao, setSalvandoEdicao] = useState(false);
   const [erroEdicao, setErroEdicao] = useState('');
+  const [feedPartidas, setFeedPartidas] = useState([]);
+  const [feedCarregando, setFeedCarregando] = useState(true);
+  const [feedErro, setFeedErro] = useState('');
+
+  useEffect(() => {
+    let ativo = true;
+
+    async function carregarFeed() {
+      setFeedCarregando(true);
+      setFeedErro('');
+
+      try {
+        const resposta = await partidaFeedServico.listar({ page: 1, pageSize: 3 });
+        if (ativo) {
+          setFeedPartidas(resposta.itens || []);
+        }
+      } catch (falha) {
+        if (ativo) {
+          setFeedErro(extrairMensagemErro(falha));
+        }
+      } finally {
+        if (ativo) {
+          setFeedCarregando(false);
+        }
+      }
+    }
+
+    carregarFeed();
+
+    return () => {
+      ativo = false;
+    };
+  }, []);
 
   if (carregando) {
     return <HomeEstado titulo="Carregando seu painel..." />;
@@ -381,6 +417,27 @@ export function HomeDashboard({ dashboard, carregando, erro, onAtualizar }) {
                 atletaId={perfil.atletaId}
                 onEditar={podeEditarPartida(partida, usuario) ? () => abrirEdicao(partida) : null}
               />
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className="home-dashboard-bloco">
+        <CabecalhoHome
+          eyebrow="Feed"
+          titulo="Jogos da comunidade"
+          acao={<Link to="/feed">Abrir feed</Link>}
+        />
+
+        {feedCarregando && <p className="home-dashboard-vazio">Carregando feed...</p>}
+        {feedErro && !feedCarregando && <p className="home-dashboard-vazio">Não foi possível carregar o feed agora.</p>}
+        {!feedCarregando && !feedErro && feedPartidas.length === 0 && (
+          <p className="home-dashboard-vazio">As partidas registradas aparecerão aqui.</p>
+        )}
+        {!feedCarregando && !feedErro && feedPartidas.length > 0 && (
+          <div className="feed-partidas-lista">
+            {feedPartidas.map((partida) => (
+              <FeedPartidaCard key={partida.partidaId} partida={partida} />
             ))}
           </div>
         )}

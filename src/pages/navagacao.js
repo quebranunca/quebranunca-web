@@ -62,6 +62,12 @@ const ITENS_NAVEGACAO = [
     visivel: ({ gestorCompeticao, atleta, estadoAtivo }) => estadoAtivo && (gestorCompeticao || atleta)
   },
   {
+    caminho: '/feed',
+    nome: 'Feed',
+    descricao: 'Acompanhe os jogos mais recentes da comunidade.',
+    visivel: ({ gestorCompeticao, atleta, estadoAtivo }) => estadoAtivo && (gestorCompeticao || atleta)
+  },
+  {
     caminho: '/app/meus-jogos',
     nome: 'Meus Jogos',
     descricao: 'Todos os jogos vinculados ao seu atleta, com duplas, lados, placar e validação.',
@@ -240,6 +246,8 @@ export const ROTAS_APP_HEADER = [
   { path: '/inscricoes', title: 'Inscrições', tipoTela: TIPOS_TELA.acao },
   { path: '/partidas/registrar', title: 'Registrar Partida', tipoTela: TIPOS_TELA.acao },
   { path: '/app/registrar-partida', title: 'Registrar Partida', tipoTela: TIPOS_TELA.acao },
+  { path: '/feed', title: 'Feed', tipoTela: TIPOS_TELA.acao },
+  { path: '/app/feed', title: 'Feed', tipoTela: TIPOS_TELA.acao },
   { path: '/partidas/consulta', title: 'Consultar Partidas', tipoTela: TIPOS_TELA.contexto },
   { path: '/partidas/campeonato', title: 'Partidas de Campeonato', tipoTela: TIPOS_TELA.contexto },
   { path: '/usuarios', title: 'Usuários', tipoTela: TIPOS_TELA.raiz },

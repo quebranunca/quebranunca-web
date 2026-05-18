@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ConfirmarDuplicidadePartidaModal } from '../../components/partidas/ConfirmarDuplicidadePartidaModal';
+import { PartidaMidiaUploadModal } from '../../components/partidas/PartidaMidiaUploadModal';
 import { RegistrarPartidaNovoModal } from '../../components/partidas/RegistrarPartidaNovoModal';
 import { useNotification } from '../../contexts/NotificationContext';
 import { useAutenticacao } from '../../hooks/useAutenticacao';
@@ -249,6 +250,7 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
   const [sugestoes, setSugestoes] = useState({});
   const [campoBuscando, setCampoBuscando] = useState('');
   const [sucesso, setSucesso] = useState(null);
+  const [uploadMidiaAberto, setUploadMidiaAberto] = useState(false);
   const cacheBuscaRef = useRef(new Map());
   const buscaTimersRef = useRef({});
 
@@ -546,6 +548,24 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
     navegar('/minhas-partidas-registradas');
   }
 
+  function concluirUploadMidia(resposta) {
+    setSucesso((atual) => atual
+      ? {
+          ...atual,
+          partida: {
+            ...atual.partida,
+            midiaUrl: resposta?.midiaUrl,
+            midiaTipo: resposta?.midiaTipo
+          }
+        }
+      : atual);
+    showNotification({
+      type: 'success',
+      title: 'Mídia adicionada',
+      message: 'A mídia da partida já está disponível no feed.'
+    });
+  }
+
   return (
     <>
       <RegistrarPartidaNovoModal
@@ -568,8 +588,16 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
         onVoltar={voltar}
         onAvancar={avancar}
         onFechar={onFechar}
+        onAdicionarMidia={() => setUploadMidiaAberto(true)}
         onVerPartida={verPartida}
         onRegistrarRevanche={registrarRevanche}
+      />
+
+      <PartidaMidiaUploadModal
+        aberto={uploadMidiaAberto}
+        partidaId={sucesso?.partida?.id}
+        onFechar={() => setUploadMidiaAberto(false)}
+        onConcluido={concluirUploadMidia}
       />
 
       {duplicidade && (
