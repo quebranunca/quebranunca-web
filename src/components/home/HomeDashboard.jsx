@@ -230,14 +230,14 @@ export function HomeDashboard({ dashboard, carregando, erro, onAtualizar }) {
     setErroEdicao('');
 
     try {
-      await partidasServico.atualizarBasica(partidaEmEdicao.id, dados);
+      const partidaAtualizada = await partidasServico.atualizarBasica(partidaEmEdicao.id, dados);
       await onAtualizar?.();
-      setPartidaEmEdicao(null);
       showNotification({
         type: 'success',
         title: 'Partida atualizada',
         message: 'Partida atualizada com sucesso.'
       });
+      return partidaAtualizada;
     } catch (falha) {
       const mensagem = extrairMensagemErro(falha);
       setErroEdicao(mensagem);
@@ -246,6 +246,7 @@ export function HomeDashboard({ dashboard, carregando, erro, onAtualizar }) {
         title: 'Erro ao editar partida',
         message: mensagem
       });
+      throw falha;
     } finally {
       setSalvandoEdicao(false);
     }

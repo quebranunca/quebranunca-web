@@ -182,15 +182,15 @@ export function PaginaMeusJogos() {
     setErroEdicao('');
 
     try {
-      await partidasServico.atualizarBasica(partidaEmEdicao.id, dados);
+      const partidaAtualizada = await partidasServico.atualizarBasica(partidaEmEdicao.id, dados);
       const lista = await partidasServico.listarMinhas();
       setPartidas(ordenarPartidasRecentes(lista || []));
-      setPartidaEmEdicao(null);
       showNotification({
         type: 'success',
         title: 'Partida atualizada',
         message: 'Partida atualizada com sucesso.'
       });
+      return partidaAtualizada;
     } catch (error) {
       const mensagem = extrairMensagemErro(error);
       setErroEdicao(mensagem);
@@ -199,6 +199,7 @@ export function PaginaMeusJogos() {
         title: 'Erro ao editar partida',
         message: mensagem
       });
+      throw error;
     } finally {
       setSalvandoEdicao(false);
     }

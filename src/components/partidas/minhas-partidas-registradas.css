@@ -85,6 +85,45 @@
   box-shadow: none;
 }
 
+.editar-partida-registrada-modal .registrar-partida-novo-header-centro strong {
+  white-space: nowrap;
+}
+
+.editar-partida-registrada-acoes {
+  gap: 0.65rem;
+}
+
+.editar-partida-registrada-acoes .botao-secundario,
+.editar-partida-registrada-acoes .botao-primario {
+  width: min(250px, 50%);
+  min-height: 3.15rem;
+}
+
+.editar-partida-atleta-preview {
+  display: grid;
+  grid-template-columns: 2.45rem 1fr;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.75rem;
+  border: 1px solid rgba(248, 195, 0, 0.18);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.editar-partida-atleta-preview strong {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--color-text-primary);
+  font-size: 0.95rem;
+  font-weight: 850;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.editar-partida-registrada-stepper {
+  grid-template-columns: repeat(7, 1fr);
+}
+
 @media (min-width: 640px) {
   .minhas-partidas-registradas-sobreposicao {
     align-items: center;
@@ -105,5 +144,20 @@
 
   .minhas-partidas-registradas-status {
     align-items: stretch;
+  }
+
+  .editar-partida-registrada-acoes {
+    flex-direction: column;
+  }
+
+  .editar-partida-registrada-acoes .botao-secundario,
+  .editar-partida-registrada-acoes .botao-primario {
+    width: 100%;
+  }
+}
+
+@media (max-width: 460px) {
+  .editar-partida-registrada-stepper .registrar-partida-novo-stepper-item small {
+    display: none;
   }
 }

@@ -131,14 +131,14 @@ export function PaginaConsultaPartidas() {
     setErroEdicao('');
 
     try {
-      await partidasServico.atualizarBasica(partidaEmEdicao.id, dados);
+      const partidaAtualizada = await partidasServico.atualizarBasica(partidaEmEdicao.id, dados);
       await carregarPartidasPorGrupo(grupoId);
-      setPartidaEmEdicao(null);
       showNotification({
         type: 'success',
         title: 'Partida atualizada',
         message: 'Partida atualizada com sucesso.'
       });
+      return partidaAtualizada;
     } catch (error) {
       const mensagem = extrairMensagemErro(error);
       setErroEdicao(mensagem);
@@ -147,6 +147,7 @@ export function PaginaConsultaPartidas() {
         title: 'Erro ao editar partida',
         message: mensagem
       });
+      throw error;
     } finally {
       setSalvandoEdicao(false);
     }

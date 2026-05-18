@@ -59,14 +59,14 @@ export function MinhasPartidasRegistradasPagina() {
     setErroEdicao('');
 
     try {
-      await partidasServico.atualizarBasica(partidaEmEdicao.id, dados);
+      const partidaAtualizada = await partidasServico.atualizarBasica(partidaEmEdicao.id, dados);
       await carregarPartidas();
-      setPartidaEmEdicao(null);
       showNotification({
         type: 'success',
         title: 'Partida atualizada',
         message: 'As alterações foram salvas com sucesso.'
       });
+      return partidaAtualizada;
     } catch (falha) {
       const mensagem = extrairMensagemErro(falha);
       setErroEdicao(mensagem);
@@ -75,6 +75,7 @@ export function MinhasPartidasRegistradasPagina() {
         title: 'Erro ao editar partida',
         message: mensagem
       });
+      throw falha;
     } finally {
       setSalvando(false);
     }
