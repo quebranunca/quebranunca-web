@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAutenticacao } from '../hooks/useAutenticacao';
+import { AvatarUsuario } from '../components/AvatarUsuario';
 import { extrairMensagemErro } from '../utils/erros';
 import { nomePerfil } from '../utils/perfis';
 import { obterNomeExibicaoAtletaPerfil } from '../utils/atletaUtils';
@@ -57,9 +58,19 @@ export function PaginaPerfilUsuario() {
       </div>
 
       <div className="cartao-lista">
-        <p>Nome: {usuarioDetalhe?.nome || usuario?.nome}</p>
+        <div className="perfil-usuario-identidade">
+          <AvatarUsuario
+            nome={usuarioDetalhe?.nome || usuario?.nome}
+            fotoPerfilUrl={usuarioDetalhe?.fotoPerfilUrl || usuario?.fotoPerfilUrl}
+            tamanho="lg"
+            className="perfil-usuario-avatar"
+          />
+          <div>
+            <p>Nome: {usuarioDetalhe?.nome || usuario?.nome}</p>
+            <p>Perfil: {nomePerfil(usuarioDetalhe?.perfil || usuario?.perfil)}</p>
+          </div>
+        </div>
         <p>E-mail: {usuarioDetalhe?.email || usuario?.email}</p>
-        <p>Perfil: {nomePerfil(usuarioDetalhe?.perfil || usuario?.perfil)}</p>
         <p>Atleta vinculado: {obterNomeExibicaoAtletaPerfil(usuarioDetalhe?.atleta) || 'Nenhum atleta vinculado'}</p>
       </div>
     </section>

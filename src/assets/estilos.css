@@ -304,6 +304,55 @@ textarea {
   font-size: 0.92rem;
 }
 
+.avatar-usuario {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  overflow: hidden;
+  line-height: 1;
+}
+
+.avatar-usuario-sm {
+  width: 2rem;
+  height: 2rem;
+  font-size: 0.72rem;
+}
+
+.avatar-usuario-md {
+  width: 3rem;
+  height: 3rem;
+  font-size: 0.9rem;
+}
+
+.avatar-usuario-lg {
+  width: 4rem;
+  height: 4rem;
+  font-size: 1.15rem;
+}
+
+.avatar-usuario-xl {
+  width: 4.6rem;
+  height: 4.6rem;
+  font-size: 1.25rem;
+}
+
+.avatar-usuario img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.avatar-usuario-iniciais {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
 .usuario-identidade {
   display: inline-flex;
   align-items: center;
@@ -317,23 +366,12 @@ textarea {
 }
 
 .usuario-avatar {
-  display: grid;
-  place-items: center;
   width: 1.85rem;
   height: 1.85rem;
-  flex: 0 0 auto;
-  border-radius: 50%;
-  overflow: hidden;
   background: linear-gradient(145deg, #ffd166, #9a6f0b 78%);
   color: #161000;
   font-size: 0.72rem;
   font-weight: 900;
-}
-
-.usuario-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
 }
 
 .usuario-identidade span {
@@ -3042,13 +3080,23 @@ code {
 
 .dashboard-hero {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 1rem;
   background:
     linear-gradient(135deg, rgba(23, 26, 32, 0.96) 0%, rgba(31, 35, 43, 0.96) 100%);
   border-color: rgba(255, 255, 255, 0.1);
   color: var(--cor-texto-fundo-escuro);
+}
+
+.dashboard-hero-avatar,
+.perfil-usuario-avatar {
+  border: 1px solid rgba(255, 209, 102, 0.45);
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.28), transparent 28%),
+    linear-gradient(145deg, #ffd166, #9a6f0b 78%);
+  color: #161000;
+  font-weight: 950;
 }
 
 .dashboard-hero-conteudo {
@@ -3064,6 +3112,13 @@ code {
 
 .dashboard-hero strong {
   color: #ffffff;
+}
+
+.perfil-usuario-identidade {
+  display: flex;
+  align-items: center;
+  gap: 0.78rem;
+  min-width: 0;
 }
 
 .pagina-home {

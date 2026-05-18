@@ -20,21 +20,12 @@ import { partidasServico } from '../../services/partidasServico';
 import { extrairMensagemErro } from '../../utils/erros';
 import { podeEditarPartida } from '../../utils/permissoesPartida';
 import { NotificacoesBotao } from '../NotificacoesBotao';
+import { AvatarUsuario } from '../AvatarUsuario';
 import { EditarPartidaRegistradaModal } from '../partidas/EditarPartidaRegistradaModal';
 import { PartidaCardPremium } from '../partidas/PartidaCardPremium';
 
 function nomeAtleta(nome, apelido) {
   return apelido || nome || 'Atleta';
-}
-
-function obterIniciais(nome) {
-  const partes = String(nome || 'QNF').trim().split(/\s+/).filter(Boolean);
-
-  if (!partes.length) {
-    return 'QNF';
-  }
-
-  return partes.slice(0, 2).map((parte) => parte[0]).join('').toUpperCase();
 }
 
 function obterIconeInsight(insight) {
@@ -172,6 +163,7 @@ export function HomeDashboard({ dashboard, carregando, erro, onAtualizar }) {
   const insights = dashboard.insights || [];
   const insightsVisiveis = insightsExpandidos ? insights : insights.slice(0, 3);
   const nomePrincipal = nomeAtleta(perfil.nome, perfil.apelido);
+  const fotoPerfilUrl = perfil.fotoPerfilUrl || usuario?.fotoPerfilUrl || '';
   const saudacao = obterSaudacao();
 
   const diasSemana = [
@@ -282,6 +274,7 @@ export function HomeDashboard({ dashboard, carregando, erro, onAtualizar }) {
     <section className="pagina home-dashboard">
       <HomeDashboardHeader
         nome={nomePrincipal}
+        fotoPerfilUrl={fotoPerfilUrl}
         categoria={perfil.categoriaPrincipal}
         posicaoRanking={perfil.posicaoRanking}
         saudacao={saudacao}
@@ -289,7 +282,12 @@ export function HomeDashboard({ dashboard, carregando, erro, onAtualizar }) {
 
       <header className="home-dashboard-hero">
         <div className="home-dashboard-atleta-card">
-          <div className="home-dashboard-avatar">{obterIniciais(nomePrincipal)}</div>
+          <AvatarUsuario
+            nome={nomePrincipal}
+            fotoPerfilUrl={fotoPerfilUrl}
+            tamanho="xl"
+            className="home-dashboard-avatar"
+          />
 
           <div className="home-dashboard-atleta-info">
             <span>Seu momento</span>
@@ -458,7 +456,7 @@ export function HomeDashboard({ dashboard, carregando, erro, onAtualizar }) {
   );
 }
 
-function HomeDashboardHeader({ nome, categoria, posicaoRanking, saudacao }) {
+function HomeDashboardHeader({ nome, fotoPerfilUrl, categoria, posicaoRanking, saudacao }) {
   const [compacto, setCompacto] = useState(false);
   const resumoAtleta = [
     categoria,
@@ -494,9 +492,13 @@ function HomeDashboardHeader({ nome, categoria, posicaoRanking, saudacao }) {
 
       <div className="home-dashboard-topo-acoes">
         <NotificacoesBotao autenticado />
-        <div className="home-dashboard-topo-avatar" aria-hidden="true">
-          {obterIniciais(nome)}
-        </div>
+        <AvatarUsuario
+          nome={nome}
+          fotoPerfilUrl={fotoPerfilUrl}
+          tamanho="sm"
+          className="home-dashboard-topo-avatar"
+          alt=""
+        />
       </div>
     </div>
   );
@@ -580,9 +582,12 @@ function DashboardRelacoes({ titulo, itens, tipo, icone: Icone, vazio }) {
               to={`/atletas/${item.atletaId}/dashboard`}
               className="home-dashboard-relacao"
             >
-              <div className="home-dashboard-relacao-avatar">
-                {obterIniciais(nomeAtleta(item.nome, item.apelido))}
-              </div>
+              <AvatarUsuario
+                nome={nomeAtleta(item.nome, item.apelido)}
+                fotoPerfilUrl={item.fotoPerfilUrl || item.fotoUrl}
+                tamanho="sm"
+                className="home-dashboard-relacao-avatar"
+              />
               <div>
                 <strong>{nomeAtleta(item.nome, item.apelido)}</strong>
                 <span>

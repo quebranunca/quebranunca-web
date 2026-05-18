@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { FaCamera } from 'react-icons/fa';
+import { AvatarUsuario } from './AvatarUsuario';
 import { usuariosServico } from '../services/usuariosServico';
 import { extrairMensagemErro } from '../utils/erros';
 
@@ -10,23 +11,6 @@ const tiposPermitidos = new Set([
 ]);
 
 const tamanhoMaximoBytes = 2 * 1024 * 1024;
-
-function obterIniciais(nome) {
-  const partes = String(nome || 'QNF')
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean);
-
-  if (!partes.length) {
-    return 'QNF';
-  }
-
-  return partes
-    .slice(0, 2)
-    .map((parte) => parte[0])
-    .join('')
-    .toUpperCase();
-}
 
 function validarArquivo(arquivo) {
   if (!arquivo) {
@@ -125,13 +109,12 @@ export function FotoPerfilUpload({
   return (
     <div className="foto-perfil-upload">
       <div className="perfil-avatar-wrap">
-        <div className="perfil-avatar-premium" aria-label={`Avatar de ${nome}`}>
-          {imagemExibida ? (
-            <img src={imagemExibida} alt={`Foto de ${nome}`} />
-          ) : (
-            obterIniciais(nome)
-          )}
-        </div>
+        <AvatarUsuario
+          nome={nome}
+          fotoPerfilUrl={imagemExibida}
+          tamanho="xl"
+          className="perfil-avatar-premium"
+        />
 
         <input
           ref={inputRef}

@@ -7,19 +7,10 @@ import {
   FaTrophy,
   FaUserFriends
 } from 'react-icons/fa';
+import { AvatarUsuario } from '../AvatarUsuario';
 
 function obterValorCampo(dados, campo) {
   return campo.split('.').reduce((valor, parte) => valor?.[parte], dados) ?? '';
-}
-
-function obterIniciais(nome) {
-  return String(nome || '?')
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((parte) => parte[0])
-    .join('')
-    .toUpperCase();
 }
 
 function formatarData(data) {
@@ -149,7 +140,12 @@ function AutocompleteAtleta({
               className="registrar-partida-novo-sugestao"
               onClick={() => onSelecionarAtleta(campo, atleta)}
             >
-              <span className="registrar-partida-novo-avatar">{obterIniciais(atleta.apelido || atleta.nome)}</span>
+              <AvatarUsuario
+                nome={atleta.apelido || atleta.nome}
+                fotoPerfilUrl={atleta.fotoPerfilUrl || atleta.fotoUrl || atleta.avatarUrl}
+                tamanho="sm"
+                className="registrar-partida-novo-avatar"
+              />
               <span>
                 <strong>{atleta.nome}</strong>
                 <small>

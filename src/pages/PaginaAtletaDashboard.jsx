@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 import { FaChartLine, FaGamepad, FaMedal, FaTrophy } from 'react-icons/fa';
+import { AvatarUsuario } from '../components/AvatarUsuario';
 import { CompartilharAtletaDashboardBotao } from '../components/atleta/CompartilharAtletaDashboardBotao';
 import { PlacarDupla } from '../components/partidas/PlacarDupla';
 import { atletasServico } from '../services/atletasServico';
@@ -40,17 +41,6 @@ function obterStatusVisual(atleta) {
   }
 
   return { texto: 'Sem conta', classe: 'sem-conta' };
-}
-
-function obterIniciais(atleta) {
-  const nome = obterNomeExibicaoAtleta(atleta);
-  return nome
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((parte) => parte[0])
-    .join('')
-    .toUpperCase() || 'Q';
 }
 
 function extrairDetalhePartida(partida) {
@@ -165,7 +155,12 @@ export function PaginaAtletaDashboard() {
   return (
     <section className="pagina atleta-dashboard">
       <header className="atleta-dashboard-hero">
-        <div className="atleta-dashboard-avatar">{obterIniciais(atleta)}</div>
+        <AvatarUsuario
+          nome={obterNomeExibicaoAtleta(atleta)}
+          fotoPerfilUrl={atleta.fotoPerfilUrl || atleta.fotoUrl}
+          tamanho="xl"
+          className="atleta-dashboard-avatar"
+        />
         <div className="atleta-dashboard-identidade">
           <span>Atleta</span>
           <h2>{obterNomeExibicaoAtleta(atleta)}</h2>

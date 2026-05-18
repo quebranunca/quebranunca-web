@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom';
 import { useAutenticacao } from '../hooks/useAutenticacao';
+import { AvatarUsuario } from '../components/AvatarUsuario';
 import { obterItensNavegacao } from './navagacao';
-import { ehAdministrador, ehAtleta, ehGestorCompeticao, nomePerfil } from '../utils/perfis';
-import { ESTADOS_ACESSO, nomeEstadoAcesso } from '../utils/acesso';
+import { ehAdministrador, ehAtleta, ehGestorCompeticao } from '../utils/perfis';
+import { ESTADOS_ACESSO } from '../utils/acesso';
 
 export function PaginaDashboard() {
   const { usuario, estadoAcesso } = useAutenticacao();
@@ -29,6 +30,12 @@ export function PaginaDashboard() {
     <section className="pagina">
       
       <article className="cartao dashboard-hero">
+        <AvatarUsuario
+          nome={usuario?.nome}
+          fotoPerfilUrl={usuario?.fotoPerfilUrl}
+          tamanho="lg"
+          className="dashboard-hero-avatar"
+        />
         <div className="dashboard-hero-conteudo">
           <h3>{usuario?.nome ? `Olá, ${usuario.nome}` : 'Bem-vindo'}</h3>
           <p>

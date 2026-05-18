@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { FaChevronRight, FaFilter, FaMedal, FaTrophy } from 'react-icons/fa';
+import { FaChevronRight, FaFilter, FaTrophy } from 'react-icons/fa';
 import { competicoesServico } from '../services/competicoesServico';
 import { gruposServico } from '../services/gruposServico';
 import { rankingServico } from '../services/rankingServico';
 import { CompartilharRankingBotao } from '../components/ranking/CompartilharRankingBotao';
+import { AvatarUsuario } from '../components/AvatarUsuario';
 import { extrairMensagemErro } from '../utils/erros';
 import { obterNomeExibicaoAtleta } from '../utils/atletaUtils';
 
@@ -74,17 +75,6 @@ function calcularAproveitamento(item) {
   }
 
   return Math.round((Number(item.vitorias || 0) / Number(item.jogos)) * 100);
-}
-
-function obterIniciais(item) {
-  const nome = obterNomeExibicaoAtleta(item);
-  return nome
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((parte) => parte[0])
-    .join('')
-    .toUpperCase() || 'Q';
 }
 
 function obterStatusVisual(item) {
@@ -648,9 +638,12 @@ function AtletaRankingLinha({ item, exibirRegiao, onClick }) {
 
 function AvatarAtleta({ item, destaque = false }) {
   return (
-    <span className={`ranking-avatar ${destaque ? 'destaque' : ''}`}>
-      {destaque ? <FaMedal aria-hidden="true" /> : obterIniciais(item)}
-    </span>
+    <AvatarUsuario
+      nome={obterNomeExibicaoAtleta(item)}
+      fotoPerfilUrl={item.fotoPerfilUrl || item.fotoUrl}
+      tamanho={destaque ? 'lg' : 'md'}
+      className={`ranking-avatar ${destaque ? 'destaque' : ''}`}
+    />
   );
 }
 

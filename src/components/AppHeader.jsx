@@ -7,6 +7,7 @@ import {
 import { ConteudoBotao } from './ConteudoBotao';
 import { HeaderBackButton } from './BotaoVoltar';
 import { NotificacoesBotao } from './NotificacoesBotao';
+import { AvatarUsuario } from './AvatarUsuario';
 
 import logoLiga from '../assets/logo-liga.svg';
 
@@ -43,16 +44,6 @@ function obterConfiguracaoHeader(pathname) {
       tipoTela: TIPOS_TELA.raiz
     }
   );
-}
-
-function obterIniciais(nome) {
-  return (nome || 'QNF')
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((parte) => parte.charAt(0))
-    .join('')
-    .toUpperCase();
 }
 
 export function AppHeader({
@@ -132,13 +123,13 @@ export function AppHeader({
         <span className="usuario-identidade">
           {autenticado ? (
             <>
-              <span className="usuario-avatar" aria-hidden="true">
-                {usuario?.fotoPerfilUrl ? (
-                  <img src={usuario.fotoPerfilUrl} alt="" />
-                ) : (
-                  obterIniciais(usuario?.nome)
-                )}
-              </span>
+              <AvatarUsuario
+                nome={usuario?.nome}
+                fotoPerfilUrl={usuario?.fotoPerfilUrl}
+                tamanho="sm"
+                className="usuario-avatar"
+                alt=""
+              />
 
               <span className="usuario-nome">
                 {usuario?.nome}

@@ -7,6 +7,7 @@ import {
   FaTrophy,
   FaUserFriends
 } from 'react-icons/fa';
+import { AvatarUsuario } from '../AvatarUsuario';
 import './registrar-partida-novo.css';
 import './minhas-partidas-registradas.css';
 
@@ -124,16 +125,6 @@ function criarPayload(partida, formulario) {
 
 function obterValorCampo(formulario, campo) {
   return campo.split('.').reduce((valor, parte) => valor?.[parte], formulario) ?? '';
-}
-
-function obterIniciais(nome) {
-  return String(nome || '?')
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((parte) => parte[0])
-    .join('')
-    .toUpperCase();
 }
 
 function formatarData(data) {
@@ -316,7 +307,11 @@ function EtapaAtleta({ formulario, campo, rotulo, titulo, descricao, inputRef, o
       </label>
 
       <div className="editar-partida-atleta-preview">
-        <span className="registrar-partida-novo-avatar">{obterIniciais(valor)}</span>
+        <AvatarUsuario
+          nome={valor}
+          tamanho="sm"
+          className="registrar-partida-novo-avatar"
+        />
         <strong>{limparTexto(valor) || 'Atleta pendente'}</strong>
       </div>
     </section>
