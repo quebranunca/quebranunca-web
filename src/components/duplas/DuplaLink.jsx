@@ -6,12 +6,13 @@ export function DuplaLink({
   atleta2Id,
   children,
   className = '',
-  title
+  title,
+  tag: Tag = 'span'
 }) {
   const href = montarUrlDashboardDupla(atleta1Id, atleta2Id);
 
   if (!href) {
-    return <>{children}</>;
+    return className ? <Tag className={className}>{children}</Tag> : <>{children}</>;
   }
 
   return (

@@ -112,16 +112,17 @@ export function PartidaCardPremium({
 
 function LinhaPlacar({ label, atletas, placar, destaque, vencedora, atleta1Id, atleta2Id }) {
   return (
-    <div className={`meus-jogos-linha-placar ${destaque ? 'minha-dupla' : ''} ${vencedora ? 'vencedora' : ''}`}>
+    <DuplaLink
+      atleta1Id={atleta1Id}
+      atleta2Id={atleta2Id}
+      className={`meus-jogos-linha-placar ${destaque ? 'minha-dupla' : ''} ${vencedora ? 'vencedora' : ''}`}
+      tag="div"
+    >
       <div>
         <span>{label}</span>
-        <strong>
-          <DuplaLink atleta1Id={atleta1Id} atleta2Id={atleta2Id}>
-            {atletas || 'A definir'}
-          </DuplaLink>
-        </strong>
+        <strong>{atletas || 'A definir'}</strong>
       </div>
       <strong className="meus-jogos-placar-numero">{placar ?? '-'}</strong>
-    </div>
+    </DuplaLink>
   );
 }

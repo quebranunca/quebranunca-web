@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { FaChartLine, FaGamepad, FaMedal, FaTrophy, FaUsers } from 'react-icons/fa';
-import { BotaoVoltar } from '../components/BotaoVoltar';
+import { CompartilharDuplaDashboardBotao } from '../components/duplas/CompartilharDuplaDashboardBotao';
 import { PlacarDupla } from '../components/partidas/PlacarDupla';
 import { duplasServico } from '../services/duplasServico';
 import { obterNomeExibicaoAtleta } from '../utils/atletaUtils';
@@ -76,7 +76,7 @@ export function PaginaDuplaDashboard() {
           <h2>{nomeDupla}</h2>
           <p>{dupla.categoriaPrincipal || 'Geral'} · {resumo.totalPartidas} partidas juntas</p>
           <div className="atleta-dashboard-identidade-acoes">
-            <BotaoVoltar rotulo="Voltar" />
+            <CompartilharDuplaDashboardBotao dashboard={dashboard} />
           </div>
         </div>
         <div className="atleta-dashboard-pontos">

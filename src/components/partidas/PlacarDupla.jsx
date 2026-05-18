@@ -12,17 +12,20 @@ export function PlacarDupla({
     <div className="dupla-linha">
       {label && <span className="dupla-label">{label}</span>}
 
-      <div className={`dupla-conteudo ${vencedor ? 'vencedor' : ''}`}>
+      <DuplaLink
+        atleta1Id={atleta1Id}
+        atleta2Id={atleta2Id}
+        className={`dupla-conteudo ${vencedor ? 'vencedor' : ''}`}
+        tag="div"
+      >
         <div className="dupla-nome">
-          <DuplaLink atleta1Id={atleta1Id} atleta2Id={atleta2Id}>
-            {atletas}
-          </DuplaLink>
+          {atletas}
         </div>
 
         <div className="dupla-placar">
           {placar}
         </div>
-      </div>
+      </DuplaLink>
     </div>
   );
 }
