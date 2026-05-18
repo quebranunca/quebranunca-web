@@ -16,6 +16,18 @@ export const usuariosServico = {
     return resposta.data;
   },
 
+  async atualizarFotoPerfil(arquivo) {
+    const dados = new FormData();
+    dados.append('arquivo', arquivo);
+
+    const resposta = await http.post('/usuarios/foto-perfil', dados, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return resposta.data;
+  },
+
   async excluirMeuPerfil() {
     await http.delete('/usuarios/meu-perfil');
   },

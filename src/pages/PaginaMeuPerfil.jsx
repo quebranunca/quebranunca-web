@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
-  FaCamera,
   FaChartLine,
   FaCog,
   FaEnvelope,
@@ -18,6 +17,7 @@ import {
 } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAutenticacao } from '../hooks/useAutenticacao';
+import { FotoPerfilUpload } from '../components/FotoPerfilUpload';
 import { atletasServico } from '../services/atletasServico';
 import { dashboardServico } from '../services/dashboardServico';
 import { privacidadeServico } from '../services/privacidadeServico';
@@ -157,23 +157,6 @@ function obterNomeCompletoMeuPerfil(atleta, usuarioBase, perfilUsuario) {
   }
 
   return atleta?.nome || '';
-}
-
-function obterIniciais(nome) {
-  const partes = String(nome || 'QNF')
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean);
-
-  if (!partes.length) {
-    return 'QNF';
-  }
-
-  return partes
-    .slice(0, 2)
-    .map((parte) => parte[0])
-    .join('')
-    .toUpperCase();
 }
 
 function obterRotuloNivel(valor) {
@@ -627,6 +610,20 @@ export function PaginaMeuPerfil() {
     navigate('/', { replace: true });
   }
 
+  function atualizarFotoPerfilLocal(fotoPerfilUrlAtualizada) {
+    const proximoUsuario = {
+      ...(usuarioDetalhe || usuario),
+      fotoPerfilUrl: fotoPerfilUrlAtualizada
+    };
+
+    setUsuarioDetalhe(proximoUsuario);
+    atualizarUsuarioLocal(proximoUsuario);
+    setPreferenciasPrivacidade((anterior) => ({
+      ...anterior,
+      possuiFotoPerfil: true
+    }));
+  }
+
   function atualizarPreferenciaPrivacidade(campo, valor) {
     setPreferenciasPrivacidade((anterior) => ({
       ...anterior,
@@ -685,6 +682,7 @@ export function PaginaMeuPerfil() {
   const ultimasPartidas = Array.isArray(dashboardAtleta?.ultimasPartidas) ? dashboardAtleta.ultimasPartidas : [];
   const localizacaoCompacta = obterLocalizacaoCompacta(formularioAtleta);
   const nomePerfil = formularioAtleta.nome || usuarioDetalhe?.nome || usuario?.nome || 'Atleta QNF';
+  const fotoPerfilUrl = usuarioDetalhe?.fotoPerfilUrl || usuario?.fotoPerfilUrl || '';
   const apelidoPerfil = formularioAtleta.apelido || perfilDashboard.apelido || 'Apelido a definir';
   const aproveitamento = Number(resumoDashboard.aproveitamento ?? perfilDashboard.aproveitamento ?? 0);
   const melhorSequencia = obterMelhorSequencia(dashboardAtleta?.evolucao);
@@ -737,14 +735,11 @@ export function PaginaMeuPerfil() {
 
       <article className="perfil-hero">
         <div className="perfil-hero-topo">
-          <div className="perfil-avatar-wrap">
-            <div className="perfil-avatar-premium" aria-label={`Avatar de ${nomePerfil}`}>
-              {obterIniciais(nomePerfil)}
-            </div>
-            <button type="button" className="perfil-camera" title="Foto de perfil em breve" aria-label="Foto de perfil em breve">
-              <FaCamera aria-hidden="true" />
-            </button>
-          </div>
+          <FotoPerfilUpload
+            fotoPerfilUrl={fotoPerfilUrl}
+            nome={nomePerfil}
+            onFotoAtualizada={atualizarFotoPerfilLocal}
+          />
 
           <div className="perfil-identidade">
             <span className={`perfil-status ${statusPerfil.classe}`}>
