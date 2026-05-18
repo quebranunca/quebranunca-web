@@ -78,6 +78,32 @@ function obterResultadoPartidaHome(partida) {
   return partida?.resultado || 'Pendente';
 }
 
+function atletaEstaNaDuplaHome(partida, atletaId, lado) {
+  if (!partida || !atletaId) {
+    return false;
+  }
+
+  const prefixo = lado === 'A' ? 'duplaA' : 'duplaB';
+  return partida[`${prefixo}Atleta1Id`] === atletaId || partida[`${prefixo}Atleta2Id`] === atletaId;
+}
+
+function obterIdsDuplasPartidaHome(partida, atletaId) {
+  const usuarioNaDuplaA = atletaEstaNaDuplaHome(partida, atletaId, 'A');
+  const prefixoMinhaDupla = usuarioNaDuplaA ? 'duplaA' : 'duplaB';
+  const prefixoAdversarios = usuarioNaDuplaA ? 'duplaB' : 'duplaA';
+
+  return {
+    minhaDupla: [
+      partida?.[`${prefixoMinhaDupla}Atleta1Id`],
+      partida?.[`${prefixoMinhaDupla}Atleta2Id`]
+    ],
+    adversarios: [
+      partida?.[`${prefixoAdversarios}Atleta1Id`],
+      partida?.[`${prefixoAdversarios}Atleta2Id`]
+    ]
+  };
+}
+
 function obterSaudacao() {
   const hora = new Date().getHours();
 
@@ -354,6 +380,7 @@ export function HomeDashboard({ dashboard, carregando, erro, onAtualizar }) {
               <PartidaHomeCard
                 key={partida.id}
                 partida={partida}
+                atletaId={perfil.atletaId}
                 onEditar={podeEditarPartida(partida, usuario) ? () => abrirEdicao(partida) : null}
               />
             ))}
@@ -487,8 +514,9 @@ function CabecalhoHome({ eyebrow, titulo, descricao, acao }) {
     </div>
   );
 }
-function PartidaHomeCard({ partida, onEditar }) {
+function PartidaHomeCard({ partida, atletaId, onEditar }) {
   const resultado = obterResultadoPartidaHome(partida);
+  const idsDuplas = obterIdsDuplasPartidaHome(partida, atletaId);
 
   return (
     <PartidaCardPremium
@@ -500,6 +528,8 @@ function PartidaHomeCard({ partida, onEditar }) {
       duplaA={{
         label: 'Sua dupla',
         atletas: partida.parceiro ? `Você e ${partida.parceiro}` : 'Sua dupla',
+        atleta1Id: idsDuplas.minhaDupla[0],
+        atleta2Id: idsDuplas.minhaDupla[1],
         placar: partida.placarSuaDupla ?? 0,
         destaque: true,
         vencedora: resultado === 'Vitória'
@@ -507,6 +537,8 @@ function PartidaHomeCard({ partida, onEditar }) {
       duplaB={{
         label: 'Adversários',
         atletas: partida.adversarios || 'Adversários',
+        atleta1Id: idsDuplas.adversarios[0],
+        atleta2Id: idsDuplas.adversarios[1],
         placar: partida.placarAdversarios ?? 0,
         destaque: false,
         vencedora: resultado === 'Derrota'
