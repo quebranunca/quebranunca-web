@@ -7,7 +7,7 @@ import {
 import { ConteudoBotao } from './ConteudoBotao';
 import { HeaderBackButton } from './BotaoVoltar';
 import { NotificacoesBotao } from './NotificacoesBotao';
-import { AvatarUsuario } from './AvatarUsuario';
+import { AvatarUsuario, obterFotoPerfilAvatar } from './AvatarUsuario';
 
 import logoLiga from '../assets/logo-liga.svg';
 
@@ -125,7 +125,7 @@ export function AppHeader({
             <>
               <AvatarUsuario
                 nome={usuario?.nome}
-                fotoPerfilUrl={usuario?.fotoPerfilUrl}
+                fotoPerfilUrl={obterFotoPerfilAvatar(usuario)}
                 tamanho="sm"
                 className="usuario-avatar"
                 alt=""

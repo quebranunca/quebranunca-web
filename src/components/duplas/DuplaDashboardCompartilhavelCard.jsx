@@ -1,6 +1,6 @@
 import { forwardRef } from 'react';
 import { CompartilhamentoCardBase } from '../compartilhamento/CompartilhamentoCardBase';
-import { obterNomeExibicaoAtleta } from '../../utils/atletaUtils';
+import { formatarNomeDupla, obterNomeExibicaoAtleta } from '../../utils/atletaUtils';
 
 function formatarPercentual(valor) {
   return `${Number(valor || 0).toLocaleString('pt-BR', { maximumFractionDigits: 1 })}%`;
@@ -16,7 +16,7 @@ function nomeAtleta(atleta) {
 }
 
 function nomeDupla(dupla) {
-  return dupla?.nome || [dupla?.atleta1, dupla?.atleta2].map(nomeAtleta).filter(Boolean).join(' e ') || 'Dupla QuebraNunca';
+  return formatarNomeDupla(dupla) || dupla?.nome || [dupla?.atleta1, dupla?.atleta2].map(nomeAtleta).filter(Boolean).join(' • ') || 'Dupla QuebraNunca';
 }
 
 function MetricaArte({ rotulo, valor }) {

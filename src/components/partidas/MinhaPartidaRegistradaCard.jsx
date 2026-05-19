@@ -1,4 +1,5 @@
 import { formatarDataHora } from '../../utils/formatacao';
+import { formatarNomeDupla } from '../../utils/atletaUtils';
 import {
   obterClasseStatusAprovacao,
   obterClasseStatusPartida,
@@ -36,7 +37,10 @@ export function MinhaPartidaRegistradaCard({ partida, onEditar, onExcluir, exclu
       <div className="minhas-partidas-registradas-confronto">
         <PlacarDupla
           label="Dupla 1"
-          atletas={`${formatarAtleta(partida.nomeDuplaAAtleta1, 'Direita')} e ${formatarAtleta(partida.nomeDuplaAAtleta2, 'Esquerda')}`}
+          atletas={formatarNomeDupla([
+            formatarAtleta(partida.nomeDuplaAAtleta1, 'Direita'),
+            formatarAtleta(partida.nomeDuplaAAtleta2, 'Esquerda')
+          ])}
           placar={partida.placarDuplaA}
           vencedor={partida.duplaVencedoraId === partida.duplaAId}
           atleta1Id={partida.duplaAAtleta1Id}
@@ -45,7 +49,10 @@ export function MinhaPartidaRegistradaCard({ partida, onEditar, onExcluir, exclu
 
         <PlacarDupla
           label="Dupla 2"
-          atletas={`${formatarAtleta(partida.nomeDuplaBAtleta1, 'Direita')} e ${formatarAtleta(partida.nomeDuplaBAtleta2, 'Esquerda')}`}
+          atletas={formatarNomeDupla([
+            formatarAtleta(partida.nomeDuplaBAtleta1, 'Direita'),
+            formatarAtleta(partida.nomeDuplaBAtleta2, 'Esquerda')
+          ])}
           placar={partida.placarDuplaB}
           vencedor={partida.duplaVencedoraId === partida.duplaBId}
           atleta1Id={partida.duplaBAtleta1Id}

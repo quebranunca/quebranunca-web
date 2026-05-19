@@ -10,6 +10,7 @@ import {
   FaTrophy,
   FaUsers
 } from 'react-icons/fa';
+import { AvatarUsuario, obterFotoPerfilAvatar } from '../AvatarUsuario';
 import { PlacarDupla } from '../partidas/PlacarDupla';
 
 const mensagemRegistro = 'Para registrar sua partida, entre ou crie sua conta rapidinho.';
@@ -161,7 +162,12 @@ function PublicRanking({ ranking }) {
         {(ranking || []).map((atleta) => (
           <article key={atleta.atletaId} className="public-ranking-row">
             <strong className="public-ranking-position">{atleta.posicao}</strong>
-            <span className="public-avatar">{obterNome(atleta.nome, atleta.apelido).charAt(0)}</span>
+            <AvatarUsuario
+              nome={obterNome(atleta.nome, atleta.apelido)}
+              fotoPerfilUrl={obterFotoPerfilAvatar(atleta)}
+              tamanho="sm"
+              className="public-avatar"
+            />
             <div>
               <strong>{obterNome(atleta.nome, atleta.apelido)}</strong>
               <span>{atleta.vitorias}V · {atleta.derrotas}D · {atleta.aproveitamento}%</span>
@@ -220,7 +226,12 @@ export function PublicHome({ dashboard, carregando, erro }) {
           vazio="Os destaques aparecem conforme a comunidade registra partidas."
           renderItem={(atleta) => (
             <article key={`${atleta.atletaId}-${atleta.destaque}`} className="public-highlight-card">
-              <span className="public-avatar">{obterNome(atleta.nome, atleta.apelido).charAt(0)}</span>
+              <AvatarUsuario
+                nome={obterNome(atleta.nome, atleta.apelido)}
+                fotoPerfilUrl={obterFotoPerfilAvatar(atleta)}
+                tamanho="sm"
+                className="public-avatar"
+              />
               <strong>{obterNome(atleta.nome, atleta.apelido)}</strong>
               <small>{atleta.destaque}</small>
               <em>{atleta.valor} {atleta.complemento}</em>

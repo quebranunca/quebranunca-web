@@ -1,17 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { gruposServico } from '../../services/gruposServico';
-import { obterNomeExibicaoAtleta } from '../../utils/atletaUtils';
+import { formatarNomeDupla } from '../../utils/atletaUtils';
 import { formatarDataHora } from '../../utils/formatacao';
 import { CompartilharPartidaBotao } from '../../components/partidas/CompartilharPartidaBotao';
 import { PlacarDupla } from '../../components/partidas/PlacarDupla';
 
 function formatarAtletas(atletas) {
-  const nomes = (atletas || [])
-    .map((atleta) => obterNomeExibicaoAtleta(atleta))
-    .filter(Boolean);
-
-  return nomes.length > 0 ? nomes.join(' e ') : 'A definir';
+  return formatarNomeDupla(atletas, 'A definir');
 }
 
 function formatarPontuacao(valor) {

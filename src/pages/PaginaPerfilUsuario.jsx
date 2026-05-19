@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAutenticacao } from '../hooks/useAutenticacao';
-import { AvatarUsuario } from '../components/AvatarUsuario';
+import { AvatarUsuario, obterFotoPerfilAvatar } from '../components/AvatarUsuario';
 import { extrairMensagemErro } from '../utils/erros';
 import { nomePerfil } from '../utils/perfis';
 import { obterNomeExibicaoAtletaPerfil } from '../utils/atletaUtils';
@@ -61,7 +61,7 @@ export function PaginaPerfilUsuario() {
         <div className="perfil-usuario-identidade">
           <AvatarUsuario
             nome={usuarioDetalhe?.nome || usuario?.nome}
-            fotoPerfilUrl={usuarioDetalhe?.fotoPerfilUrl || usuario?.fotoPerfilUrl}
+            fotoPerfilUrl={obterFotoPerfilAvatar(usuarioDetalhe) || obterFotoPerfilAvatar(usuario)}
             tamanho="lg"
             className="perfil-usuario-avatar"
           />

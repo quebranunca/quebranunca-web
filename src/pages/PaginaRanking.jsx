@@ -5,7 +5,7 @@ import { competicoesServico } from '../services/competicoesServico';
 import { gruposServico } from '../services/gruposServico';
 import { rankingServico } from '../services/rankingServico';
 import { CompartilharRankingBotao } from '../components/ranking/CompartilharRankingBotao';
-import { AvatarUsuario } from '../components/AvatarUsuario';
+import { AvatarUsuario, obterFotoPerfilAvatar } from '../components/AvatarUsuario';
 import { extrairMensagemErro } from '../utils/erros';
 import { obterNomeExibicaoAtleta } from '../utils/atletaUtils';
 
@@ -640,7 +640,7 @@ function AvatarAtleta({ item, destaque = false }) {
   return (
     <AvatarUsuario
       nome={obterNomeExibicaoAtleta(item)}
-      fotoPerfilUrl={item.fotoPerfilUrl || item.fotoUrl}
+      fotoPerfilUrl={obterFotoPerfilAvatar(item)}
       tamanho={destaque ? 'lg' : 'md'}
       className={`ranking-avatar ${destaque ? 'destaque' : ''}`}
     />

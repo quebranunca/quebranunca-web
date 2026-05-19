@@ -1,10 +1,12 @@
 import { Link } from 'react-router-dom';
-import { FaCalendarAlt, FaChevronRight, FaUserCircle } from 'react-icons/fa';
+import { FaCalendarAlt, FaChevronRight } from 'react-icons/fa';
+import { AvatarUsuario } from '../AvatarUsuario';
 import { CompartilharPartidaBotao } from './CompartilharPartidaBotao';
 import { formatarDataHora } from '../../utils/formatacao';
+import { formatarNomeDupla } from '../../utils/atletaUtils';
 
 function nomesDupla(dupla) {
-  return [dupla?.atleta1Nome, dupla?.atleta2Nome].filter(Boolean).join(' / ') || 'Dupla a definir';
+  return formatarNomeDupla(dupla, 'Dupla a definir');
 }
 
 function obterContexto(partida) {
@@ -17,6 +19,13 @@ function obterContexto(partida) {
 
 function ehVideo(midiaTipo) {
   return String(midiaTipo || '').toLowerCase() === 'video';
+}
+
+function obterFotoRegistrador(partida) {
+  return partida?.criadoPorFotoPerfilUrl
+    || partida?.usuarioFotoPerfilUrl
+    || partida?.usuarioCriadorFotoPerfilUrl
+    || '';
 }
 
 export function FeedPartidaCard({ partida }) {
@@ -46,19 +55,24 @@ export function FeedPartidaCard({ partida }) {
         <div className="feed-partida-placar">
           <div>
             <span>Dupla 1</span>
-            <strong>{nomesDupla(partida.dupla1)}</strong>
+            <strong className="nome-dupla">{nomesDupla(partida.dupla1)}</strong>
           </div>
           <strong className="feed-partida-placar-numero">{partida.placarDupla1 ?? 0}</strong>
           <span className="feed-partida-versus">x</span>
           <strong className="feed-partida-placar-numero">{partida.placarDupla2 ?? 0}</strong>
           <div>
             <span>Dupla 2</span>
-            <strong>{nomesDupla(partida.dupla2)}</strong>
+            <strong className="nome-dupla">{nomesDupla(partida.dupla2)}</strong>
           </div>
         </div>
 
         <div className="feed-partida-registrador">
-          <FaUserCircle aria-hidden="true" />
+          <AvatarUsuario
+            nome={partida.criadoPorNome || 'Usuário QNF'}
+            fotoPerfilUrl={obterFotoRegistrador(partida)}
+            tamanho="sm"
+            className="feed-partida-registrador-avatar"
+          />
           <span>Registrada por {partida.criadoPorNome || 'Usuário QNF'}</span>
         </div>
 

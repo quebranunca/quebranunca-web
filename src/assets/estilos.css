@@ -4061,6 +4061,13 @@ code {
   gap: 4px;
 }
 
+.nome-dupla {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .dupla-label {
   font-size: 12px;
   font-weight: 800;

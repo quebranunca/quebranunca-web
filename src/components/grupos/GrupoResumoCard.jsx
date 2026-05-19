@@ -12,7 +12,7 @@ import {
   ordenarPartidasRecentes,
   partidaTemPlacarValido
 } from '../../utils/partidas';
-import { obterNomeExibicaoAtleta } from '../../utils/atletaUtils';
+import { formatarNomeDupla, obterNomeExibicaoAtleta } from '../../utils/atletaUtils';
 
 function formatarPontuacao(valor) {
   const numero = Number(valor);
@@ -55,7 +55,7 @@ function formatarDataRelativa(data) {
 }
 
 function juntarNomes(nomes) {
-  return (nomes || []).filter(Boolean).join(' e ');
+  return formatarNomeDupla(nomes);
 }
 
 function GrupoResumoEstado({ tipo, mensagem }) {
@@ -75,11 +75,7 @@ function GrupoResumoEstado({ tipo, mensagem }) {
 }
 
 function formatarAtletas(atletas) {
-  const nomes = (atletas || [])
-    .map((atleta) => obterNomeExibicaoAtleta(atleta))
-    .filter(Boolean);
-
-  return nomes.length > 0 ? nomes.join(' e ') : 'A definir';
+  return formatarNomeDupla(atletas, 'A definir');
 }
 
 function formatarDuplaPartida(partida, prefixo) {
@@ -93,7 +89,7 @@ function formatarDuplaPartida(partida, prefixo) {
     partida?.[`nome${prefixo}Atleta2`]
   ].filter(Boolean);
 
-  return nomes.length > 0 ? nomes.join(' e ') : 'A definir';
+  return formatarNomeDupla(nomes, 'A definir');
 }
 
 export function GrupoResumoCard({

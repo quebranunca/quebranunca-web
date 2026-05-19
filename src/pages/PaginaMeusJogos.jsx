@@ -20,7 +20,7 @@ import {
   STATUS_APROVACAO_PARTIDA,
   STATUS_PARTIDA
 } from '../utils/partidas';
-import { obterNomeExibicaoAtleta } from '../utils/atletaUtils';
+import { formatarNomeDupla } from '../utils/atletaUtils';
 import { podeEditarPartida } from '../utils/permissoesPartida';
 
 const filtrosJogos = [
@@ -32,11 +32,7 @@ const filtrosJogos = [
 ];
 
 function formatarAtletasPlacar(atletas) {
-  const nomes = (atletas || [])
-    .map((atleta) => obterNomeExibicaoAtleta(atleta))
-    .filter(Boolean);
-
-  return nomes.length > 0 ? nomes.join(' e ') : 'A definir';
+  return formatarNomeDupla(atletas, 'A definir');
 }
 
 function atletaVenceuPartida(partida, atletaLogadoId) {

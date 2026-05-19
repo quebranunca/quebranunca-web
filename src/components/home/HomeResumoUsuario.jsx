@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { partidasServico } from '../../services/partidasServico';
 import { usuariosServico } from '../../services/usuariosServico';
 import { formatarDataHora } from '../../utils/formatacao';
-import { obterNomeExibicaoAtleta, obterTituloAtleta } from '../../utils/atletaUtils';
+import { formatarNomeDupla, obterNomeExibicaoAtleta, obterTituloAtleta } from '../../utils/atletaUtils';
 import {
   atletaEstaNaDuplaA,
   obterClasseStatusAprovacao,
@@ -37,11 +37,7 @@ function formatarPercentual(valor) {
 }
 
 function formatarAtletas(atletas) {
-  const nomes = (atletas || [])
-    .map((atleta) => obterNomeExibicaoAtleta(atleta))
-    .filter(Boolean);
-
-  return nomes.length > 0 ? nomes.join(' e ') : 'A definir';
+  return formatarNomeDupla(atletas, 'A definir');
 }
 
 function obterClasseResultadoHome(resultado) {

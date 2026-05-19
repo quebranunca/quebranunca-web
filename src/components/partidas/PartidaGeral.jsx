@@ -1,19 +1,16 @@
 import { CompartilharPartidaBotao } from './CompartilharPartidaBotao';
 import { PlacarDupla } from './PlacarDupla';
+import { formatarNomeDupla } from '../../utils/atletaUtils';
 
 export function PartidaGeral({ partida }) {
   const ultimoJogo = partida?.ultimoJogo;
 
   const atletasDupla1 = ultimoJogo?.dupla1?.length
-  ? ultimoJogo.dupla1
-      .map((atleta) => atleta.apelido || atleta.nome)
-      .join(' e ')
+  ? formatarNomeDupla(ultimoJogo.dupla1)
   : 'Esquerda e Direita';
 
   const atletasDupla2 = ultimoJogo?.dupla2?.length
-  ? ultimoJogo.dupla2
-    .map((atleta) => atleta.apelido || atleta.nome)
-    .join(' e ')
+  ? formatarNomeDupla(ultimoJogo.dupla2)
   : 'Esquerda e Direita'
 
   const placarDupla1 = ultimoJogo?.placarDupla1 || 0;

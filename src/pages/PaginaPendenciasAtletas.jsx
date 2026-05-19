@@ -8,7 +8,7 @@ import { extrairMensagemErro } from '../utils/erros';
 import { formatarDataHora } from '../utils/formatacao';
 import { criarPendenciasPerfil } from '../utils/pendenciasPerfil';
 import { rolarParaTopo } from '../utils/rolagem';
-import { obterNomeExibicaoAtleta, obterNomeExibicaoDupla } from '../utils/atletaUtils';
+import { formatarNomeDupla, obterNomeExibicaoAtleta, obterNomeExibicaoDupla } from '../utils/atletaUtils';
 import { useNotification } from '../contexts/NotificationContext';
 
 const TIPOS_PENDENCIA = {
@@ -98,7 +98,7 @@ function obterDupla(item, lado) {
   const atleta1 = lado === 'A' ? item.nomeDuplaAAtleta1 : item.nomeDuplaBAtleta1;
   const atleta2 = lado === 'A' ? item.nomeDuplaAAtleta2 : item.nomeDuplaBAtleta2;
 
-  return obterNomeExibicaoDupla(nome) || [atleta1, atleta2].filter(Boolean).join(' e ') || 'Dupla a definir';
+  return obterNomeExibicaoDupla(nome) || formatarNomeDupla([atleta1, atleta2], 'Dupla a definir');
 }
 
 function obterContextoPartida(item) {

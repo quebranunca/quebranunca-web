@@ -21,7 +21,7 @@ import { partidaFeedServico } from '../../services/partidaFeedServico';
 import { extrairMensagemErro } from '../../utils/erros';
 import { podeEditarPartida } from '../../utils/permissoesPartida';
 import { NotificacoesBotao } from '../NotificacoesBotao';
-import { AvatarUsuario } from '../AvatarUsuario';
+import { AvatarUsuario, obterFotoPerfilAvatar } from '../AvatarUsuario';
 import { EditarPartidaRegistradaModal } from '../partidas/EditarPartidaRegistradaModal';
 import { FeedPartidaCard } from '../partidas/FeedPartidaCard';
 import { PartidaCardPremium } from '../partidas/PartidaCardPremium';
@@ -199,7 +199,7 @@ export function HomeDashboard({ dashboard, carregando, erro, onAtualizar }) {
   const insights = dashboard.insights || [];
   const insightsVisiveis = insightsExpandidos ? insights : insights.slice(0, 3);
   const nomePrincipal = nomeAtleta(perfil.nome, perfil.apelido);
-  const fotoPerfilUrl = perfil.fotoPerfilUrl || usuario?.fotoPerfilUrl || '';
+  const fotoPerfilUrl = obterFotoPerfilAvatar(perfil) || obterFotoPerfilAvatar(usuario);
   const saudacao = obterSaudacao();
 
   const diasSemana = [
@@ -641,7 +641,7 @@ function DashboardRelacoes({ titulo, itens, tipo, icone: Icone, vazio }) {
             >
               <AvatarUsuario
                 nome={nomeAtleta(item.nome, item.apelido)}
-                fotoPerfilUrl={item.fotoPerfilUrl || item.fotoUrl}
+                fotoPerfilUrl={obterFotoPerfilAvatar(item)}
                 tamanho="sm"
                 className="home-dashboard-relacao-avatar"
               />

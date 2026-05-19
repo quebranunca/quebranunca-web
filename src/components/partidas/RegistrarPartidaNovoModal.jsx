@@ -8,7 +8,7 @@ import {
   FaTrophy,
   FaUserFriends
 } from 'react-icons/fa';
-import { AvatarUsuario } from '../AvatarUsuario';
+import { AvatarUsuario, obterFotoPerfilAvatar } from '../AvatarUsuario';
 
 function obterValorCampo(dados, campo) {
   return campo.split('.').reduce((valor, parte) => valor?.[parte], dados) ?? '';
@@ -143,7 +143,7 @@ function AutocompleteAtleta({
             >
               <AvatarUsuario
                 nome={atleta.apelido || atleta.nome}
-                fotoPerfilUrl={atleta.fotoPerfilUrl || atleta.fotoUrl || atleta.avatarUrl}
+                fotoPerfilUrl={obterFotoPerfilAvatar(atleta)}
                 tamanho="sm"
                 className="registrar-partida-novo-avatar"
               />

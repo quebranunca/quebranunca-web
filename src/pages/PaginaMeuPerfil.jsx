@@ -17,6 +17,7 @@ import {
 } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAutenticacao } from '../hooks/useAutenticacao';
+import { obterFotoPerfilAvatar } from '../components/AvatarUsuario';
 import { FotoPerfilUpload } from '../components/FotoPerfilUpload';
 import { atletasServico } from '../services/atletasServico';
 import { dashboardServico } from '../services/dashboardServico';
@@ -682,7 +683,7 @@ export function PaginaMeuPerfil() {
   const ultimasPartidas = Array.isArray(dashboardAtleta?.ultimasPartidas) ? dashboardAtleta.ultimasPartidas : [];
   const localizacaoCompacta = obterLocalizacaoCompacta(formularioAtleta);
   const nomePerfil = formularioAtleta.nome || usuarioDetalhe?.nome || usuario?.nome || 'Atleta QNF';
-  const fotoPerfilUrl = usuarioDetalhe?.fotoPerfilUrl || usuario?.fotoPerfilUrl || '';
+  const fotoPerfilUrl = obterFotoPerfilAvatar(usuarioDetalhe) || obterFotoPerfilAvatar(usuario);
   const apelidoPerfil = formularioAtleta.apelido || perfilDashboard.apelido || 'Apelido a definir';
   const aproveitamento = Number(resumoDashboard.aproveitamento ?? perfilDashboard.aproveitamento ?? 0);
   const melhorSequencia = obterMelhorSequencia(dashboardAtleta?.evolucao);

@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useAutenticacao } from '../hooks/useAutenticacao';
-import { AvatarUsuario } from '../components/AvatarUsuario';
+import { AvatarUsuario, obterFotoPerfilAvatar } from '../components/AvatarUsuario';
 import { obterItensNavegacao } from './navagacao';
 import { ehAdministrador, ehAtleta, ehGestorCompeticao } from '../utils/perfis';
 import { ESTADOS_ACESSO } from '../utils/acesso';
@@ -32,7 +32,7 @@ export function PaginaDashboard() {
       <article className="cartao dashboard-hero">
         <AvatarUsuario
           nome={usuario?.nome}
-          fotoPerfilUrl={usuario?.fotoPerfilUrl}
+          fotoPerfilUrl={obterFotoPerfilAvatar(usuario)}
           tamanho="lg"
           className="dashboard-hero-avatar"
         />

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 import { FaChartLine, FaGamepad, FaMedal, FaTrophy } from 'react-icons/fa';
-import { AvatarUsuario } from '../components/AvatarUsuario';
+import { AvatarUsuario, obterFotoPerfilAvatar } from '../components/AvatarUsuario';
 import { CompartilharAtletaDashboardBotao } from '../components/atleta/CompartilharAtletaDashboardBotao';
 import { PlacarDupla } from '../components/partidas/PlacarDupla';
 import { atletasServico } from '../services/atletasServico';
@@ -157,7 +157,7 @@ export function PaginaAtletaDashboard() {
       <header className="atleta-dashboard-hero">
         <AvatarUsuario
           nome={obterNomeExibicaoAtleta(atleta)}
-          fotoPerfilUrl={atleta.fotoPerfilUrl || atleta.fotoUrl}
+          fotoPerfilUrl={obterFotoPerfilAvatar(atleta)}
           tamanho="xl"
           className="atleta-dashboard-avatar"
         />

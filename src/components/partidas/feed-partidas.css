@@ -108,6 +108,15 @@
   font-weight: 800;
 }
 
+.feed-partida-registrador-avatar {
+  width: 1.6rem;
+  height: 1.6rem;
+  border: 1px solid rgba(255, 209, 102, 0.28);
+  background: rgba(255, 209, 102, 0.14);
+  color: var(--cor-primaria);
+  font-size: 0.62rem;
+}
+
 .feed-partida-placar {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto auto minmax(0, 1fr);

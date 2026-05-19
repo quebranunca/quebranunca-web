@@ -4,7 +4,7 @@ import { FaChartLine, FaGamepad, FaMedal, FaTrophy, FaUsers } from 'react-icons/
 import { CompartilharDuplaDashboardBotao } from '../components/duplas/CompartilharDuplaDashboardBotao';
 import { PlacarDupla } from '../components/partidas/PlacarDupla';
 import { duplasServico } from '../services/duplasServico';
-import { obterNomeExibicaoAtleta } from '../utils/atletaUtils';
+import { formatarNomeDupla } from '../utils/atletaUtils';
 import { extrairMensagemErro } from '../utils/erros';
 import { formatarDataHora } from '../utils/formatacao';
 
@@ -18,7 +18,7 @@ function formatarSaldo(valor) {
 }
 
 function formatarDupla(atletas) {
-  return (atletas || []).map((atleta) => obterNomeExibicaoAtleta(atleta)).filter(Boolean).join(' e ');
+  return formatarNomeDupla(atletas);
 }
 
 export function PaginaDuplaDashboard() {
@@ -47,7 +47,7 @@ export function PaginaDuplaDashboard() {
 
   const resumo = dashboard?.resumo;
   const dupla = dashboard?.dupla;
-  const nomeDupla = dupla?.nome || formatarDupla([dupla?.atleta1, dupla?.atleta2]);
+  const nomeDupla = formatarNomeDupla(dupla, dupla?.nome || 'Dupla');
   const semPartidas = !carregando && !erro && dashboard && Number(resumo?.totalPartidas || 0) === 0;
   const maiorMes = useMemo(() => {
     return [...(dashboard?.evolucao || [])].sort((a, b) => Number(b.partidas || 0) - Number(a.partidas || 0))[0];
@@ -123,7 +123,7 @@ export function PaginaDuplaDashboard() {
             <div className="dupla-dashboard-lista">
               {dashboard.melhoresAdversarios.map((adversario) => (
                 <div key={adversario.atletas.map((atleta) => atleta.atletaId).join('-')} className="dupla-dashboard-rival">
-                  <strong>{formatarDupla(adversario.atletas)}</strong>
+                  <strong className="nome-dupla">{formatarDupla(adversario.atletas)}</strong>
                   <span>{adversario.partidas} jogos · {adversario.vitorias}V/{adversario.derrotas}D · {formatarPercentual(adversario.aproveitamento)}</span>
                 </div>
               ))}
@@ -190,7 +190,7 @@ function PartidaDuplaCard({ partida, dupla }) {
       <div className="atleta-dashboard-placar">
         <PlacarDupla
           label="Dupla"
-          atletas={dupla?.nome || 'Dupla'}
+          atletas={formatarNomeDupla(dupla, dupla?.nome || 'Dupla')}
           placar={partida.placarDupla}
           vencedor={venceu}
           atleta1Id={dupla?.atleta1?.atletaId}

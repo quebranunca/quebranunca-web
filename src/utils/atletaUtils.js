@@ -1,5 +1,5 @@
 function normalizarTexto(valor) {
-  return typeof valor === 'string' ? valor.trim() : '';
+  return typeof valor === 'string' ? valor.trim().replace(/\s+/g, ' ') : '';
 }
 
 const LIMITE_NOME_ATLETA_COMPLETO = 38;
@@ -77,6 +77,80 @@ export function obterNomeExibicaoAtletaCampos(nome, apelido) {
   return obterNomeExibicaoAtleta({ nome, apelido });
 }
 
+function obterNomeItemDupla(item) {
+  if (!item) {
+    return '';
+  }
+
+  if (typeof item === 'string') {
+    return normalizarTexto(item);
+  }
+
+  return obterNomeExibicaoAtletaPerfil(item)
+    || normalizarTexto(item.apelidoAtleta)
+    || normalizarTexto(item.nomeAtleta)
+    || normalizarTexto(item.atletaNome)
+    || normalizarTexto(item.nome);
+}
+
+function montarAtletasObjetoDupla(dupla) {
+  if (!dupla || typeof dupla !== 'object') {
+    return [];
+  }
+
+  if (Array.isArray(dupla.atletas)) {
+    return dupla.atletas;
+  }
+
+  return [
+    dupla.atleta1 || {
+      nome: dupla.nomeAtleta1 || dupla.atleta1Nome,
+      apelido: dupla.apelidoAtleta1 || dupla.atleta1Apelido
+    },
+    dupla.atleta2 || {
+      nome: dupla.nomeAtleta2 || dupla.atleta2Nome,
+      apelido: dupla.apelidoAtleta2 || dupla.atleta2Apelido
+    }
+  ];
+}
+
+export function formatarNomeDupla(atletas, fallback = '') {
+  if (!atletas) {
+    return fallback;
+  }
+
+  if (Array.isArray(atletas)) {
+    const nomes = atletas
+      .map(obterNomeItemDupla)
+      .filter(Boolean);
+
+    return nomes.length > 0 ? nomes.join(' • ') : fallback;
+  }
+
+  if (typeof atletas === 'string') {
+    const nome = normalizarTexto(atletas);
+
+    if (!nome) {
+      return fallback;
+    }
+
+    const partes = nome
+      .split(/\s*(?:\/|\+|•|&|\be\b)\s*/i)
+      .map(normalizarTexto)
+      .filter(Boolean);
+
+    return partes.length > 1 ? formatarNomeDupla(partes, nome) : nome;
+  }
+
+  const nomesObjeto = montarAtletasObjetoDupla(atletas)
+    .map(obterNomeItemDupla)
+    .filter(Boolean);
+
+  return nomesObjeto.length > 0
+    ? nomesObjeto.join(' • ')
+    : formatarNomeDupla(atletas.nome, fallback);
+}
+
 export function obterNomeExibicaoDupla(nomeDupla) {
   const nome = normalizarTexto(nomeDupla);
 
@@ -84,33 +158,14 @@ export function obterNomeExibicaoDupla(nomeDupla) {
     return '';
   }
 
-  const separador = nome.includes('/')
-    ? '/'
-    : nome.includes('+')
-      ? '+'
-      : nome.includes(' e ')
-        ? ' e '
-        : null;
-
-  if (!separador) {
-    return obterNomeExibicaoAtleta({ nome });
-  }
-
-  const atletas = nome
-    .split(separador)
-    .map((item) => obterNomeExibicaoAtleta({ nome: item }))
-    .filter(Boolean);
-
-  return atletas.length > 0 ? atletas.join(' e ') : nome;
+  return formatarNomeDupla(nome, nome);
 }
 
 export function obterNomeExibicaoDuplaCampos(nomeAtleta1, apelidoAtleta1, nomeAtleta2, apelidoAtleta2) {
-  const atletas = [
-    obterNomeExibicaoAtletaCampos(nomeAtleta1, apelidoAtleta1),
-    obterNomeExibicaoAtletaCampos(nomeAtleta2, apelidoAtleta2)
-  ].filter(Boolean);
-
-  return atletas.join(' e ');
+  return formatarNomeDupla([
+    { nome: nomeAtleta1, apelido: apelidoAtleta1 },
+    { nome: nomeAtleta2, apelido: apelidoAtleta2 }
+  ]);
 }
 
 export function normalizarIdsDupla(atleta1Id, atleta2Id) {

@@ -1,17 +1,8 @@
 import { forwardRef } from 'react';
+import { AvatarUsuario, obterFotoPerfilAvatar } from '../AvatarUsuario';
 import { LogoQNF } from '../branding/LogoQNF';
 import { formatarData } from '../../utils/formatacao';
 import { obterNomeExibicaoAtleta } from '../../utils/atletaUtils';
-
-function obterIniciais(nome) {
-  return (nome || 'QN')
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((parte) => parte[0])
-    .join('')
-    .toUpperCase();
-}
 
 function formatarPontos(valor) {
   const numero = Number(valor);
@@ -30,13 +21,13 @@ function FotoAtleta({ atleta }) {
   const nome = obterNomeExibicaoAtleta(atleta) || 'Atleta';
 
   return (
-    <div className="arte-partida-foto">
-      {atleta?.fotoUrl ? (
-        <img src={atleta.fotoUrl} alt={nome} crossOrigin="anonymous" />
-      ) : (
-        <span>{obterIniciais(nome)}</span>
-      )}
-    </div>
+    <AvatarUsuario
+      nome={nome}
+      fotoPerfilUrl={obterFotoPerfilAvatar(atleta)}
+      tamanho="lg"
+      className="arte-partida-foto"
+      crossOrigin="anonymous"
+    />
   );
 }
 

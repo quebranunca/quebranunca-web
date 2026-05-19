@@ -24,12 +24,27 @@ export function obterIniciaisAvatar(nome) {
     .toUpperCase();
 }
 
+export function obterFotoPerfilAvatar(item) {
+  if (!item) {
+    return '';
+  }
+
+  return item.fotoPerfilUrl
+    || item.FotoPerfilUrl
+    || item.usuarioFotoPerfilUrl
+    || item.atletaFotoPerfilUrl
+    || item.fotoUrl
+    || item.avatarUrl
+    || '';
+}
+
 export function AvatarUsuario({
   nome,
   fotoPerfilUrl,
   tamanho = 'md',
   className = '',
-  alt
+  alt,
+  crossOrigin
 }) {
   const [imagemComErro, setImagemComErro] = useState(false);
   const exibirImagem = Boolean(fotoPerfilUrl) && !imagemComErro;
@@ -45,6 +60,7 @@ export function AvatarUsuario({
         <img
           src={fotoPerfilUrl}
           alt={alt ?? (nome ? `Foto de ${nome}` : 'Foto de perfil')}
+          crossOrigin={crossOrigin}
           onError={() => setImagemComErro(true)}
         />
       ) : (
