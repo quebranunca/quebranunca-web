@@ -7840,32 +7840,6 @@ a.botao-terciario:active {
   box-shadow: 0 0 40px rgba(255, 209, 102, 0.32);
 }
 
-.perfil-camera {
-  position: absolute;
-  right: -0.15rem;
-  bottom: -0.15rem;
-  display: grid;
-  place-items: center;
-  width: 1.85rem;
-  height: 1.85rem;
-  border: 1px solid rgba(255, 209, 102, 0.42);
-  border-radius: 50%;
-  background: rgba(20, 22, 27, 0.98);
-  color: var(--color-primary);
-  cursor: pointer;
-  transition: transform 180ms ease, border-color 180ms ease;
-}
-
-.perfil-camera:hover {
-  transform: translateY(-1px);
-  border-color: rgba(255, 209, 102, 0.78);
-}
-
-.perfil-camera:disabled {
-  cursor: wait;
-  opacity: 0.7;
-}
-
 .foto-perfil-upload-acoes {
   display: grid;
   gap: 0.42rem;

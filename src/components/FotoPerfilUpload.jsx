@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import { FaCamera } from 'react-icons/fa';
 import { AvatarUsuario } from './AvatarUsuario';
 import { usuariosServico } from '../services/usuariosServico';
 import {
@@ -138,17 +137,6 @@ export function FotoPerfilUpload({
           className="perfil-foto-input"
           onChange={selecionarArquivo}
         />
-
-        <button
-          type="button"
-          className="perfil-camera"
-          title="Alterar foto"
-          aria-label="Alterar foto"
-          disabled={processando}
-          onClick={() => inputRef.current?.click()}
-        >
-          <FaCamera aria-hidden="true" />
-        </button>
       </div>
 
       <div className="foto-perfil-upload-acoes">
