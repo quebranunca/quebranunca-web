@@ -5,11 +5,7 @@ export const partidaMidiaServico = {
     const dados = new FormData();
     dados.append('arquivo', arquivo);
 
-    const resposta = await http.post(`/partidas/${partidaId}/midia`, dados, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    });
+    const resposta = await http.post(`/partidas/${partidaId}/midia`, dados);
     return resposta.data;
   },
 
