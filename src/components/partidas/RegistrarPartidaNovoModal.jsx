@@ -243,13 +243,7 @@ function EtapaPlacar({ dados, inputRef, onAlterarCampo }) {
             placeholder="0"
           />
         </label>
-      </div>
-
-      <div className="registrar-partida-novo-regras">
-        <span>Pontuação mínima: regra da competição ou padrão QNF</span>
-        <span>Diferença mínima: regra da competição ou padrão QNF</span>
-        <span>Empate: não permitido</span>
-      </div>
+      </div>      
     </section>
   );
 }
