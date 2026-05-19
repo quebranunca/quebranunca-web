@@ -333,11 +333,6 @@ export function HomeDashboard({ dashboard, carregando, erro, onAtualizar }) {
               {perfil.posicaoRanking ? ` • #${perfil.posicaoRanking} no ranking` : ''}
             </p>
           </div>
-
-          <span className="home-dashboard-status">
-            <span aria-hidden="true" />
-            Ativo
-          </span>
         </div>
 
         <div className="home-dashboard-momento-badge">
