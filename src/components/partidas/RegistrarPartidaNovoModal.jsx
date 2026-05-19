@@ -433,9 +433,7 @@ export function RegistrarPartidaNovoModal({
       return <EtapaPlacar dados={dados} inputRef={campoRef} onAlterarCampo={onAlterarCampo} />;
     }
 
-    if (etapaAtual.id === 'confirmar') {
-      return <EtapaResumo resumo={resumo} confirmar />;
-    }
+   
 
     return <EtapaResumo resumo={resumo} />;
   }
