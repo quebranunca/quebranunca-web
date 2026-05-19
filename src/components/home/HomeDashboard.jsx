@@ -543,7 +543,6 @@ function HomeDashboardHeader({ nome, fotoPerfilUrl, categoria, posicaoRanking, s
         <img src={logoLiga} alt="QuebraNunca" />
         <div>
           <strong>{saudacao}, {nome}</strong>
-          <span>{resumoAtleta || 'QuebraNunca Futevôlei'}</span>
         </div>
       </div>
 
