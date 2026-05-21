@@ -11,6 +11,7 @@ import {
 } from 'react-icons/fa';
 import { AvatarUsuario, obterFotoPerfilAvatar } from '../AvatarUsuario';
 import { CompartilharPartidaBotao } from './CompartilharPartidaBotao';
+import { aoPressionarEnterParaProximo, blurActiveElement, focusNextField, scrollFocusedInputIntoView } from '../../utils/tecladoMobile';
 
 function obterValorCampo(dados, campo) {
   return campo.split('.').reduce((valor, parte) => valor?.[parte], dados) ?? '';
@@ -128,7 +129,7 @@ function montarDetalhesAtleta(atleta) {
   }
 
   if (Number.isFinite(atleta?.posicaoRanking)) {
-        detalhes.push(`${atleta.posicaoRanking}º ranking`);
+    detalhes.push(`${atleta.posicaoRanking}º ranking`);
   }
 
   if (Number.isFinite(atleta?.quantidadeJogos)) {
@@ -147,6 +148,7 @@ function AutocompleteAtleta({
   sugestoes,
   buscando,
   inputRef,
+  proximoRef,
   onAlterarCampo,
   onSelecionarAtleta
 }) {
@@ -158,9 +160,12 @@ function AutocompleteAtleta({
       <span>{rotulo}</span>
       <input
         ref={inputRef}
-        type="text"
+        type="search"
+        enterKeyHint="next"
         value={valor}
         onChange={(evento) => onAlterarCampo(campo, evento.target.value)}
+        onFocus={scrollFocusedInputIntoView}
+        onKeyDown={(evento) => aoPressionarEnterParaProximo(evento, () => focusNextField(proximoRef))}
         placeholder={placeholder}
         autoComplete="off"
       />
@@ -179,7 +184,11 @@ function AutocompleteAtleta({
               type="button"
               key={`${campo}-${atleta.id}`}
               className="registrar-partida-novo-sugestao"
-              onClick={() => onSelecionarAtleta(campo, atleta)}
+              onMouseDown={(evento) => evento.preventDefault()}
+              onClick={() => {
+                onSelecionarAtleta(campo, atleta);
+                focusNextField(proximoRef);
+              }}
             >
               <AvatarUsuario
                 nome={atleta.apelido || atleta.nome}
@@ -199,7 +208,7 @@ function AutocompleteAtleta({
   );
 }
 
-function DuplaRegistro({ numero, dados, selecoes, sugestoes, campoBuscando, inputRef, vencedora, onAlterarCampo, onSelecionarAtleta }) {
+function DuplaRegistro({ numero, dados, selecoes, sugestoes, campoBuscando, inputRef, inputRef2, proximoRef1, proximoRef2, vencedora, onAlterarCampo, onSelecionarAtleta }) {
   const prefixo = numero === 1 ? 'dupla1' : 'dupla2';
   const ganhou = vencedora === prefixo;
 
@@ -219,6 +228,7 @@ function DuplaRegistro({ numero, dados, selecoes, sugestoes, campoBuscando, inpu
           sugestoes={sugestoes}
           buscando={campoBuscando === `${prefixo}.atletaDireita`}
           inputRef={inputRef}
+          proximoRef={proximoRef1}
           onAlterarCampo={onAlterarCampo}
           onSelecionarAtleta={onSelecionarAtleta}
         />
@@ -230,6 +240,8 @@ function DuplaRegistro({ numero, dados, selecoes, sugestoes, campoBuscando, inpu
           selecao={selecoes[`${prefixo}.atletaEsquerda`]}
           sugestoes={sugestoes}
           buscando={campoBuscando === `${prefixo}.atletaEsquerda`}
+          inputRef={inputRef2}
+          proximoRef={proximoRef2}
           onAlterarCampo={onAlterarCampo}
           onSelecionarAtleta={onSelecionarAtleta}
         />
@@ -264,8 +276,11 @@ function PlacarCentral({ dados, placar1Ref, placar2Ref, onAlterarCampo, onRevisa
             inputMode="numeric"
             pattern="[0-9]*"
             maxLength={2}
+            enterKeyHint="next"
             value={dados.dupla1.pontos}
             onChange={(evento) => alterarPlacar('dupla1.pontos', evento.target.value)}
+            onFocus={scrollFocusedInputIntoView}
+            onKeyDown={(evento) => aoPressionarEnterParaProximo(evento, () => focusNextField(placar2Ref))}
             placeholder="0"
             aria-label="Pontos da Dupla 1"
           />
@@ -279,8 +294,11 @@ function PlacarCentral({ dados, placar1Ref, placar2Ref, onAlterarCampo, onRevisa
             inputMode="numeric"
             pattern="[0-9]*"
             maxLength={2}
+            enterKeyHint="done"
             value={dados.dupla2.pontos}
             onChange={(evento) => alterarPlacar('dupla2.pontos', evento.target.value)}
+            onFocus={scrollFocusedInputIntoView}
+            onKeyDown={(evento) => aoPressionarEnterParaProximo(evento, onRevisar)}
             placeholder="0"
             aria-label="Pontos da Dupla 2"
           />
@@ -303,7 +321,15 @@ function RegistroUnico(props) {
       </div>
 
       <div className="registrar-partida-novo-registro-grid">
-        <DuplaRegistro numero={1} vencedora={vencedor} {...props} />
+        <DuplaRegistro
+          numero={1}
+          vencedora={vencedor}
+          {...props}
+          inputRef={props.atletaRefs.dupla1Atleta1}
+          inputRef2={props.atletaRefs.dupla1Atleta2}
+          proximoRef1={props.atletaRefs.dupla1Atleta2}
+          proximoRef2={props.atletaRefs.dupla2Atleta1}
+        />
         <PlacarCentral
           dados={props.dados}
           placar1Ref={props.placar1Ref}
@@ -311,7 +337,15 @@ function RegistroUnico(props) {
           onAlterarCampo={props.onAlterarCampo}
           onRevisar={props.onRevisar}
         />
-        <DuplaRegistro numero={2} vencedora={vencedor} {...props} inputRef={undefined} />
+        <DuplaRegistro
+          numero={2}
+          vencedora={vencedor}
+          {...props}
+          inputRef={props.atletaRefs.dupla2Atleta1}
+          inputRef2={props.atletaRefs.dupla2Atleta2}
+          proximoRef1={props.atletaRefs.dupla2Atleta2}
+          proximoRef2={props.placar1Ref}
+        />
       </div>
 
       <details
@@ -337,6 +371,10 @@ function RegistroUnico(props) {
           </div>
         )}
       </details>
+
+      <button type="button" className="botao-link botao-fechar-teclado" onClick={blurActiveElement}>
+        Fechar teclado
+      </button>
     </section>
   );
 }
@@ -511,6 +549,15 @@ export function RegistrarPartidaNovoModal({
   onRegistrarNovaPartida
 }) {
   const campoRef = useRef(null);
+  const dupla1Atleta2Ref = useRef(null);
+  const dupla2Atleta1Ref = useRef(null);
+  const dupla2Atleta2Ref = useRef(null);
+  const atletaRefs = {
+    dupla1Atleta1: campoRef,
+    dupla1Atleta2: dupla1Atleta2Ref,
+    dupla2Atleta1: dupla2Atleta1Ref,
+    dupla2Atleta2: dupla2Atleta2Ref
+  };
   const placar1Ref = useRef(null);
   const placar2Ref = useRef(null);
 
@@ -571,6 +618,7 @@ export function RegistrarPartidaNovoModal({
                   sugestoes={sugestoes}
                   campoBuscando={campoBuscando}
                   inputRef={campoRef}
+                  atletaRefs={atletaRefs}
                   placar1Ref={placar1Ref}
                   placar2Ref={placar2Ref}
                   onAlterarCampo={onAlterarCampo}

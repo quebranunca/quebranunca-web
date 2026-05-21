@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { EmailDomainSuggestions } from '../components/formularios/EmailDomainSuggestions';
 import { useNotification } from '../contexts/NotificationContext';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { grupoAtletasServico } from '../services/grupoAtletasServico';
@@ -9,6 +10,7 @@ import { extrairMensagemErro } from '../utils/erros';
 import { PERFIS_USUARIO, ehAtleta } from '../utils/perfis';
 import { rolarParaTopo } from '../utils/rolagem';
 import { obterNomeExibicaoAtleta } from '../utils/atletaUtils';
+import { aoPressionarEnterParaProximo, blurActiveElement, focusNextField, scrollFocusedInputIntoView } from '../utils/tecladoMobile';
 
 const estadoInicialGrupoAtleta = {
   nomeAtleta: '',
@@ -36,6 +38,8 @@ export function PaginaGrupoAtletas() {
   const [carregando, setCarregando] = useState(true);
   const [salvandoGrupoAtleta, setSalvandoGrupoAtleta] = useState(false);
   const [assumindoNomeGrupo, setAssumindoNomeGrupo] = useState(false);
+  const nomeAtletaRef = useRef(null);
+  const emailRef = useRef(null);
 
   const gerenciavel = useMemo(() => {
     if (!usuarioAtivo || !grupo) {
@@ -300,9 +304,14 @@ export function PaginaGrupoAtletas() {
               <label>
                 Nome ou apelido
                 <input
+                  ref={nomeAtletaRef}
                   type="text"
+                  autoComplete="name"
+                  enterKeyHint="next"
                   value={formularioGrupoAtleta.nomeAtleta}
                   onChange={(evento) => atualizarCampoGrupoAtleta('nomeAtleta', evento.target.value)}
+                  onFocus={scrollFocusedInputIntoView}
+                  onKeyDown={(evento) => aoPressionarEnterParaProximo(evento, () => focusNextField(emailRef))}
                   required
                 />
               </label>
@@ -310,16 +319,29 @@ export function PaginaGrupoAtletas() {
               <label>
                 Email
                 <input
+                  ref={emailRef}
                   type="email"
+                  inputMode="email"
+                  autoComplete="email"
+                  enterKeyHint="done"
                   value={formularioGrupoAtleta.email}
                   placeholder="Opcional, mas necessário para vincular a um usuário"
                   onChange={(evento) => atualizarCampoGrupoAtleta('email', evento.target.value)}
+                  onFocus={scrollFocusedInputIntoView}
+                />
+                <EmailDomainSuggestions
+                  valor={formularioGrupoAtleta.email}
+                  onChange={(valor) => atualizarCampoGrupoAtleta('email', valor)}
+                  inputRef={emailRef}
                 />
               </label>
 
               <div className="acoes-formulario">
                 <button type="submit" className="botao-primario" disabled={salvandoGrupoAtleta}>
                   {salvandoGrupoAtleta ? 'Salvando...' : 'Adicionar atleta ao grupo'}
+                </button>
+                <button type="button" className="botao-link botao-fechar-teclado" onClick={blurActiveElement}>
+                  Fechar teclado
                 </button>
               </div>
             </form>

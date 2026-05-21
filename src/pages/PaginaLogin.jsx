@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { FaEnvelope, FaKey } from 'react-icons/fa';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { EmailDomainSuggestions } from '../components/formularios/EmailDomainSuggestions';
 import { SolicitacaoAcessoAccordion } from '../components/login/SolicitacaoAcessoAccordion';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { autenticacaoServico } from '../services/autenticacaoServico';
 import { extrairMensagemErro } from '../utils/erros';
+import { aoPressionarEnterParaProximo, blurActiveElement, focusNextField, scrollFocusedInputIntoView } from '../utils/tecladoMobile';
 
 const USUARIOS_TESTE_DESENVOLVIMENTO = import.meta.env.DEV
   ? [
@@ -30,6 +32,10 @@ export function PaginaLogin() {
   const { solicitarCodigoLogin, entrarComCodigo, token, rotaInicial } = useAutenticacao();
   const navegar = useNavigate();
   const location = useLocation();
+  const emailRef = useRef(null);
+  const codigoLoginRef = useRef(null);
+  const codigoRedefinicaoRef = useRef(null);
+  const novaSenhaRef = useRef(null);
 
   useEffect(() => {
     if (token) {
@@ -153,13 +159,37 @@ export function PaginaLogin() {
             <span>
               <FaEnvelope aria-hidden="true" />
               <input
+                ref={emailRef}
                 type="email"
+                inputMode="email"
+                autoComplete="email"
+                enterKeyHint="next"
                 value={email}
                 onChange={(evento) => setEmail(evento.target.value)}
+                onFocus={scrollFocusedInputIntoView}
+                onKeyDown={(evento) => aoPressionarEnterParaProximo(evento, () => {
+                  if (emModoRecuperacao) {
+                    focusNextField(codigoRedefinicaoRef);
+                    return;
+                  }
+
+                  if (codigoLoginEnviado) {
+                    focusNextField(codigoLoginRef);
+                    return;
+                  }
+
+                  aoSolicitarCodigo();
+                })}
                 placeholder="voce@email.com"
                 required
               />
             </span>
+            <EmailDomainSuggestions
+              valor={email}
+              onChange={setEmail}
+              inputRef={emailRef}
+              proximoRef={emModoRecuperacao ? codigoRedefinicaoRef : codigoLoginRef}
+            />
           </label>
 
           {!emModoRecuperacao && (
@@ -182,9 +212,15 @@ export function PaginaLogin() {
                 <span>
                   <FaKey aria-hidden="true" />
                   <input
+                    ref={codigoLoginRef}
                     type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    autoComplete="one-time-code"
+                    enterKeyHint="done"
                     value={codigoLogin}
                     onChange={(evento) => setCodigoLogin(evento.target.value)}
+                    onFocus={scrollFocusedInputIntoView}
                     placeholder="Digite o código recebido por e-mail"
                     required
                   />
@@ -211,9 +247,16 @@ export function PaginaLogin() {
                 <span>
                   <FaKey aria-hidden="true" />
                   <input
+                    ref={codigoRedefinicaoRef}
                     type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    autoComplete="one-time-code"
+                    enterKeyHint="next"
                     value={codigoRedefinicao}
                     onChange={(evento) => setCodigoRedefinicao(evento.target.value)}
+                    onFocus={scrollFocusedInputIntoView}
+                    onKeyDown={(evento) => aoPressionarEnterParaProximo(evento, () => focusNextField(novaSenhaRef))}
                     placeholder="Digite o código recebido"
                     required
                   />
@@ -223,9 +266,13 @@ export function PaginaLogin() {
               <label>
                 Nova senha
                 <input
+                  ref={novaSenhaRef}
                   type="password"
+                  autoComplete="new-password"
+                  enterKeyHint="done"
                   value={novaSenha}
                   onChange={(evento) => setNovaSenha(evento.target.value)}
+                  onFocus={scrollFocusedInputIntoView}
                   placeholder="Mínimo 6 caracteres"
                   required
                 />
@@ -240,7 +287,10 @@ export function PaginaLogin() {
             {carregando
               ? (emModoRecuperacao ? 'Redefinindo...' : 'Entrando...')
               : (emModoRecuperacao ? 'Redefinir senha' : 'Entrar')}
-          </button>          
+          </button>
+          <button type="button" className="botao-link botao-fechar-teclado" onClick={blurActiveElement}>
+            Fechar teclado
+          </button>
         </form>
 
         <p className="login-link-privacidade">

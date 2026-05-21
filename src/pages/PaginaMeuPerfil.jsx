@@ -40,6 +40,7 @@ import { PERFIS_USUARIO } from '../utils/perfis';
 import { nomeEstadoAcesso } from '../utils/acesso';
 import { buscarCidadesPorEstado, estadosBrasil, normalizarEstadoParaUf } from '../utils/localidadesBrasil';
 import { rolarParaTopo } from '../utils/rolagem';
+import { blurActiveElement, scrollFocusedInputIntoView } from '../utils/tecladoMobile';
 
 const estadoInicialAtleta = {
   nome: '',
@@ -881,8 +882,11 @@ export function PaginaMeuPerfil() {
                 <CampoEdicao label="Nome completo" largo>
                   <input
                     type="text"
+                    autoComplete="name"
+                    enterKeyHint="next"
                     value={formularioAtleta.nome}
                     onChange={(evento) => atualizarCampoAtleta('nome', evento.target.value)}
+                    onFocus={scrollFocusedInputIntoView}
                     required
                   />
                 </CampoEdicao>
@@ -890,16 +894,21 @@ export function PaginaMeuPerfil() {
                 <CampoEdicao label="Apelido">
                   <input
                     type="text"
+                    autoComplete="nickname"
+                    enterKeyHint="next"
                     value={formularioAtleta.apelido}
                     onChange={(evento) => atualizarCampoAtleta('apelido', evento.target.value)}
+                    onFocus={scrollFocusedInputIntoView}
                   />
                 </CampoEdicao>
 
                 <CampoEdicao label="Nascimento">
                   <input
                     type="date"
+                    enterKeyHint="next"
                     value={formularioAtleta.dataNascimento}
                     onChange={(evento) => atualizarCampoAtleta('dataNascimento', evento.target.value)}
+                    onFocus={scrollFocusedInputIntoView}
                     min={dataMinimaNascimento}
                     max={obterDataMaximaNascimento()}
                   />
@@ -908,8 +917,12 @@ export function PaginaMeuPerfil() {
                 <CampoEdicao label="CPF">
                   <input
                     type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    enterKeyHint="next"
                     value={formularioAtleta.cpf}
                     onChange={(evento) => atualizarCampoAtleta('cpf', evento.target.value)}
+                    onFocus={scrollFocusedInputIntoView}
                   />
                 </CampoEdicao>
 
@@ -917,6 +930,7 @@ export function PaginaMeuPerfil() {
                   <select
                     value={formularioAtleta.lado}
                     onChange={(evento) => atualizarCampoAtleta('lado', evento.target.value)}
+                    onFocus={scrollFocusedInputIntoView}
                   >
                     <option value="1">Direito</option>
                     <option value="2">Esquerdo</option>
@@ -928,6 +942,7 @@ export function PaginaMeuPerfil() {
                   <select
                     value={formularioAtleta.nivel}
                     onChange={(evento) => atualizarCampoAtleta('nivel', evento.target.value)}
+                    onFocus={scrollFocusedInputIntoView}
                   >
                     <option value="">Selecione</option>
                     {opcoesNivelAtleta.map((opcao) => (
@@ -947,6 +962,9 @@ export function PaginaMeuPerfil() {
                       Cancelar
                     </button>
                   )}
+                  <button type="button" className="botao-link botao-fechar-teclado" onClick={blurActiveElement}>
+                    Fechar teclado
+                  </button>
                 </div>
               </div>
             )}
@@ -980,21 +998,36 @@ export function PaginaMeuPerfil() {
               <div className="perfil-edicao-grid">
                 <CampoEdicao label="Telefone">
                   <input
-                    type="text"
+                    type="tel"
+                    inputMode="tel"
+                    autoComplete="tel"
+                    enterKeyHint="next"
                     value={formularioAtleta.telefone}
                     onChange={(evento) => atualizarCampoAtleta('telefone', evento.target.value)}
+                    onFocus={scrollFocusedInputIntoView}
                   />
                 </CampoEdicao>
 
                 <CampoEdicao label="E-mail">
-                  <input type="email" value={emailUsuarioPerfil} readOnly disabled />
+                  <input
+                    type="email"
+                    inputMode="email"
+                    autoComplete="email"
+                    value={emailUsuarioPerfil}
+                    readOnly
+                    disabled
+                  />
                 </CampoEdicao>
 
                 <CampoEdicao label="Instagram">
                   <input
                     type="text"
+                    inputMode="text"
+                    autoComplete="off"
+                    enterKeyHint="next"
                     value={formularioAtleta.instagram}
                     onChange={(evento) => atualizarCampoAtleta('instagram', evento.target.value)}
+                    onFocus={scrollFocusedInputIntoView}
                   />
                 </CampoEdicao>
 
@@ -1002,6 +1035,7 @@ export function PaginaMeuPerfil() {
                   <select
                     value={formularioAtleta.estado}
                     onChange={(evento) => atualizarCampoAtleta('estado', evento.target.value)}
+                    onFocus={scrollFocusedInputIntoView}
                   >
                     <option value="">Selecione</option>
                     {estadosBrasil.map((estado) => (
@@ -1016,8 +1050,11 @@ export function PaginaMeuPerfil() {
                   <input
                     type="text"
                     list="cidades-estado-perfil"
+                    autoComplete="address-level2"
+                    enterKeyHint="next"
                     value={formularioAtleta.cidade}
                     onChange={(evento) => atualizarCampoAtleta('cidade', evento.target.value)}
+                    onFocus={scrollFocusedInputIntoView}
                     placeholder={formularioAtleta.estado ? 'Digite para buscar' : 'Selecione o estado'}
                   />
                   <datalist id="cidades-estado-perfil">
@@ -1031,8 +1068,11 @@ export function PaginaMeuPerfil() {
                 <CampoEdicao label="Bairro">
                   <input
                     type="text"
+                    autoComplete="address-line2"
+                    enterKeyHint="done"
                     value={formularioAtleta.bairro}
                     onChange={(evento) => atualizarCampoAtleta('bairro', evento.target.value)}
+                    onFocus={scrollFocusedInputIntoView}
                   />
                 </CampoEdicao>
 
@@ -1045,6 +1085,9 @@ export function PaginaMeuPerfil() {
                       Cancelar
                     </button>
                   )}
+                  <button type="button" className="botao-link botao-fechar-teclado" onClick={blurActiveElement}>
+                    Fechar teclado
+                  </button>
                 </div>
               </div>
             )}
@@ -1149,18 +1192,31 @@ export function PaginaMeuPerfil() {
                   <CampoEdicao label="Nome do usuário" largo>
                     <input
                       type="text"
+                      autoComplete="name"
+                      enterKeyHint="done"
                       value={formularioUsuario.nome}
                       onChange={(evento) => setFormularioUsuario({ nome: evento.target.value })}
+                      onFocus={scrollFocusedInputIntoView}
                       required
                     />
                   </CampoEdicao>
                   <CampoEdicao label="E-mail" largo>
-                    <input type="email" value={emailUsuarioPerfil} readOnly disabled />
+                    <input
+                      type="email"
+                      inputMode="email"
+                      autoComplete="email"
+                      value={emailUsuarioPerfil}
+                      readOnly
+                      disabled
+                    />
                   </CampoEdicao>
                 </div>
 
                 <button type="submit" className="botao-secundario" disabled={salvandoUsuario}>
                   {salvandoUsuario ? 'Salvando...' : 'Salvar acesso'}
+                </button>
+                <button type="button" className="botao-link botao-fechar-teclado" onClick={blurActiveElement}>
+                  Fechar teclado
                 </button>
               </form>
             )}

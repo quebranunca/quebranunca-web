@@ -2,7 +2,7 @@
   align-items: center;
   justify-content: center;
   z-index: 11000;
-  padding: 0;
+  padding: 0.75rem;
   background:
     radial-gradient(circle at top, rgba(248, 195, 0, 0.14), transparent 34%),
     rgba(8, 10, 12, 0.82);
@@ -11,18 +11,17 @@
 }
 
 .registrar-partida-novo-modal {
-  position: fixed;
-  inset: 0;
-  width: 100vw;
+  position: relative;
+  width: min(100%, 860px);
   max-width: none;
-  height: 100dvh;
-  max-height: none;
+  height: min(100%, calc(100dvh - 1.5rem));
+  max-height: calc(100dvh - 1.5rem);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   transform: none;
-  border: 0;
-  border-radius: 0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 1rem;
   background:
     linear-gradient(180deg, rgba(27, 29, 33, 0.98), rgba(11, 12, 14, 0.99)),
     var(--color-background);
@@ -30,8 +29,8 @@
 }
 
 .registrar-partida-novo-header {
-  position: sticky;
-  top: 0;
+  flex-shrink: 0;
+  position: relative;
   z-index: 3;
   display: grid;
   grid-template-columns: 2.75rem 1fr 2.75rem;
@@ -139,14 +138,18 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 1.2rem 1rem 0.75rem;
+  padding: 1rem 1rem 0.75rem;
   -webkit-overflow-scrolling: touch;
+}
+
+.registrar-partida-novo-formulario:focus-within .registrar-partida-novo-corpo {
+  padding-bottom: 2rem;
 }
 
 .registrar-partida-novo-etapa,
 .registrar-partida-novo-sucesso {
   width: min(760px, 100%);
-  min-height: 100%;
+  min-height: 0;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -298,7 +301,7 @@
 }
 
 .registrar-partida-novo-sugestoes {
-  max-height: 17rem;
+  max-height: min(17rem, 42dvh);
   display: flex;
   flex-direction: column;
   gap: 0.45rem;
@@ -543,7 +546,7 @@
 }
 
 .registrar-partida-novo-revisao {
-  min-height: 100%;
+  min-height: 0;
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -569,10 +572,15 @@
 
 .registrar-partida-novo-acoes {
   z-index: 2;
+  flex-shrink: 0;
   display: flex;
   justify-content: center;
   padding: 0.75rem 1rem calc(env(safe-area-inset-bottom, 0px) + 0.65rem);
   background: linear-gradient(180deg, rgba(12, 13, 15, 0), rgba(12, 13, 15, 0.96) 26%);
+}
+
+.registrar-partida-novo-registro > .botao-fechar-teclado {
+  align-self: center;
 }
 
 .registrar-partida-novo-acoes .botao-primario {
@@ -581,6 +589,7 @@
 }
 
 .registrar-partida-novo-stepper {
+  flex-shrink: 0;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 0.25rem;
@@ -627,9 +636,13 @@
 
 .registrar-partida-novo-sucesso {
   align-items: center;
-  justify-content: center;
-  padding: 1.2rem 1rem calc(env(safe-area-inset-bottom, 0px) + 1rem);
+  justify-content: flex-start;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 1rem 1rem calc(env(safe-area-inset-bottom, 0px) + 1rem);
   text-align: center;
+  -webkit-overflow-scrolling: touch;
 }
 
 .registrar-partida-novo-check {
@@ -699,14 +712,13 @@
 
 @media (min-width: 720px) {
   .registrar-partida-novo-sobreposicao {
-    padding: 1.4rem;
+    padding: 1.5rem;
   }
 
   .registrar-partida-novo-modal {
-    position: relative;
     width: min(860px, 100%);
-    height: min(860px, calc(100dvh - 2.8rem));
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    height: min(860px, calc(100dvh - 3rem));
+    max-height: calc(100dvh - 3rem);
     border-radius: 1.35rem;
     box-shadow: 0 30px 90px rgba(0, 0, 0, 0.54);
   }

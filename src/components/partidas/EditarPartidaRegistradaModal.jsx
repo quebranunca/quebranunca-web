@@ -332,12 +332,13 @@ function EtapaPlacar({ formulario, inputRef, onAlterarCampo }) {
           <span>Dupla 1</span>
           <input
             ref={inputRef}
-            type="number"
+            type="text"
             inputMode="numeric"
             pattern="[0-9]*"
-            min="0"
+            maxLength={2}
+            enterKeyHint="next"
             value={formulario.dupla1.pontos}
-            onChange={(evento) => onAlterarCampo('dupla1.pontos', evento.target.value)}
+            onChange={(evento) => onAlterarCampo('dupla1.pontos', evento.target.value.replace(/\D/g, '').slice(0, 2))}
             placeholder="0"
           />
         </label>
@@ -345,12 +346,13 @@ function EtapaPlacar({ formulario, inputRef, onAlterarCampo }) {
         <label>
           <span>Dupla 2</span>
           <input
-            type="number"
+            type="text"
             inputMode="numeric"
             pattern="[0-9]*"
-            min="0"
+            maxLength={2}
+            enterKeyHint="done"
             value={formulario.dupla2.pontos}
-            onChange={(evento) => onAlterarCampo('dupla2.pontos', evento.target.value)}
+            onChange={(evento) => onAlterarCampo('dupla2.pontos', evento.target.value.replace(/\D/g, '').slice(0, 2))}
             placeholder="0"
           />
         </label>

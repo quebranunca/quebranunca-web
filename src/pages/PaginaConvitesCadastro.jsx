@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { ConteudoBotao } from '../components/ConteudoBotao';
+import { EmailDomainSuggestions } from '../components/formularios/EmailDomainSuggestions';
 import { convitesCadastroServico } from '../services/convitesCadastroServico';
 import { extrairMensagemErro } from '../utils/erros';
 import {
@@ -10,6 +11,7 @@ import {
 import { nomePerfil } from '../utils/perfis';
 import { rolarParaTopo } from '../utils/rolagem';
 import { obterNomeExibicaoAtleta } from '../utils/atletaUtils';
+import { aoPressionarEnterParaProximo, blurActiveElement, focusNextField, scrollFocusedInputIntoView } from '../utils/tecladoMobile';
 
 const formularioInicial = {
   email: '',
@@ -39,6 +41,8 @@ export function PaginaConvitesCadastro() {
   const [obtendoLinkId, setObtendoLinkId] = useState(null);
   const [acessosAceite, setAcessosAceite] = useState({});
   const formularioRef = useRef(null);
+  const emailRef = useRef(null);
+  const telefoneRef = useRef(null);
 
   useEffect(() => {
     carregarDados();
@@ -272,20 +276,37 @@ export function PaginaConvitesCadastro() {
           <label>
             E-mail
             <input
+              ref={emailRef}
               type="email"
+              inputMode="email"
+              autoComplete="email"
+              enterKeyHint="next"
               value={formulario.email}
               onChange={(evento) => atualizarFormulario('email', evento.target.value)}
+              onFocus={scrollFocusedInputIntoView}
+              onKeyDown={(evento) => aoPressionarEnterParaProximo(evento, () => focusNextField(telefoneRef))}
               placeholder="atleta@email.com"
               required
+            />
+            <EmailDomainSuggestions
+              valor={formulario.email}
+              onChange={(valor) => atualizarFormulario('email', valor)}
+              inputRef={emailRef}
+              proximoRef={telefoneRef}
             />
           </label>
 
           <label>
             Telefone
             <input
-              type="text"
+              ref={telefoneRef}
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel"
+              enterKeyHint="next"
               value={formulario.telefone}
               onChange={(evento) => atualizarFormulario('telefone', evento.target.value)}
+              onFocus={scrollFocusedInputIntoView}
               placeholder="Obrigatório para WhatsApp"
               required={canalIncluiWhatsapp(formulario.canalEnvio)}
             />
@@ -308,9 +329,11 @@ export function PaginaConvitesCadastro() {
             Expira em
             <input
               type="datetime-local"
+              enterKeyHint="done"
               step={STEP_HORA_15_MINUTOS_SEGUNDOS}
               value={formulario.expiraEmUtc}
               onChange={(evento) => atualizarFormulario('expiraEmUtc', evento.target.value)}
+              onFocus={scrollFocusedInputIntoView}
               onBlur={(evento) => atualizarFormulario('expiraEmUtc', ajustarDataHoraInputParaIntervalo(evento.target.value))}
             />
           </label>
@@ -326,6 +349,9 @@ export function PaginaConvitesCadastro() {
             </button>
             <button type="button" className="botao-secundario" onClick={fecharFormulario}>
               Cancelar
+            </button>
+            <button type="button" className="botao-link botao-fechar-teclado" onClick={blurActiveElement}>
+              Fechar teclado
             </button>
           </div>
         </form>

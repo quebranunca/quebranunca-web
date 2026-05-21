@@ -755,6 +755,50 @@ textarea {
   min-width: 0;
 }
 
+.atalhos-email {
+  display: none;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.45rem;
+}
+
+.atalho-email-botao {
+  min-height: 2rem;
+  padding: 0.32rem 0.58rem;
+  border: 1px solid rgba(248, 195, 0, 0.32);
+  border-radius: 999px;
+  background: rgba(248, 195, 0, 0.08);
+  color: var(--color-primary);
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.botao-fechar-teclado {
+  display: none;
+  width: fit-content;
+  justify-self: center;
+  margin-inline: auto;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.78rem;
+}
+
+@media (max-width: 720px), (pointer: coarse) {
+  .atalhos-email {
+    display: flex;
+  }
+
+  .botao-fechar-teclado {
+    display: inline-flex;
+  }
+
+  input:focus,
+  textarea:focus,
+  select:focus {
+    scroll-margin-bottom: 9rem;
+    scroll-margin-top: 5rem;
+  }
+}
+
 .formulario-secoes {
   display: flex;
   flex-direction: column;

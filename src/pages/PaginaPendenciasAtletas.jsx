@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FaBell, FaCheck, FaClock, FaGamepad, FaLink, FaRegCheckCircle } from 'react-icons/fa';
+import { EmailDomainSuggestions } from '../components/formularios/EmailDomainSuggestions';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { atletasServico } from '../services/atletasServico';
 import { pendenciasServico } from '../services/pendenciasServico';
@@ -8,6 +9,7 @@ import { extrairMensagemErro } from '../utils/erros';
 import { formatarDataHora } from '../utils/formatacao';
 import { criarPendenciasPerfil } from '../utils/pendenciasPerfil';
 import { rolarParaTopo } from '../utils/rolagem';
+import { scrollFocusedInputIntoView } from '../utils/tecladoMobile';
 import { formatarNomeDupla, obterNomeExibicaoAtleta, obterNomeExibicaoDupla } from '../utils/atletaUtils';
 import { useNotification } from '../contexts/NotificationContext';
 
@@ -240,6 +242,7 @@ function PendenciaPartidaCard({ item, processando, onResponder }) {
 
 function PendenciaVinculoCard({ item, email, onEmailChange, onSalvar, processando }) {
   const nomeAtleta = obterNomeExibicaoAtleta(item) || 'atleta pendente';
+  const emailRef = useRef(null);
 
   return (
     <article className="pendencia-card pendencia-vinculo-card">
@@ -264,10 +267,20 @@ function PendenciaVinculoCard({ item, email, onEmailChange, onSalvar, processand
       <label className="pendencia-campo-email">
         E-mail do atleta
         <input
+          ref={emailRef}
           type="email"
+          inputMode="email"
+          autoComplete="email"
+          enterKeyHint="done"
           value={email || ''}
           onChange={(evento) => onEmailChange(item.id, evento.target.value)}
+          onFocus={scrollFocusedInputIntoView}
           placeholder="atleta@exemplo.com"
+        />
+        <EmailDomainSuggestions
+          valor={email}
+          onChange={(valor) => onEmailChange(item.id, valor)}
+          inputRef={emailRef}
         />
       </label>
 

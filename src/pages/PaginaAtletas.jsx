@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ConteudoBotao } from '../components/ConteudoBotao';
+import { EmailDomainSuggestions } from '../components/formularios/EmailDomainSuggestions';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { atletasServico } from '../services/atletasServico';
 import { ESTADOS_ACESSO } from '../utils/acesso';
@@ -10,6 +11,7 @@ import { nomeNivelAtleta, opcoesNivelAtleta } from '../utils/niveisAtleta';
 import { rolarParaElemento, rolarParaTopo } from '../utils/rolagem';
 import { PERFIS_USUARIO, ehAdministrador, ehOrganizador } from '../utils/perfis';
 import { obterNomeExibicaoAtleta } from '../utils/atletaUtils';
+import { blurActiveElement, scrollFocusedInputIntoView } from '../utils/tecladoMobile';
 
 const estadoInicial = {
   nome: '',
@@ -48,6 +50,7 @@ export function PaginaAtletas() {
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState('');
   const formularioRef = useRef(null);
+  const emailRef = useRef(null);
 
   useEffect(() => {
     carregarAtletas();
@@ -213,8 +216,11 @@ export function PaginaAtletas() {
             Nome completo
             <input
               type="text"
+              autoComplete="name"
+              enterKeyHint="next"
               value={formulario.nome}
               onChange={(evento) => atualizarCampo('nome', evento.target.value)}
+              onFocus={scrollFocusedInputIntoView}
               required
             />
           </label>
@@ -223,26 +229,43 @@ export function PaginaAtletas() {
             Apelido
             <input
               type="text"
+              autoComplete="nickname"
+              enterKeyHint="next"
               value={formulario.apelido}
               onChange={(evento) => atualizarCampo('apelido', evento.target.value)}
+              onFocus={scrollFocusedInputIntoView}
             />
           </label>
 
           <label>
             Telefone
             <input
-              type="text"
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel"
+              enterKeyHint="next"
               value={formulario.telefone}
               onChange={(evento) => atualizarCampo('telefone', evento.target.value)}
+              onFocus={scrollFocusedInputIntoView}
             />
           </label>
 
           <label>
             E-mail
             <input
+              ref={emailRef}
               type="email"
+              inputMode="email"
+              autoComplete="email"
+              enterKeyHint="next"
               value={formulario.email}
               onChange={(evento) => atualizarCampo('email', evento.target.value)}
+              onFocus={scrollFocusedInputIntoView}
+            />
+            <EmailDomainSuggestions
+              valor={formulario.email}
+              onChange={(valor) => atualizarCampo('email', valor)}
+              inputRef={emailRef}
             />
           </label>
 
@@ -259,8 +282,12 @@ export function PaginaAtletas() {
             CPF
             <input
               type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              enterKeyHint="next"
               value={formulario.cpf}
               onChange={(evento) => atualizarCampo('cpf', evento.target.value)}
+              onFocus={scrollFocusedInputIntoView}
             />
           </label>
 
@@ -346,6 +373,9 @@ export function PaginaAtletas() {
 
             <button type="button" className="botao-secundario" onClick={cancelarEdicao}>
               <ConteudoBotao icone="cancelar" texto={atletaEdicaoId ? 'Cancelar' : 'Fechar'} />
+            </button>
+            <button type="button" className="botao-link botao-fechar-teclado" onClick={blurActiveElement}>
+              Fechar teclado
             </button>
           </div>
         </form>

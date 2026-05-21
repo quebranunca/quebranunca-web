@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import logoLiga from '../assets/logo-liga.svg';
+import { EmailDomainSuggestions } from '../components/formularios/EmailDomainSuggestions';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { convitesCadastroServico } from '../services/convitesCadastroServico';
 import { extrairMensagemErro } from '../utils/erros';
+import { aoPressionarEnterParaProximo, blurActiveElement, focusNextField, scrollFocusedInputIntoView } from '../utils/tecladoMobile';
 
 export function PaginaCadastroConvite() {
   const { identificadorPublico = '' } = useParams();
@@ -20,6 +22,9 @@ export function PaginaCadastroConvite() {
   const [salvando, setSalvando] = useState(false);
   const { registrarPorConvite, token, rotaInicial } = useAutenticacao();
   const navegar = useNavigate();
+  const emailRef = useRef(null);
+  const nomeRef = useRef(null);
+  const codigoRef = useRef(null);
 
   useEffect(() => {
     if (token) {
@@ -115,20 +120,32 @@ export function PaginaCadastroConvite() {
                   <label>
                     E-mail do convite
                     <input
+                      ref={emailRef}
                       type="email"
+                      inputMode="email"
+                      autoComplete="email"
+                      enterKeyHint="next"
                       value={email}
                       onChange={(evento) => setEmail(evento.target.value)}
+                      onFocus={scrollFocusedInputIntoView}
+                      onKeyDown={(evento) => aoPressionarEnterParaProximo(evento, () => focusNextField(nomeRef))}
                       placeholder="voce@email.com"
                       required
                     />
+                    <EmailDomainSuggestions valor={email} onChange={setEmail} inputRef={emailRef} proximoRef={nomeRef} />
                   </label>
 
                   <label>
                     Nome completo
                     <input
+                      ref={nomeRef}
                       type="text"
+                      autoComplete="name"
+                      enterKeyHint="next"
                       value={nome}
                       onChange={(evento) => setNome(evento.target.value)}
+                      onFocus={scrollFocusedInputIntoView}
+                      onKeyDown={(evento) => aoPressionarEnterParaProximo(evento, () => focusNextField(codigoRef))}
                       placeholder="Seu nome completo"
                       required
                     />
@@ -137,9 +154,15 @@ export function PaginaCadastroConvite() {
                   <label>
                     Código do convite
                     <input
+                      ref={codigoRef}
                       type="text"
+                      inputMode="numeric"
+                      pattern="[0-9-]*"
+                      autoComplete="one-time-code"
+                      enterKeyHint="done"
                       value={codigoConvite}
                       onChange={(evento) => setCodigoConvite(evento.target.value)}
+                      onFocus={scrollFocusedInputIntoView}
                       placeholder="Informe o código recebido"
                       required
                     />
@@ -187,6 +210,9 @@ export function PaginaCadastroConvite() {
 
                   <button type="submit" className="botao-primario" disabled={salvando}>
                     {salvando ? 'Entrando no app...' : 'Confirmar acesso e entrar'}
+                  </button>
+                  <button type="button" className="botao-link botao-fechar-teclado" onClick={blurActiveElement}>
+                    Fechar teclado
                   </button>
                 </form>
               )}

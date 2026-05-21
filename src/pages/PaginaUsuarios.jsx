@@ -218,6 +218,8 @@ export function PaginaUsuarios() {
                     Nome
                     <input
                       type="text"
+                      autoComplete="name"
+                      enterKeyHint="next"
                       value={edicao.nome}
                       onChange={(evento) => atualizarEdicao(usuario.id, 'nome', evento.target.value)}
                     />
@@ -227,6 +229,9 @@ export function PaginaUsuarios() {
                     E-mail
                     <input
                       type="email"
+                      inputMode="email"
+                      autoComplete="email"
+                      enterKeyHint="done"
                       value={edicao.email}
                       onChange={(evento) => atualizarEdicao(usuario.id, 'email', evento.target.value)}
                     />

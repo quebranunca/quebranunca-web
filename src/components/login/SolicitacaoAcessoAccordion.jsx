@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { FaChevronDown, FaChevronUp, FaEnvelope, FaUserPlus } from 'react-icons/fa';
+import { EmailDomainSuggestions } from '../formularios/EmailDomainSuggestions';
 import { solicitacoesAcessoServico } from '../../services/solicitacoesAcessoServico';
 import { extrairMensagemErro } from '../../utils/erros';
+import { aoPressionarEnterParaProximo, blurActiveElement, focusNextField, scrollFocusedInputIntoView } from '../../utils/tecladoMobile';
 
 export function SolicitacaoAcessoAccordion() {
   const [expandido, setExpandido] = useState(false);
@@ -10,6 +12,8 @@ export function SolicitacaoAcessoAccordion() {
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState('');
   const [mensagem, setMensagem] = useState('');
+  const nomeRef = useRef(null);
+  const emailRef = useRef(null);
 
   async function aoSubmeter(evento) {
     evento.preventDefault();
@@ -63,9 +67,14 @@ export function SolicitacaoAcessoAccordion() {
             <span>
               <FaUserPlus aria-hidden="true" />
               <input
+                ref={nomeRef}
                 type="text"
+                autoComplete="name"
+                enterKeyHint="next"
                 value={nome}
                 onChange={(evento) => setNome(evento.target.value)}
+                onFocus={scrollFocusedInputIntoView}
+                onKeyDown={(evento) => aoPressionarEnterParaProximo(evento, () => focusNextField(emailRef))}
                 placeholder="Seu nome completo"
                 required
               />
@@ -77,13 +86,19 @@ export function SolicitacaoAcessoAccordion() {
             <span>
               <FaEnvelope aria-hidden="true" />
               <input
+                ref={emailRef}
                 type="email"
+                inputMode="email"
+                autoComplete="email"
+                enterKeyHint="done"
                 value={email}
                 onChange={(evento) => setEmail(evento.target.value)}
+                onFocus={scrollFocusedInputIntoView}
                 placeholder="voce@email.com"
                 required
               />
             </span>
+            <EmailDomainSuggestions valor={email} onChange={setEmail} inputRef={emailRef} />
           </label>
 
           {erro && <p className="texto-erro">{erro}</p>}
@@ -91,6 +106,9 @@ export function SolicitacaoAcessoAccordion() {
 
           <button type="submit" className="botao-secundario solicitacao-acesso-botao" disabled={carregando}>
             {carregando ? 'Enviando solicitação...' : 'Solicitar convite'}
+          </button>
+          <button type="button" className="botao-link botao-fechar-teclado" onClick={blurActiveElement}>
+            Fechar teclado
           </button>
 
           <small className="solicitacao-acesso-observacao">

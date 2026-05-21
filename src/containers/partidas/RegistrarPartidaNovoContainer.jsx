@@ -414,11 +414,6 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
           salvoEm: new Date()
         }
       });
-      showNotification({
-        type: 'success',
-        title: 'Partida salva!',
-        message: `${resumo.dupla1.join(' / ')} ${resumo.placar.dupla1} x ${resumo.placar.dupla2} ${resumo.dupla2.join(' / ')}`
-      });
     } catch (falha) {
       setErro(extrairMensagemErro(falha));
     } finally {
