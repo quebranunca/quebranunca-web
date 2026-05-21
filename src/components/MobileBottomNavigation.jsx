@@ -22,7 +22,7 @@ export function MobileBottomNavigation({ usuario }) {
 
   return (
     <>
-      <nav className="mobile-bottom-navigation" aria-label="Navegação principal mobile">
+      <nav className="mobile-bottom-navigation" aria-label="Navegação principal">
         <NavLink
           to="/app"
           end

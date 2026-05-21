@@ -289,8 +289,7 @@ textarea {
 }
 
 .marca-titulo-mobile,
-.app-header-perfil-mobile,
-.mobile-bottom-navigation {
+.app-header-perfil-mobile {
   display: none;
 }
 
@@ -466,10 +465,14 @@ textarea {
   bottom: max(0.7rem, env(safe-area-inset-bottom));
   left: max(0.8rem, env(safe-area-inset-left));
   z-index: 900;
+  display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.25rem;
+  width: auto;
+  max-width: 430px;
   min-height: 3.78rem;
+  margin-inline: auto;
   padding: 0.3rem 0.44rem;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 1.28rem;
@@ -572,6 +575,14 @@ textarea {
   overflow-x: hidden;
   scrollbar-width: thin;
   -webkit-overflow-scrolling: touch;
+}
+
+.layout-com-bottom-nav {
+  padding-bottom: calc(5.85rem + env(safe-area-inset-bottom));
+}
+
+.layout-com-bottom-nav .conteudo-principal {
+  padding-bottom: calc(1rem + env(safe-area-inset-bottom));
 }
 
 .scroll-discreto,

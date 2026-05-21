@@ -139,6 +139,17 @@ function montarDetalhesAtleta(atleta) {
   return detalhes.length > 0 ? detalhes.join(' • ') : 'Atleta QuebraNunca';
 }
 
+function obterNomeInputAtleta(campo) {
+  const nomes = {
+    'dupla1.atletaDireita': 'atleta1Dupla1',
+    'dupla1.atletaEsquerda': 'atleta2Dupla1',
+    'dupla2.atletaDireita': 'atleta1Dupla2',
+    'dupla2.atletaEsquerda': 'atleta2Dupla2'
+  };
+
+  return nomes[campo] || 'atletaPartida';
+}
+
 function AutocompleteAtleta({
   campo,
   rotulo,
@@ -160,14 +171,19 @@ function AutocompleteAtleta({
       <span>{rotulo}</span>
       <input
         ref={inputRef}
-        type="search"
+        type="text"
+        inputMode="text"
+        name={obterNomeInputAtleta(campo)}
+        autoComplete="off"
+        autoCorrect="off"
+        autoCapitalize="words"
+        spellCheck={false}
         enterKeyHint="next"
         value={valor}
         onChange={(evento) => onAlterarCampo(campo, evento.target.value)}
         onFocus={scrollFocusedInputIntoView}
         onKeyDown={(evento) => aoPressionarEnterParaProximo(evento, () => focusNextField(proximoRef))}
         placeholder={placeholder}
-        autoComplete="off"
       />
 
       {selecao?.id && (
@@ -273,8 +289,12 @@ function PlacarCentral({ dados, placar1Ref, placar2Ref, onAlterarCampo, onRevisa
           <input
             ref={placar1Ref}
             type="text"
+            name="placarDupla1"
             inputMode="numeric"
             pattern="[0-9]*"
+            autoComplete="off"
+            autoCorrect="off"
+            spellCheck={false}
             maxLength={2}
             enterKeyHint="next"
             value={dados.dupla1.pontos}
@@ -291,8 +311,12 @@ function PlacarCentral({ dados, placar1Ref, placar2Ref, onAlterarCampo, onRevisa
           <input
             ref={placar2Ref}
             type="text"
+            name="placarDupla2"
             inputMode="numeric"
             pattern="[0-9]*"
+            autoComplete="off"
+            autoCorrect="off"
+            spellCheck={false}
             maxLength={2}
             enterKeyHint="done"
             value={dados.dupla2.pontos}
@@ -371,10 +395,6 @@ function RegistroUnico(props) {
           </div>
         )}
       </details>
-
-      <button type="button" className="botao-link botao-fechar-teclado" onClick={blurActiveElement}>
-        Fechar teclado
-      </button>
     </section>
   );
 }
@@ -579,6 +599,7 @@ export function RegistrarPartidaNovoModal({
   onRegistrarRevanche,
   onRegistrarNovaPartida
 }) {
+  const [tecladoVisivel, setTecladoVisivel] = useState(false);
   const campoRef = useRef(null);
   const dupla1Atleta2Ref = useRef(null);
   const dupla2Atleta1Ref = useRef(null);
@@ -597,6 +618,30 @@ export function RegistrarPartidaNovoModal({
       campoRef.current?.focus();
     }
   }, [aberto, revisando, sucesso]);
+
+  function atualizarTecladoVisivel(evento) {
+    const elemento = evento.target;
+    setTecladoVisivel(
+      elemento instanceof HTMLElement &&
+      ['INPUT', 'TEXTAREA', 'SELECT'].includes(elemento.tagName)
+    );
+  }
+
+  function verificarTecladoAposBlur() {
+    window.setTimeout(() => {
+      setTecladoVisivel(
+        document.activeElement instanceof HTMLElement &&
+        document.activeElement.closest('.registrar-partida-novo-modal') &&
+        ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)
+      );
+    }, 0);
+  }
+
+  function ocultarTeclado(evento) {
+    evento.preventDefault();
+    blurActiveElement();
+    setTecladoVisivel(false);
+  }
 
   if (!aberto) {
     return null;
@@ -630,7 +675,12 @@ export function RegistrarPartidaNovoModal({
             onFechar={onFechar}
           />
         ) : (
-          <form className="registrar-partida-novo-formulario" onSubmit={onConfirmarEtapa}>
+          <form
+            className="registrar-partida-novo-formulario"
+            onSubmit={onConfirmarEtapa}
+            onFocusCapture={atualizarTecladoVisivel}
+            onBlurCapture={verificarTecladoAposBlur}
+          >
             <main className="registrar-partida-novo-corpo">
               {erro && <p className="texto-erro registrar-partida-novo-erro">{erro}</p>}
               {revisando ? (
@@ -664,6 +714,15 @@ export function RegistrarPartidaNovoModal({
 
             {!revisando && (
               <div className="registrar-partida-novo-acoes">
+                {tecladoVisivel && (
+                  <button
+                    type="button"
+                    className="botao-link registrar-partida-novo-ocultar-teclado"
+                    onPointerDown={ocultarTeclado}
+                  >
+                    Ocultar teclado
+                  </button>
+                )}
                 <button type="submit" className="botao-primario" disabled={salvando}>
                   Revisar partida
                 </button>
