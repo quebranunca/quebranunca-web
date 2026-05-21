@@ -6,6 +6,7 @@ import { RegistrarPartidaNovoModal } from '../../components/partidas/RegistrarPa
 import { useNotification } from '../../contexts/NotificationContext';
 import { useAutenticacao } from '../../hooks/useAutenticacao';
 import { atletasServico } from '../../services/atletasServico';
+import { competicoesServico } from '../../services/competicoesServico';
 import { partidasServico } from '../../services/partidasServico';
 import { obterNomeExibicaoAtleta } from '../../utils/atletaUtils';
 import { extrairMensagemErro } from '../../utils/erros';
@@ -44,11 +45,8 @@ const estadoInicialSelecoes = {
 };
 
 const etapas = [
-  { id: 'dupla1', titulo: 'Dupla 1', icone: 'users' },
-  { id: 'dupla2', titulo: 'Dupla 2', icone: 'users' },
-  { id: 'placar', titulo: 'Placar', icone: 'score' },
-  { id: 'resumo', titulo: 'Resumo', icone: 'summary' },
-  { id: 'confirmar', titulo: 'Confirmar', icone: 'check' }
+  { id: 'registro', titulo: 'Registro', icone: 'users' },
+  { id: 'revisao', titulo: 'Revisão', icone: 'summary' }
 ];
 
 function obterCampoAtletaUsuario(lado) {
@@ -96,10 +94,16 @@ function criarAtletaSelecao(atleta) {
     id: atleta.id,
     nome: atleta.nome,
     apelido: atleta.apelido,
+    categoria: atleta.categoria,
+    nomeCategoria: atleta.nomeCategoria,
+    grupo: atleta.grupo,
+    nomeGrupo: atleta.nomeGrupo,
     cidade: atleta.cidade,
     estado: atleta.estado,
+    posicaoRanking: atleta.posicaoRanking,
     quantidadeJogos: atleta.quantidadeJogos,
-    avatarUrl: atleta.avatarUrl
+    avatarUrl: atleta.avatarUrl,
+    fotoPerfilUrl: atleta.fotoPerfilUrl
   };
 }
 
@@ -151,7 +155,7 @@ function criarPayload(dados, selecoes, usuario, atletaUsuario, contextoInicial) 
   const dadosComAtletaUsuario = criarDadosComAtletaUsuario(dados, usuario, atletaUsuario);
 
   return {
-    competicaoId: null,
+    competicaoId: contextoInicial?.competicaoId || null,
     grupoId: contextoInicial?.grupoId || null,
     nomeGrupo: null,
     categoriaCompeticaoId: contextoInicial?.categoriaId || null,
@@ -208,28 +212,6 @@ function validarPlacar(dados) {
   return '';
 }
 
-function validarEtapa(indiceEtapa, dados) {
-  if (indiceEtapa === 0) {
-    const nomes = ['dupla1.atletaDireita', 'dupla1.atletaEsquerda'].map((campo) => limparTexto(obterValorCampo(dados, campo)));
-    return nomes.some((nome) => !nome) ? 'Informe os dois atletas da Dupla 1.' : '';
-  }
-
-  if (indiceEtapa === 1) {
-    const nomes = ['dupla2.atletaDireita', 'dupla2.atletaEsquerda'].map((campo) => limparTexto(obterValorCampo(dados, campo)));
-    return nomes.some((nome) => !nome) ? 'Informe os dois atletas da Dupla 2.' : validarAtletas(dados);
-  }
-
-  if (indiceEtapa === 2) {
-    return validarPlacar(dados);
-  }
-
-  if (indiceEtapa >= 3) {
-    return validarAtletas(dados) || validarPlacar(dados);
-  }
-
-  return '';
-}
-
 function limitarSugestoes(atletas) {
   return (atletas || []).slice(0, 5).map(criarAtletaSelecao);
 }
@@ -256,7 +238,7 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
 
   const atletaUsuarioNome = obterAtletaUsuarioNome(usuario, atletaUsuario);
   const etapaAtual = etapas[indiceEtapa];
-  const etapaFinal = indiceEtapa === etapas.length - 1;
+  const revisando = etapaAtual.id === 'revisao';
   const carregando = salvando || carregandoAtletaUsuario;
 
   const resumo = useMemo(() => ({
@@ -341,11 +323,14 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
 
   function alterarCampo(campo, valor) {
     setErro('');
-    setDados((anterior) => atualizarValorCampo(anterior, campo, valor));
+    const proximoValor = campo.endsWith('.pontos')
+      ? String(valor || '').replace(/\D/g, '').slice(0, 2)
+      : valor;
+    setDados((anterior) => atualizarValorCampo(anterior, campo, proximoValor));
 
     if (CAMPOS_ATLETAS.includes(campo)) {
       setSelecoes((anterior) => ({ ...anterior, [campo]: null }));
-      buscarSugestoes(campo, valor);
+      buscarSugestoes(campo, proximoValor);
     }
   }
 
@@ -359,7 +344,8 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
     }
 
     buscaTimersRef.current[campo] = setTimeout(async () => {
-      const chaveCache = termo.toLowerCase();
+      const competicaoId = contextoInicial?.competicaoId;
+      const chaveCache = `${competicaoId || 'geral'}:${termo.toLowerCase()}`;
 
       if (cacheBuscaRef.current.has(chaveCache)) {
         setSugestoes((anterior) => ({ ...anterior, [campo]: cacheBuscaRef.current.get(chaveCache) }));
@@ -368,7 +354,9 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
 
       try {
         setCampoBuscando(campo);
-        const resposta = await atletasServico.buscar(termo);
+        const resposta = competicaoId && termo.length >= 3
+          ? await competicoesServico.buscarSugestoesAtletas(competicaoId, termo)
+          : await atletasServico.buscar(termo);
         const lista = limitarSugestoes(resposta);
         cacheBuscaRef.current.set(chaveCache, lista);
         setSugestoes((anterior) => ({ ...anterior, [campo]: lista }));
@@ -381,17 +369,8 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
   }
 
   function avancarAposSelecao(campo) {
-    const ordem = CAMPOS_ATLETAS;
-    const indiceCampo = ordem.indexOf(campo);
-    const proximoCampo = ordem[indiceCampo + 1];
-
-    if (!proximoCampo) {
-      setIndiceEtapa(2);
-      return;
-    }
-
-    if (campo.startsWith('dupla1.') && proximoCampo.startsWith('dupla2.')) {
-      setIndiceEtapa(1);
+    if (campo === CAMPOS_ATLETAS[CAMPOS_ATLETAS.length - 1]) {
+      setSugestoes({});
     }
   }
 
@@ -412,8 +391,8 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
     setIndiceEtapa((atual) => Math.max(0, atual - 1));
   }
 
-  function avancar() {
-    const erroValidacao = validarEtapa(indiceEtapa, dados);
+  function revisar() {
+    const erroValidacao = validarAtletas(dados) || validarPlacar(dados);
 
     if (erroValidacao) {
       setErro(erroValidacao);
@@ -421,7 +400,7 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
     }
 
     setErro('');
-    setIndiceEtapa((atual) => Math.min(etapas.length - 1, atual + 1));
+    setIndiceEtapa(1);
   }
 
   async function salvarPartida(payload) {
@@ -503,12 +482,12 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
   function confirmarEtapa(evento) {
     evento.preventDefault();
 
-    if (etapaFinal) {
+    if (revisando) {
       registrarPartida();
       return;
     }
 
-    avancar();
+    revisar();
   }
 
   function cancelarDuplicidade() {
@@ -540,7 +519,15 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
     setDados(dadosRevanche);
     setSucesso(null);
     setErro('');
-    setIndiceEtapa(2);
+    setIndiceEtapa(0);
+  }
+
+  function registrarNovaPartida() {
+    setDados(criarDadosComAtletaUsuario(estadoInicial, usuario, atletaUsuario));
+    setSelecoes(criarSelecoesComAtletaUsuario(usuario, atletaUsuario));
+    setSucesso(null);
+    setErro('');
+    setIndiceEtapa(0);
   }
 
   function verPartida() {
@@ -581,16 +568,17 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
         campoBuscando={campoBuscando}
         erro={erro}
         salvando={carregando}
-        etapaFinal={etapaFinal}
+        revisando={revisando}
         onAlterarCampo={alterarCampo}
         onSelecionarAtleta={selecionarAtleta}
         onConfirmarEtapa={confirmarEtapa}
         onVoltar={voltar}
-        onAvancar={avancar}
+        onRevisar={revisar}
         onFechar={onFechar}
         onAdicionarMidia={() => setUploadMidiaAberto(true)}
         onVerPartida={verPartida}
         onRegistrarRevanche={registrarRevanche}
+        onRegistrarNovaPartida={registrarNovaPartida}
       />
 
       <PartidaMidiaUploadModal

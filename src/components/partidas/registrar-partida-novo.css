@@ -145,7 +145,7 @@
 
 .registrar-partida-novo-etapa,
 .registrar-partida-novo-sucesso {
-  width: min(520px, 100%);
+  width: min(760px, 100%);
   min-height: 100%;
   margin: 0 auto;
   display: flex;
@@ -195,6 +195,64 @@
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
+}
+
+.registrar-partida-novo-registro {
+  justify-content: flex-start;
+}
+
+.registrar-partida-novo-registro-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.85rem;
+}
+
+.registrar-partida-novo-dupla-card,
+.registrar-partida-novo-placar-central,
+.registrar-partida-novo-opcoes {
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.registrar-partida-novo-dupla-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 0.9rem;
+  transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+}
+
+.registrar-partida-novo-dupla-card.vencedora {
+  border-color: rgba(88, 214, 141, 0.38);
+  background:
+    linear-gradient(135deg, rgba(88, 214, 141, 0.1), transparent 60%),
+    rgba(255, 255, 255, 0.055);
+  box-shadow: inset 0 0 0 1px rgba(88, 214, 141, 0.05);
+}
+
+.registrar-partida-novo-dupla-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+}
+
+.registrar-partida-novo-dupla-topo span,
+.registrar-partida-novo-placar-central > span {
+  color: var(--color-text-secondary);
+  font-size: 0.74rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.registrar-partida-novo-dupla-topo strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  color: #58d68d;
+  font-size: 0.72rem;
+  font-weight: 850;
 }
 
 .registrar-partida-novo-campo {
@@ -309,6 +367,13 @@
   font-weight: 900;
 }
 
+.registrar-partida-novo-placar-central {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 0.9rem;
+}
+
 .registrar-partida-novo-placar {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
@@ -335,6 +400,12 @@
   text-align: center;
 }
 
+.registrar-partida-novo-placar input::-webkit-outer-spin-button,
+.registrar-partida-novo-placar input::-webkit-inner-spin-button {
+  margin: 0;
+  appearance: none;
+}
+
 .registrar-partida-novo-placar > strong {
   padding-bottom: 1.42rem;
   color: var(--color-text-secondary);
@@ -355,6 +426,42 @@
   color: var(--color-text-secondary);
   font-size: 0.76rem;
   font-weight: 750;
+}
+
+.registrar-partida-novo-opcoes {
+  padding: 0;
+  overflow: hidden;
+}
+
+.registrar-partida-novo-opcoes summary {
+  cursor: pointer;
+  padding: 0.9rem 1rem;
+  color: var(--color-text-primary);
+  font-size: 0.86rem;
+  font-weight: 850;
+}
+
+.registrar-partida-novo-opcoes div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0 1rem 0.8rem;
+}
+
+.registrar-partida-novo-opcoes span,
+.registrar-partida-novo-opcoes strong {
+  font-size: 0.82rem;
+}
+
+.registrar-partida-novo-opcoes span {
+  color: var(--color-text-secondary);
+  font-weight: 800;
+}
+
+.registrar-partida-novo-opcoes strong {
+  color: var(--color-text-primary);
+  font-weight: 850;
 }
 
 .registrar-partida-novo-resumo-card {
@@ -395,6 +502,10 @@
   white-space: nowrap;
 }
 
+.registrar-partida-novo-resumo-dupla.vencedora strong {
+  color: #58d68d;
+}
+
 .registrar-partida-novo-resumo-placar {
   display: inline-flex;
   align-items: center;
@@ -431,6 +542,31 @@
   font-weight: 850;
 }
 
+.registrar-partida-novo-revisao {
+  min-height: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.registrar-partida-novo-sheet {
+  width: min(560px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 1.15rem 1.15rem 0 0;
+  background: rgba(16, 18, 22, 0.98);
+  box-shadow: 0 -18px 50px rgba(0, 0, 0, 0.34);
+}
+
+.registrar-partida-novo-meta-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
 .registrar-partida-novo-acoes {
   z-index: 2;
   display: flex;
@@ -446,7 +582,7 @@
 
 .registrar-partida-novo-stepper {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 0.25rem;
   padding: 0 0.65rem calc(env(safe-area-inset-bottom, 0px) + 0.65rem);
   background: rgba(12, 13, 15, 0.96);
@@ -529,8 +665,14 @@
 
 .registrar-partida-novo-acoes-sucesso .botao-primario,
 .registrar-partida-novo-acoes-sucesso .botao-secundario,
-.registrar-partida-novo-acoes-sucesso .botao-link {
+.registrar-partida-novo-acoes-sucesso .botao-link,
+.registrar-partida-novo-acoes-sucesso .botao-compartilhar-partida {
   width: 100%;
+}
+
+.registrar-partida-novo-acoes-sucesso .botao-compartilhar-partida {
+  min-height: 3.15rem;
+  justify-content: center;
 }
 
 @keyframes registrarPartidaEntrada {
@@ -562,11 +704,24 @@
 
   .registrar-partida-novo-modal {
     position: relative;
-    width: min(640px, 100%);
+    width: min(860px, 100%);
     height: min(860px, calc(100dvh - 2.8rem));
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 1.35rem;
     box-shadow: 0 30px 90px rgba(0, 0, 0, 0.54);
+  }
+
+  .registrar-partida-novo-registro-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(13rem, 0.72fr) minmax(0, 1fr);
+    align-items: stretch;
+  }
+
+  .registrar-partida-novo-placar-central {
+    justify-content: center;
+  }
+
+  .registrar-partida-novo-sheet {
+    border-radius: 1.15rem;
   }
 }
 

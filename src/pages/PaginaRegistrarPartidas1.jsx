@@ -23,6 +23,7 @@ export function PaginaRegistrarPartidas() {
   const location = useLocation();
   const parametros = new URLSearchParams(location.search);
   const contextoInicial = {
+    competicaoId: parametros.get('competicaoId') || null,
     grupoId: parametros.get('grupoId') || null,
     categoriaId: parametros.get('categoriaId') || null
   };
