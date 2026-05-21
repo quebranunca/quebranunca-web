@@ -46,3 +46,28 @@ Thumbs.db
 
 # Local exports / archives
 *.zip
+.ia/checklists/checklist-mobile.md
+.ia/checklists/checklist-publicacao.md
+.ia/checklists/checklist-ui.md
+.ia/contextos/campeonatos.md
+.ia/contextos/contexto-web.md
+.ia/contextos/dashboard.md
+.ia/contextos/feed.md
+.ia/contextos/partidas.md
+.ia/contextos/perfil-atleta.md
+.ia/frontend/agente-frontend.md
+.ia/habilidades/corrigir-layout.md
+.ia/habilidades/criar-tela.md
+.ia/habilidades/melhorar-ux.md
+.ia/habilidades/otimizar-performance.md
+.ia/habilidades/refatorar-componente.md
+.ia/padroes/padroes-componentes.md
+.ia/padroes/padroes-consumo-api.md
+.ia/padroes/padroes-layout.md
+.ia/padroes/padroes-mobile.md
+.ia/padroes/padroes-rotas.md
+.ia/prompts/analisar-fluxo.md
+.ia/prompts/corrigir-bug.md
+.ia/prompts/criar-dashboard.md
+.ia/prompts/criar-feature.md
+.ia/prompts/revisar-layout.md
