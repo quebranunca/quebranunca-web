@@ -11,7 +11,7 @@ import { gruposServico } from '../services/gruposServico';
 import { inscricoesCampeonatoServico } from '../services/inscricoesCampeonatoServico';
 import { partidasServico } from '../services/partidasServico';
 import { useAutenticacao } from '../hooks/useAutenticacao';
-import { extrairMensagemErro } from '../utils/erros';
+import { ehConfirmacaoDuplicidadePartida, extrairConfirmacaoDuplicidadePartida, extrairMensagemErro } from '../utils/erros';
 import {
   ajustarDataHoraInputParaIntervalo,
   formatarDataHora,
@@ -1415,6 +1415,13 @@ export function PaginaPartidas({ modo = 'consulta' }) {
       }
       rolarParaTopo();
     } catch (error) {
+      if (!partidaEdicaoId && !dados?.confirmarDuplicidade && ehConfirmacaoDuplicidadePartida(error)) {
+        setDuplicidadePartida(extrairConfirmacaoDuplicidadePartida(error));
+        setPayloadDuplicidadePendente(dados);
+        setErro('');
+        return;
+      }
+
       setErro(extrairMensagemErro(error));
     } finally {
       setSalvando(false);
@@ -1460,10 +1467,10 @@ export function PaginaPartidas({ modo = 'consulta' }) {
       placarDuplaB: statusFormularioEfetivo === 2 && podeLancarResultado ? Number(formulario.placarDuplaB) : null,
       dataPartida: paraIsoUtc(formulario.dataPartida),
       observacoes: formulario.observacoes || null,
-      permitirDuplicidade: false
+      confirmarDuplicidade: false
     };
 
-    if (!partidaEdicaoId && !dados.permitirDuplicidade) {
+    if (!partidaEdicaoId && !dados.confirmarDuplicidade) {
       try {
         const verificacao = await partidasServico.verificarDuplicidade(criarPayloadVerificacaoDuplicidadeFormulario(dados));
 
@@ -1491,7 +1498,7 @@ export function PaginaPartidas({ modo = 'consulta' }) {
   function confirmarDuplicidadePartida() {
     if (payloadDuplicidadePendente) {
       setSalvando(true);
-      salvarDadosPartida({ ...payloadDuplicidadePendente, permitirDuplicidade: true });
+      salvarDadosPartida({ ...payloadDuplicidadePendente, confirmarDuplicidade: true });
     }
   }
 
@@ -2412,7 +2419,7 @@ export function PaginaPartidas({ modo = 'consulta' }) {
 
       {duplicidadePartida && (
         <ConfirmarDuplicidadePartidaModal
-          mensagem={`${duplicidadePartida.mensagem || 'Já existe uma partida registrada hoje com os mesmos atletas e o mesmo placar.'} Deseja salvar mesmo assim?`}
+          mensagem="Já existe uma partida registrada hoje com os mesmos atletas e o mesmo placar. Isso pode ser uma partida repetida. Deseja registrar mesmo assim?"
           salvando={salvando}
           onCancelar={cancelarDuplicidadePartida}
           onConfirmar={confirmarDuplicidadePartida}

@@ -21,10 +21,10 @@ export function ConfirmarDuplicidadePartidaModal({
 
         <div className="acoes-formulario">
           <button type="button" className="botao-secundario" onClick={onCancelar} disabled={salvando}>
-            Cancelar
+            Não, revisar
           </button>
           <button type="button" className="botao-primario" onClick={onConfirmar} disabled={salvando}>
-            {salvando ? 'Salvando...' : 'Salvar mesmo assim'}
+            {salvando ? 'Salvando...' : 'Sim, registrar'}
           </button>
         </div>
       </section>

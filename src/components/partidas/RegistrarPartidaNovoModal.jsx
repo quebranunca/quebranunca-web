@@ -390,9 +390,19 @@ function ResumoDupla({ titulo, atletas, destaque }) {
   );
 }
 
-function RevisaoRapida({ resumo, dados, salvando, onEditar, onSalvar }) {
+function RevisaoRapida({
+  resumo,
+  dados,
+  salvando,
+  duplicidade,
+  onEditar,
+  onSalvar,
+  onCancelarDuplicidade,
+  onConfirmarDuplicidade
+}) {
   const contexto = resumo.contexto || {};
   const vencedora = obterVencedora(dados);
+  const exibindoDuplicidade = Boolean(duplicidade);
 
   return (
     <section className="registrar-partida-novo-revisao" aria-label="Revisão rápida da partida">
@@ -432,11 +442,29 @@ function RevisaoRapida({ resumo, dados, salvando, onEditar, onSalvar }) {
           )}
         </div>
 
+        {exibindoDuplicidade && (
+          <div className="registrar-partida-novo-alerta-duplicidade" role="alert">
+            <strong>Possível partida duplicada</strong>
+            <p>
+              Já existe uma partida registrada hoje com os mesmos atletas e o mesmo placar.
+              Isso pode ser uma partida repetida. Deseja registrar mesmo assim?
+            </p>
+            <div className="registrar-partida-novo-acoes registrar-partida-novo-acoes-duplicidade">
+              <button type="button" className="botao-secundario" onClick={onCancelarDuplicidade} disabled={salvando}>
+                Não, revisar
+              </button>
+              <button type="button" className="botao-primario" onClick={onConfirmarDuplicidade} disabled={salvando}>
+                {salvando ? 'Salvando...' : 'Sim, registrar'}
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="registrar-partida-novo-acoes registrar-partida-novo-acoes-revisao">
           <button type="button" className="botao-secundario" onClick={onEditar} disabled={salvando}>
             Editar
           </button>
-          <button type="button" className="botao-primario" onClick={onSalvar} disabled={salvando}>
+          <button type="button" className="botao-primario" onClick={onSalvar} disabled={salvando || exibindoDuplicidade}>
             {salvando ? 'Salvando...' : 'Salvar partida'}
           </button>
         </div>
@@ -537,11 +565,14 @@ export function RegistrarPartidaNovoModal({
   erro,
   salvando,
   revisando,
+  duplicidade,
   onAlterarCampo,
   onSelecionarAtleta,
   onConfirmarEtapa,
   onVoltar,
   onRevisar,
+  onCancelarDuplicidade,
+  onConfirmarDuplicidade,
   onFechar,
   onAdicionarMidia,
   onVerPartida,
@@ -607,8 +638,11 @@ export function RegistrarPartidaNovoModal({
                   resumo={resumo}
                   dados={dados}
                   salvando={salvando}
+                  duplicidade={duplicidade}
                   onEditar={onVoltar}
                   onSalvar={onConfirmarEtapa}
+                  onCancelarDuplicidade={onCancelarDuplicidade}
+                  onConfirmarDuplicidade={onConfirmarDuplicidade}
                 />
               ) : (
                 <RegistroUnico

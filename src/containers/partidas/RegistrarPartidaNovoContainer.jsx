@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ConfirmarDuplicidadePartidaModal } from '../../components/partidas/ConfirmarDuplicidadePartidaModal';
 import { PartidaMidiaUploadModal } from '../../components/partidas/PartidaMidiaUploadModal';
 import { RegistrarPartidaNovoModal } from '../../components/partidas/RegistrarPartidaNovoModal';
 import { useNotification } from '../../contexts/NotificationContext';
@@ -9,8 +8,7 @@ import { atletasServico } from '../../services/atletasServico';
 import { competicoesServico } from '../../services/competicoesServico';
 import { partidasServico } from '../../services/partidasServico';
 import { obterNomeExibicaoAtleta } from '../../utils/atletaUtils';
-import { extrairMensagemErro } from '../../utils/erros';
-import { criarPayloadVerificacaoDuplicidadePartida } from '../../utils/partidas';
+import { ehConfirmacaoDuplicidadePartida, extrairConfirmacaoDuplicidadePartida, extrairMensagemErro } from '../../utils/erros';
 
 const LADOS_ATLETA = {
   direito: 1,
@@ -323,6 +321,8 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
 
   function alterarCampo(campo, valor) {
     setErro('');
+    setDuplicidade(null);
+    setPayloadPendente(null);
     const proximoValor = campo.endsWith('.pontos')
       ? String(valor || '').replace(/\D/g, '').slice(0, 2)
       : valor;
@@ -376,6 +376,8 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
 
   function selecionarAtleta(campo, atleta) {
     setErro('');
+    setDuplicidade(null);
+    setPayloadPendente(null);
     setDados((anterior) => atualizarValorCampo(anterior, campo, atleta.nome));
     setSelecoes((anterior) => ({ ...anterior, [campo]: atleta }));
     setSugestoes((anterior) => ({ ...anterior, [campo]: [] }));
@@ -388,6 +390,8 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
     }
 
     setErro('');
+    setDuplicidade(null);
+    setPayloadPendente(null);
     setIndiceEtapa((atual) => Math.max(0, atual - 1));
   }
 
@@ -414,16 +418,23 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
           salvoEm: new Date()
         }
       });
+      setPayloadPendente(null);
+      setDuplicidade(null);
     } catch (falha) {
+      if (!payload?.confirmarDuplicidade && ehConfirmacaoDuplicidadePartida(falha)) {
+        setDuplicidade(extrairConfirmacaoDuplicidadePartida(falha));
+        setPayloadPendente(payload);
+        setErro('');
+        return;
+      }
+
       setErro(extrairMensagemErro(falha));
     } finally {
       setSalvando(false);
-      setPayloadPendente(null);
-      setDuplicidade(null);
     }
   }
 
-  async function registrarPartida({ permitirDuplicidade = false } = {}) {
+  async function registrarPartida({ confirmarDuplicidade = false } = {}) {
     if (carregandoAtletaUsuario) {
       setErro('Aguarde a identificação do atleta logado para salvar a partida.');
       return;
@@ -448,30 +459,10 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
 
     const payload = {
       ...criarPayload(dados, selecoes, usuario, atletaUsuario, contextoInicial),
-      permitirDuplicidade
+      confirmarDuplicidade
     };
 
-    try {
-      setSalvando(true);
-
-      if (!permitirDuplicidade) {
-        const verificacao = await partidasServico.verificarDuplicidade(criarPayloadVerificacaoDuplicidadePartida(payload));
-
-        if (verificacao?.existeDuplicidade) {
-          setDuplicidade(verificacao);
-          setPayloadPendente(payload);
-          return;
-        }
-      }
-
-      await salvarPartida(payload);
-    } catch (falha) {
-      setErro(extrairMensagemErro(falha));
-    } finally {
-      if (!duplicidade) {
-        setSalvando(false);
-      }
-    }
+    await salvarPartida(payload);
   }
 
   function confirmarEtapa(evento) {
@@ -493,7 +484,7 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
 
   function confirmarDuplicidade() {
     if (payloadPendente) {
-      salvarPartida({ ...payloadPendente, permitirDuplicidade: true });
+      salvarPartida({ ...payloadPendente, confirmarDuplicidade: true });
     }
   }
 
@@ -564,11 +555,14 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
         erro={erro}
         salvando={carregando}
         revisando={revisando}
+        duplicidade={duplicidade}
         onAlterarCampo={alterarCampo}
         onSelecionarAtleta={selecionarAtleta}
         onConfirmarEtapa={confirmarEtapa}
         onVoltar={voltar}
         onRevisar={revisar}
+        onCancelarDuplicidade={cancelarDuplicidade}
+        onConfirmarDuplicidade={confirmarDuplicidade}
         onFechar={onFechar}
         onAdicionarMidia={() => setUploadMidiaAberto(true)}
         onVerPartida={verPartida}
@@ -582,15 +576,6 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
         onFechar={() => setUploadMidiaAberto(false)}
         onConcluido={concluirUploadMidia}
       />
-
-      {duplicidade && (
-        <ConfirmarDuplicidadePartidaModal
-          mensagem={`${duplicidade.mensagem || 'Já existe uma partida registrada hoje com os mesmos atletas e o mesmo placar.'} Deseja salvar mesmo assim?`}
-          salvando={salvando}
-          onCancelar={cancelarDuplicidade}
-          onConfirmar={confirmarDuplicidade}
-        />
-      )}
     </>
   );
 }

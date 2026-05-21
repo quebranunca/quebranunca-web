@@ -13,3 +13,18 @@ export function extrairMensagemErro(erro) {
 
   return 'Ocorreu um erro inesperado.';
 }
+
+export function ehConfirmacaoDuplicidadePartida(erro) {
+  return erro?.response?.status === 409 &&
+    erro?.response?.data?.codigo === 'PARTIDA_DUPLICADA_CONFIRMAR';
+}
+
+export function extrairConfirmacaoDuplicidadePartida(erro) {
+  const dados = erro?.response?.data || {};
+
+  return {
+    codigo: dados.codigo || 'PARTIDA_DUPLICADA_CONFIRMAR',
+    mensagem: dados.mensagem || dados.erro || 'Já existe uma partida registrada hoje com os mesmos atletas e o mesmo placar.',
+    correlationId: dados.correlationId
+  };
+}
