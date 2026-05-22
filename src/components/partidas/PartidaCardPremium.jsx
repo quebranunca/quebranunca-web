@@ -1,5 +1,5 @@
 import { FaCalendarAlt, FaChevronRight } from 'react-icons/fa';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { DuplaLink } from '../duplas/DuplaLink';
 import { formatarNomeDupla } from '../../utils/atletaUtils';
 import { formatarDataHora } from '../../utils/formatacao';
@@ -53,6 +53,7 @@ function obterStatusPartida(status) {
 }
 
 export function PartidaCardPremium({
+  className = '',
   contexto,
   status,
   dataPartida,
@@ -64,10 +65,44 @@ export function PartidaCardPremium({
   detalhesHref,
   onDetalhes
 }) {
+  const navegar = useNavigate();
   const resultadoTexto = normalizarResultado(resultado);
+  const podeAbrirDetalhes = Boolean(detalhesHref || onDetalhes);
+
+  function abrirDetalhes() {
+    if (detalhesHref) {
+      navegar(detalhesHref);
+      return;
+    }
+
+    if (onDetalhes) {
+      onDetalhes();
+    }
+  }
+
+  function aoTeclarCard(evento) {
+    if (!podeAbrirDetalhes) {
+      return;
+    }
+
+    if (evento.key === 'Enter' || evento.key === ' ') {
+      evento.preventDefault();
+      abrirDetalhes();
+    }
+  }
+
+  const propriedadesCard = {
+    role: podeAbrirDetalhes ? 'link' : undefined,
+    tabIndex: podeAbrirDetalhes ? 0 : undefined,
+    onClick: podeAbrirDetalhes ? abrirDetalhes : undefined,
+    onKeyDown: aoTeclarCard
+  };
 
   return (
-    <article className="meus-jogos-card-premium">
+    <article
+      className={`meus-jogos-card-premium ${podeAbrirDetalhes ? 'meus-jogos-card-clicavel' : ''} ${className}`.trim()}
+      {...propriedadesCard}
+    >
       <div className="meus-jogos-card-topo-premium">
         <div>
           <span>{contexto || 'Geral'}</span>
@@ -93,7 +128,7 @@ export function PartidaCardPremium({
         <LinhaPlacar {...duplaB} />
       </div>
 
-      <div className="meus-jogos-card-acoes">
+      <div className="meus-jogos-card-acoes" onClick={(evento) => evento.stopPropagation()}>
         {acaoCompartilhar}
         {detalhesHref ? (
           <Link to={detalhesHref} className="botao-secundario botao-compacto meus-jogos-detalhes">
@@ -101,7 +136,7 @@ export function PartidaCardPremium({
             <FaChevronRight aria-hidden="true" />
           </Link>
         ) : (
-          <button type="button" className="botao-secundario botao-compacto meus-jogos-detalhes" onClick={onDetalhes}>
+          <button type="button" className="botao-secundario botao-compacto meus-jogos-detalhes" onClick={abrirDetalhes}>
             Detalhes
             <FaChevronRight aria-hidden="true" />
           </button>

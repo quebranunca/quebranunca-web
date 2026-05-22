@@ -13,6 +13,12 @@ Seguir o `AGENTS.md` da raiz. Neste diretório, além disso:
 - Não versionar `.env` local nem embutir URL de API de ambiente real direto no código; usar `.env.example` e variáveis de build quando necessário
 - Antes de ajustar integração, conferir primeiro `src/services/http.js`, `vite.config.js` e os arquivos `.env*` para não mascarar problema de ambiente com mudança de código
 
+## Home logada
+- A Home logada deve manter a ordem de módulos controlada por `src/components/home/homeSectionsConfig.js`
+- Para adicionar, ocultar ou reordenar módulos da Home, atualizar primeiro a configuração central e reaproveitar o renderizador existente em `HomeDashboard.jsx`
+- Novos módulos da Home devem ser componentes simples, com estados vazio/carregando/erro explícitos quando aplicável, sem criar framework próprio de widgets
+- Não duplicar chamadas de dados em módulos filhos quando a Home ou o container já entregar os dados por props
+
 ## Fluxos já adotados
 - `Competições` já concentra atalhos para categorias e inscrições; preservar esse papel antes de criar navegação paralela
 - `Locais` é cadastro próprio e `Competições` apenas referencia o local escolhido
