@@ -11,6 +11,7 @@ import { gruposServico } from '../../services/gruposServico';
 import { partidasServico } from '../../services/partidasServico';
 import { obterNomeExibicaoAtleta } from '../../utils/atletaUtils';
 import { ehConfirmacaoDuplicidadePartida, extrairConfirmacaoDuplicidadePartida, extrairMensagemErro } from '../../utils/erros';
+import { ehAdministrador, ehOrganizador } from '../../utils/perfis';
 
 const LADOS_ATLETA = {
   direito: 1,
@@ -103,7 +104,8 @@ function criarAtletaSelecao(atleta) {
     posicaoRanking: atleta.posicaoRanking,
     quantidadeJogos: atleta.quantidadeJogos,
     avatarUrl: atleta.avatarUrl,
-    fotoPerfilUrl: atleta.fotoPerfilUrl
+    fotoPerfilUrl: atleta.fotoPerfilUrl,
+    origemSugestao: atleta.origemSugestao
   };
 }
 
@@ -149,10 +151,23 @@ function obterAtletaId(selecoes, campo, campoAtletaUsuario, atletaUsuarioId) {
   return selecoes[campo]?.id || null;
 }
 
+function deveFixarAtletaUsuario(usuario, contextoInicial) {
+  return !contextoInicial?.grupoId && !ehAdministrador(usuario) && !ehOrganizador(usuario);
+}
+
+function obterAtletaIdPayload(selecoes, campo, campoAtletaUsuario, atletaUsuarioId, fixarAtletaUsuario) {
+  return fixarAtletaUsuario
+    ? obterAtletaId(selecoes, campo, campoAtletaUsuario, atletaUsuarioId)
+    : selecoes[campo]?.id || null;
+}
+
 function criarPayload(dados, selecoes, usuario, atletaUsuario, contextoInicial) {
+  const fixarAtletaUsuario = deveFixarAtletaUsuario(usuario, contextoInicial);
   const atletaUsuarioId = obterAtletaUsuarioId(usuario, atletaUsuario);
   const campoAtletaUsuario = obterCampoAtletaUsuario(obterAtletaUsuarioLado(usuario, atletaUsuario));
-  const dadosComAtletaUsuario = criarDadosComAtletaUsuario(dados, usuario, atletaUsuario);
+  const dadosPayload = fixarAtletaUsuario
+    ? criarDadosComAtletaUsuario(dados, usuario, atletaUsuario)
+    : dados;
 
   return {
     competicaoId: contextoInicial?.competicaoId || null,
@@ -161,18 +176,18 @@ function criarPayload(dados, selecoes, usuario, atletaUsuario, contextoInicial) 
     categoriaCompeticaoId: contextoInicial?.categoriaId || null,
     duplaAId: null,
     duplaBId: null,
-    duplaAAtleta1Id: obterAtletaId(selecoes, 'dupla1.atletaDireita', campoAtletaUsuario, atletaUsuarioId),
-    duplaAAtleta1Nome: limparTexto(dadosComAtletaUsuario.dupla1.atletaDireita),
-    duplaAAtleta2Id: obterAtletaId(selecoes, 'dupla1.atletaEsquerda', campoAtletaUsuario, atletaUsuarioId),
-    duplaAAtleta2Nome: limparTexto(dadosComAtletaUsuario.dupla1.atletaEsquerda),
+    duplaAAtleta1Id: obterAtletaIdPayload(selecoes, 'dupla1.atletaDireita', campoAtletaUsuario, atletaUsuarioId, fixarAtletaUsuario),
+    duplaAAtleta1Nome: limparTexto(dadosPayload.dupla1.atletaDireita),
+    duplaAAtleta2Id: obterAtletaIdPayload(selecoes, 'dupla1.atletaEsquerda', campoAtletaUsuario, atletaUsuarioId, fixarAtletaUsuario),
+    duplaAAtleta2Nome: limparTexto(dadosPayload.dupla1.atletaEsquerda),
     duplaBAtleta1Id: selecoes['dupla2.atletaDireita']?.id || null,
-    duplaBAtleta1Nome: limparTexto(dadosComAtletaUsuario.dupla2.atletaDireita),
+    duplaBAtleta1Nome: limparTexto(dadosPayload.dupla2.atletaDireita),
     duplaBAtleta2Id: selecoes['dupla2.atletaEsquerda']?.id || null,
-    duplaBAtleta2Nome: limparTexto(dadosComAtletaUsuario.dupla2.atletaEsquerda),
+    duplaBAtleta2Nome: limparTexto(dadosPayload.dupla2.atletaEsquerda),
     faseCampeonato: null,
     status: 2,
-    placarDuplaA: Number(dadosComAtletaUsuario.dupla1.pontos),
-    placarDuplaB: Number(dadosComAtletaUsuario.dupla2.pontos),
+    placarDuplaA: Number(dadosPayload.dupla1.pontos),
+    placarDuplaB: Number(dadosPayload.dupla2.pontos),
     dataPartida: new Date().toISOString(),
     observacoes: null
   };
@@ -214,6 +229,26 @@ function validarPlacar(dados) {
 
 function limitarSugestoes(atletas) {
   return (atletas || []).slice(0, 5).map(criarAtletaSelecao);
+}
+
+function limitarSugestoesGrupo(atletas, grupo) {
+  return (atletas || []).slice(0, 5).map((atleta) => criarAtletaSelecao({
+    id: atleta.id,
+    nome: atleta.nome,
+    apelido: atleta.apelido,
+    nomeGrupo: grupo?.nome || 'Grupo',
+    origemSugestao: 'grupo'
+  }));
+}
+
+function limitarSugestoesExternas(atletas, idsIgnorados) {
+  return (atletas || [])
+    .filter((atleta) => atleta?.id && !idsIgnorados.has(atleta.id))
+    .slice(0, 5)
+    .map((atleta) => ({
+      ...criarAtletaSelecao(atleta),
+      origemSugestao: 'externo'
+    }));
 }
 
 function obterGrupoId(grupo) {
@@ -265,7 +300,8 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
   const atletaUsuarioNome = obterAtletaUsuarioNome(usuario, atletaUsuario);
   const etapaAtual = etapas[indiceEtapa];
   const revisando = etapaAtual.id === 'revisao';
-  const carregando = salvando || carregandoAtletaUsuario;
+  const fixarAtletaUsuario = deveFixarAtletaUsuario(usuario, contextoPartida);
+  const carregando = salvando || (fixarAtletaUsuario && carregandoAtletaUsuario);
 
   const resumo = useMemo(() => ({
     dupla1: [
@@ -372,6 +408,10 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
   }, [usuario?.atletaId, usuario?.atleta]);
 
   useEffect(() => {
+    if (!deveFixarAtletaUsuario(usuario, contextoPartida)) {
+      return;
+    }
+
     const atletaUsuarioId = obterAtletaUsuarioId(usuario, atletaUsuario);
     const nome = obterAtletaUsuarioNome(usuario, atletaUsuario);
 
@@ -390,7 +430,7 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
       ...anterior,
       [campoAtletaUsuario]: anterior[campoAtletaUsuario] || criarSelecaoAtletaUsuario(usuario, atletaUsuario)
     }));
-  }, [usuario, atletaUsuario]);
+  }, [usuario, atletaUsuario, contextoPartida?.grupoId]);
 
   useEffect(() => () => {
     Object.values(buscaTimersRef.current).forEach(clearTimeout);
@@ -414,15 +454,20 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
   function buscarSugestoes(campo, valor) {
     const termo = limparTexto(valor);
     clearTimeout(buscaTimersRef.current[campo]);
+    const grupoId = contextoPartida?.grupoId;
+    const minimoCaracteres = grupoId ? 3 : 2;
 
-    if (termo.length < 2) {
+    if (termo.length < minimoCaracteres) {
       setSugestoes((anterior) => ({ ...anterior, [campo]: [] }));
       return;
     }
 
     buscaTimersRef.current[campo] = setTimeout(async () => {
       const competicaoId = contextoPartida?.competicaoId;
-      const chaveCache = `${competicaoId || 'geral'}:${termo.toLowerCase()}`;
+      const podeBuscarExternos = ehAdministrador(usuario) || ehOrganizador(usuario);
+      const chaveCache = grupoId
+        ? `grupo:${grupoId}:${podeBuscarExternos ? 'com-externos' : 'membros'}:${termo.toLowerCase()}`
+        : `${competicaoId || 'geral'}:${termo.toLowerCase()}`;
 
       if (cacheBuscaRef.current.has(chaveCache)) {
         setSugestoes((anterior) => ({ ...anterior, [campo]: cacheBuscaRef.current.get(chaveCache) }));
@@ -431,10 +476,26 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
 
       try {
         setCampoBuscando(campo);
-        const resposta = competicaoId && termo.length >= 3
-          ? await competicoesServico.buscarSugestoesAtletas(competicaoId, termo)
-          : await atletasServico.buscar(termo);
-        const lista = limitarSugestoes(resposta);
+        let lista = [];
+
+        if (grupoId) {
+          const [membrosGrupo, atletasExternos] = await Promise.all([
+            grupoAtletasServico.buscar(grupoId, termo).catch(() => []),
+            podeBuscarExternos ? atletasServico.buscar(termo).catch(() => []) : Promise.resolve([])
+          ]);
+          const sugestoesGrupo = limitarSugestoesGrupo(membrosGrupo, grupoContexto);
+          const idsGrupo = new Set(sugestoesGrupo.map((atleta) => atleta.id));
+          lista = [
+            ...sugestoesGrupo,
+            ...limitarSugestoesExternas(atletasExternos, idsGrupo)
+          ];
+        } else {
+          const resposta = competicaoId && termo.length >= 3
+            ? await competicoesServico.buscarSugestoesAtletas(competicaoId, termo)
+            : await atletasServico.buscar(termo);
+          lista = limitarSugestoes(resposta);
+        }
+
         cacheBuscaRef.current.set(chaveCache, lista);
         setSugestoes((anterior) => ({ ...anterior, [campo]: lista }));
       } catch {
@@ -512,17 +573,19 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
   }
 
   async function registrarPartida({ confirmarDuplicidade = false } = {}) {
-    if (carregandoAtletaUsuario) {
+    const fixarAtletaUsuario = deveFixarAtletaUsuario(usuario, contextoPartida);
+
+    if (fixarAtletaUsuario && carregandoAtletaUsuario) {
       setErro('Aguarde a identificação do atleta logado para salvar a partida.');
       return;
     }
 
-    if (!obterAtletaUsuarioId(usuario, atletaUsuario)) {
+    if (fixarAtletaUsuario && !obterAtletaUsuarioId(usuario, atletaUsuario)) {
       setErro('Seu usuário precisa estar vinculado a um atleta para registrar a partida neste fluxo.');
       return;
     }
 
-    if (!limparTexto(atletaUsuarioNome)) {
+    if (fixarAtletaUsuario && !limparTexto(atletaUsuarioNome)) {
       setErro('Não foi possível identificar o atleta logado para registrar a partida.');
       return;
     }
@@ -593,6 +656,8 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
     }));
     setGrupoContexto(grupoNormalizado);
     setSeletorGrupoAberto(false);
+    cacheBuscaRef.current.clear();
+    setSugestoes({});
     setErro('');
     setDuplicidade(null);
     setPayloadPendente(null);
@@ -609,6 +674,8 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
     }));
     setGrupoContexto(null);
     setSeletorGrupoAberto(false);
+    cacheBuscaRef.current.clear();
+    setSugestoes({});
     setErro('');
     setDuplicidade(null);
     setPayloadPendente(null);
@@ -635,8 +702,14 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
   }
 
   function registrarNovaPartida() {
-    setDados(criarDadosComAtletaUsuario(estadoInicial, usuario, atletaUsuario));
-    setSelecoes(criarSelecoesComAtletaUsuario(usuario, atletaUsuario));
+    if (deveFixarAtletaUsuario(usuario, contextoPartida)) {
+      setDados(criarDadosComAtletaUsuario(estadoInicial, usuario, atletaUsuario));
+      setSelecoes(criarSelecoesComAtletaUsuario(usuario, atletaUsuario));
+    } else {
+      setDados(estadoInicial);
+      setSelecoes(estadoInicialSelecoes);
+    }
+
     setSucesso(null);
     setErro('');
     setIndiceEtapa(0);

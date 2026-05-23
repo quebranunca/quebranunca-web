@@ -552,6 +552,15 @@
   background: rgba(248, 195, 0, 0.1);
 }
 
+.registrar-partida-novo-sugestao-secao {
+  padding: 0.1rem 0.2rem 0;
+  color: var(--color-primary);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
 .registrar-partida-novo-sugestao span:last-child {
   min-width: 0;
   display: flex;
@@ -761,6 +770,10 @@
   color: var(--color-text-primary);
   font-size: 0.88rem;
   font-weight: 850;
+}
+
+.registrar-partida-novo-meta-contexto {
+  justify-content: center;
 }
 
 .registrar-partida-novo-revisao {

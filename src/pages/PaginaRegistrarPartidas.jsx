@@ -77,6 +77,7 @@ function obterGrupoDoRetornoVerificacao(retorno) {
 function retornoIndicaGrupoExistente(retorno) {
   return Boolean(
     retorno?.existe ||
+    retorno?.existeExato ||
     retorno?.existente ||
     retorno?.grupoExiste ||
     obterGrupoDoRetornoVerificacao(retorno)

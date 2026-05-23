@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import {
   FaCheck,
   FaChevronLeft,
@@ -141,6 +141,18 @@ function montarDetalhesAtleta(atleta) {
   return detalhes.length > 0 ? detalhes.join(' • ') : 'Atleta QuebraNunca';
 }
 
+function obterSecaoSugestaoAtleta(atleta) {
+  if (atleta?.origemSugestao === 'grupo') {
+    return 'Membros do grupo';
+  }
+
+  if (atleta?.origemSugestao === 'externo') {
+    return 'Outros atletas';
+  }
+
+  return '';
+}
+
 function obterNomeInputAtleta(campo) {
   const nomes = {
     'dupla1.atletaDireita': 'atleta1Dupla1',
@@ -197,29 +209,41 @@ function AutocompleteAtleta({
       {(sugestoesCampo.length > 0 || buscando) && (
         <div className="registrar-partida-novo-sugestoes" role="listbox">
           {buscando && <span className="registrar-partida-novo-sugestao-status">Buscando atletas...</span>}
-          {sugestoesCampo.map((atleta) => (
-            <button
-              type="button"
-              key={`${campo}-${atleta.id}`}
-              className="registrar-partida-novo-sugestao"
-              onMouseDown={(evento) => evento.preventDefault()}
-              onClick={() => {
-                onSelecionarAtleta(campo, atleta);
-                focusNextField(proximoRef);
-              }}
-            >
-              <AvatarUsuario
-                nome={atleta.apelido || atleta.nome}
-                fotoPerfilUrl={obterFotoPerfilAvatar(atleta)}
-                tamanho="sm"
-                className="registrar-partida-novo-avatar"
-              />
-              <span>
-                <strong>{atleta.nome}</strong>
-                <small>{montarDetalhesAtleta(atleta)}</small>
-              </span>
-            </button>
-          ))}
+          {sugestoesCampo.map((atleta, indice) => {
+            const secaoAtual = obterSecaoSugestaoAtleta(atleta);
+            const secaoAnterior = obterSecaoSugestaoAtleta(sugestoesCampo[indice - 1]);
+            const exibirSecao = secaoAtual && secaoAtual !== secaoAnterior;
+
+            return (
+              <Fragment key={`${campo}-${atleta.id}`}>
+                {exibirSecao && (
+                  <span className="registrar-partida-novo-sugestao-secao">
+                    {secaoAtual}
+                  </span>
+                )}
+                <button
+                  type="button"
+                  className="registrar-partida-novo-sugestao"
+                  onMouseDown={(evento) => evento.preventDefault()}
+                  onClick={() => {
+                    onSelecionarAtleta(campo, atleta);
+                    focusNextField(proximoRef);
+                  }}
+                >
+                  <AvatarUsuario
+                    nome={atleta.apelido || atleta.nome}
+                    fotoPerfilUrl={obterFotoPerfilAvatar(atleta)}
+                    tamanho="sm"
+                    className="registrar-partida-novo-avatar"
+                  />
+                  <span>
+                    <strong>{atleta.nome}</strong>
+                    <small>{montarDetalhesAtleta(atleta)}</small>
+                  </span>
+                </button>
+              </Fragment>
+            );
+          })}
         </div>
       )}
     </label>
@@ -414,6 +438,7 @@ function ResumoDupla({ titulo, atletas, destaque }) {
 
 function RevisaoRapida({
   resumo,
+  grupo,
   dados,
   salvando,
   duplicidade,
@@ -450,10 +475,14 @@ function RevisaoRapida({
             <span>Data e hora</span>
             <strong>{formatarData(resumo.data)}</strong>
           </div>
-          {contexto.grupoId && (
+          {grupo?.id ? (
             <div className="registrar-partida-novo-meta">
               <span>Grupo</span>
-              <strong>Selecionado</strong>
+              <strong>{grupo.nome || 'Grupo selecionado'}</strong>
+            </div>
+          ) : (
+            <div className="registrar-partida-novo-meta registrar-partida-novo-meta-contexto">
+              <strong>Partida avulsa</strong>
             </div>
           )}
           {contexto.categoriaId && (
@@ -679,6 +708,7 @@ export function RegistrarPartidaNovoModal({
               {revisando ? (
                 <RevisaoRapida
                   resumo={resumo}
+                  grupo={grupo}
                   dados={dados}
                   salvando={salvando}
                   duplicidade={duplicidade}

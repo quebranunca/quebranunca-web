@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { CriarGrupoFluxoModal } from '../components/grupos/CriarGrupoFluxoModal';
 import { useNotification } from '../contexts/NotificationContext';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { gruposServico } from '../services/gruposServico';
@@ -31,6 +32,7 @@ export function PaginaGrupos() {
   const [formulario, setFormulario] = useState(estadoInicial);
   const [grupoEdicaoId, setGrupoEdicaoId] = useState(null);
   const [formularioAberto, setFormularioAberto] = useState(false);
+  const [fluxoCriarAberto, setFluxoCriarAberto] = useState(false);
   const [carregando, setCarregando] = useState(true);
   const [salvando, setSalvando] = useState(false);
 
@@ -77,9 +79,7 @@ export function PaginaGrupos() {
   }
 
   function abrirNovoGrupo() {
-    setGrupoEdicaoId(null);
-    setFormulario(estadoInicial);
-    setFormularioAberto(true);
+    setFluxoCriarAberto(true);
   }
 
   function iniciarEdicao(grupo) {
@@ -93,6 +93,10 @@ export function PaginaGrupos() {
       localId: grupo.localId || ''
     });
     setFormularioAberto(true);
+  }
+
+  async function aoCriarGrupoFluxo() {
+    await carregarDados();
   }
 
   function limparFormulario() {
@@ -194,7 +198,7 @@ export function PaginaGrupos() {
       {podeCriarGrupo && !formularioAberto && (  
         
           <button type="button" className="botao-primario" onClick={abrirNovoGrupo}>
-            Criar Novo Grupo
+            Criar grupo
           </button>      
         
       )}
@@ -264,6 +268,20 @@ export function PaginaGrupos() {
           ))
         )}       
       </div>      
+
+      <CriarGrupoFluxoModal
+        aberto={fluxoCriarAberto}
+        onFechar={() => setFluxoCriarAberto(false)}
+        onCriado={aoCriarGrupoFluxo}
+        onAdicionarAtletas={(grupo) => {
+          setFluxoCriarAberto(false);
+          navegar(`/grupos/${grupo.id}/atletas`);
+        }}
+        onEntrarGrupo={(grupo) => {
+          setFluxoCriarAberto(false);
+          navegar(`/grupos/${grupo.id}/atletas`);
+        }}
+      />
     </section>
   );
 }

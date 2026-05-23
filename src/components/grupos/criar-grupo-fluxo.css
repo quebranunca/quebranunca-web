@@ -1,0 +1,311 @@
+.criar-grupo-sobreposicao {
+  z-index: 11000;
+  padding: 0.75rem;
+  background:
+    radial-gradient(circle at top, rgba(255, 179, 0, 0.16), transparent 34%),
+    rgba(8, 9, 11, 0.82);
+  backdrop-filter: blur(12px);
+}
+
+.criar-grupo-modal {
+  position: relative;
+  width: min(100%, 560px);
+  height: min(100%, calc(100dvh - 1.5rem));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 1rem;
+  background: linear-gradient(180deg, rgba(27, 29, 33, 0.98), rgba(11, 12, 14, 0.99));
+}
+
+.criar-grupo-header {
+  display: grid;
+  grid-template-columns: 2.75rem 1fr 2.75rem;
+  align-items: center;
+  gap: 0.75rem;
+  padding: calc(env(safe-area-inset-top, 0px) + 0.85rem) 1rem 0.85rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(12, 13, 15, 0.94);
+}
+
+.criar-grupo-header > div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  text-align: center;
+}
+
+.criar-grupo-header strong {
+  color: var(--color-text-primary);
+  font-size: 1rem;
+  font-weight: 850;
+}
+
+.criar-grupo-header span {
+  color: var(--color-text-secondary);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.criar-grupo-icone-botao {
+  width: 2.65rem;
+  height: 2.65rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0.9rem;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--color-text-primary);
+}
+
+.criar-grupo-icone-botao:disabled {
+  opacity: 0.35;
+}
+
+.criar-grupo-progresso {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.35rem;
+  padding: 0.75rem 1rem 0;
+}
+
+.criar-grupo-progresso span {
+  height: 0.28rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.criar-grupo-progresso .ativo {
+  background: linear-gradient(90deg, rgba(255, 179, 0, 0.95), rgba(255, 222, 116, 0.88));
+}
+
+.criar-grupo-corpo {
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+.criar-grupo-etapa {
+  display: grid;
+  gap: 1rem;
+}
+
+.criar-grupo-etapa-titulo {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.criar-grupo-etapa-titulo span,
+.criar-grupo-sucesso span {
+  color: var(--color-primary);
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.criar-grupo-etapa-titulo h3,
+.criar-grupo-sucesso h3 {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: 1.35rem;
+}
+
+.criar-grupo-campo {
+  display: grid;
+  gap: 0.45rem;
+  color: var(--color-text-secondary);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.criar-grupo-campo input,
+.criar-grupo-campo textarea {
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 0.85rem;
+  background: rgba(255, 255, 255, 0.055);
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: 1rem;
+  padding: 0.85rem 0.9rem;
+}
+
+.criar-grupo-campo textarea {
+  resize: vertical;
+}
+
+.criar-grupo-opcoes {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.criar-grupo-opcao {
+  display: grid;
+  grid-template-columns: 2.6rem 1fr;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.9rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0.95rem;
+  background: rgba(255, 255, 255, 0.045);
+  color: var(--color-text-primary);
+  text-align: left;
+}
+
+.criar-grupo-opcao.selecionada {
+  border-color: rgba(255, 179, 0, 0.58);
+  background: rgba(255, 179, 0, 0.1);
+}
+
+.criar-grupo-opcao svg {
+  color: var(--color-primary);
+  font-size: 1.15rem;
+}
+
+.criar-grupo-opcao span {
+  display: grid;
+  gap: 0.18rem;
+}
+
+.criar-grupo-opcao strong {
+  font-size: 0.98rem;
+}
+
+.criar-grupo-opcao small,
+.criar-grupo-sucesso p {
+  color: var(--color-text-secondary);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.criar-grupo-acoes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem calc(env(safe-area-inset-bottom, 0px) + 0.9rem);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(12, 13, 15, 0.94);
+}
+
+.criar-grupo-erro {
+  margin: 1rem 0 0;
+  color: var(--cor-erro);
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.criar-grupo-sucesso {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  text-align: center;
+}
+
+.criar-grupo-sucesso-icone {
+  width: 4rem;
+  height: 4rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(255, 179, 0, 0.14);
+  color: var(--color-primary);
+  font-size: 1.45rem;
+}
+
+.criar-grupo-acoes-sucesso {
+  width: 100%;
+  display: grid;
+  gap: 0.7rem;
+  margin-top: 0.5rem;
+}
+
+.criar-grupo-acoes-sucesso button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+}
+
+.criar-grupo-similares-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  align-items: flex-end;
+  padding: 1rem;
+  background: rgba(5, 6, 8, 0.68);
+}
+
+.criar-grupo-similares {
+  width: 100%;
+  display: grid;
+  gap: 0.85rem;
+  padding: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 1rem;
+  background: #111214;
+}
+
+.criar-grupo-similares-topo {
+  display: grid;
+  grid-template-columns: 2.35rem 1fr;
+  gap: 0.75rem;
+  align-items: start;
+}
+
+.criar-grupo-similares-topo svg {
+  color: var(--color-primary);
+  margin-top: 0.2rem;
+}
+
+.criar-grupo-similares h3,
+.criar-grupo-similares p {
+  margin: 0;
+}
+
+.criar-grupo-similares p,
+.criar-grupo-similares span {
+  color: var(--color-text-secondary);
+  font-size: 0.82rem;
+}
+
+.criar-grupo-similares-lista {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.criar-grupo-similares-lista article {
+  display: grid;
+  gap: 0.12rem;
+  padding: 0.7rem;
+  border-radius: 0.8rem;
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.criar-grupo-similares-aviso {
+  padding: 0.75rem;
+  border-radius: 0.8rem;
+  background: rgba(255, 179, 0, 0.1);
+}
+
+.criar-grupo-similares-acoes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.7rem;
+}
+
+@media (min-width: 720px) {
+  .criar-grupo-similares-backdrop {
+    align-items: center;
+  }
+}
