@@ -6,7 +6,7 @@ import { SolicitacaoAcessoAccordion } from '../components/login/SolicitacaoAcess
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { autenticacaoServico } from '../services/autenticacaoServico';
 import { extrairMensagemErro } from '../utils/erros';
-import { aoPressionarEnterParaProximo, blurActiveElement, focusNextField, scrollFocusedInputIntoView } from '../utils/tecladoMobile';
+import { aoPressionarEnterParaProximo, focusNextField, scrollFocusedInputIntoView } from '../utils/tecladoMobile';
 
 const USUARIOS_TESTE_DESENVOLVIMENTO = import.meta.env.DEV
   ? [
@@ -287,9 +287,6 @@ export function PaginaLogin() {
             {carregando
               ? (emModoRecuperacao ? 'Redefinindo...' : 'Entrando...')
               : (emModoRecuperacao ? 'Redefinir senha' : 'Entrar')}
-          </button>
-          <button type="button" className="botao-link botao-fechar-teclado" onClick={blurActiveElement}>
-            Fechar teclado
           </button>
         </form>
 

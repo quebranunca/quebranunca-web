@@ -10,7 +10,7 @@ import { extrairMensagemErro } from '../utils/erros';
 import { PERFIS_USUARIO, ehAtleta } from '../utils/perfis';
 import { rolarParaTopo } from '../utils/rolagem';
 import { obterNomeExibicaoAtleta } from '../utils/atletaUtils';
-import { aoPressionarEnterParaProximo, blurActiveElement, focusNextField, scrollFocusedInputIntoView } from '../utils/tecladoMobile';
+import { aoPressionarEnterParaProximo, focusNextField, scrollFocusedInputIntoView } from '../utils/tecladoMobile';
 
 const estadoInicialGrupoAtleta = {
   nomeAtleta: '',
@@ -339,9 +339,6 @@ export function PaginaGrupoAtletas() {
               <div className="acoes-formulario">
                 <button type="submit" className="botao-primario" disabled={salvandoGrupoAtleta}>
                   {salvandoGrupoAtleta ? 'Salvando...' : 'Adicionar atleta ao grupo'}
-                </button>
-                <button type="button" className="botao-link botao-fechar-teclado" onClick={blurActiveElement}>
-                  Fechar teclado
                 </button>
               </div>
             </form>

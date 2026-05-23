@@ -3,7 +3,7 @@ import { FaChevronDown, FaChevronUp, FaEnvelope, FaUserPlus } from 'react-icons/
 import { EmailDomainSuggestions } from '../formularios/EmailDomainSuggestions';
 import { solicitacoesAcessoServico } from '../../services/solicitacoesAcessoServico';
 import { extrairMensagemErro } from '../../utils/erros';
-import { aoPressionarEnterParaProximo, blurActiveElement, focusNextField, scrollFocusedInputIntoView } from '../../utils/tecladoMobile';
+import { aoPressionarEnterParaProximo, focusNextField, scrollFocusedInputIntoView } from '../../utils/tecladoMobile';
 
 export function SolicitacaoAcessoAccordion() {
   const [expandido, setExpandido] = useState(false);
@@ -106,9 +106,6 @@ export function SolicitacaoAcessoAccordion() {
 
           <button type="submit" className="botao-secundario solicitacao-acesso-botao" disabled={carregando}>
             {carregando ? 'Enviando solicitação...' : 'Solicitar convite'}
-          </button>
-          <button type="button" className="botao-link botao-fechar-teclado" onClick={blurActiveElement}>
-            Fechar teclado
           </button>
 
           <small className="solicitacao-acesso-observacao">

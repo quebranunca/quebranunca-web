@@ -40,7 +40,7 @@ import { PERFIS_USUARIO } from '../utils/perfis';
 import { nomeEstadoAcesso } from '../utils/acesso';
 import { buscarCidadesPorEstado, estadosBrasil, normalizarEstadoParaUf } from '../utils/localidadesBrasil';
 import { rolarParaTopo } from '../utils/rolagem';
-import { blurActiveElement, scrollFocusedInputIntoView } from '../utils/tecladoMobile';
+import { scrollFocusedInputIntoView } from '../utils/tecladoMobile';
 
 const estadoInicialAtleta = {
   nome: '',
@@ -962,9 +962,6 @@ export function PaginaMeuPerfil() {
                       Cancelar
                     </button>
                   )}
-                  <button type="button" className="botao-link botao-fechar-teclado" onClick={blurActiveElement}>
-                    Fechar teclado
-                  </button>
                 </div>
               </div>
             )}
@@ -1085,9 +1082,6 @@ export function PaginaMeuPerfil() {
                       Cancelar
                     </button>
                   )}
-                  <button type="button" className="botao-link botao-fechar-teclado" onClick={blurActiveElement}>
-                    Fechar teclado
-                  </button>
                 </div>
               </div>
             )}
@@ -1214,9 +1208,6 @@ export function PaginaMeuPerfil() {
 
                 <button type="submit" className="botao-secundario" disabled={salvandoUsuario}>
                   {salvandoUsuario ? 'Salvando...' : 'Salvar acesso'}
-                </button>
-                <button type="button" className="botao-link botao-fechar-teclado" onClick={blurActiveElement}>
-                  Fechar teclado
                 </button>
               </form>
             )}

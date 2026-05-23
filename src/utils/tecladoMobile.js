@@ -1,16 +1,5 @@
 export const dominiosEmailRapidos = ['@gmail.com', '@hotmail.com', '@outlook.com'];
 
-export function blurActiveElement() {
-  if (typeof document === 'undefined') {
-    return;
-  }
-
-  const elementoAtivo = document.activeElement;
-  if (elementoAtivo && typeof elementoAtivo.blur === 'function') {
-    elementoAtivo.blur();
-  }
-}
-
 export function appendEmailDomain(valor, dominio) {
   const email = String(valor || '').trim();
   const usuario = email.split('@')[0];

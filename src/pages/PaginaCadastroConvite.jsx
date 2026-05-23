@@ -5,7 +5,7 @@ import { EmailDomainSuggestions } from '../components/formularios/EmailDomainSug
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { convitesCadastroServico } from '../services/convitesCadastroServico';
 import { extrairMensagemErro } from '../utils/erros';
-import { aoPressionarEnterParaProximo, blurActiveElement, focusNextField, scrollFocusedInputIntoView } from '../utils/tecladoMobile';
+import { aoPressionarEnterParaProximo, focusNextField, scrollFocusedInputIntoView } from '../utils/tecladoMobile';
 
 export function PaginaCadastroConvite() {
   const { identificadorPublico = '' } = useParams();
@@ -210,9 +210,6 @@ export function PaginaCadastroConvite() {
 
                   <button type="submit" className="botao-primario" disabled={salvando}>
                     {salvando ? 'Entrando no app...' : 'Confirmar acesso e entrar'}
-                  </button>
-                  <button type="button" className="botao-link botao-fechar-teclado" onClick={blurActiveElement}>
-                    Fechar teclado
                   </button>
                 </form>
               )}

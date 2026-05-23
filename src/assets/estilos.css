@@ -793,22 +793,9 @@ textarea {
   font-weight: 800;
 }
 
-.botao-fechar-teclado {
-  display: none;
-  width: fit-content;
-  justify-self: center;
-  margin-inline: auto;
-  padding: 0.25rem 0.5rem;
-  font-size: 0.78rem;
-}
-
 @media (max-width: 720px), (pointer: coarse) {
   .atalhos-email {
     display: flex;
-  }
-
-  .botao-fechar-teclado {
-    display: inline-flex;
   }
 
   input:focus,

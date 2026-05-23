@@ -11,7 +11,7 @@ import { nomeNivelAtleta, opcoesNivelAtleta } from '../utils/niveisAtleta';
 import { rolarParaElemento, rolarParaTopo } from '../utils/rolagem';
 import { PERFIS_USUARIO, ehAdministrador, ehOrganizador } from '../utils/perfis';
 import { obterNomeExibicaoAtleta } from '../utils/atletaUtils';
-import { blurActiveElement, scrollFocusedInputIntoView } from '../utils/tecladoMobile';
+import { scrollFocusedInputIntoView } from '../utils/tecladoMobile';
 
 const estadoInicial = {
   nome: '',
@@ -373,9 +373,6 @@ export function PaginaAtletas() {
 
             <button type="button" className="botao-secundario" onClick={cancelarEdicao}>
               <ConteudoBotao icone="cancelar" texto={atletaEdicaoId ? 'Cancelar' : 'Fechar'} />
-            </button>
-            <button type="button" className="botao-link botao-fechar-teclado" onClick={blurActiveElement}>
-              Fechar teclado
             </button>
           </div>
         </form>
