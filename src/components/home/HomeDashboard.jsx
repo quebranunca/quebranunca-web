@@ -20,6 +20,7 @@ import { useNotification } from '../../contexts/NotificationContext';
 import { partidasServico } from '../../services/partidasServico';
 import { partidaFeedServico } from '../../services/partidaFeedServico';
 import { extrairMensagemErro } from '../../utils/erros';
+import { formatarData } from '../../utils/formatacao';
 import { podeEditarPartida } from '../../utils/permissoesPartida';
 import { NotificacoesBotao } from '../NotificacoesBotao';
 import { AvatarUsuario, obterFotoPerfilAvatar } from '../AvatarUsuario';
@@ -27,7 +28,7 @@ import { EditarPartidaRegistradaModal } from '../partidas/EditarPartidaRegistrad
 import { FeedPartidaCard } from '../partidas/FeedPartidaCard';
 import { PartidaCardPremium } from '../partidas/PartidaCardPremium';
 import { HomeSectionType, homeSectionsConfig } from './homeSectionsConfig';
-import { montarUrlDashboardDupla } from '../../utils/atletaUtils';
+import { montarUrlDashboardDupla, obterNomeExibicaoAtletaPerfil, obterTituloAtleta } from '../../utils/atletaUtils';
 import '../partidas/feed-partidas.css';
 
 const HOME_NAVIGATION = Object.freeze({
@@ -49,25 +50,59 @@ const secoesHomeLazy = new Set([
 ]);
 
 const skeletonsHomePorSecao = Object.freeze({
+  [HomeSectionType.Hero]: {
+    eyebrow: 'Seu momento',
+    titulo: 'Preparando seu painel',
+    variante: 'hero'
+  },
+  [HomeSectionType.Stats]: {
+    eyebrow: 'Resumo',
+    titulo: 'Estatísticas rápidas',
+    variante: 'stats'
+  },
+  [HomeSectionType.Insights]: {
+    eyebrow: 'Insights',
+    titulo: 'Leitura rápida',
+    variante: 'insights',
+    linhas: 3
+  },
+  [HomeSectionType.RecentMatches]: {
+    eyebrow: 'Últimas partidas',
+    titulo: 'Seu ritmo recente',
+    variante: 'matches',
+    linhas: 2
+  },
   [HomeSectionType.Feed]: {
     eyebrow: 'Feed',
     titulo: 'Jogos da comunidade',
+    variante: 'feed',
     linhas: 3
   },
   [HomeSectionType.Connections]: {
     eyebrow: 'Conexões',
     titulo: 'Quem joga com você',
+    variante: 'connections',
     linhas: 2
   },
   [HomeSectionType.Frequency]: {
     eyebrow: 'Frequência',
     titulo: 'Ritmo da semana',
+    variante: 'frequency',
     linhas: 1
   }
 });
 
-function nomeAtleta(nome, apelido) {
-  return apelido || nome || 'Atleta';
+function nomeAtleta(item) {
+  return obterNomeExibicaoAtletaPerfil(item) || 'Atleta';
+}
+
+function tituloAtleta(item) {
+  return obterTituloAtleta(item) || nomeAtleta(item);
+}
+
+function formatarPercentual(valor) {
+  const numero = Number(valor ?? 0);
+  return `${Number.isInteger(numero) ? numero : numero.toFixed(1)}%`;
 }
 
 function obterIconeInsight(insight) {
@@ -200,7 +235,23 @@ function HomeEstado({ titulo, mensagem }) {
   );
 }
 
-export function HomeDashboard({ dashboard, carregando, erro, onAtualizar }) {
+function obterEstadoModulo(modulos, chave, dadosPadrao = null) {
+  return modulos?.[chave] || {
+    dados: dadosPadrao,
+    carregando: false,
+    erro: ''
+  };
+}
+
+function obterDadosModulo(modulo, fallback) {
+  return modulo?.dados ?? fallback;
+}
+
+function moduloCarregandoSemDados(modulo) {
+  return Boolean(modulo?.carregando && !modulo?.dados);
+}
+
+export function HomeDashboard({ modulos, dashboard, carregando, erro, onAtualizar }) {
   const { usuario } = useAutenticacao();
   const { showNotification } = useNotification();
   const [insightsExpandidos, setInsightsExpandidos] = useState(false);
@@ -252,26 +303,43 @@ export function HomeDashboard({ dashboard, carregando, erro, onAtualizar }) {
   }, [feedLiberado]);
 
   if (carregando) {
-    return <HomeEstado titulo="Carregando seu painel..." />;
+    return <HomeDashboardSkeleton />;
   }
 
-  if (erro) {
+  if (erro && !modulos) {
     return <HomeEstado titulo="Não foi possível carregar sua Home." mensagem={erro} />;
   }
 
-  if (!dashboard) {
+  if (!modulos && !dashboard) {
     return <HomeEstado titulo="Registre partidas para montar sua Home." />;
   }
 
-  const perfil = dashboard.perfil || {};
-  const resumo = dashboard.resumo || {};
-  const heatmap = dashboard.heatmap || [];
-  const ultimasPartidas = (dashboard.ultimasPartidas || []).slice(0, 3);
-  const melhoresParceiros = dashboard.melhoresParceiros || [];
-  const rivaisMaisEnfrentados = dashboard.rivaisMaisEnfrentados || [];
-  const insights = dashboard.insights || [];
+  const perfilModulo = obterEstadoModulo(modulos, 'perfil', dashboard?.perfil || null);
+  const resumoModulo = obterEstadoModulo(modulos, 'resumo', dashboard?.resumo || null);
+  const insightsModulo = obterEstadoModulo(modulos, 'insights', dashboard?.insights || []);
+  const ultimasPartidasModulo = obterEstadoModulo(modulos, 'ultimasPartidas', dashboard?.ultimasPartidas || []);
+  const conexoesModulo = obterEstadoModulo(modulos, 'conexoes', {
+    melhoresParceiros: dashboard?.melhoresParceiros || [],
+    rivaisMaisEnfrentados: dashboard?.rivaisMaisEnfrentados || [],
+    parceirosRecentes: dashboard?.parceirosRecentes || [],
+    rivaisRecentes: dashboard?.rivaisRecentes || []
+  });
+  const frequenciaModulo = obterEstadoModulo(modulos, 'frequencia', dashboard?.heatmap || []);
+  const perfil = obterDadosModulo(perfilModulo, {});
+  const resumo = obterDadosModulo(resumoModulo, {});
+  const heatmap = obterDadosModulo(frequenciaModulo, []);
+  const ultimasPartidas = (obterDadosModulo(ultimasPartidasModulo, []) || []).slice(0, 3);
+  const conexoes = obterDadosModulo(conexoesModulo, {}) || {};
+  const melhoresParceiros = conexoes.melhoresParceiros || [];
+  const rivaisMaisEnfrentados = conexoes.rivaisMaisEnfrentados || [];
+  const parceirosRecentes = conexoes.parceirosRecentes || [];
+  const rivaisRecentes = conexoes.rivaisRecentes || [];
+  const insights = obterDadosModulo(insightsModulo, []) || [];
   const insightsVisiveis = insightsExpandidos ? insights : insights.slice(0, 3);
-  const nomePrincipal = nomeAtleta(perfil.nome, perfil.apelido);
+  const nomePrincipal = nomeAtleta({
+    nome: perfil.nome || usuario?.nome,
+    apelido: perfil.apelido || usuario?.apelido
+  });
   const fotoPerfilUrl = obterFotoPerfilAvatar(perfil) || obterFotoPerfilAvatar(usuario);
   const saudacao = obterSaudacao();
 
@@ -340,31 +408,42 @@ export function HomeDashboard({ dashboard, carregando, erro, onAtualizar }) {
   ];
 
   const renderizadoresSecoes = {
-    [HomeSectionType.Hero]: () => (
+    [HomeSectionType.Hero]: () => moduloCarregandoSemDados(perfilModulo) ? (
+      <HomeSecaoSkeleton sectionType={HomeSectionType.Hero} />
+    ) : (
       <HomeHeroSection
         nomePrincipal={nomePrincipal}
         fotoPerfilUrl={fotoPerfilUrl}
         perfil={perfil}
         badgeMomento={badgeMomento}
+        erro={perfilModulo.erro}
       />
     ),
-    [HomeSectionType.Stats]: () => (
-      <HomeResumoRapidoSection itens={resumoRapido} />
+    [HomeSectionType.Stats]: () => moduloCarregandoSemDados(resumoModulo) ? (
+      <HomeSecaoSkeleton sectionType={HomeSectionType.Stats} />
+    ) : (
+      <HomeResumoRapidoSection itens={resumoRapido} erro={resumoModulo.erro} />
     ),
-    [HomeSectionType.Insights]: () => (
+    [HomeSectionType.Insights]: () => moduloCarregandoSemDados(insightsModulo) ? (
+      <HomeSecaoSkeleton sectionType={HomeSectionType.Insights} />
+    ) : (
       <HomeInsightsSection
         insights={insights}
         insightsVisiveis={insightsVisiveis}
         insightsExpandidos={insightsExpandidos}
         onAlternarInsights={() => setInsightsExpandidos((valor) => !valor)}
+        erro={insightsModulo.erro}
       />
     ),
-    [HomeSectionType.RecentMatches]: () => (
+    [HomeSectionType.RecentMatches]: () => moduloCarregandoSemDados(ultimasPartidasModulo) ? (
+      <HomeSecaoSkeleton sectionType={HomeSectionType.RecentMatches} />
+    ) : (
       <HomeUltimasPartidasSection
         ultimasPartidas={ultimasPartidas}
         perfil={perfil}
         usuario={usuario}
         onAbrirEdicao={abrirEdicao}
+        erro={ultimasPartidasModulo.erro}
       />
     ),
     [HomeSectionType.Feed]: () => (
@@ -374,19 +453,27 @@ export function HomeDashboard({ dashboard, carregando, erro, onAtualizar }) {
         feedPartidas={feedPartidas}
       />
     ),
-    [HomeSectionType.Connections]: () => (
+    [HomeSectionType.Connections]: () => moduloCarregandoSemDados(conexoesModulo) ? (
+      <HomeSecaoSkeleton sectionType={HomeSectionType.Connections} />
+    ) : (
       <HomeConexoesSection
         melhoresParceiros={melhoresParceiros}
         rivaisMaisEnfrentados={rivaisMaisEnfrentados}
+        parceirosRecentes={parceirosRecentes}
+        rivaisRecentes={rivaisRecentes}
         atletaId={perfil.atletaId}
+        erro={conexoesModulo.erro}
       />
     ),
-    [HomeSectionType.Frequency]: () => (
+    [HomeSectionType.Frequency]: () => moduloCarregandoSemDados(frequenciaModulo) ? (
+      <HomeSecaoSkeleton sectionType={HomeSectionType.Frequency} />
+    ) : (
       <HomeFrequenciaSection
         frequenciaPorDiaSemana={frequenciaPorDiaSemana}
         maiorTotalDiaSemana={maiorTotalDiaSemana}
         totalDiasJogados={totalDiasJogados}
         totalJogosPeriodo={totalJogosPeriodo}
+        erro={frequenciaModulo.erro}
       />
     )
   };
@@ -490,6 +577,32 @@ export function HomeDashboard({ dashboard, carregando, erro, onAtualizar }) {
   );
 }
 
+function HomeDashboardSkeleton() {
+  return (
+    <section className="pagina home-dashboard home-dashboard-carregando" aria-busy="true">
+      <div className="home-dashboard-topo-premium home-dashboard-topo-skeleton" aria-hidden="true">
+        <div className="home-dashboard-topo-identidade">
+          <HomeSkeletonLinha className="home-dashboard-skeleton-logo" />
+          <div>
+            <HomeSkeletonLinha largura="10rem" altura="0.9rem" />
+          </div>
+        </div>
+
+        <div className="home-dashboard-topo-acoes">
+          <HomeSkeletonLinha className="home-dashboard-skeleton-icone" />
+          <HomeSkeletonLinha className="home-dashboard-skeleton-avatar-mini" />
+        </div>
+      </div>
+
+      {homeSectionsConfig
+        .filter((secao) => secao.enabled)
+        .map((secao) => (
+          <HomeSecaoSkeleton key={secao.type} sectionType={secao.type} />
+        ))}
+    </section>
+  );
+}
+
 function HomeLazySection({ sectionType, children, onVisible }) {
   const { ref, inView } = useInView({ rootMargin: '360px 0px 220px' });
   const [deveRenderizar, setDeveRenderizar] = useState(false);
@@ -515,30 +628,129 @@ function HomeSecaoSkeleton({ sectionType }) {
   const config = skeletonsHomePorSecao[sectionType] || {
     eyebrow: 'Seção',
     titulo: 'Carregando',
+    variante: 'lista',
     linhas: 2
   };
+  const variante = config.variante || 'lista';
 
   return (
     <section
-      className={`home-dashboard-bloco home-dashboard-skeleton home-dashboard-skeleton-${sectionType}`}
+      className={`home-dashboard-bloco home-dashboard-skeleton home-dashboard-skeleton-${sectionType} home-dashboard-skeleton-${variante}`}
       aria-hidden="true"
     >
       <div className="home-dashboard-skeleton-cabecalho">
         <span>{config.eyebrow}</span>
-        <strong>{config.titulo}</strong>
+        <HomeSkeletonLinha as="strong" largura="min(13rem, 72%)" altura="1.05rem" />
       </div>
-      <div className="home-dashboard-skeleton-lista">
-        {Array.from({ length: config.linhas }).map((_, indice) => (
-          <span key={indice} />
-        ))}
-      </div>
+      <HomeSkeletonConteudo config={config} sectionType={sectionType} />
     </section>
   );
 }
 
-function HomeHeroSection({ nomePrincipal, fotoPerfilUrl, perfil, badgeMomento }) {
+function HomeSkeletonConteudo({ config, sectionType }) {
+  if (config.variante === 'hero') {
+    return (
+      <>
+        <div className="home-dashboard-skeleton-hero-identidade">
+          <HomeSkeletonLinha className="home-dashboard-skeleton-avatar" />
+          <div>
+            <HomeSkeletonLinha largura="58%" altura="1.55rem" />
+            <HomeSkeletonLinha largura="72%" altura="0.82rem" />
+          </div>
+        </div>
+        <HomeSkeletonLinha className="home-dashboard-skeleton-pill" largura="48%" altura="1.85rem" />
+        <div className="home-dashboard-skeleton-acoes">
+          <HomeSkeletonLinha altura="2.55rem" />
+          <HomeSkeletonLinha altura="2.55rem" />
+        </div>
+      </>
+    );
+  }
+
+  if (config.variante === 'stats') {
+    return (
+      <div className="home-dashboard-skeleton-stats-grid">
+        {Array.from({ length: 4 }).map((_, indice) => (
+          <div key={indice} className="home-dashboard-skeleton-stat-card">
+            <HomeSkeletonLinha className="home-dashboard-skeleton-icone-pequeno" />
+            <HomeSkeletonLinha largura="66%" altura="0.68rem" />
+            <HomeSkeletonLinha largura="46%" altura="1.35rem" />
+            <HomeSkeletonLinha largura="78%" altura="0.58rem" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (config.variante === 'frequency') {
+    return (
+      <div className="home-dashboard-skeleton-frequencia-grid">
+        {Array.from({ length: 7 }).map((_, indice) => (
+          <div key={indice} className="home-dashboard-skeleton-frequencia-coluna">
+            <HomeSkeletonLinha
+              className="home-dashboard-skeleton-barra"
+              altura={`${36 + ((indice % 4) * 14)}%`}
+            />
+            <HomeSkeletonLinha largura="1.55rem" altura="0.58rem" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (config.variante === 'connections') {
+    return (
+      <div className="home-dashboard-skeleton-conexoes-grid">
+        {['parceiros', 'rivais'].map((grupo) => (
+          <div key={grupo} className="home-dashboard-skeleton-relacao-grupo">
+            <HomeSkeletonLinha largura="42%" altura="0.82rem" />
+            <HomeSkeletonLista linhas={2} sectionType={sectionType} />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  return <HomeSkeletonLista linhas={config.linhas || 2} sectionType={sectionType} />;
+}
+
+function HomeSkeletonLista({ linhas, sectionType }) {
+  return (
+    <div className="home-dashboard-skeleton-lista">
+      {Array.from({ length: linhas }).map((_, indice) => (
+        <HomeSkeletonLinha key={`${sectionType}-${indice}`} />
+      ))}
+    </div>
+  );
+}
+
+function HomeSkeletonLinha({
+  as: Elemento = 'span',
+  className = '',
+  largura,
+  altura
+}) {
+  const estilo = {
+    ...(largura ? { width: largura } : {}),
+    ...(altura ? { height: altura } : {})
+  };
+
+  return (
+    <Elemento
+      className={`home-dashboard-skeleton-linha ${className}`.trim()}
+      style={estilo}
+    />
+  );
+}
+
+function HomeModuloErro({ mensagem = 'Não foi possível carregar este módulo agora.' }) {
+  return <p className="home-dashboard-vazio home-dashboard-modulo-erro">{mensagem}</p>;
+}
+
+function HomeHeroSection({ nomePrincipal, fotoPerfilUrl, perfil, badgeMomento, erro }) {
   return (
     <header className="home-dashboard-hero">
+      {erro && <HomeModuloErro mensagem="Não foi possível carregar seu resumo agora." />}
       <div className="home-dashboard-atleta-card">
         <AvatarUsuario
           nome={nomePrincipal}
@@ -576,7 +788,15 @@ function HomeHeroSection({ nomePrincipal, fotoPerfilUrl, perfil, badgeMomento })
   );
 }
 
-function HomeResumoRapidoSection({ itens }) {
+function HomeResumoRapidoSection({ itens, erro }) {
+  if (erro) {
+    return (
+      <section className="home-dashboard-resumo" aria-label="Resumo rápido">
+        <HomeModuloErro mensagem="Não foi possível carregar suas estatísticas agora." />
+      </section>
+    );
+  }
+
   return (
     <section className="home-dashboard-resumo" aria-label="Resumo rápido">
       {itens.map((item) => {
@@ -617,14 +837,17 @@ function HomeInsightsSection({
   insights,
   insightsVisiveis,
   insightsExpandidos,
-  onAlternarInsights
+  onAlternarInsights,
+  erro
 }) {
   return (
     <section className="home-dashboard-bloco home-dashboard-insights-bloco">
       <CabecalhoHome eyebrow="Insights" titulo="Leitura rápida" />
 
       <div className="home-dashboard-insights">
-        {insightsVisiveis.length === 0 ? (
+        {erro ? (
+          <HomeModuloErro mensagem="Não foi possível carregar seus insights agora." />
+        ) : insightsVisiveis.length === 0 ? (
           <p className="home-dashboard-vazio">Registre mais partidas para gerar insights.</p>
         ) : (
           insightsVisiveis.map((insight) => (
@@ -636,7 +859,7 @@ function HomeInsightsSection({
         )}
       </div>
 
-      {insights.length > 3 && (
+      {!erro && insights.length > 3 && (
         <button
           type="button"
           className="home-dashboard-link-botao"
@@ -649,7 +872,7 @@ function HomeInsightsSection({
   );
 }
 
-function HomeUltimasPartidasSection({ ultimasPartidas, perfil, usuario, onAbrirEdicao }) {
+function HomeUltimasPartidasSection({ ultimasPartidas, perfil, usuario, onAbrirEdicao, erro }) {
   return (
     <section className="home-dashboard-bloco home-dashboard-ultimas-partidas">
       <CabecalhoHome
@@ -659,7 +882,9 @@ function HomeUltimasPartidasSection({ ultimasPartidas, perfil, usuario, onAbrirE
         acao={<Link to={HOME_NAVIGATION.meusJogos}>Ver todas</Link>}
       />
 
-      {ultimasPartidas.length === 0 ? (
+      {erro ? (
+        <HomeModuloErro mensagem="Não foi possível carregar suas últimas partidas agora." />
+      ) : ultimasPartidas.length === 0 ? (
         <p className="home-dashboard-vazio">Suas últimas partidas aparecerão aqui.</p>
       ) : (
         <div className="meus-jogos-lista-premium">
@@ -691,7 +916,9 @@ function HomeFeedSection({ feedCarregando, feedErro, feedPartidas }) {
         acao={<Link to={HOME_NAVIGATION.feed}>Abrir feed</Link>}
       />
 
-      {feedCarregando && <p className="home-dashboard-vazio">Carregando feed...</p>}
+      {feedCarregando && (
+        <HomeSkeletonLista linhas={3} sectionType={HomeSectionType.Feed} />
+      )}
       {feedErro && !feedCarregando && (
         <p className="home-dashboard-vazio">Não foi possível carregar o feed agora.</p>
       )}
@@ -709,29 +936,46 @@ function HomeFeedSection({ feedCarregando, feedErro, feedPartidas }) {
   );
 }
 
-function HomeConexoesSection({ melhoresParceiros, rivaisMaisEnfrentados, atletaId }) {
+function HomeConexoesSection({
+  melhoresParceiros,
+  rivaisMaisEnfrentados,
+  parceirosRecentes,
+  rivaisRecentes,
+  atletaId,
+  erro
+}) {
   return (
     <section className="home-dashboard-bloco">
-      <CabecalhoHome eyebrow="Conexões" titulo="Quem joga com você" />
+      <CabecalhoHome
+        eyebrow="Conexões"
+        titulo="Duplas e rivalidades"
+        descricao="Relações calculadas a partir das suas partidas válidas."
+      />
 
-      <div className="home-dashboard-conexoes-grid">
-        <DashboardRelacoes
-          titulo="Parceiros"
-          itens={melhoresParceiros}
-          tipo="parceiro"
-          icone={FaUserFriends}
-          vazio="Sem parceiros suficientes."
-          atletaId={atletaId}
-        />
-        <DashboardRelacoes
-          titulo="Rivais"
-          itens={rivaisMaisEnfrentados}
-          tipo="rival"
-          icone={FaShieldAlt}
-          vazio="Sem rivais suficientes."
-          atletaId={atletaId}
-        />
-      </div>
+      {erro ? (
+        <HomeModuloErro mensagem="Não foi possível carregar suas conexões agora." />
+      ) : (
+        <div className="home-dashboard-conexoes-grid">
+          <DashboardRelacoes
+            titulo="Parceiros"
+            itens={melhoresParceiros}
+            recentes={parceirosRecentes}
+            tipo="parceiro"
+            icone={FaUserFriends}
+            vazio="Registre partidas com parceiros para acompanhar sua química de dupla."
+            atletaId={atletaId}
+          />
+          <DashboardRelacoes
+            titulo="Rivais"
+            itens={rivaisMaisEnfrentados}
+            recentes={rivaisRecentes}
+            tipo="rival"
+            icone={FaShieldAlt}
+            vazio="Quando você enfrentar adversários, as rivalidades aparecerão aqui."
+            atletaId={atletaId}
+          />
+        </div>
+      )}
     </section>
   );
 }
@@ -740,7 +984,8 @@ function HomeFrequenciaSection({
   frequenciaPorDiaSemana,
   maiorTotalDiaSemana,
   totalDiasJogados,
-  totalJogosPeriodo
+  totalJogosPeriodo,
+  erro
 }) {
   return (
     <section className="home-dashboard-bloco home-dashboard-frequencia">
@@ -755,6 +1000,9 @@ function HomeFrequenciaSection({
         acao={<Link to={HOME_NAVIGATION.meusJogos}>Ver histórico</Link>}
       />
 
+      {erro ? (
+        <HomeModuloErro mensagem="Não foi possível carregar sua frequência agora." />
+      ) : (
       <div className="home-dashboard-grafico-frequencia">
         <div className="home-dashboard-grafico-barras">
           {frequenciaPorDiaSemana.map((dia) => {
@@ -778,6 +1026,7 @@ function HomeFrequenciaSection({
           })}
         </div>
       </div>
+      )}
     </section>
   );
 }
@@ -893,7 +1142,10 @@ function PartidaHomeCard({ partida, atletaId, onEditar }) {
   );
 }
 
-function DashboardRelacoes({ titulo, itens, tipo, icone: Icone, vazio, atletaId }) {
+function DashboardRelacoes({ titulo, itens, recentes, tipo, icone: Icone, vazio, atletaId }) {
+  const principal = itens[0] || null;
+  const listaRecentes = (recentes || []).filter((item) => item.atletaId !== principal?.atletaId).slice(0, 5);
+
   return (
     <section className="home-dashboard-relacao-grupo">
       <div className="home-dashboard-relacao-grupo-titulo">
@@ -905,44 +1157,89 @@ function DashboardRelacoes({ titulo, itens, tipo, icone: Icone, vazio, atletaId 
         {itens.length === 0 ? (
           <p className="home-dashboard-vazio">{vazio}</p>
         ) : (
-          itens.slice(0, 6).map((item) => {
-            const destino = obterDestinoConexao(item, tipo, atletaId);
-            const conteudo = (
-              <>
-                <AvatarUsuario
-                  nome={nomeAtleta(item.nome, item.apelido)}
-                  fotoPerfilUrl={obterFotoPerfilAvatar(item)}
-                  tamanho="sm"
-                  className="home-dashboard-relacao-avatar"
-                />
+          <>
+            <DashboardRelacaoCard
+              item={principal}
+              tipo={tipo}
+              atletaId={atletaId}
+              destaque
+            />
+            {listaRecentes.length > 0 && (
+              <div className="home-dashboard-relacoes-recentes">
+                <span>{tipo === 'parceiro' ? 'Parceiros recentes' : 'Rivais recentes'}</span>
                 <div>
-                  <strong>{nomeAtleta(item.nome, item.apelido)}</strong>
-                  <span>
-                    {item.partidas} {tipo === 'parceiro' ? 'jogos juntos' : 'jogos enfrentados'}
-                  </span>
-                  <small>{item.aproveitamento}% aproveitamento</small>
+                  {listaRecentes.map((item) => (
+                    <DashboardRelacaoCard
+                      key={item.atletaId || item.nome}
+                      item={item}
+                      tipo={tipo}
+                      atletaId={atletaId}
+                    />
+                  ))}
                 </div>
-                {destino && <FaChevronRight aria-hidden="true" />}
-              </>
-            );
-
-            return destino ? (
-              <Link
-                key={item.atletaId}
-                to={destino}
-                className="home-dashboard-relacao home-dashboard-relacao-link"
-                aria-label={`Abrir ${tipo === 'parceiro' ? 'dashboard da dupla com' : 'dashboard de'} ${nomeAtleta(item.nome, item.apelido)}`}
-              >
-                {conteudo}
-              </Link>
-            ) : (
-              <article key={item.atletaId || item.nome} className="home-dashboard-relacao">
-                {conteudo}
-              </article>
-            );
-          })
+              </div>
+            )}
+          </>
         )}
       </div>
     </section>
+  );
+}
+
+function DashboardRelacaoCard({ item, tipo, atletaId, destaque = false }) {
+  if (!item) {
+    return null;
+  }
+
+  const destino = obterDestinoConexao(item, tipo, atletaId);
+  const nome = nomeAtleta(item);
+  const titulo = tituloAtleta(item);
+  const rotuloPartidas = tipo === 'parceiro' ? 'jogos juntos' : 'jogos enfrentados';
+  const rotuloAproveitamento = tipo === 'parceiro' ? 'aproveitamento juntos' : 'aproveitamento contra';
+  const ultimaPartida = item.ultimaPartida ? formatarData(item.ultimaPartida) : '';
+  const classes = [
+    'home-dashboard-relacao',
+    destino ? 'home-dashboard-relacao-link' : '',
+    destaque ? 'home-dashboard-relacao-destaque' : ''
+  ].filter(Boolean).join(' ');
+  const conteudo = (
+    <>
+      <AvatarUsuario
+        nome={nome}
+        fotoPerfilUrl={obterFotoPerfilAvatar(item)}
+        tamanho={destaque ? 'md' : 'sm'}
+        className="home-dashboard-relacao-avatar"
+      />
+      <div className="home-dashboard-relacao-conteudo">
+        {destaque && (
+          <span className="home-dashboard-relacao-kicker">
+            {tipo === 'parceiro' ? 'Mais frequente' : 'Rival mais frequente'}
+          </span>
+        )}
+        <strong title={titulo}>{nome}</strong>
+        <span>
+          {item.partidas} {rotuloPartidas} · {item.vitorias}V/{item.derrotas ?? Math.max((item.partidas ?? 0) - (item.vitorias ?? 0), 0)}D
+        </span>
+        <small>
+          {formatarPercentual(item.aproveitamento)} {rotuloAproveitamento}
+          {ultimaPartida ? ` · último em ${ultimaPartida}` : ''}
+        </small>
+      </div>
+      {destino && <FaChevronRight aria-hidden="true" />}
+    </>
+  );
+
+  return destino ? (
+    <Link
+      to={destino}
+      className={classes}
+      aria-label={`Abrir ${tipo === 'parceiro' ? 'dashboard da dupla com' : 'dashboard de'} ${titulo}`}
+    >
+      {conteudo}
+    </Link>
+  ) : (
+    <article className={classes}>
+      {conteudo}
+    </article>
   );
 }

@@ -4,39 +4,79 @@ import { HomeDashboard } from '../../components/home/HomeDashboard';
 import { extrairMensagemErro } from '../../utils/erros';
 import '../../components/home/home-dashboard.css';
 
-export function HomeDashboardContainer() {
-  const [dashboard, setDashboard] = useState(null);
-  const [carregando, setCarregando] = useState(true);
-  const [erro, setErro] = useState('');
+const estadoInicialModulo = Object.freeze({
+  dados: null,
+  carregando: true,
+  erro: ''
+});
 
-  async function carregarDashboard(estaAtivo = () => true) {
-    setCarregando(true);
-    setErro('');
+function criarEstadoInicialModulos() {
+  return {
+    perfil: { ...estadoInicialModulo },
+    resumo: { ...estadoInicialModulo },
+    insights: { ...estadoInicialModulo },
+    ultimasPartidas: { ...estadoInicialModulo },
+    conexoes: { ...estadoInicialModulo },
+    frequencia: { ...estadoInicialModulo }
+  };
+}
+
+export function HomeDashboardContainer() {
+  const [modulos, setModulos] = useState(criarEstadoInicialModulos);
+
+  async function carregarModulo(chave, carregador, estaAtivo = () => true) {
+    setModulos((anteriores) => ({
+      ...anteriores,
+      [chave]: {
+        ...anteriores[chave],
+        carregando: true,
+        erro: ''
+      }
+    }));
 
     try {
-      const dados = await dashboardServico.obterDashboardAtleta();
+      const dados = await carregador();
       if (estaAtivo()) {
-        setDashboard(dados);
+        setModulos((anteriores) => ({
+          ...anteriores,
+          [chave]: { dados, carregando: false, erro: '' }
+        }));
       }
     } catch (falha) {
       if (estaAtivo()) {
-        setErro(extrairMensagemErro(falha));
-      }
-    } finally {
-      if (estaAtivo()) {
-        setCarregando(false);
+        setModulos((anteriores) => ({
+          ...anteriores,
+          [chave]: {
+            ...anteriores[chave],
+            carregando: false,
+            erro: extrairMensagemErro(falha)
+          }
+        }));
       }
     }
   }
 
+  function carregarModulos(estaAtivo = () => true) {
+    const carregamentos = [
+      carregarModulo('perfil', dashboardServico.obterPerfilAtleta, estaAtivo),
+      carregarModulo('resumo', dashboardServico.obterResumoAtleta, estaAtivo),
+      carregarModulo('insights', dashboardServico.obterInsightsAtleta, estaAtivo),
+      carregarModulo('ultimasPartidas', dashboardServico.listarUltimasPartidasAtleta, estaAtivo),
+      carregarModulo('conexoes', dashboardServico.obterConexoesAtleta, estaAtivo),
+      carregarModulo('frequencia', dashboardServico.obterFrequenciaAtleta, estaAtivo)
+    ];
+
+    return Promise.allSettled(carregamentos);
+  }
+
   useEffect(() => {
     let ativo = true;
-    carregarDashboard(() => ativo);
+    carregarModulos(() => ativo);
 
     return () => {
       ativo = false;
     };
   }, []);
 
-  return <HomeDashboard dashboard={dashboard} carregando={carregando} erro={erro} onAtualizar={carregarDashboard} />;
+  return <HomeDashboard modulos={modulos} onAtualizar={carregarModulos} />;
 }

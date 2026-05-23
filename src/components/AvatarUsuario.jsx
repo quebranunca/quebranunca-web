@@ -8,13 +8,13 @@ const classesTamanho = {
 };
 
 export function obterIniciaisAvatar(nome) {
-  const partes = String(nome || 'QNF')
+  const partes = String(nome || '')
     .trim()
     .split(/\s+/)
     .filter(Boolean);
 
   if (!partes.length) {
-    return 'QNF';
+    return '?';
   }
 
   return partes
@@ -29,13 +29,19 @@ export function obterFotoPerfilAvatar(item) {
     return '';
   }
 
-  return item.fotoPerfilUrl
+  const fotoUrl = item.fotoPerfilUrl
     || item.FotoPerfilUrl
     || item.usuarioFotoPerfilUrl
     || item.atletaFotoPerfilUrl
+    || item.imagemPerfilUrl
+    || item.profileImageUrl
+    || item.profilePhotoUrl
     || item.fotoUrl
+    || item.urlFoto
     || item.avatarUrl
     || '';
+
+  return typeof fotoUrl === 'string' ? fotoUrl.trim() : fotoUrl;
 }
 
 export function AvatarUsuario({

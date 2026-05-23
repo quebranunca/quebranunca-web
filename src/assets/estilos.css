@@ -520,29 +520,38 @@ textarea {
 .mobile-bottom-registrar {
   flex: 1.12 1 0;
   color: #090909;
-  background: linear-gradient(180deg, var(--cor-primaria) 0%, var(--cor-primaria-escura) 100%);
-  border-color: rgba(255, 179, 0, 0.34);
-  box-shadow: 0 8px 18px rgba(255, 179, 0, 0.14);
-  transform: translateY(-0.38rem);
+  min-height: 2.88rem;
+  background: linear-gradient(180deg, #ffc247 0%, #f29a12 100%);
+  border-color: rgba(255, 179, 0, 0.26);
+  box-shadow: 0 6px 14px rgba(255, 179, 0, 0.11);
+  transform: translateY(-0.26rem);
 }
 
 .mobile-bottom-registrar:hover:not(:disabled) {
-  transform: translateY(-0.46rem);
+  transform: translateY(-0.32rem);
+  box-shadow: 0 8px 17px rgba(255, 179, 0, 0.13);
+}
+
+.mobile-bottom-registrar:active:not(:disabled) {
+  transform: translateY(-0.16rem) scale(0.985);
+  box-shadow: 0 3px 9px rgba(255, 179, 0, 0.12);
 }
 
 .mobile-bottom-registrar.ativo {
   color: #090909;
-  background: linear-gradient(180deg, var(--cor-primaria) 0%, var(--cor-primaria-escura) 100%);
+  background: linear-gradient(180deg, #ffc247 0%, #f29a12 100%);
+  border-color: rgba(255, 179, 0, 0.34);
+  box-shadow: 0 7px 16px rgba(255, 179, 0, 0.13);
 }
 
 .mobile-bottom-registrar-icone {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.6rem;
-  height: 1.6rem;
+  width: 1.48rem;
+  height: 1.48rem;
   border-radius: 999px;
-  background: rgba(0, 0, 0, 0.12);
+  background: rgba(0, 0, 0, 0.1);
 }
 
 .item-menu {
@@ -6881,19 +6890,39 @@ a.botao-terciario:active {
 
   border-radius: 999px;
 
-  background: linear-gradient(135deg, #ffb000, #ff8c00);
+  background: linear-gradient(135deg, #ffc247, #f29a12);
 
   color: #050505;
   text-decoration: none;
   font-weight: 700;
 
-  box-shadow: 0 6px 18px rgba(255, 176, 0, 0.28);
+  box-shadow: 0 5px 14px rgba(255, 176, 0, 0.18);
 
   transition: all 0.2s ease;
 }
 
 .botao-registrar-partida-topo:hover {
   transform: translateY(-1px);
+  box-shadow: 0 7px 16px rgba(255, 176, 0, 0.2);
+}
+
+.botao-registrar-partida-topo:active {
+  transform: translateY(0) scale(0.985);
+  box-shadow: 0 3px 9px rgba(255, 176, 0, 0.16);
+}
+
+.botao-primario.home-botao {
+  background: linear-gradient(180deg, #ffc247 0%, #f29a12 100%);
+  box-shadow: 0 7px 18px rgba(255, 179, 0, 0.13);
+}
+
+.botao-primario.home-botao:hover {
+  box-shadow: 0 9px 20px rgba(255, 179, 0, 0.15);
+}
+
+.botao-primario.home-botao:active {
+  transform: translateY(0) scale(0.985);
+  box-shadow: 0 3px 9px rgba(255, 179, 0, 0.12);
 }
 
 .botao-registrar-icone {
