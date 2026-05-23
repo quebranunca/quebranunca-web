@@ -11,7 +11,7 @@ import {
 } from 'react-icons/fa';
 import { AvatarUsuario, obterFotoPerfilAvatar } from '../AvatarUsuario';
 import { CompartilharPartidaBotao } from './CompartilharPartidaBotao';
-import { aoPressionarEnterParaProximo, blurActiveElement, focusNextField, scrollFocusedInputIntoView } from '../../utils/tecladoMobile';
+import { aoPressionarEnterParaProximo, focusNextField, scrollFocusedInputIntoView } from '../../utils/tecladoMobile';
 
 function obterValorCampo(dados, campo) {
   return campo.split('.').reduce((valor, parte) => valor?.[parte], dados) ?? '';
@@ -599,7 +599,6 @@ export function RegistrarPartidaNovoModal({
   onRegistrarRevanche,
   onRegistrarNovaPartida
 }) {
-  const [tecladoVisivel, setTecladoVisivel] = useState(false);
   const campoRef = useRef(null);
   const dupla1Atleta2Ref = useRef(null);
   const dupla2Atleta1Ref = useRef(null);
@@ -618,30 +617,6 @@ export function RegistrarPartidaNovoModal({
       campoRef.current?.focus();
     }
   }, [aberto, revisando, sucesso]);
-
-  function atualizarTecladoVisivel(evento) {
-    const elemento = evento.target;
-    setTecladoVisivel(
-      elemento instanceof HTMLElement &&
-      ['INPUT', 'TEXTAREA', 'SELECT'].includes(elemento.tagName)
-    );
-  }
-
-  function verificarTecladoAposBlur() {
-    window.setTimeout(() => {
-      setTecladoVisivel(
-        document.activeElement instanceof HTMLElement &&
-        document.activeElement.closest('.registrar-partida-novo-modal') &&
-        ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)
-      );
-    }, 0);
-  }
-
-  function ocultarTeclado(evento) {
-    evento.preventDefault();
-    blurActiveElement();
-    setTecladoVisivel(false);
-  }
 
   if (!aberto) {
     return null;
@@ -678,8 +653,6 @@ export function RegistrarPartidaNovoModal({
           <form
             className="registrar-partida-novo-formulario"
             onSubmit={onConfirmarEtapa}
-            onFocusCapture={atualizarTecladoVisivel}
-            onBlurCapture={verificarTecladoAposBlur}
           >
             <main className="registrar-partida-novo-corpo">
               {erro && <p className="texto-erro registrar-partida-novo-erro">{erro}</p>}
@@ -714,15 +687,6 @@ export function RegistrarPartidaNovoModal({
 
             {!revisando && (
               <div className="registrar-partida-novo-acoes">
-                {tecladoVisivel && (
-                  <button
-                    type="button"
-                    className="botao-link registrar-partida-novo-ocultar-teclado"
-                    onPointerDown={ocultarTeclado}
-                  >
-                    Ocultar teclado
-                  </button>
-                )}
                 <button type="submit" className="botao-primario" disabled={salvando}>
                   Revisar partida
                 </button>
