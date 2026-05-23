@@ -12,6 +12,7 @@ import {
 import { AvatarUsuario, obterFotoPerfilAvatar } from '../AvatarUsuario';
 import { CompartilharPartidaBotao } from './CompartilharPartidaBotao';
 import { GrupoContextoPartida } from './GrupoContextoPartida';
+import { SeletorGrupoPartida } from './SeletorGrupoPartida';
 import { aoPressionarEnterParaProximo, focusNextField, scrollFocusedInputIntoView } from '../../utils/tecladoMobile';
 
 function obterValorCampo(dados, campo) {
@@ -591,10 +592,12 @@ export function RegistrarPartidaNovoModal({
   carregandoGrupo,
   gruposDisponiveis,
   carregandoGruposDisponiveis,
+  erroGruposDisponiveis,
   seletorGrupoAberto,
   onSelecionarGrupo,
   onEscolherGrupo,
   onRemoverGrupo,
+  onFecharSeletorGrupo,
   onAlterarCampo,
   onSelecionarAtleta,
   onConfirmarEtapa,
@@ -668,12 +671,7 @@ export function RegistrarPartidaNovoModal({
             <GrupoContextoPartida
               grupo={grupo}
               carregando={carregandoGrupo}
-              gruposDisponiveis={gruposDisponiveis}
-              carregandoGruposDisponiveis={carregandoGruposDisponiveis}
-              seletorAberto={seletorGrupoAberto}
               onSelecionarGrupo={onSelecionarGrupo}
-              onEscolherGrupo={onEscolherGrupo}
-              onRemoverGrupo={onRemoverGrupo}
             />
 
             <main className="registrar-partida-novo-corpo">
@@ -714,6 +712,17 @@ export function RegistrarPartidaNovoModal({
                 </button>
               </div>
             )}
+
+            <SeletorGrupoPartida
+              aberto={seletorGrupoAberto}
+              grupos={gruposDisponiveis}
+              grupoSelecionado={grupo}
+              carregando={carregandoGruposDisponiveis}
+              erro={erroGruposDisponiveis}
+              onSelecionarGrupo={onEscolherGrupo}
+              onRemoverGrupo={onRemoverGrupo}
+              onFechar={onFecharSeletorGrupo}
+            />
           </form>
         )}
       </section>

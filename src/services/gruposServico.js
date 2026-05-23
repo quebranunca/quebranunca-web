@@ -11,6 +11,11 @@ export const gruposServico = {
     return resposta.data;
   },
 
+  async listarParaSelecao() {
+    const resposta = await http.get('/grupos/selecao');
+    return resposta.data;
+  },
+
   async obterResumoUsuario() {
     const resposta = await http.get('/grupos/resumo-usuario');
     return resposta.data;

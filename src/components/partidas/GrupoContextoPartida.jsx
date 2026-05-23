@@ -1,4 +1,4 @@
-import { FaChevronRight, FaTimes, FaVolleyballBall } from 'react-icons/fa';
+import { FaVolleyballBall } from 'react-icons/fa';
 
 function formatarQuantidadeAtletas(valor) {
   const quantidade = Number(valor);
@@ -27,12 +27,7 @@ function GrupoAvatar({ grupo }) {
 export function GrupoContextoPartida({
   grupo,
   onSelecionarGrupo,
-  onEscolherGrupo,
-  onRemoverGrupo,
-  carregando,
-  gruposDisponiveis = [],
-  carregandoGruposDisponiveis = false,
-  seletorAberto = false
+  carregando
 }) {
   const possuiGrupo = Boolean(grupo?.id);
 
@@ -70,47 +65,6 @@ export function GrupoContextoPartida({
           {possuiGrupo ? 'Trocar' : 'Selecionar'}
         </button>
       </div>
-
-      {seletorAberto && (
-        <div className="grupo-contexto-partida-seletor">
-          {possuiGrupo && (
-            <button type="button" className="grupo-contexto-partida-opcao" onClick={onRemoverGrupo}>
-              <span className="grupo-contexto-partida-opcao-icone">
-                <FaTimes aria-hidden="true" />
-              </span>
-              <span>
-                <strong>Sem grupo</strong>
-                <small>Registrar como partida avulsa</small>
-              </span>
-              <FaChevronRight aria-hidden="true" />
-            </button>
-          )}
-
-          {carregandoGruposDisponiveis && (
-            <span className="grupo-contexto-partida-status">Carregando grupos...</span>
-          )}
-
-          {!carregandoGruposDisponiveis && gruposDisponiveis.length === 0 && (
-            <span className="grupo-contexto-partida-status">Nenhum grupo disponível.</span>
-          )}
-
-          {!carregandoGruposDisponiveis && gruposDisponiveis.map((item) => (
-            <button
-              type="button"
-              key={item.id}
-              className="grupo-contexto-partida-opcao"
-              onClick={() => onEscolherGrupo?.(item)}
-            >
-              <GrupoAvatar grupo={item} />
-              <span>
-                <strong>{item.nome}</strong>
-                <small>{formatarQuantidadeAtletas(item.quantidadeAtletas)} • {item.privacidade || 'Privado'}</small>
-              </span>
-              <FaChevronRight aria-hidden="true" />
-            </button>
-          ))}
-        </div>
-      )}
     </section>
   );
 }

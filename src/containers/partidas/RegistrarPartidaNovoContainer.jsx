@@ -257,6 +257,7 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
   const [carregandoGrupo, setCarregandoGrupo] = useState(false);
   const [gruposDisponiveis, setGruposDisponiveis] = useState([]);
   const [carregandoGruposDisponiveis, setCarregandoGruposDisponiveis] = useState(false);
+  const [erroGruposDisponiveis, setErroGruposDisponiveis] = useState(false);
   const [seletorGrupoAberto, setSeletorGrupoAberto] = useState(false);
   const cacheBuscaRef = useRef(new Map());
   const buscaTimersRef = useRef({});
@@ -565,7 +566,7 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
   }
 
   async function abrirSeletorGrupo() {
-    setSeletorGrupoAberto((aberto) => !aberto);
+    setSeletorGrupoAberto(true);
 
     if (gruposDisponiveis.length || carregandoGruposDisponiveis) {
       return;
@@ -573,10 +574,12 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
 
     try {
       setCarregandoGruposDisponiveis(true);
-      const grupos = await gruposServico.listar();
+      setErroGruposDisponiveis(false);
+      const grupos = await gruposServico.listarParaSelecao();
       setGruposDisponiveis((grupos || []).map((grupo) => normalizarGrupoContexto(grupo)));
     } catch {
       setGruposDisponiveis([]);
+      setErroGruposDisponiveis(true);
     } finally {
       setCarregandoGruposDisponiveis(false);
     }
@@ -593,6 +596,10 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
     setErro('');
     setDuplicidade(null);
     setPayloadPendente(null);
+  }
+
+  function fecharSeletorGrupo() {
+    setSeletorGrupoAberto(false);
   }
 
   function removerGrupo() {
@@ -679,10 +686,12 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
         carregandoGrupo={carregandoGrupo}
         gruposDisponiveis={gruposDisponiveis}
         carregandoGruposDisponiveis={carregandoGruposDisponiveis}
+        erroGruposDisponiveis={erroGruposDisponiveis}
         seletorGrupoAberto={seletorGrupoAberto}
         onSelecionarGrupo={abrirSeletorGrupo}
         onEscolherGrupo={selecionarGrupo}
         onRemoverGrupo={removerGrupo}
+        onFecharSeletorGrupo={fecharSeletorGrupo}
         onAlterarCampo={alterarCampo}
         onSelecionarAtleta={selecionarAtleta}
         onConfirmarEtapa={confirmarEtapa}
