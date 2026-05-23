@@ -6,6 +6,8 @@ import { useNotification } from '../../contexts/NotificationContext';
 import { useAutenticacao } from '../../hooks/useAutenticacao';
 import { atletasServico } from '../../services/atletasServico';
 import { competicoesServico } from '../../services/competicoesServico';
+import { grupoAtletasServico } from '../../services/grupoAtletasServico';
+import { gruposServico } from '../../services/gruposServico';
 import { partidasServico } from '../../services/partidasServico';
 import { obterNomeExibicaoAtleta } from '../../utils/atletaUtils';
 import { ehConfirmacaoDuplicidadePartida, extrairConfirmacaoDuplicidadePartida, extrairMensagemErro } from '../../utils/erros';
@@ -214,6 +216,25 @@ function limitarSugestoes(atletas) {
   return (atletas || []).slice(0, 5).map(criarAtletaSelecao);
 }
 
+function obterGrupoId(grupo) {
+  return grupo?.id || grupo?.grupoId || null;
+}
+
+function normalizarGrupoContexto(grupo, quantidadeAtletas) {
+  if (!grupo) {
+    return null;
+  }
+
+  return {
+    ...grupo,
+    id: obterGrupoId(grupo),
+    nome: grupo.nome || grupo.nomeGrupo || 'Grupo',
+    quantidadeAtletas: grupo.quantidadeAtletas ?? grupo.totalAtletas ?? quantidadeAtletas ?? null,
+    privacidade: grupo.privacidade || grupo.tipoPrivacidade || 'Privado',
+    imagemUrl: grupo.imagemUrl || grupo.fotoUrl || grupo.avatarUrl || ''
+  };
+}
+
 export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }) {
   const { usuario } = useAutenticacao();
   const navegar = useNavigate();
@@ -231,6 +252,12 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
   const [campoBuscando, setCampoBuscando] = useState('');
   const [sucesso, setSucesso] = useState(null);
   const [uploadMidiaAberto, setUploadMidiaAberto] = useState(false);
+  const [contextoPartida, setContextoPartida] = useState(contextoInicial);
+  const [grupoContexto, setGrupoContexto] = useState(null);
+  const [carregandoGrupo, setCarregandoGrupo] = useState(false);
+  const [gruposDisponiveis, setGruposDisponiveis] = useState([]);
+  const [carregandoGruposDisponiveis, setCarregandoGruposDisponiveis] = useState(false);
+  const [seletorGrupoAberto, setSeletorGrupoAberto] = useState(false);
   const cacheBuscaRef = useRef(new Map());
   const buscaTimersRef = useRef({});
 
@@ -253,8 +280,57 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
       dupla2: dados.dupla2.pontos
     },
     data: new Date(),
-    contexto: contextoInicial
-  }), [dados, contextoInicial]);
+    contexto: contextoPartida
+  }), [dados, contextoPartida]);
+
+  useEffect(() => {
+    setContextoPartida(contextoInicial);
+  }, [contextoInicial?.competicaoId, contextoInicial?.grupoId, contextoInicial?.categoriaId]);
+
+  useEffect(() => {
+    let cancelado = false;
+    const grupoId = contextoPartida?.grupoId;
+
+    async function carregarGrupoContexto() {
+      if (!grupoId) {
+        setGrupoContexto(null);
+        setCarregandoGrupo(false);
+        return;
+      }
+
+      try {
+        setCarregandoGrupo(true);
+        const [grupo, atletas] = await Promise.all([
+          gruposServico.obterPorId(grupoId),
+          grupoAtletasServico.listarPorGrupo(grupoId).catch(() => [])
+        ]);
+
+        if (!cancelado) {
+          setGrupoContexto(normalizarGrupoContexto(grupo, atletas?.length));
+        }
+      } catch {
+        if (!cancelado) {
+          setGrupoContexto({
+            id: grupoId,
+            nome: 'Grupo selecionado',
+            quantidadeAtletas: null,
+            privacidade: 'Privado',
+            imagemUrl: ''
+          });
+        }
+      } finally {
+        if (!cancelado) {
+          setCarregandoGrupo(false);
+        }
+      }
+    }
+
+    carregarGrupoContexto();
+
+    return () => {
+      cancelado = true;
+    };
+  }, [contextoPartida?.grupoId]);
 
   useEffect(() => {
     let cancelado = false;
@@ -344,7 +420,7 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
     }
 
     buscaTimersRef.current[campo] = setTimeout(async () => {
-      const competicaoId = contextoInicial?.competicaoId;
+      const competicaoId = contextoPartida?.competicaoId;
       const chaveCache = `${competicaoId || 'geral'}:${termo.toLowerCase()}`;
 
       if (cacheBuscaRef.current.has(chaveCache)) {
@@ -458,7 +534,7 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
     }
 
     const payload = {
-      ...criarPayload(dados, selecoes, usuario, atletaUsuario, contextoInicial),
+      ...criarPayload(dados, selecoes, usuario, atletaUsuario, contextoPartida),
       confirmarDuplicidade
     };
 
@@ -486,6 +562,49 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
     if (payloadPendente) {
       salvarPartida({ ...payloadPendente, confirmarDuplicidade: true });
     }
+  }
+
+  async function abrirSeletorGrupo() {
+    setSeletorGrupoAberto((aberto) => !aberto);
+
+    if (gruposDisponiveis.length || carregandoGruposDisponiveis) {
+      return;
+    }
+
+    try {
+      setCarregandoGruposDisponiveis(true);
+      const grupos = await gruposServico.listar();
+      setGruposDisponiveis((grupos || []).map((grupo) => normalizarGrupoContexto(grupo)));
+    } catch {
+      setGruposDisponiveis([]);
+    } finally {
+      setCarregandoGruposDisponiveis(false);
+    }
+  }
+
+  function selecionarGrupo(grupo) {
+    const grupoNormalizado = normalizarGrupoContexto(grupo);
+    setContextoPartida((atual) => ({
+      ...atual,
+      grupoId: obterGrupoId(grupoNormalizado)
+    }));
+    setGrupoContexto(grupoNormalizado);
+    setSeletorGrupoAberto(false);
+    setErro('');
+    setDuplicidade(null);
+    setPayloadPendente(null);
+  }
+
+  function removerGrupo() {
+    setContextoPartida((atual) => ({
+      ...atual,
+      grupoId: null
+    }));
+    setGrupoContexto(null);
+    setSeletorGrupoAberto(false);
+    setErro('');
+    setDuplicidade(null);
+    setPayloadPendente(null);
   }
 
   function registrarRevanche() {
@@ -556,6 +675,14 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
         salvando={carregando}
         revisando={revisando}
         duplicidade={duplicidade}
+        grupo={grupoContexto}
+        carregandoGrupo={carregandoGrupo}
+        gruposDisponiveis={gruposDisponiveis}
+        carregandoGruposDisponiveis={carregandoGruposDisponiveis}
+        seletorGrupoAberto={seletorGrupoAberto}
+        onSelecionarGrupo={abrirSeletorGrupo}
+        onEscolherGrupo={selecionarGrupo}
+        onRemoverGrupo={removerGrupo}
         onAlterarCampo={alterarCampo}
         onSelecionarAtleta={selecionarAtleta}
         onConfirmarEtapa={confirmarEtapa}

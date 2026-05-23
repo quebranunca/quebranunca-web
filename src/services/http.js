@@ -38,6 +38,19 @@ export const http = axios.create({
 
 let manipuladorNaoAutorizado = null;
 
+http.interceptors.request.use((config) => {
+  if (typeof FormData !== 'undefined' && config.data instanceof FormData && config.headers) {
+    if (typeof config.headers.delete === 'function') {
+      config.headers.delete('Content-Type');
+    } else {
+      delete config.headers['Content-Type'];
+      delete config.headers['content-type'];
+    }
+  }
+
+  return config;
+});
+
 http.interceptors.response.use(
   (resposta) => resposta,
   (erro) => {

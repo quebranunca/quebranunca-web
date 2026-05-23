@@ -11,6 +11,7 @@ import {
 } from 'react-icons/fa';
 import { AvatarUsuario, obterFotoPerfilAvatar } from '../AvatarUsuario';
 import { CompartilharPartidaBotao } from './CompartilharPartidaBotao';
+import { GrupoContextoPartida } from './GrupoContextoPartida';
 import { aoPressionarEnterParaProximo, focusNextField, scrollFocusedInputIntoView } from '../../utils/tecladoMobile';
 
 function obterValorCampo(dados, campo) {
@@ -586,6 +587,14 @@ export function RegistrarPartidaNovoModal({
   salvando,
   revisando,
   duplicidade,
+  grupo,
+  carregandoGrupo,
+  gruposDisponiveis,
+  carregandoGruposDisponiveis,
+  seletorGrupoAberto,
+  onSelecionarGrupo,
+  onEscolherGrupo,
+  onRemoverGrupo,
   onAlterarCampo,
   onSelecionarAtleta,
   onConfirmarEtapa,
@@ -654,6 +663,19 @@ export function RegistrarPartidaNovoModal({
             className="registrar-partida-novo-formulario"
             onSubmit={onConfirmarEtapa}
           >
+            <Stepper etapas={etapas} indiceEtapa={indiceEtapa} />
+
+            <GrupoContextoPartida
+              grupo={grupo}
+              carregando={carregandoGrupo}
+              gruposDisponiveis={gruposDisponiveis}
+              carregandoGruposDisponiveis={carregandoGruposDisponiveis}
+              seletorAberto={seletorGrupoAberto}
+              onSelecionarGrupo={onSelecionarGrupo}
+              onEscolherGrupo={onEscolherGrupo}
+              onRemoverGrupo={onRemoverGrupo}
+            />
+
             <main className="registrar-partida-novo-corpo">
               {erro && <p className="texto-erro registrar-partida-novo-erro">{erro}</p>}
               {revisando ? (
@@ -692,8 +714,6 @@ export function RegistrarPartidaNovoModal({
                 </button>
               </div>
             )}
-
-            <Stepper etapas={etapas} indiceEtapa={indiceEtapa} />
           </form>
         )}
       </section>
