@@ -1331,7 +1331,6 @@
     flex-direction: row;
   }
 
-  .registrar-partida-novo-modal.keyboard-active .registrar-partida-novo-acoes,
   .registrar-partida-novo-modal[data-teclado-aberto="true"] .registrar-partida-novo-acoes {
     display: none;
   }

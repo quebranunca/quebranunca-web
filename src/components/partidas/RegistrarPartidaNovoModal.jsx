@@ -1287,7 +1287,7 @@ export function RegistrarPartidaNovoModal({
     return null;
   }
 
-  const ocultarAcoesMobile = modoMobile && (inputEmFoco || tecladoAberto);
+  const ocultarAcoesMobile = modoMobile && tecladoAberto;
 
   return (
     <div className="modal-sobreposicao registrar-partida-novo-sobreposicao" role="presentation">
