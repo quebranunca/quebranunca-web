@@ -88,6 +88,11 @@ function limparTexto(valor) {
   return String(valor || '').trim().replace(/\s+/g, ' ');
 }
 
+function ehGrupoPublico(grupo) {
+  const privacidade = String(grupo?.privacidade || '').trim().toLowerCase();
+  return privacidade === 'público' || privacidade === 'publico';
+}
+
 function montarValidacoesRevisao(dados, regraPartida) {
   const nomes = [
     limparTexto(dados.dupla1.atletaDireita),
@@ -821,6 +826,12 @@ function RevisaoRapida({
             </strong>
           </div>
         </div>
+
+        {grupo?.id && ehGrupoPublico(grupo) && (
+          <p className="registrar-partida-novo-info-grupo-publico">
+            Atletas que ainda não estão no grupo serão adicionados automaticamente.
+          </p>
+        )}
 
         <div className={`registrar-partida-novo-validacoes-revisao ${possuiInconsistencia ? 'pendente' : 'ok'}`}>
           <strong>{possuiInconsistencia ? 'Revise antes de salvar' : 'Tudo pronto para salvar'}</strong>

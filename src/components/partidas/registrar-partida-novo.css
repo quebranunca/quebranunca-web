@@ -1114,6 +1114,14 @@
   gap: 0.55rem;
 }
 
+.registrar-partida-novo-info-grupo-publico {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.78rem;
+  font-weight: 750;
+  line-height: 1.35;
+}
+
 .registrar-partida-novo-validacoes-revisao {
   display: flex;
   flex-direction: column;

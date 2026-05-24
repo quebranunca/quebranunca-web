@@ -5,8 +5,9 @@ import { useNotification } from '../contexts/NotificationContext';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { gruposServico } from '../services/gruposServico';
 import { ESTADOS_ACESSO } from '../utils/acesso';
+import { obterNomeExibicaoAtleta } from '../utils/atletaUtils';
 import { extrairMensagemErro } from '../utils/erros';
-import { paraInputData } from '../utils/formatacao';
+import { formatarDataHora, paraInputData } from '../utils/formatacao';
 import { PERFIS_USUARIO, ehAtleta } from '../utils/perfis';
 
 const estadoInicial = {
@@ -18,9 +19,86 @@ const estadoInicial = {
   localId: ''
 };
 
+const dashboardVazio = {
+  totais: {
+    quantidadeGrupos: 0,
+    quantidadeAtletas: 0,
+    quantidadePartidas: 0,
+    pendenciasGrupos: 0
+  },
+  grupos: []
+};
+
+function formatarPontuacao(valor) {
+  const numero = Number(valor);
+
+  if (!Number.isFinite(numero)) {
+    return '0 pts';
+  }
+
+  const texto = Number.isInteger(numero)
+    ? String(numero)
+    : numero.toFixed(1).replace('.', ',');
+
+  return `${texto} pts`;
+}
+
+function formatarUltimaAtividade(data) {
+  if (!data) {
+    return 'Sem atividade';
+  }
+
+  return formatarDataHora(data);
+}
+
+function obterIdGrupo(grupo) {
+  return grupo.grupoId || grupo.id;
+}
+
+function obterQuantidade(valor) {
+  const numero = Number(valor);
+  return Number.isFinite(numero) ? numero : 0;
+}
+
+function CardTotal({ rotulo, valor }) {
+  return (
+    <article className="grupos-dashboard-total">
+      <span>{rotulo}</span>
+      <strong>{valor}</strong>
+    </article>
+  );
+}
+
+function RankingPreview({ ranking }) {
+  const lista = Array.isArray(ranking) ? ranking.slice(0, 3) : [];
+
+  return (
+    <section className="grupos-dashboard-ranking" aria-label="Prévia do ranking">
+      <span className="grupo-resumo-rotulo">Ranking</span>
+
+      {lista.length > 0 ? (
+        <ol className="grupo-resumo-ranking">
+          {lista.map((atleta) => (
+            <li
+              key={`${atleta.posicao}-${atleta.atletaId}`}
+              className={atleta.usuarioLogado ? 'home-grupo-usuario-ranking-atual' : undefined}
+            >
+              <span>{atleta.posicao}º</span>
+              <strong>{obterNomeExibicaoAtleta(atleta) || 'Atleta'}</strong>
+              <small>{formatarPontuacao(atleta.pontuacao)}</small>
+            </li>
+          ))}
+        </ol>
+      ) : (
+        <p>Ranking ainda não disponível</p>
+      )}
+    </section>
+  );
+}
+
 export function PaginaGrupos() {
   const navegar = useNavigate();
-  const { usuario, estadoAcesso } = useAutenticacao();
+  const { token, usuario, estadoAcesso } = useAutenticacao();
   const { showNotification, closeNotification } = useNotification();
   const usuarioAtivo = estadoAcesso === ESTADOS_ACESSO.ativo;
   const usuarioAdministrador = Number(usuario?.perfil) === PERFIS_USUARIO.administrador;
@@ -28,30 +106,46 @@ export function PaginaGrupos() {
   const usuarioAtleta = ehAtleta(usuario);
   const podeCriarGrupo = usuarioAtivo && (usuarioAdministrador || usuarioOrganizador || usuarioAtleta);
 
-  const [grupos, setGrupos] = useState([]);
+  const [dashboard, setDashboard] = useState(dashboardVazio);
   const [formulario, setFormulario] = useState(estadoInicial);
   const [grupoEdicaoId, setGrupoEdicaoId] = useState(null);
   const [formularioAberto, setFormularioAberto] = useState(false);
   const [fluxoCriarAberto, setFluxoCriarAberto] = useState(false);
   const [carregando, setCarregando] = useState(true);
+  const [erroCarregamento, setErroCarregamento] = useState(false);
   const [salvando, setSalvando] = useState(false);
 
-  const totalGrupos = grupos.length;
   const gruposOrdenados = useMemo(
-    () => [...grupos].sort((a, b) => (a.nome || '').localeCompare(b.nome || '')),
-    [grupos]
+    () => [...(dashboard.grupos || [])].sort((a, b) => {
+      const dataA = a.ultimaAtividade ? new Date(a.ultimaAtividade).getTime() : 0;
+      const dataB = b.ultimaAtividade ? new Date(b.ultimaAtividade).getTime() : 0;
+      return dataB - dataA || (a.nome || '').localeCompare(b.nome || '');
+    }),
+    [dashboard.grupos]
   );
 
   useEffect(() => {
     carregarDados();
-  }, []);
+  }, [token, usuario?.id]);
 
   async function carregarDados() {
     setCarregando(true);
+    setErroCarregamento(false);
+
     try {
-      const listaGrupos = await gruposServico.listar();
-      setGrupos(listaGrupos);
+      if (!token) {
+        setDashboard(dashboardVazio);
+        return;
+      }
+
+      const dados = await gruposServico.obterDashboard();
+      setDashboard({
+        totais: dados?.totais || dashboardVazio.totais,
+        grupos: Array.isArray(dados?.grupos) ? dados.grupos : []
+      });
     } catch (error) {
+      setDashboard(dashboardVazio);
+      setErroCarregamento(true);
       showNotification({
         type: 'error',
         title: 'Erro ao carregar grupos',
@@ -82,17 +176,28 @@ export function PaginaGrupos() {
     setFluxoCriarAberto(true);
   }
 
-  function iniciarEdicao(grupo) {
-    setGrupoEdicaoId(grupo.id);
-    setFormulario({
-      nome: grupo.nome || '',
-      descricao: grupo.descricao || '',
-      link: grupo.link || '',
-      dataInicio: paraInputData(grupo.dataInicio),
-      dataFim: paraInputData(grupo.dataFim),
-      localId: grupo.localId || ''
-    });
-    setFormularioAberto(true);
+  async function iniciarEdicao(grupo) {
+    const grupoId = obterIdGrupo(grupo);
+
+    try {
+      const dadosGrupo = await gruposServico.obterPorId(grupoId);
+      setGrupoEdicaoId(grupoId);
+      setFormulario({
+        nome: dadosGrupo.nome || '',
+        descricao: dadosGrupo.descricao || '',
+        link: dadosGrupo.link || '',
+        dataInicio: paraInputData(dadosGrupo.dataInicio),
+        dataFim: paraInputData(dadosGrupo.dataFim),
+        localId: dadosGrupo.localId || ''
+      });
+      setFormularioAberto(true);
+    } catch (error) {
+      showNotification({
+        type: 'error',
+        title: 'Erro ao abrir grupo',
+        message: extrairMensagemErro(error)
+      });
+    }
   }
 
   async function aoCriarGrupoFluxo() {
@@ -192,20 +297,35 @@ export function PaginaGrupos() {
     });
   }
 
+  function navegarParaRegistro(grupoId) {
+    if (!usuarioAtivo) {
+      navegar('/login');
+      return;
+    }
+
+    navegar(`/partidas/registrar?grupoId=${grupoId}`);
+  }
+
+  const totais = dashboard.totais || dashboardVazio.totais;
+
   return (
-    <section className="pagina">
-  
-      {podeCriarGrupo && !formularioAberto && (  
-        
+    <section className="pagina grupos-dashboard-pagina">
+      <header className="cabecalho-pagina grupos-dashboard-cabecalho">
+        <div>
+          <h2>Grupos</h2>
+          <p>Acompanhe partidas, rankings e atletas dos seus grupos</p>
+        </div>
+
+        {podeCriarGrupo && !formularioAberto && (
           <button type="button" className="botao-primario" onClick={abrirNovoGrupo}>
             Criar grupo
-          </button>      
-        
-      )}
+          </button>
+        )}
+      </header>
 
       {podeCriarGrupo && formularioAberto && (
         <article className="cartao">
-          <form className="formulario-grid" onSubmit={aoSubmeter}> 
+          <form className="formulario-grid" onSubmit={aoSubmeter}>
             <label>
               Nome
               <input value={formulario.nome} onChange={(evento) => atualizarCampo('nome', evento.target.value)} required />
@@ -223,51 +343,95 @@ export function PaginaGrupos() {
         </article>
       )}
 
-      <div className="secao-lista">
-        {carregando ? (
+      <section className="grupos-dashboard-totais" aria-label="Resumo dos grupos">
+        <CardTotal rotulo="Grupos" valor={obterQuantidade(totais.quantidadeGrupos)} />
+        <CardTotal rotulo="Atletas" valor={obterQuantidade(totais.quantidadeAtletas)} />
+        <CardTotal rotulo="Partidas" valor={obterQuantidade(totais.quantidadePartidas)} />
+        <CardTotal rotulo="Pendências" valor={obterQuantidade(totais.pendenciasGrupos)} />
+      </section>
+
+      {carregando ? (
+        <article className="cartao-lista grupos-dashboard-estado">
           <p>Carregando grupos...</p>
-        ) : gruposOrdenados.length === 0 ? (
-          <p>Nenhum grupo encontrado.</p>
-        ) : (
-          gruposOrdenados.map((grupo) => (
-            <article key={grupo.id} className="cartao-lista competicao-card competicao-card-grupo">
-              <div className="competicao-card-data">
-                <div className="competicao-card-conteudo">              
-                  <h3>{grupo.nome}</h3>                    
-                  <span>Criado por: {grupo.nomeUsuarioOrganizador || 'Não informado'}</span>                             
-                </div>
-                <div className="acoes-item competicao-card-acoes">
-                  {usuarioAtivo ? (
-                    <button type="button" className="botao-primario" onClick={() => navegar(`/partidas/registrar?grupoId=${grupo.id}`)}>
-                      Registrar partida
-                    </button>
-                  ) : (
-                    <button type="button" className="botao-secundario" onClick={() => navegar('/login')}>
-                      Entrar para registrar
-                    </button>
-                  )}
-                  <button type="button" className="botao-primario" onClick={() => navegar(`/grupos/${grupo.id}/atletas`)}>
-                    Atletas do grupo
-                  </button>               
-                  <button type="button" className="botao-primario" onClick={() => navegar(`/partidas/consulta?grupoId=${grupo.id}`)}>
-                    Jogos do grupo
+        </article>
+      ) : erroCarregamento ? (
+        <article className="cartao-lista grupos-dashboard-estado">
+          <h3>Não foi possível carregar seus grupos agora</h3>
+          <p>Tente novamente em instantes.</p>
+          <button type="button" className="botao-secundario" onClick={carregarDados}>
+            Recarregar
+          </button>
+        </article>
+      ) : gruposOrdenados.length === 0 ? (
+        <article className="cartao-lista grupos-dashboard-vazio">
+          <h3>Você ainda não participa de nenhum grupo</h3>
+          <p>Crie um grupo para organizar partidas com seus amigos ou participe de um grupo existente.</p>
+
+          <div className="grupos-dashboard-acoes">
+            {podeCriarGrupo && (
+              <button type="button" className="botao-primario" onClick={abrirNovoGrupo}>
+                Criar grupo
+              </button>
+            )}
+            <button type="button" className="botao-secundario" onClick={() => navegar('/partidas/registrar')}>
+              Registrar partida avulsa
+            </button>
+          </div>
+        </article>
+      ) : (
+        <section className="grupos-dashboard-lista" aria-label="Lista de grupos">
+          {gruposOrdenados.map((grupo) => {
+            const grupoId = obterIdGrupo(grupo);
+            return (
+              <article key={grupoId} className="cartao-lista grupos-dashboard-card">
+                <button
+                  type="button"
+                  className="grupos-dashboard-card-corpo"
+                  onClick={() => navegar(`/grupos/${grupoId}/atletas`)}
+                >
+                  <div className="grupos-dashboard-card-topo">
+                    <div>
+                      <span className="grupos-dashboard-privacidade">{grupo.privacidade || 'Privado'}</span>
+                      <h3>{grupo.nome}</h3>
+                    </div>
+
+                    <span className="grupos-dashboard-atividade">
+                      {formatarUltimaAtividade(grupo.ultimaAtividade)}
+                    </span>
+                  </div>
+
+                  <div className="grupos-dashboard-metricas">
+                    <span>{obterQuantidade(grupo.quantidadeAtletas)} atletas</span>
+                    <span>{obterQuantidade(grupo.quantidadePartidas)} partidas</span>
+                    <span>{obterQuantidade(grupo.pendencias)} pendências</span>
+                  </div>
+                </button>
+
+                <RankingPreview ranking={grupo.rankingTop3} />
+
+                <div className="grupos-dashboard-acoes">
+                  <button type="button" className="botao-primario" onClick={() => navegar(`/grupos/${grupoId}/atletas`)}>
+                    Abrir grupo
+                  </button>
+                  <button type="button" className="botao-secundario" onClick={() => navegarParaRegistro(grupoId)}>
+                    Registrar partida
                   </button>
                   {podeGerenciar(grupo) && (
                     <>
-                      <button type="button" className="botao-primario" onClick={() => iniciarEdicao(grupo)}>
+                      <button type="button" className="botao-secundario" onClick={() => iniciarEdicao(grupo)}>
                         Editar
                       </button>
-                      <button type="button" className="botao-perigo" onClick={() => confirmarRemocaoGrupo(grupo.id)}>
+                      <button type="button" className="botao-perigo" onClick={() => confirmarRemocaoGrupo(grupoId)}>
                         Remover
                       </button>
                     </>
-                  )}               
+                  )}
                 </div>
-              </div>     
-            </article>
-          ))
-        )}       
-      </div>      
+              </article>
+            );
+          })}
+        </section>
+      )}
 
       <CriarGrupoFluxoModal
         aberto={fluxoCriarAberto}

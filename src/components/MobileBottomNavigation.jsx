@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { NavLink, matchPath, useLocation } from 'react-router-dom';
-import { FaHome, FaListAlt, FaPlus, FaShieldAlt, FaStream, FaUser } from 'react-icons/fa';
+import { FaHome, FaPlus, FaTrophy, FaUser, FaUsers } from 'react-icons/fa';
 import { RegistrarPartidaNovoContainer } from '../containers/partidas/RegistrarPartidaNovoContainer';
-import { ehAdministrador } from '../utils/perfis';
 import './partidas/registrar-partida-novo.css';
 
 function itemAtivo(pathname, caminhos) {
@@ -12,13 +11,6 @@ function itemAtivo(pathname, caminhos) {
 export function MobileBottomNavigation({ usuario }) {
   const location = useLocation();
   const [registrarAberto, setRegistrarAberto] = useState(false);
-  const administrador = ehAdministrador(usuario);
-  const caminhoJogos = usuario?.atletaId ? '/app/meus-jogos' : '/minhas-partidas-registradas';
-  const jogosAtivo = itemAtivo(location.pathname, [
-    '/app/meus-jogos',
-    '/minhas-partidas-registradas',
-    '/partidas/consulta'
-  ]);
 
   return (
     <>
@@ -32,23 +24,13 @@ export function MobileBottomNavigation({ usuario }) {
           <span>Home</span>
         </NavLink>
 
-        {administrador ? (
-          <NavLink
-            to="/admin"
-            className={() => `mobile-bottom-item ${itemAtivo(location.pathname, ['/admin', '/admin/*']) ? 'ativo' : ''}`}
-          >
-            <FaShieldAlt aria-hidden="true" />
-            <span>Admin</span>
-          </NavLink>
-        ) : (
-          <NavLink
-            to={caminhoJogos}
-            className={() => `mobile-bottom-item ${jogosAtivo ? 'ativo' : ''}`}
-          >
-            <FaListAlt aria-hidden="true" />
-            <span>Jogos</span>
-          </NavLink>
-        )}
+        <NavLink
+          to="/ranking"
+          className={() => `mobile-bottom-item ${itemAtivo(location.pathname, ['/ranking', '/ranking/*', '/app/ranking-liga']) ? 'ativo' : ''}`}
+        >
+          <FaTrophy aria-hidden="true" />
+          <span>Rankings</span>
+        </NavLink>
 
         <button
           type="button"
@@ -65,11 +47,11 @@ export function MobileBottomNavigation({ usuario }) {
         </button>
 
         <NavLink
-          to="/feed"
-          className={({ isActive }) => `mobile-bottom-item ${isActive ? 'ativo' : ''}`}
+          to="/grupos"
+          className={() => `mobile-bottom-item ${itemAtivo(location.pathname, ['/grupos', '/grupos/*']) ? 'ativo' : ''}`}
         >
-          <FaStream aria-hidden="true" />
-          <span>Feed</span>
+          <FaUsers aria-hidden="true" />
+          <span>Grupos</span>
         </NavLink>
 
         <NavLink

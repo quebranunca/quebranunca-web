@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { gruposServico } from '../../services/gruposServico';
-import { formatarNomeDupla } from '../../utils/atletaUtils';
+import { formatarNomeDupla, obterNomeExibicaoAtleta } from '../../utils/atletaUtils';
 import { formatarDataHora } from '../../utils/formatacao';
 import { CompartilharPartidaBotao } from '../../components/partidas/CompartilharPartidaBotao';
 import { PlacarDupla } from '../../components/partidas/PlacarDupla';

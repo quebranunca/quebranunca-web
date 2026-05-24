@@ -30,6 +30,12 @@ const ITENS_NAVEGACAO = [
     visivel: () => true
   },
   {
+    caminho: '/ranking',
+    nome: 'Ranking',
+    descricao: 'Consulte os pontos por liga e competição.',
+    visivel: ({ gestorCompeticao, atleta, estadoAtivo }) => estadoAtivo && (gestorCompeticao || atleta)
+  },
+  {
     caminho: '/app/organizacao',
     nome: 'Painel',
     mostrarNoDashboard: false,
@@ -62,6 +68,12 @@ const ITENS_NAVEGACAO = [
     visivel: ({ gestorCompeticao, atleta, estadoAtivo }) => estadoAtivo && (gestorCompeticao || atleta)
   },
   {
+    caminho: '/grupos',
+    nome: 'Grupos',
+    descricao: 'Crie grupos, organize atletas e acompanhe os jogos lançados.',
+    visivel: ({ organizador, atleta, estadoAtivo }) => estadoAtivo && (organizador || atleta)
+  },
+  {
     caminho: '/feed',
     nome: 'Feed',
     descricao: 'Acompanhe os jogos mais recentes da comunidade.',
@@ -77,12 +89,6 @@ const ITENS_NAVEGACAO = [
     caminho: '/minhas-partidas-registradas',
     nome: 'Minhas Partidas Registradas',
     descricao: 'Veja e edite partidas que você cadastrou, mesmo quando não participou do jogo.',
-    visivel: ({ gestorCompeticao, atleta, estadoAtivo }) => estadoAtivo && (gestorCompeticao || atleta)
-  },
-  {
-    caminho: '/ranking',
-    nome: 'Ranking',
-    descricao: 'Consulte os pontos por liga e competição.',
     visivel: ({ gestorCompeticao, atleta, estadoAtivo }) => estadoAtivo && (gestorCompeticao || atleta)
   },
   {
@@ -156,12 +162,6 @@ const ITENS_NAVEGACAO = [
     nome: 'Novo Campeonato',
     descricao: 'Crie um campeonato e vincule categorias já cadastradas.',
     visivel: ({ gestorCompeticao, estadoAtivo }) => gestorCompeticao && estadoAtivo
-  },
-  {
-    caminho: '/grupos',
-    nome: 'Grupos',
-    descricao: 'Crie grupos, organize atletas e acompanhe os jogos lançados.',
-    visivel: ({ organizador, atleta, estadoAtivo }) => estadoAtivo && (organizador || atleta)
   },
   {
     caminho: '/admin/grupos',

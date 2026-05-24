@@ -4172,6 +4172,207 @@ code {
   gap: 0.2rem;
 }
 
+.grupos-dashboard-pagina {
+  gap: 0.9rem;
+  padding-bottom: calc(var(--altura-bottom-nav, 4.45rem) + 1rem);
+}
+
+.grupos-dashboard-cabecalho {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.9rem;
+}
+
+.grupos-dashboard-cabecalho > div {
+  min-width: 0;
+}
+
+.grupos-dashboard-cabecalho .botao-primario {
+  flex: 0 0 auto;
+}
+
+.grupos-dashboard-totais {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.grupos-dashboard-total {
+  min-width: 0;
+  padding: 0.85rem;
+  border: 1px solid rgba(255, 180, 0, 0.16);
+  border-radius: var(--raio-md);
+  background:
+    linear-gradient(135deg, rgba(255, 180, 0, 0.07), transparent 48%),
+    var(--cor-superficie);
+  box-shadow: var(--sombra-suave);
+}
+
+.grupos-dashboard-total span,
+.grupos-dashboard-privacidade,
+.grupos-dashboard-atividade {
+  display: block;
+  color: var(--cor-texto-suave);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.grupos-dashboard-total strong {
+  display: block;
+  margin-top: 0.16rem;
+  color: var(--cor-texto);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(1.45rem, 7vw, 2rem);
+  line-height: 1;
+}
+
+.grupos-dashboard-lista {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.grupos-dashboard-card {
+  gap: 0.85rem;
+  border-color: rgba(255, 180, 0, 0.2);
+  background:
+    linear-gradient(135deg, rgba(255, 180, 0, 0.075), transparent 46%),
+    var(--cor-superficie);
+}
+
+.grupos-dashboard-card-corpo {
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.grupos-dashboard-card-topo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.grupos-dashboard-card-topo > div {
+  min-width: 0;
+}
+
+.grupos-dashboard-card h3,
+.grupos-dashboard-vazio h3,
+.grupos-dashboard-estado h3 {
+  color: var(--cor-texto);
+  font-size: clamp(1.1rem, 4vw, 1.35rem);
+  line-height: 1.15;
+}
+
+.grupos-dashboard-privacidade {
+  width: fit-content;
+  margin-bottom: 0.32rem;
+  padding: 0.22rem 0.48rem;
+  border: 1px solid rgba(255, 180, 0, 0.22);
+  border-radius: 999px;
+  background: rgba(255, 180, 0, 0.08);
+  color: #ffe2a1;
+}
+
+.grupos-dashboard-atividade {
+  flex: 0 0 auto;
+  max-width: 42%;
+  text-align: right;
+}
+
+.grupos-dashboard-metricas,
+.grupos-dashboard-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  align-items: center;
+}
+
+.grupos-dashboard-metricas {
+  margin-top: 0.75rem;
+}
+
+.grupos-dashboard-metricas span {
+  padding: 0.38rem 0.55rem;
+  border: 1px solid var(--cor-borda);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.045);
+  color: var(--cor-texto-suave);
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.grupos-dashboard-ranking {
+  min-width: 0;
+  padding: 0.75rem;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-sm);
+  background: var(--cor-superficie-suave);
+}
+
+.grupos-dashboard-ranking p {
+  margin: 0;
+  color: var(--cor-texto-suave);
+  font-weight: 700;
+}
+
+.grupos-dashboard-acoes .botao-primario,
+.grupos-dashboard-acoes .botao-secundario,
+.grupos-dashboard-acoes .botao-perigo {
+  flex: 1 1 8.5rem;
+}
+
+.grupos-dashboard-vazio,
+.grupos-dashboard-estado {
+  align-items: flex-start;
+  border-color: rgba(255, 180, 0, 0.22);
+}
+
+@media (min-width: 720px) {
+  .grupos-dashboard-totais {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .grupos-dashboard-lista {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1120px) {
+  .grupos-dashboard-lista {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .grupos-dashboard-cabecalho {
+    flex-direction: column;
+  }
+
+  .grupos-dashboard-cabecalho .botao-primario,
+  .grupos-dashboard-acoes .botao-primario,
+  .grupos-dashboard-acoes .botao-secundario,
+  .grupos-dashboard-acoes .botao-perigo {
+    width: 100%;
+  }
+
+  .grupos-dashboard-card-topo {
+    flex-direction: column;
+  }
+
+  .grupos-dashboard-atividade {
+    max-width: none;
+    text-align: left;
+  }
+}
+
 .grupo-resumo-card {
   gap: 1rem;
   border-color: rgba(255, 180, 0, 0.28);
