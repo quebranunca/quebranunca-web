@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { AtletaPerfilLink } from '../AtletaPerfilLink';
 import { gruposServico } from '../../services/gruposServico';
 import { formatarNomeDupla, obterNomeExibicaoAtleta } from '../../utils/atletaUtils';
 import { formatarDataHora } from '../../utils/formatacao';
@@ -113,7 +114,9 @@ function GrupoUsuarioCard({ resumo }) {
                 }
               >
                 <span>{atleta.posicao}º</span>
-                <strong>{obterNomeExibicaoAtleta(atleta)}</strong>
+                <AtletaPerfilLink atleta={atleta} className="atleta-nome-link">
+                  <strong>{obterNomeExibicaoAtleta(atleta)}</strong>
+                </AtletaPerfilLink>
                 <small>{formatarPontuacao(atleta.pontuacao)}</small>
               </li>
             ))}

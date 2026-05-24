@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ConteudoBotao } from '../components/ConteudoBotao';
+import { AtletaPerfilLink } from '../components/AtletaPerfilLink';
 import { EmailDomainSuggestions } from '../components/formularios/EmailDomainSuggestions';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { atletasServico } from '../services/atletasServico';
@@ -387,7 +388,11 @@ export function PaginaAtletas() {
           {atletas.map((atleta) => (
             <article key={atleta.id} className="cartao-lista">
               <div>
-                <h3>{obterNomeExibicaoAtleta(atleta)}</h3>
+                <h3>
+                  <AtletaPerfilLink atleta={atleta} className="atleta-nome-link">
+                    {obterNomeExibicaoAtleta(atleta)}
+                  </AtletaPerfilLink>
+                </h3>
                 <p>Apelido: {atleta.apelido || '-'}</p>
                 {podeEditarAtleta(atleta) && atleta.telefone && <p>Telefone: {atleta.telefone}</p>}
                 {podeEditarAtleta(atleta) && atleta.email && <p>E-mail: {atleta.email}</p>}

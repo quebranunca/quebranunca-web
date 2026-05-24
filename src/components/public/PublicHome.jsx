@@ -10,6 +10,7 @@ import {
   FaTrophy,
   FaUsers
 } from 'react-icons/fa';
+import { AtletaPerfilLink } from '../AtletaPerfilLink';
 import { AvatarUsuario, obterFotoPerfilAvatar } from '../AvatarUsuario';
 import { PlacarDupla } from '../partidas/PlacarDupla';
 
@@ -162,14 +163,18 @@ function PublicRanking({ ranking }) {
         {(ranking || []).map((atleta) => (
           <article key={atleta.atletaId} className="public-ranking-row">
             <strong className="public-ranking-position">{atleta.posicao}</strong>
-            <AvatarUsuario
-              nome={obterNome(atleta.nome, atleta.apelido)}
-              fotoPerfilUrl={obterFotoPerfilAvatar(atleta)}
-              tamanho="sm"
-              className="public-avatar"
-            />
+            <AtletaPerfilLink atleta={atleta} ariaLabel={`Abrir perfil de ${obterNome(atleta.nome, atleta.apelido)}`}>
+              <AvatarUsuario
+                nome={obterNome(atleta.nome, atleta.apelido)}
+                fotoPerfilUrl={obterFotoPerfilAvatar(atleta)}
+                tamanho="sm"
+                className="public-avatar"
+              />
+            </AtletaPerfilLink>
             <div>
-              <strong>{obterNome(atleta.nome, atleta.apelido)}</strong>
+              <AtletaPerfilLink atleta={atleta} className="atleta-nome-link">
+                <strong>{obterNome(atleta.nome, atleta.apelido)}</strong>
+              </AtletaPerfilLink>
               <span>{atleta.vitorias}V · {atleta.derrotas}D · {atleta.aproveitamento}%</span>
             </div>
             <em>{atleta.sequenciaAtual > 0 ? `${atleta.sequenciaAtual}W` : `${atleta.pontos} pts`}</em>
@@ -226,13 +231,17 @@ export function PublicHome({ dashboard, carregando, erro }) {
           vazio="Os destaques aparecem conforme a comunidade registra partidas."
           renderItem={(atleta) => (
             <article key={`${atleta.atletaId}-${atleta.destaque}`} className="public-highlight-card">
-              <AvatarUsuario
-                nome={obterNome(atleta.nome, atleta.apelido)}
-                fotoPerfilUrl={obterFotoPerfilAvatar(atleta)}
-                tamanho="sm"
-                className="public-avatar"
-              />
-              <strong>{obterNome(atleta.nome, atleta.apelido)}</strong>
+              <AtletaPerfilLink atleta={atleta} ariaLabel={`Abrir perfil de ${obterNome(atleta.nome, atleta.apelido)}`}>
+                <AvatarUsuario
+                  nome={obterNome(atleta.nome, atleta.apelido)}
+                  fotoPerfilUrl={obterFotoPerfilAvatar(atleta)}
+                  tamanho="sm"
+                  className="public-avatar"
+                />
+              </AtletaPerfilLink>
+              <AtletaPerfilLink atleta={atleta} className="atleta-nome-link">
+                <strong>{obterNome(atleta.nome, atleta.apelido)}</strong>
+              </AtletaPerfilLink>
               <small>{atleta.destaque}</small>
               <em>{atleta.valor} {atleta.complemento}</em>
             </article>

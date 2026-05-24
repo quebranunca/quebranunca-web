@@ -30,12 +30,14 @@ export function PaginaDashboard() {
     <section className="pagina">
       
       <article className="cartao dashboard-hero">
-        <AvatarUsuario
-          nome={usuario?.nome}
-          fotoPerfilUrl={obterFotoPerfilAvatar(usuario)}
-          tamanho="lg"
-          className="dashboard-hero-avatar"
-        />
+        <Link to="/app/perfil" aria-label="Abrir meu perfil" title="Abrir meu perfil">
+          <AvatarUsuario
+            nome={usuario?.nome}
+            fotoPerfilUrl={obterFotoPerfilAvatar(usuario)}
+            tamanho="lg"
+            className="dashboard-hero-avatar"
+          />
+        </Link>
         <div className="dashboard-hero-conteudo">
           <h3>{usuario?.nome ? `Olá, ${usuario.nome}` : 'Bem-vindo'}</h3>
           <p>

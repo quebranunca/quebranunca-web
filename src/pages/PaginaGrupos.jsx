@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { AtletaPerfilLink } from '../components/AtletaPerfilLink';
 import { CriarGrupoFluxoModal } from '../components/grupos/CriarGrupoFluxoModal';
 import { useNotification } from '../contexts/NotificationContext';
 import { useAutenticacao } from '../hooks/useAutenticacao';
@@ -97,7 +98,9 @@ function RankingPreview({ ranking }) {
               className={atleta.usuarioLogado ? 'home-grupo-usuario-ranking-atual' : undefined}
             >
               <span>{atleta.posicao}º</span>
-              <strong>{obterNomeExibicaoAtleta(atleta) || 'Atleta'}</strong>
+              <AtletaPerfilLink atleta={atleta} className="atleta-nome-link">
+                <strong>{obterNomeExibicaoAtleta(atleta) || 'Atleta'}</strong>
+              </AtletaPerfilLink>
               <small>{formatarPontuacao(atleta.pontuacao)}</small>
             </li>
           ))}

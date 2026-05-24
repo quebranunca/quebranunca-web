@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { FaCalendarAlt, FaCamera, FaChevronRight, FaPlayCircle, FaTrophy, FaUsers } from 'react-icons/fa';
+import { AtletaPerfilLink } from '../AtletaPerfilLink';
 import { AvatarUsuario } from '../AvatarUsuario';
 import { CompartilharPartidaBotao } from './CompartilharPartidaBotao';
 import { formatarDataHora } from '../../utils/formatacao';
@@ -7,6 +8,21 @@ import { formatarNomeDupla } from '../../utils/atletaUtils';
 
 function nomesDupla(dupla) {
   return formatarNomeDupla(dupla, 'Dupla a definir');
+}
+
+function NomesDuplaLinks({ dupla }) {
+  if (!Array.isArray(dupla) || dupla.length === 0) {
+    return nomesDupla(dupla);
+  }
+
+  return dupla.map((atleta, indice) => (
+    <span key={atleta.atletaId || atleta.id || `${atleta.nome}-${indice}`}>
+      {indice > 0 && ' • '}
+      <AtletaPerfilLink atleta={atleta} className="atleta-nome-link">
+        {formatarNomeDupla([atleta], atleta.nome || 'Atleta')}
+      </AtletaPerfilLink>
+    </span>
+  ));
 }
 
 function obterContexto(partida) {
@@ -101,7 +117,9 @@ export function FeedPartidaCard({ partida, variante = 'padrao' }) {
           <div className="feed-partida-dupla feed-partida-dupla-a">
             <div>
               <span>Dupla 1</span>
-              <strong className="nome-dupla" title={nomesDupla(partida.dupla1)}>{nomesDupla(partida.dupla1)}</strong>
+              <strong className="nome-dupla" title={nomesDupla(partida.dupla1)}>
+                <NomesDuplaLinks dupla={partida.dupla1} />
+              </strong>
             </div>
             <strong className="feed-partida-placar-numero">{partida.placarDupla1 ?? 0}</strong>
           </div>
@@ -110,7 +128,9 @@ export function FeedPartidaCard({ partida, variante = 'padrao' }) {
             <strong className="feed-partida-placar-numero">{partida.placarDupla2 ?? 0}</strong>
             <div>
               <span>Dupla 2</span>
-              <strong className="nome-dupla" title={nomesDupla(partida.dupla2)}>{nomesDupla(partida.dupla2)}</strong>
+              <strong className="nome-dupla" title={nomesDupla(partida.dupla2)}>
+                <NomesDuplaLinks dupla={partida.dupla2} />
+              </strong>
             </div>
           </div>
         </div>

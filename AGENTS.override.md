@@ -21,6 +21,7 @@
 - Sugestões rápidas no registro de partidas devem ser chips discretos abaixo dos inputs, carregadas uma vez por contexto, sem bloquear digitação e sem repetir atletas já preenchidos.
 - Banner rotativo reutilizável deve aceitar slides de imagem e componente
 - Campos de data/hora do frontend devem reutilizar `utils/formatacao.js`; horários selecionáveis devem respeitar intervalos de 15 minutos e horários padrão devem usar o arredondamento centralizado.
+- Fotos, avatares, iniciais e nomes de atletas devem navegar pelo helper/hook central de perfil de atleta: atleta logado abre `/app/perfil`; outro atleta abre o perfil público em `/atletas/:atletaId/dashboard`.
 
 ## NAVIGATION_RULES
 - O header global deve ser centralizado no `AppHeader`.

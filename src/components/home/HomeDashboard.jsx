@@ -29,6 +29,7 @@ import { FeedPartidaCard } from '../partidas/FeedPartidaCard';
 import { PartidaCardPremium } from '../partidas/PartidaCardPremium';
 import { HomeSectionType, homeSectionsConfig } from './homeSectionsConfig';
 import { montarUrlDashboardDupla, obterNomeExibicaoAtletaPerfil, obterTituloAtleta } from '../../utils/atletaUtils';
+import { montarRotaPerfilAtleta } from '../../utils/perfilAtleta';
 import '../partidas/feed-partidas.css';
 
 const HOME_NAVIGATION = Object.freeze({
@@ -172,9 +173,9 @@ function obterIdsDuplasPartidaHome(partida, atletaId) {
   };
 }
 
-function obterDestinoResumoRapido(itemId, atletaId) {
+function obterDestinoResumoRapido(itemId, atletaId, usuario) {
   if (itemId === 'aproveitamento' && atletaId) {
-    return `/atletas/${atletaId}/dashboard`;
+    return montarRotaPerfilAtleta(atletaId, usuario);
   }
 
   if (['partidas', 'vitorias', 'sequencia'].includes(itemId)) {
@@ -184,13 +185,13 @@ function obterDestinoResumoRapido(itemId, atletaId) {
   return '';
 }
 
-function obterDestinoConexao(item, tipo, atletaId) {
+function obterDestinoConexao(item, tipo, atletaId, usuario) {
   if (tipo === 'parceiro') {
     return montarUrlDashboardDupla(atletaId, item?.atletaId);
   }
 
   if (item?.atletaId) {
-    return `/atletas/${item.atletaId}/dashboard`;
+    return montarRotaPerfilAtleta(item.atletaId, usuario);
   }
 
   return '';
@@ -379,7 +380,7 @@ export function HomeDashboard({ modulos, dashboard, carregando, erro, onAtualiza
       valor: resumo.totalPartidas ?? 0,
       complemento: 'registradas',
       icone: FaGamepad,
-      destino: obterDestinoResumoRapido('partidas', perfil.atletaId)
+      destino: obterDestinoResumoRapido('partidas', perfil.atletaId, usuario)
     },
     {
       id: 'vitorias',
@@ -387,7 +388,7 @@ export function HomeDashboard({ modulos, dashboard, carregando, erro, onAtualiza
       valor: resumo.vitorias ?? 0,
       complemento: `${resumo.derrotas ?? 0} derrotas`,
       icone: FaTrophy,
-      destino: obterDestinoResumoRapido('vitorias', perfil.atletaId)
+      destino: obterDestinoResumoRapido('vitorias', perfil.atletaId, usuario)
     },
     {
       id: 'aproveitamento',
@@ -395,7 +396,7 @@ export function HomeDashboard({ modulos, dashboard, carregando, erro, onAtualiza
       valor: `${resumo.aproveitamento ?? perfil.aproveitamento ?? 0}%`,
       complemento: 'no histórico',
       icone: FaChartLine,
-      destino: obterDestinoResumoRapido('aproveitamento', perfil.atletaId)
+      destino: obterDestinoResumoRapido('aproveitamento', perfil.atletaId, usuario)
     },
     {
       id: 'sequencia',
@@ -403,7 +404,7 @@ export function HomeDashboard({ modulos, dashboard, carregando, erro, onAtualiza
       valor: resumo.sequenciaAtual ?? 0,
       complemento: perfil.textoSequencia || 'ritmo atual',
       icone: FaFire,
-      destino: obterDestinoResumoRapido('sequencia', perfil.atletaId)
+      destino: obterDestinoResumoRapido('sequencia', perfil.atletaId, usuario)
     }
   ];
 
@@ -416,6 +417,7 @@ export function HomeDashboard({ modulos, dashboard, carregando, erro, onAtualiza
         fotoPerfilUrl={fotoPerfilUrl}
         perfil={perfil}
         badgeMomento={badgeMomento}
+        perfilDestino={montarRotaPerfilAtleta(perfil.atletaId || usuario?.atletaId, usuario)}
         erro={perfilModulo.erro}
       />
     ),
@@ -462,6 +464,7 @@ export function HomeDashboard({ modulos, dashboard, carregando, erro, onAtualiza
         parceirosRecentes={parceirosRecentes}
         rivaisRecentes={rivaisRecentes}
         atletaId={perfil.atletaId}
+        usuario={usuario}
         erro={conexoesModulo.erro}
       />
     ),
@@ -525,9 +528,6 @@ export function HomeDashboard({ modulos, dashboard, carregando, erro, onAtualiza
     <section className="pagina home-dashboard">
       <HomeDashboardHeader
         nome={nomePrincipal}
-        fotoPerfilUrl={fotoPerfilUrl}
-        categoria={perfil.categoriaPrincipal}
-        posicaoRanking={perfil.posicaoRanking}
         saudacao={saudacao}
       />
 
@@ -747,27 +747,43 @@ function HomeModuloErro({ mensagem = 'Não foi possível carregar este módulo a
   return <p className="home-dashboard-vazio home-dashboard-modulo-erro">{mensagem}</p>;
 }
 
-function HomeHeroSection({ nomePrincipal, fotoPerfilUrl, perfil, badgeMomento, erro }) {
+function HomeHeroSection({ nomePrincipal, fotoPerfilUrl, perfil, badgeMomento, perfilDestino, erro }) {
+  const identidade = (
+    <>
+      <AvatarUsuario
+        nome={nomePrincipal}
+        fotoPerfilUrl={fotoPerfilUrl}
+        tamanho="xl"
+        className="home-dashboard-avatar"
+      />
+
+      <div className="home-dashboard-atleta-info">
+        <span>Seu momento</span>
+        <h1>{nomePrincipal}</h1>
+        <p>
+          {perfil.categoriaPrincipal}
+          {perfil.posicaoRanking ? ` • #${perfil.posicaoRanking} no ranking` : ''}
+        </p>
+      </div>
+    </>
+  );
+
   return (
     <header className="home-dashboard-hero">
       {erro && <HomeModuloErro mensagem="Não foi possível carregar seu resumo agora." />}
-      <div className="home-dashboard-atleta-card">
-        <AvatarUsuario
-          nome={nomePrincipal}
-          fotoPerfilUrl={fotoPerfilUrl}
-          tamanho="xl"
-          className="home-dashboard-avatar"
-        />
-
-        <div className="home-dashboard-atleta-info">
-          <span>Seu momento</span>
-          <h1>{nomePrincipal}</h1>
-          <p>
-            {perfil.categoriaPrincipal}
-            {perfil.posicaoRanking ? ` • #${perfil.posicaoRanking} no ranking` : ''}
-          </p>
+      {perfilDestino ? (
+        <Link
+          to={perfilDestino}
+          className="home-dashboard-atleta-card home-dashboard-atleta-card-link"
+          aria-label={`Abrir perfil de ${nomePrincipal}`}
+        >
+          {identidade}
+        </Link>
+      ) : (
+        <div className="home-dashboard-atleta-card">
+          {identidade}
         </div>
-      </div>
+      )}
 
       <div className="home-dashboard-momento-badge">
         <FaFire aria-hidden="true" />
@@ -942,6 +958,7 @@ function HomeConexoesSection({
   parceirosRecentes,
   rivaisRecentes,
   atletaId,
+  usuario,
   erro
 }) {
   return (
@@ -964,6 +981,7 @@ function HomeConexoesSection({
             icone={FaUserFriends}
             vazio="Registre partidas com parceiros para acompanhar sua química de dupla."
             atletaId={atletaId}
+            usuario={usuario}
           />
           <DashboardRelacoes
             titulo="Rivais"
@@ -973,6 +991,7 @@ function HomeConexoesSection({
             icone={FaShieldAlt}
             vazio="Quando você enfrentar adversários, as rivalidades aparecerão aqui."
             atletaId={atletaId}
+            usuario={usuario}
           />
         </div>
       )}
@@ -1031,12 +1050,8 @@ function HomeFrequenciaSection({
   );
 }
 
-function HomeDashboardHeader({ nome, fotoPerfilUrl, categoria, posicaoRanking, saudacao }) {
+function HomeDashboardHeader({ nome, saudacao }) {
   const [compacto, setCompacto] = useState(false);
-  const resumoAtleta = [
-    categoria,
-    posicaoRanking ? `#${posicaoRanking} no ranking` : ''
-  ].filter(Boolean).join(' • ');
 
   useEffect(() => {
     const areaRolagem = document.querySelector('.conteudo-principal') || window;
@@ -1066,13 +1081,6 @@ function HomeDashboardHeader({ nome, fotoPerfilUrl, categoria, posicaoRanking, s
 
       <div className="home-dashboard-topo-acoes">
         <NotificacoesBotao autenticado />
-        <AvatarUsuario
-          nome={nome}
-          fotoPerfilUrl={fotoPerfilUrl}
-          tamanho="sm"
-          className="home-dashboard-topo-avatar"
-          alt=""
-        />
       </div>
     </div>
   );
@@ -1142,7 +1150,7 @@ function PartidaHomeCard({ partida, atletaId, onEditar }) {
   );
 }
 
-function DashboardRelacoes({ titulo, itens, recentes, tipo, icone: Icone, vazio, atletaId }) {
+function DashboardRelacoes({ titulo, itens, recentes, tipo, icone: Icone, vazio, atletaId, usuario }) {
   const principal = itens[0] || null;
   const listaRecentes = (recentes || []).filter((item) => item.atletaId !== principal?.atletaId).slice(0, 5);
 
@@ -1162,6 +1170,7 @@ function DashboardRelacoes({ titulo, itens, recentes, tipo, icone: Icone, vazio,
               item={principal}
               tipo={tipo}
               atletaId={atletaId}
+              usuario={usuario}
               destaque
             />
             {listaRecentes.length > 0 && (
@@ -1174,6 +1183,7 @@ function DashboardRelacoes({ titulo, itens, recentes, tipo, icone: Icone, vazio,
                       item={item}
                       tipo={tipo}
                       atletaId={atletaId}
+                      usuario={usuario}
                     />
                   ))}
                 </div>
@@ -1186,12 +1196,12 @@ function DashboardRelacoes({ titulo, itens, recentes, tipo, icone: Icone, vazio,
   );
 }
 
-function DashboardRelacaoCard({ item, tipo, atletaId, destaque = false }) {
+function DashboardRelacaoCard({ item, tipo, atletaId, usuario, destaque = false }) {
   if (!item) {
     return null;
   }
 
-  const destino = obterDestinoConexao(item, tipo, atletaId);
+  const destino = obterDestinoConexao(item, tipo, atletaId, usuario);
   const nome = nomeAtleta(item);
   const titulo = tituloAtleta(item);
   const rotuloPartidas = tipo === 'parceiro' ? 'jogos juntos' : 'jogos enfrentados';

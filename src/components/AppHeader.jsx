@@ -28,6 +28,9 @@ const ROTAS_PRINCIPAIS_SEM_VOLTAR = new Set([
   '/grupos',
   '/app/perfil'
 ]);
+const ROTAS_COM_AVATAR_USUARIO_EM_DESTAQUE = new Set([
+  '/app'
+]);
 
 function obterConfiguracaoHeader(pathname) {
   return (
@@ -70,6 +73,8 @@ export function AppHeader({
     configuracao.title === 'Home'
       ? 'QuebraNunca'
       : configuracao.title;
+  const esconderAvatarUsuario =
+    autenticado && ROTAS_COM_AVATAR_USUARIO_EM_DESTAQUE.has(location.pathname);
 
   return (
     <header className={`topo-app ${telaInterna ? 'topo-app-interno' : 'topo-app-principal'}`}>
@@ -124,13 +129,22 @@ export function AppHeader({
         <span className="usuario-identidade">
           {autenticado ? (
             <>
-              <AvatarUsuario
-                nome={usuario?.nome}
-                fotoPerfilUrl={obterFotoPerfilAvatar(usuario)}
-                tamanho="sm"
-                className="usuario-avatar"
-                alt=""
-              />
+              {!esconderAvatarUsuario && (
+                <NavLink
+                  to="/app/perfil"
+                  className="usuario-avatar-link"
+                  aria-label="Abrir meu perfil"
+                  title="Abrir meu perfil"
+                >
+                  <AvatarUsuario
+                    nome={usuario?.nome}
+                    fotoPerfilUrl={obterFotoPerfilAvatar(usuario)}
+                    tamanho="sm"
+                    className="usuario-avatar"
+                    alt=""
+                  />
+                </NavLink>
+              )}
 
               <span className="usuario-nome">
                 {usuario?.nome}

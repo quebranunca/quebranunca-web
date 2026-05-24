@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { FaChevronRight, FaFilter, FaTrophy } from 'react-icons/fa';
 import { competicoesServico } from '../services/competicoesServico';
 import { gruposServico } from '../services/gruposServico';
 import { rankingServico } from '../services/rankingServico';
 import { CompartilharRankingBotao } from '../components/ranking/CompartilharRankingBotao';
 import { AvatarUsuario, obterFotoPerfilAvatar } from '../components/AvatarUsuario';
+import { useNavegacaoPerfilAtleta } from '../hooks/useNavegacaoPerfilAtleta';
 import { extrairMensagemErro } from '../utils/erros';
 import { obterNomeExibicaoAtleta } from '../utils/atletaUtils';
 
@@ -119,7 +120,7 @@ function obterResumoFiltro({
 }
 
 export function PaginaRanking() {
-  const navegar = useNavigate();
+  const { navegarParaPerfilAtleta } = useNavegacaoPerfilAtleta();
   const [params, setParams] = useSearchParams();
   const [grupos, setGrupos] = useState([]);
   const [competicoes, setCompeticoes] = useState([]);
@@ -381,7 +382,7 @@ export function PaginaRanking() {
   }
 
   function abrirAtleta(item, grupo) {
-    navegar(`/atletas/${item.atletaId}/dashboard`, {
+    navegarParaPerfilAtleta(item, {
       state: {
         atletaRanking: item,
         grupoRanking: grupo

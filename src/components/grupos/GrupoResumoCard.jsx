@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { AtletaPerfilLink } from '../AtletaPerfilLink';
 import { useAutenticacao } from '../../hooks/useAutenticacao';
 import { gruposServico } from '../../services/gruposServico';
 import { PlacarDupla } from '../partidas/PlacarDupla';
@@ -195,7 +196,9 @@ export function GrupoResumoCard({
                 {rankingTop3.map((atleta) => (
                   <li key={`${atleta.posicao}-${atleta.nomeAtleta}`}>
                     <span>{atleta.posicao}º</span>
-                    <strong>{obterNomeExibicaoAtleta(atleta)}</strong>
+                    <AtletaPerfilLink atleta={atleta} className="atleta-nome-link">
+                      <strong>{obterNomeExibicaoAtleta(atleta)}</strong>
+                    </AtletaPerfilLink>
                     <small>{formatarPontuacao(atleta.pontuacao)}</small>
                   </li>
                 ))}
