@@ -4329,6 +4329,88 @@ code {
   flex: 1 1 8.5rem;
 }
 
+.grupos-edicao-sobreposicao {
+  z-index: 11000;
+}
+
+.grupos-edicao-modal {
+  width: min(100%, 520px);
+  border-radius: 16px;
+}
+
+.grupos-edicao-formulario {
+  display: grid;
+  gap: 1rem;
+}
+
+.grupos-edicao-campo {
+  display: grid;
+  gap: 0.45rem;
+  color: var(--cor-texto-suave);
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.grupos-edicao-campo input {
+  width: 100%;
+}
+
+.grupos-edicao-visibilidade {
+  min-width: 0;
+  display: grid;
+  gap: 0.7rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.grupos-edicao-visibilidade legend {
+  margin: 0;
+  color: var(--cor-texto-suave);
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.grupos-edicao-visibilidade > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.grupos-edicao-visibilidade button {
+  min-height: 6.4rem;
+  display: grid;
+  align-content: start;
+  gap: 0.35rem;
+  padding: 0.85rem;
+  border: 1px solid var(--cor-borda);
+  border-radius: 12px;
+  background: var(--cor-superficie-suave);
+  color: var(--cor-texto);
+  text-align: left;
+}
+
+.grupos-edicao-visibilidade button.selecionada {
+  border-color: var(--cor-primaria);
+  background: rgba(255, 179, 0, 0.12);
+}
+
+.grupos-edicao-visibilidade strong {
+  font-size: 0.98rem;
+}
+
+.grupos-edicao-visibilidade span {
+  color: var(--cor-texto-suave);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.grupos-edicao-acoes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
 .grupos-dashboard-vazio,
 .grupos-dashboard-estado {
   align-items: flex-start;
@@ -4370,6 +4452,11 @@ code {
   .grupos-dashboard-atividade {
     max-width: none;
     text-align: left;
+  }
+
+  .grupos-edicao-visibilidade > div,
+  .grupos-edicao-acoes {
+    grid-template-columns: 1fr;
   }
 }
 

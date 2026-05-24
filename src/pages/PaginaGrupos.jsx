@@ -7,17 +7,26 @@ import { gruposServico } from '../services/gruposServico';
 import { ESTADOS_ACESSO } from '../utils/acesso';
 import { obterNomeExibicaoAtleta } from '../utils/atletaUtils';
 import { extrairMensagemErro } from '../utils/erros';
-import { formatarDataHora, paraInputData } from '../utils/formatacao';
+import { formatarDataHora } from '../utils/formatacao';
 import { PERFIS_USUARIO, ehAtleta } from '../utils/perfis';
 
 const estadoInicial = {
   nome: '',
-  descricao: '',
-  link: '',
-  dataInicio: paraInputData(new Date().toISOString()),
-  dataFim: '',
-  localId: ''
+  privacidade: 'Privado'
 };
+
+const opcoesPrivacidade = [
+  {
+    valor: 'Público',
+    titulo: 'Público',
+    descricao: 'Permite encontrar o grupo e registrar partidas com atletas de fora conforme as regras atuais.'
+  },
+  {
+    valor: 'Privado',
+    titulo: 'Privado',
+    descricao: 'Mantém o grupo restrito aos atletas já vinculados ao grupo.'
+  }
+];
 
 const dashboardVazio = {
   totais: {
@@ -58,6 +67,10 @@ function obterIdGrupo(grupo) {
 function obterQuantidade(valor) {
   const numero = Number(valor);
   return Number.isFinite(numero) ? numero : 0;
+}
+
+function normalizarNome(nome) {
+  return String(nome || '').trim().replace(/\s+/g, ' ');
 }
 
 function CardTotal({ rotulo, valor }) {
@@ -184,11 +197,7 @@ export function PaginaGrupos() {
       setGrupoEdicaoId(grupoId);
       setFormulario({
         nome: dadosGrupo.nome || '',
-        descricao: dadosGrupo.descricao || '',
-        link: dadosGrupo.link || '',
-        dataInicio: paraInputData(dadosGrupo.dataInicio),
-        dataFim: paraInputData(dadosGrupo.dataFim),
-        localId: dadosGrupo.localId || ''
+        privacidade: dadosGrupo.privacidade === 'Público' ? 'Público' : 'Privado'
       });
       setFormularioAberto(true);
     } catch (error) {
@@ -215,13 +224,19 @@ export function PaginaGrupos() {
     setSalvando(true);
 
     try {
+      const nome = normalizarNome(formulario.nome);
+      if (!nome) {
+        showNotification({
+          type: 'error',
+          title: 'Nome obrigatório',
+          message: 'Informe o nome do grupo para salvar.'
+        });
+        return;
+      }
+
       const dados = {
-        nome: formulario.nome.trim(),
-        descricao: formulario.descricao.trim() || null,
-        link: formulario.link.trim() || null,
-        dataInicio: formulario.dataInicio,
-        dataFim: formulario.dataFim || null,
-        localId: formulario.localId || null
+        nome,
+        publico: formulario.privacidade === 'Público'
       };
 
       if (grupoEdicaoId) {
@@ -324,23 +339,65 @@ export function PaginaGrupos() {
       </header>
 
       {podeCriarGrupo && formularioAberto && (
-        <article className="cartao">
-          <form className="formulario-grid" onSubmit={aoSubmeter}>
-            <label>
-              Nome
-              <input value={formulario.nome} onChange={(evento) => atualizarCampo('nome', evento.target.value)} required />
-            </label>
-
-            <div className="acoes-formulario campo-largo">
-              <button type="submit" className="botao-primario" disabled={salvando}>
-                {salvando ? 'Salvando...' : grupoEdicaoId ? 'Atualizar grupo' : 'Criar grupo'}
-              </button>
-              <button type="button" className="botao-secundario" onClick={limparFormulario}>
-                Cancelar
-              </button>
+        <div className="modal-sobreposicao grupos-edicao-sobreposicao" role="presentation" onClick={limparFormulario}>
+          <article
+            className="modal-conteudo grupos-edicao-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="grupos-edicao-titulo"
+            onClick={(evento) => evento.stopPropagation()}
+          >
+            <div className="modal-cabecalho">
+              <div>
+                <h3 id="grupos-edicao-titulo">Editar grupo</h3>
+                <p>Atualize as informações básicas do grupo.</p>
+              </div>
             </div>
-          </form>
-        </article>
+
+            <form className="grupos-edicao-formulario" onSubmit={aoSubmeter}>
+              <label className="grupos-edicao-campo">
+                <span>Nome do grupo</span>
+                <input
+                  value={formulario.nome}
+                  onChange={(evento) => atualizarCampo('nome', evento.target.value)}
+                  required
+                  autoFocus
+                />
+              </label>
+
+              <fieldset className="grupos-edicao-visibilidade">
+                <legend>Visibilidade</legend>
+                <div>
+                  {opcoesPrivacidade.map((opcao) => {
+                    const selecionada = formulario.privacidade === opcao.valor;
+
+                    return (
+                      <button
+                        type="button"
+                        key={opcao.valor}
+                        className={selecionada ? 'selecionada' : undefined}
+                        onClick={() => atualizarCampo('privacidade', opcao.valor)}
+                        aria-pressed={selecionada}
+                      >
+                        <strong>{opcao.titulo}</strong>
+                        <span>{opcao.descricao}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </fieldset>
+
+              <div className="grupos-edicao-acoes">
+                <button type="button" className="botao-secundario" onClick={limparFormulario} disabled={salvando}>
+                  Cancelar
+                </button>
+                <button type="submit" className="botao-primario" disabled={salvando}>
+                  {salvando ? 'Salvando...' : 'Salvar alterações'}
+                </button>
+              </div>
+            </form>
+          </article>
+        </div>
       )}
 
       <section className="grupos-dashboard-totais" aria-label="Resumo dos grupos">
