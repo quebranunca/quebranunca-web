@@ -1,9 +1,12 @@
-import { Fragment, useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef } from 'react';
 import {
   FaCheck,
   FaChevronLeft,
   FaClipboardCheck,
+  FaEllipsisH,
   FaImage,
+  FaLayerGroup,
+  FaMedal,
   FaRedo,
   FaTimes,
   FaTrophy,
@@ -13,7 +16,12 @@ import { AvatarUsuario, obterFotoPerfilAvatar } from '../AvatarUsuario';
 import { CompartilharPartidaBotao } from './CompartilharPartidaBotao';
 import { GrupoContextoPartida } from './GrupoContextoPartida';
 import { SeletorGrupoPartida } from './SeletorGrupoPartida';
-import { aoPressionarEnterParaProximo, focusNextField, scrollFocusedInputIntoView } from '../../utils/tecladoMobile';
+import {
+  aoPressionarEnterParaProximo,
+  focusCampoSemPular,
+  focusNextField,
+  scrollFocusedInputIntoView
+} from '../../utils/tecladoMobile';
 
 function obterValorCampo(dados, campo) {
   return campo.split('.').reduce((valor, parte) => valor?.[parte], dados) ?? '';
@@ -44,7 +52,88 @@ function obterVencedora(dados) {
   return pontos1 > pontos2 ? 'dupla1' : 'dupla2';
 }
 
+function obterNumeroRegra(valor) {
+  const numero = Number(valor);
+  return Number.isFinite(numero) ? numero : null;
+}
+
+function montarValidacoesPlacar(dados, regraPartida) {
+  const placarA = Number(dados.dupla1.pontos);
+  const placarB = Number(dados.dupla2.pontos);
+  const temPlacar = dados.dupla1.pontos !== '' && dados.dupla2.pontos !== '';
+  const pontosMinimos = obterNumeroRegra(regraPartida?.pontosMinimosPartida);
+  const diferencaMinima = obterNumeroRegra(regraPartida?.diferencaMinimaPartida);
+  const permiteEmpate = regraPartida?.permiteEmpate === true;
+
+  return [
+    pontosMinimos !== null && {
+      id: 'minimo',
+      texto: `Mínimo ${pontosMinimos} pontos`,
+      ok: temPlacar && Math.max(placarA, placarB) >= pontosMinimos
+    },
+    diferencaMinima !== null && {
+      id: 'diferenca',
+      texto: `Diferença mínima ${diferencaMinima}`,
+      ok: temPlacar && Math.abs(placarA - placarB) >= diferencaMinima
+    },
+    {
+      id: 'empate',
+      texto: permiteEmpate ? 'Empate permitido' : 'Sem empate',
+      ok: temPlacar && (permiteEmpate || placarA !== placarB)
+    }
+  ].filter(Boolean);
+}
+
+function limparTexto(valor) {
+  return String(valor || '').trim().replace(/\s+/g, ' ');
+}
+
+function montarValidacoesRevisao(dados, regraPartida) {
+  const nomes = [
+    limparTexto(dados.dupla1.atletaDireita),
+    limparTexto(dados.dupla1.atletaEsquerda),
+    limparTexto(dados.dupla2.atletaDireita),
+    limparTexto(dados.dupla2.atletaEsquerda)
+  ];
+  const nomesNormalizados = nomes.map((nome) => nome.toLowerCase()).filter(Boolean);
+  const placarA = Number(dados.dupla1.pontos);
+  const placarB = Number(dados.dupla2.pontos);
+  const temPlacar = dados.dupla1.pontos !== '' && dados.dupla2.pontos !== '';
+  const placarNumerico = temPlacar && Number.isFinite(placarA) && Number.isFinite(placarB) && placarA >= 0 && placarB >= 0;
+
+  return [
+    {
+      id: 'atletas',
+      texto: 'Quatro atletas informados',
+      ok: nomes.every(Boolean)
+    },
+    {
+      id: 'sem-repeticao',
+      texto: 'Atletas sem repetição',
+      ok: nomesNormalizados.length === 4 && new Set(nomesNormalizados).size === nomesNormalizados.length
+    },
+    {
+      id: 'placar',
+      texto: 'Placar final preenchido',
+      ok: placarNumerico
+    },
+    ...montarValidacoesPlacar(dados, regraPartida)
+  ];
+}
+
+function revisaoPossuiInconsistencia(dados, regraPartida) {
+  return montarValidacoesRevisao(dados, regraPartida).some((validacao) => !validacao.ok);
+}
+
 function IconeEtapa({ tipo }) {
+  if (tipo === 'group') {
+    return <FaLayerGroup aria-hidden="true" />;
+  }
+
+  if (tipo === 'score') {
+    return <FaMedal aria-hidden="true" />;
+  }
+
   if (tipo === 'summary') {
     return <FaClipboardCheck aria-hidden="true" />;
   }
@@ -153,6 +242,30 @@ function obterSecaoSugestaoAtleta(atleta) {
   return '';
 }
 
+function formatarQuantidadeAtletasGrupo(valor) {
+  const quantidade = Number(valor);
+
+  if (!Number.isFinite(quantidade)) {
+    return 'Atletas';
+  }
+
+  return `${quantidade} ${quantidade === 1 ? 'atleta' : 'atletas'}`;
+}
+
+function obterImagemGrupo(grupo) {
+  return grupo?.imagemUrl || grupo?.fotoUrl || grupo?.avatarUrl || '';
+}
+
+function GrupoOpcaoAvatar({ grupo, semGrupo = false }) {
+  const imagem = obterImagemGrupo(grupo);
+
+  return (
+    <span className="registrar-partida-novo-grupo-opcao-avatar" aria-hidden="true">
+      {semGrupo ? <FaTimes /> : imagem ? <img src={imagem} alt="" /> : <FaLayerGroup />}
+    </span>
+  );
+}
+
 function obterNomeInputAtleta(campo) {
   const nomes = {
     'dupla1.atletaDireita': 'atleta1Dupla1',
@@ -174,11 +287,22 @@ function AutocompleteAtleta({
   buscando,
   inputRef,
   proximoRef,
+  onConcluirCampo,
   onAlterarCampo,
   onSelecionarAtleta
 }) {
   const valor = obterValorCampo(dados, campo);
   const sugestoesCampo = sugestoes[campo] || [];
+  const possuiProximoCampo = Boolean(proximoRef);
+
+  function avancarCampo() {
+    if (possuiProximoCampo) {
+      focusNextField(proximoRef);
+      return;
+    }
+
+    onConcluirCampo?.();
+  }
 
   return (
     <label className="registrar-partida-novo-campo">
@@ -192,11 +316,11 @@ function AutocompleteAtleta({
         autoCorrect="off"
         autoCapitalize="words"
         spellCheck={false}
-        enterKeyHint="next"
+        enterKeyHint={possuiProximoCampo ? 'next' : 'done'}
         value={valor}
         onChange={(evento) => onAlterarCampo(campo, evento.target.value)}
         onFocus={scrollFocusedInputIntoView}
-        onKeyDown={(evento) => aoPressionarEnterParaProximo(evento, () => focusNextField(proximoRef))}
+        onKeyDown={(evento) => aoPressionarEnterParaProximo(evento, avancarCampo)}
         placeholder={placeholder}
       />
 
@@ -208,7 +332,7 @@ function AutocompleteAtleta({
 
       {(sugestoesCampo.length > 0 || buscando) && (
         <div className="registrar-partida-novo-sugestoes" role="listbox">
-          {buscando && <span className="registrar-partida-novo-sugestao-status">Buscando atletas...</span>}
+          {buscando && <span className="registrar-partida-novo-sugestao-status carregando">Buscando atletas...</span>}
           {sugestoesCampo.map((atleta, indice) => {
             const secaoAtual = obterSecaoSugestaoAtleta(atleta);
             const secaoAnterior = obterSecaoSugestaoAtleta(sugestoesCampo[indice - 1]);
@@ -227,7 +351,9 @@ function AutocompleteAtleta({
                   onMouseDown={(evento) => evento.preventDefault()}
                   onClick={() => {
                     onSelecionarAtleta(campo, atleta);
-                    focusNextField(proximoRef);
+                    if (possuiProximoCampo) {
+                      focusNextField(proximoRef);
+                    }
                   }}
                 >
                   <AvatarUsuario
@@ -250,7 +376,7 @@ function AutocompleteAtleta({
   );
 }
 
-function DuplaRegistro({ numero, dados, selecoes, sugestoes, campoBuscando, inputRef, inputRef2, proximoRef1, proximoRef2, vencedora, onAlterarCampo, onSelecionarAtleta }) {
+function DuplaRegistro({ numero, dados, selecoes, sugestoes, campoBuscando, inputRef, inputRef2, proximoRef1, proximoRef2, vencedora, onAlterarCampo, onSelecionarAtleta, onConcluir }) {
   const prefixo = numero === 1 ? 'dupla1' : 'dupla2';
   const ganhou = vencedora === prefixo;
 
@@ -271,6 +397,7 @@ function DuplaRegistro({ numero, dados, selecoes, sugestoes, campoBuscando, inpu
           buscando={campoBuscando === `${prefixo}.atletaDireita`}
           inputRef={inputRef}
           proximoRef={proximoRef1}
+          onConcluirCampo={onConcluir}
           onAlterarCampo={onAlterarCampo}
           onSelecionarAtleta={onSelecionarAtleta}
         />
@@ -284,6 +411,7 @@ function DuplaRegistro({ numero, dados, selecoes, sugestoes, campoBuscando, inpu
           buscando={campoBuscando === `${prefixo}.atletaEsquerda`}
           inputRef={inputRef2}
           proximoRef={proximoRef2}
+          onConcluirCampo={onConcluir}
           onAlterarCampo={onAlterarCampo}
           onSelecionarAtleta={onSelecionarAtleta}
         />
@@ -292,7 +420,19 @@ function DuplaRegistro({ numero, dados, selecoes, sugestoes, campoBuscando, inpu
   );
 }
 
-function PlacarCentral({ dados, placar1Ref, placar2Ref, onAlterarCampo, onRevisar }) {
+function PlacarCentral({
+  dados,
+  placar1Ref,
+  placar2Ref,
+  regraPartida,
+  carregandoRegraPartida,
+  erroRegraPartida,
+  onAlterarCampo,
+  onRevisar
+}) {
+  const validacoes = montarValidacoesPlacar(dados, regraPartida);
+  const possuiRegraCompeticao = Boolean(regraPartida);
+
   function alterarPlacar(campo, valor) {
     onAlterarCampo(campo, valor);
 
@@ -300,15 +440,23 @@ function PlacarCentral({ dados, placar1Ref, placar2Ref, onAlterarCampo, onRevisa
     if (campo === 'dupla1.pontos' && valorLimpo.length === 2) {
       window.setTimeout(() => placar2Ref.current?.focus(), 0);
     }
-
-    if (campo === 'dupla2.pontos' && valorLimpo.length === 2) {
-      window.setTimeout(() => onRevisar?.(), 80);
-    }
   }
 
   return (
     <section className="registrar-partida-novo-placar-central" aria-label="Placar da partida">
-      <span>Placar</span>
+      <div className="registrar-partida-novo-placar-regra">
+        <span>Regra</span>
+        {carregandoRegraPartida ? (
+          <strong>Carregando regra...</strong>
+        ) : possuiRegraCompeticao ? (
+          <strong>{regraPartida.nome}</strong>
+        ) : erroRegraPartida ? (
+          <strong>A API validará a regra da competição.</strong>
+        ) : (
+          <strong>Partida avulsa validada pela API.</strong>
+        )}
+      </div>
+
       <div className="registrar-partida-novo-placar">
         <label>
           <small>Dupla 1</small>
@@ -354,73 +502,180 @@ function PlacarCentral({ dados, placar1Ref, placar2Ref, onAlterarCampo, onRevisa
           />
         </label>
       </div>
+
+      <div className="registrar-partida-novo-validacoes-placar" aria-live="polite">
+        {validacoes.map((validacao) => (
+          <span
+            key={validacao.id}
+            className={validacao.ok ? 'ok' : ''}
+          >
+            <FaCheck aria-hidden="true" />
+            {validacao.texto}
+          </span>
+        ))}
+      </div>
     </section>
   );
 }
 
-function RegistroUnico(props) {
-  const [opcoesAbertas, setOpcoesAbertas] = useState(false);
-  const vencedor = obterVencedora(props.dados);
+function EtapaGrupo({
+  grupo,
+  carregandoGrupo,
+  gruposDisponiveis,
+  carregandoGruposDisponiveis,
+  erroGruposDisponiveis,
+  onCarregarGrupos,
+  onSelecionarGrupo,
+  onEscolherGrupo,
+  onRemoverGrupo
+}) {
+  const gruposVisiveis = (gruposDisponiveis || []).slice(0, 3);
+  const grupoSelecionadoId = grupo?.id || null;
+  const solicitouGruposRef = useRef(false);
+
+  useEffect(() => {
+    if (solicitouGruposRef.current) {
+      return;
+    }
+
+    solicitouGruposRef.current = true;
+    onCarregarGrupos?.();
+  }, [onCarregarGrupos]);
 
   return (
-    <section className="registrar-partida-novo-etapa registrar-partida-novo-registro">
+    <section className="registrar-partida-novo-etapa registrar-partida-novo-etapa-grupo">
       <div className="registrar-partida-novo-intro">
-        <span className="registrar-partida-novo-kicker">Registro rápido</span>
-        <h3>Atletas e placar</h3>
-        <p>Informe as duas duplas, registre o placar e revise antes de salvar.</p>
+        <span className="registrar-partida-novo-kicker">Etapa 1</span>
+        <h3>Grupo da partida</h3>
+        <p>Escolha um grupo ou continue sem vincular.</p>
       </div>
 
-      <div className="registrar-partida-novo-registro-grid">
-        <DuplaRegistro
-          numero={1}
-          vencedora={vencedor}
-          {...props}
-          inputRef={props.atletaRefs.dupla1Atleta1}
-          inputRef2={props.atletaRefs.dupla1Atleta2}
-          proximoRef1={props.atletaRefs.dupla1Atleta2}
-          proximoRef2={props.atletaRefs.dupla2Atleta1}
-        />
-        <PlacarCentral
-          dados={props.dados}
-          placar1Ref={props.placar1Ref}
-          placar2Ref={props.placar2Ref}
-          onAlterarCampo={props.onAlterarCampo}
-          onRevisar={props.onRevisar}
-        />
-        <DuplaRegistro
-          numero={2}
-          vencedora={vencedor}
-          {...props}
-          inputRef={props.atletaRefs.dupla2Atleta1}
-          inputRef2={props.atletaRefs.dupla2Atleta2}
-          proximoRef1={props.atletaRefs.dupla2Atleta2}
-          proximoRef2={props.placar1Ref}
-        />
-      </div>
+      <div className="registrar-partida-novo-grupo-escolha">
+        <button
+          type="button"
+          className={`registrar-partida-novo-grupo-opcao ${!grupoSelecionadoId ? 'selecionada' : ''}`}
+          onClick={onRemoverGrupo}
+        >
+          <GrupoOpcaoAvatar semGrupo />
+          <span>
+            <strong>Nenhum grupo</strong>
+            <small>Registrar como partida avulsa.</small>
+          </span>
+          {!grupoSelecionadoId && <FaCheck aria-hidden="true" />}
+        </button>
 
-      <details
-        className="registrar-partida-novo-opcoes"
-        open={opcoesAbertas}
-        onToggle={(evento) => setOpcoesAbertas(evento.currentTarget.open)}
-      >
-        <summary>Opções da partida</summary>
-        <div>
-          <span>Data e hora</span>
-          <strong>Agora</strong>
+        {grupoSelecionadoId && (
+          <div className="registrar-partida-novo-grupo-selecionado">
+            <span>Grupo selecionado</span>
+            <GrupoContextoPartida
+              grupo={grupo}
+              carregando={carregandoGrupo}
+              onSelecionarGrupo={onSelecionarGrupo}
+            />
+          </div>
+        )}
+
+        <div className="registrar-partida-novo-grupo-lista">
+          <div className="registrar-partida-novo-grupo-lista-topo">
+            <strong>Meus grupos</strong>
+            <button type="button" onClick={onSelecionarGrupo}>
+              <FaEllipsisH aria-hidden="true" />
+              Ver todos
+            </button>
+          </div>
+
+          {carregandoGruposDisponiveis && (
+            <span className="registrar-partida-novo-grupo-estado carregando">Carregando grupos...</span>
+          )}
+
+          {!carregandoGruposDisponiveis && erroGruposDisponiveis && (
+            <span className="registrar-partida-novo-grupo-estado erro">Não foi possível carregar seus grupos.</span>
+          )}
+
+          {!carregandoGruposDisponiveis && !erroGruposDisponiveis && gruposVisiveis.length === 0 && (
+            <span className="registrar-partida-novo-grupo-estado vazio">Nenhum grupo disponível.</span>
+          )}
+
+          {!carregandoGruposDisponiveis && !erroGruposDisponiveis && gruposVisiveis.map((grupoOpcao) => {
+            const selecionada = grupoSelecionadoId === grupoOpcao.id;
+
+            return (
+              <button
+                type="button"
+                key={grupoOpcao.id}
+                className={`registrar-partida-novo-grupo-opcao ${selecionada ? 'selecionada' : ''}`}
+                onClick={() => onEscolherGrupo?.(grupoOpcao)}
+              >
+                <GrupoOpcaoAvatar grupo={grupoOpcao} />
+                <span>
+                  <strong>{grupoOpcao.nome}</strong>
+                  <small>{formatarQuantidadeAtletasGrupo(grupoOpcao.quantidadeAtletas)} • {grupoOpcao.privacidade || 'Privado'}</small>
+                </span>
+                {selecionada && <FaCheck aria-hidden="true" />}
+              </button>
+            );
+          })}
         </div>
-        {props.resumo?.contexto?.grupoId && (
-          <div>
-            <span>Grupo</span>
-            <strong>Selecionado</strong>
-          </div>
-        )}
-        {props.resumo?.contexto?.categoriaId && (
-          <div>
-            <span>Categoria</span>
-            <strong>Selecionada</strong>
-          </div>
-        )}
-      </details>
+      </div>
+    </section>
+  );
+}
+
+function EtapaDupla({ numero, propsDupla, onConcluir }) {
+  const vencedor = obterVencedora(propsDupla.dados);
+  const prefixo = numero === 1 ? 'dupla1' : 'dupla2';
+  const refs = numero === 1
+    ? {
+        inputRef: propsDupla.atletaRefs.dupla1Atleta1,
+        inputRef2: propsDupla.atletaRefs.dupla1Atleta2,
+        proximoRef1: propsDupla.atletaRefs.dupla1Atleta2,
+        proximoRef2: null
+      }
+    : {
+        inputRef: propsDupla.atletaRefs.dupla2Atleta1,
+        inputRef2: propsDupla.atletaRefs.dupla2Atleta2,
+        proximoRef1: propsDupla.atletaRefs.dupla2Atleta2,
+        proximoRef2: null
+      };
+
+  return (
+    <section className="registrar-partida-novo-etapa registrar-partida-novo-etapa-dupla">
+      <div className="registrar-partida-novo-intro">
+        <span className="registrar-partida-novo-kicker">Etapa {numero + 1}</span>
+        <h3>Dupla {numero}</h3>
+        <p>Informe os dois atletas desta dupla.</p>
+      </div>
+
+      <DuplaRegistro
+        numero={numero}
+        vencedora={vencedor === prefixo ? vencedor : ''}
+        onConcluir={onConcluir}
+        {...propsDupla}
+        {...refs}
+      />
+    </section>
+  );
+}
+
+function EtapaPlacar(props) {
+  return (
+    <section className="registrar-partida-novo-etapa registrar-partida-novo-etapa-placar">
+      <div className="registrar-partida-novo-intro">
+        <span className="registrar-partida-novo-kicker">Etapa 4</span>
+        <h3>Placar</h3>
+        <p>Digite os pontos e revise as validações automáticas.</p>
+      </div>
+
+      <PlacarCentral
+        dados={props.dados}
+        placar1Ref={props.placar1Ref}
+        placar2Ref={props.placar2Ref}
+        regraPartida={props.regraPartida}
+        carregandoRegraPartida={props.carregandoRegraPartida}
+        erroRegraPartida={props.erroRegraPartida}
+        onAlterarCampo={props.onAlterarCampo}
+        onRevisar={props.onRevisar}
+      />
     </section>
   );
 }
@@ -436,29 +691,95 @@ function ResumoDupla({ titulo, atletas, destaque }) {
   );
 }
 
+function EstatisticaSucesso({ rotulo, valor }) {
+  return (
+    <div className="registrar-partida-novo-sucesso-stat">
+      <span>{rotulo}</span>
+      <strong>{valor}</strong>
+    </div>
+  );
+}
+
+function ResultadoSucessoPremium({ resumo, partida }) {
+  const vencedora = obterVencedora({
+    dupla1: { pontos: resumo?.placar?.dupla1 ?? partida?.placarDuplaA },
+    dupla2: { pontos: resumo?.placar?.dupla2 ?? partida?.placarDuplaB }
+  });
+  const grupo = partida?.nomeGrupo || 'Partida avulsa';
+
+  return (
+    <div className="registrar-partida-novo-sucesso-card">
+      <div className="registrar-partida-novo-sucesso-card-topo">
+        <span>{grupo}</span>
+        {partida?.nomeCategoria && <strong>{partida.nomeCategoria}</strong>}
+      </div>
+
+      <div className="registrar-partida-novo-sucesso-resultado">
+        <div className={`registrar-partida-novo-sucesso-dupla ${vencedora === 'dupla1' ? 'vencedora' : ''}`}>
+          <span>Dupla 1</span>
+          {(resumo?.dupla1 || []).map((nome, indice) => (
+            <div key={`sucesso-dupla1-${indice}`}>
+              <AvatarUsuario nome={nome} tamanho="sm" className="registrar-partida-novo-avatar" />
+              <strong>{nome || 'Atleta'}</strong>
+            </div>
+          ))}
+        </div>
+
+        <div className="registrar-partida-novo-sucesso-placar">
+          <strong>{resumo?.placar?.dupla1 ?? partida?.placarDuplaA ?? 0}</strong>
+          <span>x</span>
+          <strong>{resumo?.placar?.dupla2 ?? partida?.placarDuplaB ?? 0}</strong>
+        </div>
+
+        <div className={`registrar-partida-novo-sucesso-dupla ${vencedora === 'dupla2' ? 'vencedora' : ''}`}>
+          <span>Dupla 2</span>
+          {(resumo?.dupla2 || []).map((nome, indice) => (
+            <div key={`sucesso-dupla2-${indice}`}>
+              <AvatarUsuario nome={nome} tamanho="sm" className="registrar-partida-novo-avatar" />
+              <strong>{nome || 'Atleta'}</strong>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function RevisaoRapida({
   resumo,
   grupo,
   dados,
+  regraPartida,
+  carregandoRegraPartida,
+  erroRegraPartida,
   salvando,
   duplicidade,
-  onEditar,
-  onSalvar,
   onCancelarDuplicidade,
   onConfirmarDuplicidade
 }) {
   const contexto = resumo.contexto || {};
   const vencedora = obterVencedora(dados);
   const exibindoDuplicidade = Boolean(duplicidade);
+  const validacoes = montarValidacoesRevisao(dados, regraPartida);
+  const possuiInconsistencia = validacoes.some((validacao) => !validacao.ok);
+  const nomeVencedora = vencedora === 'dupla1' ? 'Dupla 1' : vencedora === 'dupla2' ? 'Dupla 2' : '';
 
   return (
     <section className="registrar-partida-novo-revisao" aria-label="Revisão rápida da partida">
       <div className="registrar-partida-novo-sheet">
         <div className="registrar-partida-novo-intro">
-          <span className="registrar-partida-novo-kicker">Revisão</span>
+          <span className="registrar-partida-novo-kicker">Etapa 5</span>
           <h3>Conferir partida</h3>
-          <p>Confira atletas e placar antes de salvar.</p>
+          <p>Confira atletas, placar e regras antes de confirmar.</p>
         </div>
+
+        {nomeVencedora && (
+          <div className="registrar-partida-novo-vencedor">
+            <FaTrophy aria-hidden="true" />
+            <span>Vencedora</span>
+            <strong>{nomeVencedora}</strong>
+          </div>
+        )}
 
         <div className="registrar-partida-novo-resumo-card">
           <ResumoDupla titulo="Dupla 1" atletas={resumo.dupla1} destaque={vencedora === 'dupla1'} />
@@ -491,6 +812,26 @@ function RevisaoRapida({
               <strong>Selecionada</strong>
             </div>
           )}
+          <div className="registrar-partida-novo-meta">
+            <span>Regra</span>
+            <strong>
+              {carregandoRegraPartida
+                ? 'Carregando regra...'
+                : regraPartida?.nome || (erroRegraPartida ? 'Validada pela API' : 'Partida avulsa')}
+            </strong>
+          </div>
+        </div>
+
+        <div className={`registrar-partida-novo-validacoes-revisao ${possuiInconsistencia ? 'pendente' : 'ok'}`}>
+          <strong>{possuiInconsistencia ? 'Revise antes de salvar' : 'Tudo pronto para salvar'}</strong>
+          <div>
+            {validacoes.map((validacao) => (
+              <span key={validacao.id} className={validacao.ok ? 'ok' : ''}>
+                <FaCheck aria-hidden="true" />
+                {validacao.texto}
+              </span>
+            ))}
+          </div>
         </div>
 
         {exibindoDuplicidade && (
@@ -511,14 +852,6 @@ function RevisaoRapida({
           </div>
         )}
 
-        <div className="registrar-partida-novo-acoes registrar-partida-novo-acoes-revisao">
-          <button type="button" className="botao-secundario" onClick={onEditar} disabled={salvando}>
-            Editar
-          </button>
-          <button type="button" className="botao-primario" onClick={onSalvar} disabled={salvando || exibindoDuplicidade}>
-            {salvando ? 'Salvando...' : 'Salvar partida'}
-          </button>
-        </div>
       </div>
     </section>
   );
@@ -527,6 +860,8 @@ function RevisaoRapida({
 function TelaSucesso({ sucesso, onAdicionarMidia, onVerPartida, onRegistrarRevanche, onRegistrarNovaPartida, onFechar }) {
   const resumo = sucesso?.resumo;
   const partidaId = sucesso?.partida?.id;
+  const pontos = Number(sucesso?.partida?.pontosRankingVitoria);
+  const pontosTexto = Number.isFinite(pontos) && pontos > 0 ? `+${pontos}` : 'Atualiza';
 
   return (
     <section className="registrar-partida-novo-sucesso">
@@ -534,20 +869,16 @@ function TelaSucesso({ sucesso, onAdicionarMidia, onVerPartida, onRegistrarRevan
         <FaCheck aria-hidden="true" />
       </div>
       <span className="registrar-partida-novo-kicker">Partida registrada</span>
-      <h3>Partida salva</h3>
-      <p>Agora você pode compartilhar, anexar mídia ou registrar outra partida.</p>
+      <h3>Resultado salvo</h3>
+      <p>Partida registrada no histórico QuebraNunca.</p>
 
-      {resumo && (
-        <div className="registrar-partida-novo-resumo-card">
-          <ResumoDupla titulo="Dupla 1" atletas={resumo.dupla1} />
-          <div className="registrar-partida-novo-resumo-placar">
-            <strong>{resumo.placar.dupla1}</strong>
-            <span>x</span>
-            <strong>{resumo.placar.dupla2}</strong>
-          </div>
-          <ResumoDupla titulo="Dupla 2" atletas={resumo.dupla2} />
-        </div>
-      )}
+      <div className="registrar-partida-novo-sucesso-stats">
+        <EstatisticaSucesso rotulo="Sequência" valor="Atualiza" />
+        <EstatisticaSucesso rotulo="Pontos" valor={pontosTexto} />
+        <EstatisticaSucesso rotulo="Ranking" valor="Em breve" />
+      </div>
+
+      {resumo && <ResultadoSucessoPremium resumo={resumo} partida={sucesso?.partida} />}
 
       <div className="registrar-partida-novo-meta registrar-partida-novo-meta-sucesso">
         <span>{formatarIdPartida(sucesso?.partida)}</span>
@@ -555,23 +886,28 @@ function TelaSucesso({ sucesso, onAdicionarMidia, onVerPartida, onRegistrarRevan
       </div>
 
       <div className="registrar-partida-novo-acoes registrar-partida-novo-acoes-sucesso">
-        {partidaId && <CompartilharPartidaBotao partidaId={partidaId} />}
-        <button type="button" className="botao-primario" onClick={onAdicionarMidia}>
-          <FaImage aria-hidden="true" />
-          Adicionar foto ou vídeo
-        </button>
-        <button type="button" className="botao-secundario" onClick={onVerPartida}>
-          Ver partida
-        </button>
-        <button type="button" className="botao-secundario" onClick={onRegistrarRevanche}>
-          <FaRedo aria-hidden="true" />
-          Repetir última partida
-        </button>
-        <button type="button" className="botao-link" onClick={onRegistrarNovaPartida}>
+        {partidaId && (
+          <div className="registrar-partida-novo-compartilhar-principal">
+            <CompartilharPartidaBotao partidaId={partidaId} />
+          </div>
+        )}
+
+        <div className="registrar-partida-novo-acoes-secundarias">
+          <button type="button" className="botao-secundario" onClick={onAdicionarMidia}>
+            <FaImage aria-hidden="true" />
+            Adicionar mídia
+          </button>
+          <button type="button" className="botao-secundario" onClick={onVerPartida}>
+            Ver partida
+          </button>
+          <button type="button" className="botao-secundario" onClick={onRegistrarRevanche}>
+            <FaRedo aria-hidden="true" />
+            Repetir atletas
+          </button>
+        </div>
+
+        <button type="button" className="botao-primario registrar-partida-novo-nova-partida" onClick={onRegistrarNovaPartida}>
           Registrar nova partida
-        </button>
-        <button type="button" className="botao-link" onClick={onFechar}>
-          Continuar depois
         </button>
       </div>
     </section>
@@ -594,11 +930,119 @@ function Stepper({ etapas, indiceEtapa }) {
           <small>{etapa.titulo}</small>
         </span>
       ))}
-      <span className={`registrar-partida-novo-stepper-item ${Boolean(indiceEtapa > etapas.length - 1) ? 'ativo' : ''}`}>
-        <FaCheck aria-hidden="true" />
-        <small>Pós-registro</small>
-      </span>
     </nav>
+  );
+}
+
+function obterRotuloAcao(etapaAtual, salvando) {
+  if (salvando) {
+    return etapaAtual?.id === 'revisao' ? 'Registrando...' : 'Aguarde...';
+  }
+
+  if (etapaAtual?.id === 'grupo') {
+    return 'Continuar';
+  }
+
+  if (etapaAtual?.id === 'dupla1' || etapaAtual?.id === 'dupla2') {
+    return 'Próximo';
+  }
+
+  if (etapaAtual?.id === 'placar') {
+    return 'Revisar';
+  }
+
+  return 'Registrar partida';
+}
+
+function ConteudoEtapa({
+  etapaAtual,
+  dados,
+  selecoes,
+  resumo,
+  sugestoes,
+  campoBuscando,
+  duplicidade,
+  regraPartida,
+  carregandoRegraPartida,
+  erroRegraPartida,
+  grupo,
+  carregandoGrupo,
+  gruposDisponiveis,
+  carregandoGruposDisponiveis,
+  erroGruposDisponiveis,
+  salvando,
+  atletaRefs,
+  placar1Ref,
+  placar2Ref,
+  onCarregarGrupos,
+  onSelecionarGrupo,
+  onEscolherGrupo,
+  onRemoverGrupo,
+  onAlterarCampo,
+  onSelecionarAtleta,
+  onRevisar,
+  onConcluirEtapa,
+  onCancelarDuplicidade,
+  onConfirmarDuplicidade
+}) {
+  const propsRegistro = {
+    dados,
+    selecoes,
+    resumo,
+    sugestoes,
+    campoBuscando,
+    regraPartida,
+    carregandoRegraPartida,
+    erroRegraPartida,
+    atletaRefs,
+    placar1Ref,
+    placar2Ref,
+    onAlterarCampo,
+    onSelecionarAtleta,
+    onRevisar
+  };
+
+  if (etapaAtual.id === 'grupo') {
+    return (
+      <EtapaGrupo
+        grupo={grupo}
+        carregandoGrupo={carregandoGrupo}
+        gruposDisponiveis={gruposDisponiveis}
+        carregandoGruposDisponiveis={carregandoGruposDisponiveis}
+        erroGruposDisponiveis={erroGruposDisponiveis}
+        onCarregarGrupos={onCarregarGrupos}
+        onSelecionarGrupo={onSelecionarGrupo}
+        onEscolherGrupo={onEscolherGrupo}
+        onRemoverGrupo={onRemoverGrupo}
+      />
+    );
+  }
+
+  if (etapaAtual.id === 'dupla1') {
+    return <EtapaDupla numero={1} propsDupla={propsRegistro} onConcluir={onConcluirEtapa} />;
+  }
+
+  if (etapaAtual.id === 'dupla2') {
+    return <EtapaDupla numero={2} propsDupla={propsRegistro} onConcluir={onConcluirEtapa} />;
+  }
+
+  if (etapaAtual.id === 'placar') {
+    return <EtapaPlacar {...propsRegistro} />;
+  }
+
+  return (
+    <RevisaoRapida
+      resumo={resumo}
+      grupo={grupo}
+      dados={dados}
+      regraPartida={regraPartida}
+      carregandoRegraPartida={carregandoRegraPartida}
+      erroRegraPartida={erroRegraPartida}
+      salvando={salvando}
+      duplicidade={duplicidade}
+      onCancelarDuplicidade={onCancelarDuplicidade}
+      onConfirmarDuplicidade={onConfirmarDuplicidade}
+    />
   );
 }
 
@@ -615,14 +1059,17 @@ export function RegistrarPartidaNovoModal({
   campoBuscando,
   erro,
   salvando,
-  revisando,
   duplicidade,
+  regraPartida,
+  carregandoRegraPartida,
+  erroRegraPartida,
   grupo,
   carregandoGrupo,
   gruposDisponiveis,
   carregandoGruposDisponiveis,
   erroGruposDisponiveis,
   seletorGrupoAberto,
+  onCarregarGrupos,
   onSelecionarGrupo,
   onEscolherGrupo,
   onRemoverGrupo,
@@ -652,12 +1099,103 @@ export function RegistrarPartidaNovoModal({
   };
   const placar1Ref = useRef(null);
   const placar2Ref = useRef(null);
+  const formRef = useRef(null);
+  const modalRef = useRef(null);
+  const ctaRef = useRef(null);
+  const revisaoInvalida = etapaAtual?.id === 'revisao' && revisaoPossuiInconsistencia(dados, regraPartida);
+  const acaoPrincipalDesabilitada = salvando || Boolean(duplicidade) || revisaoInvalida;
 
   useEffect(() => {
-    if (aberto && !sucesso && !revisando) {
-      campoRef.current?.focus();
+    if (!aberto || sucesso) {
+      return;
     }
-  }, [aberto, revisando, sucesso]);
+
+    const focosPorEtapa = {
+      dupla1: campoRef,
+      dupla2: dupla2Atleta1Ref,
+      placar: placar1Ref
+    };
+
+    const foco = focosPorEtapa[etapaAtual?.id];
+    if (foco) {
+      focusCampoSemPular(foco);
+    }
+  }, [aberto, etapaAtual?.id, sucesso]);
+
+  useEffect(() => {
+    if (!aberto) {
+      return undefined;
+    }
+
+    const viewport = window.visualViewport;
+    const modal = modalRef.current;
+    let rafId = 0;
+
+    function atualizarOffsetTeclado() {
+      if (!modal) {
+        return;
+      }
+
+      window.cancelAnimationFrame(rafId);
+      rafId = window.requestAnimationFrame(() => {
+        const offset = viewport
+          ? Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop)
+          : 0;
+        const tecladoAberto = offset > 90;
+        const alturaViewport = tecladoAberto ? window.innerHeight : viewport?.height || window.innerHeight;
+
+        modal.style.setProperty('--registrar-partida-viewport-height', `${Math.round(alturaViewport)}px`);
+        modal.style.setProperty('--registrar-partida-teclado-offset', `${Math.round(tecladoAberto ? offset : 0)}px`);
+        modal.dataset.tecladoAberto = tecladoAberto ? 'true' : 'false';
+      });
+    }
+
+    atualizarOffsetTeclado();
+    viewport?.addEventListener('resize', atualizarOffsetTeclado);
+    viewport?.addEventListener('scroll', atualizarOffsetTeclado);
+    window.addEventListener('orientationchange', atualizarOffsetTeclado);
+
+    return () => {
+      viewport?.removeEventListener('resize', atualizarOffsetTeclado);
+      viewport?.removeEventListener('scroll', atualizarOffsetTeclado);
+      window.removeEventListener('orientationchange', atualizarOffsetTeclado);
+      window.cancelAnimationFrame(rafId);
+      modal?.style.removeProperty('--registrar-partida-teclado-offset');
+      modal?.style.removeProperty('--registrar-partida-viewport-height');
+      modal?.removeAttribute('data-teclado-aberto');
+    };
+  }, [aberto]);
+
+  useEffect(() => {
+    if (!aberto || !modalRef.current || !ctaRef.current) {
+      return undefined;
+    }
+
+    const modal = modalRef.current;
+    const cta = ctaRef.current;
+
+    function atualizarAlturaCta() {
+      modal.style.setProperty('--registrar-partida-cta-height', `${Math.ceil(cta.getBoundingClientRect().height)}px`);
+    }
+
+    atualizarAlturaCta();
+
+    if (typeof ResizeObserver === 'undefined') {
+      window.addEventListener('resize', atualizarAlturaCta);
+      return () => {
+        window.removeEventListener('resize', atualizarAlturaCta);
+        modal.style.removeProperty('--registrar-partida-cta-height');
+      };
+    }
+
+    const observer = new ResizeObserver(atualizarAlturaCta);
+    observer.observe(cta);
+
+    return () => {
+      observer.disconnect();
+      modal.style.removeProperty('--registrar-partida-cta-height');
+    };
+  }, [aberto, sucesso, indiceEtapa, duplicidade]);
 
   if (!aberto) {
     return null;
@@ -666,6 +1204,7 @@ export function RegistrarPartidaNovoModal({
   return (
     <div className="modal-sobreposicao registrar-partida-novo-sobreposicao" role="presentation">
       <section
+        ref={modalRef}
         className="modal-conteudo registrar-partida-novo-modal"
         role="dialog"
         aria-modal="true"
@@ -692,56 +1231,62 @@ export function RegistrarPartidaNovoModal({
           />
         ) : (
           <form
+            ref={formRef}
             className="registrar-partida-novo-formulario"
             onSubmit={onConfirmarEtapa}
           >
             <Stepper etapas={etapas} indiceEtapa={indiceEtapa} />
 
-            <GrupoContextoPartida
-              grupo={grupo}
-              carregando={carregandoGrupo}
-              onSelecionarGrupo={onSelecionarGrupo}
-            />
-
             <main className="registrar-partida-novo-corpo">
               {erro && <p className="texto-erro registrar-partida-novo-erro">{erro}</p>}
-              {revisando ? (
-                <RevisaoRapida
-                  resumo={resumo}
-                  grupo={grupo}
-                  dados={dados}
-                  salvando={salvando}
-                  duplicidade={duplicidade}
-                  onEditar={onVoltar}
-                  onSalvar={onConfirmarEtapa}
-                  onCancelarDuplicidade={onCancelarDuplicidade}
-                  onConfirmarDuplicidade={onConfirmarDuplicidade}
-                />
-              ) : (
-                <RegistroUnico
-                  dados={dados}
-                  selecoes={selecoes}
-                  resumo={resumo}
-                  sugestoes={sugestoes}
-                  campoBuscando={campoBuscando}
-                  inputRef={campoRef}
-                  atletaRefs={atletaRefs}
-                  placar1Ref={placar1Ref}
-                  placar2Ref={placar2Ref}
-                  onAlterarCampo={onAlterarCampo}
-                  onSelecionarAtleta={onSelecionarAtleta}
-                  onRevisar={onRevisar}
-                />
-              )}
+              <ConteudoEtapa
+                etapaAtual={etapaAtual}
+                dados={dados}
+                selecoes={selecoes}
+                resumo={resumo}
+                sugestoes={sugestoes}
+                campoBuscando={campoBuscando}
+                duplicidade={duplicidade}
+                regraPartida={regraPartida}
+                carregandoRegraPartida={carregandoRegraPartida}
+                erroRegraPartida={erroRegraPartida}
+                grupo={grupo}
+                carregandoGrupo={carregandoGrupo}
+                gruposDisponiveis={gruposDisponiveis}
+                carregandoGruposDisponiveis={carregandoGruposDisponiveis}
+                erroGruposDisponiveis={erroGruposDisponiveis}
+                salvando={salvando}
+                atletaRefs={atletaRefs}
+                placar1Ref={placar1Ref}
+                placar2Ref={placar2Ref}
+                onCarregarGrupos={onCarregarGrupos}
+                onSelecionarGrupo={onSelecionarGrupo}
+                onEscolherGrupo={onEscolherGrupo}
+                onRemoverGrupo={onRemoverGrupo}
+                onAlterarCampo={onAlterarCampo}
+                onSelecionarAtleta={onSelecionarAtleta}
+                onRevisar={onRevisar}
+                onConcluirEtapa={() => formRef.current?.requestSubmit()}
+                onCancelarDuplicidade={onCancelarDuplicidade}
+                onConfirmarDuplicidade={onConfirmarDuplicidade}
+              />
             </main>
 
-            {!revisando && (
-              <div className="registrar-partida-novo-acoes">
-                <button type="submit" className="botao-primario" disabled={salvando}>
-                  Revisar partida
+            <footer
+              ref={ctaRef}
+              className="registrar-partida-novo-acoes registrar-partida-novo-cta-sticky"
+              data-estado={salvando ? 'loading' : acaoPrincipalDesabilitada ? 'disabled' : 'enabled'}
+              aria-busy={salvando}
+            >
+              {indiceEtapa > 0 && !duplicidade && (
+                <button type="button" className="botao-secundario" onClick={onVoltar} disabled={salvando}>
+                  Voltar
                 </button>
-              </div>
-            )}
+              )}
+              <button type="submit" className="botao-primario" disabled={acaoPrincipalDesabilitada} aria-busy={salvando}>
+                {obterRotuloAcao(etapaAtual, salvando)}
+              </button>
+            </footer>
 
             <SeletorGrupoPartida
               aberto={seletorGrupoAberto}

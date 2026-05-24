@@ -28,18 +28,48 @@ export function deveExibirAtalhosEmail(valor) {
 
 export function focusNextField(ref) {
   window.setTimeout(() => {
-    ref?.current?.focus?.();
+    const campo = ref?.current;
+    focarSemScrollNativo(campo);
+    scrollCampoParaAreaVisivel(campo);
   }, 0);
 }
 
 export function scrollFocusedInputIntoView(evento) {
   window.setTimeout(() => {
-    evento?.currentTarget?.scrollIntoView?.({
-      block: 'center',
-      inline: 'nearest',
-      behavior: 'smooth'
-    });
+    scrollCampoParaAreaVisivel(evento?.currentTarget);
   }, 120);
+}
+
+export function focusCampoSemPular(ref) {
+  window.setTimeout(() => {
+    const campo = ref?.current;
+    focarSemScrollNativo(campo);
+    scrollCampoParaAreaVisivel(campo);
+  }, 120);
+}
+
+function scrollCampoParaAreaVisivel(campo) {
+  if (!campo) {
+    return;
+  }
+
+  campo.scrollIntoView?.({
+    block: 'center',
+    inline: 'nearest',
+    behavior: 'smooth'
+  });
+}
+
+function focarSemScrollNativo(campo) {
+  if (!campo) {
+    return;
+  }
+
+  try {
+    campo.focus({ preventScroll: true });
+  } catch {
+    campo.focus();
+  }
 }
 
 export function aoPressionarEnterParaProximo(evento, acao) {

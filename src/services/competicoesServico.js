@@ -25,6 +25,11 @@ export const competicoesServico = {
     return resposta.data;
   },
 
+  async obterPorId(id) {
+    const resposta = await http.get(`/competicoes/${id}`);
+    return resposta.data;
+  },
+
   async criar(dados) {
     const resposta = await http.post('/competicoes', dados);
     return resposta.data;

@@ -46,7 +46,10 @@ const estadoInicialSelecoes = {
 };
 
 const etapas = [
-  { id: 'registro', titulo: 'Registro', icone: 'users' },
+  { id: 'grupo', titulo: 'Grupo', icone: 'group' },
+  { id: 'dupla1', titulo: 'Dupla 1', icone: 'users' },
+  { id: 'dupla2', titulo: 'Dupla 2', icone: 'users' },
+  { id: 'placar', titulo: 'Placar', icone: 'score' },
   { id: 'revisao', titulo: 'Revisão', icone: 'summary' }
 ];
 
@@ -208,9 +211,52 @@ function validarAtletas(dados) {
   return '';
 }
 
-function validarPlacar(dados) {
+function validarDupla(dados, prefixo, rotulo) {
+  const atleta1 = limparTexto(dados[prefixo].atletaDireita);
+  const atleta2 = limparTexto(dados[prefixo].atletaEsquerda);
+
+  if (!atleta1 || !atleta2) {
+    return `Informe os dois atletas da ${rotulo}.`;
+  }
+
+  if (atleta1.toLowerCase() === atleta2.toLowerCase()) {
+    return `Não é permitido repetir atleta na ${rotulo}.`;
+  }
+
+  return '';
+}
+
+function validarEtapaAtual(idEtapa, dados, regraPartida) {
+  if (idEtapa === 'dupla1') {
+    return validarDupla(dados, 'dupla1', 'Dupla 1');
+  }
+
+  if (idEtapa === 'dupla2') {
+    return validarDupla(dados, 'dupla2', 'Dupla 2') || validarAtletas(dados);
+  }
+
+  if (idEtapa === 'placar') {
+    return validarPlacar(dados, regraPartida);
+  }
+
+  if (idEtapa === 'revisao') {
+    return validarAtletas(dados) || validarPlacar(dados, regraPartida);
+  }
+
+  return '';
+}
+
+function obterNumeroRegra(valor) {
+  const numero = Number(valor);
+  return Number.isFinite(numero) ? numero : null;
+}
+
+function validarPlacar(dados, regraPartida = null) {
   const placarA = Number(dados.dupla1.pontos);
   const placarB = Number(dados.dupla2.pontos);
+  const pontosMinimos = obterNumeroRegra(regraPartida?.pontosMinimosPartida);
+  const diferencaMinima = obterNumeroRegra(regraPartida?.diferencaMinimaPartida);
+  const permiteEmpate = regraPartida?.permiteEmpate === true;
 
   if (dados.dupla1.pontos === '' || dados.dupla2.pontos === '') {
     return 'Informe os pontos das duas duplas.';
@@ -220,11 +266,32 @@ function validarPlacar(dados) {
     return 'Informe pontos numéricos maiores ou iguais a zero.';
   }
 
-  if (placarA === placarB) {
+  if (!permiteEmpate && placarA === placarB) {
     return 'Não existe empate no futevôlei.';
   }
 
+  if (pontosMinimos !== null && Math.max(placarA, placarB) < pontosMinimos) {
+    return `A dupla vencedora precisa atingir pelo menos ${pontosMinimos} pontos.`;
+  }
+
+  if (diferencaMinima !== null && Math.abs(placarA - placarB) < diferencaMinima) {
+    return `A diferença mínima precisa ser de ${diferencaMinima} pontos.`;
+  }
+
   return '';
+}
+
+function normalizarRegraPartida(competicao) {
+  if (!competicao) {
+    return null;
+  }
+
+  return {
+    nome: competicao.nomeRegraCompeticao || 'Regra da competição',
+    pontosMinimosPartida: competicao.pontosMinimosPartidaEfetivo,
+    diferencaMinimaPartida: competicao.diferencaMinimaPartidaEfetiva,
+    permiteEmpate: competicao.permiteEmpateEfetivo
+  };
 }
 
 function limitarSugestoes(atletas) {
@@ -294,6 +361,9 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
   const [carregandoGruposDisponiveis, setCarregandoGruposDisponiveis] = useState(false);
   const [erroGruposDisponiveis, setErroGruposDisponiveis] = useState(false);
   const [seletorGrupoAberto, setSeletorGrupoAberto] = useState(false);
+  const [regraPartida, setRegraPartida] = useState(null);
+  const [carregandoRegraPartida, setCarregandoRegraPartida] = useState(false);
+  const [erroRegraPartida, setErroRegraPartida] = useState(false);
   const cacheBuscaRef = useRef(new Map());
   const buscaTimersRef = useRef({});
 
@@ -323,6 +393,45 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
   useEffect(() => {
     setContextoPartida(contextoInicial);
   }, [contextoInicial?.competicaoId, contextoInicial?.grupoId, contextoInicial?.categoriaId]);
+
+  useEffect(() => {
+    let cancelado = false;
+    const competicaoId = contextoPartida?.competicaoId;
+
+    async function carregarRegraPartida() {
+      if (!competicaoId) {
+        setRegraPartida(null);
+        setCarregandoRegraPartida(false);
+        setErroRegraPartida(false);
+        return;
+      }
+
+      try {
+        setCarregandoRegraPartida(true);
+        setErroRegraPartida(false);
+        const competicao = await competicoesServico.obterPorId(competicaoId);
+
+        if (!cancelado) {
+          setRegraPartida(normalizarRegraPartida(competicao));
+        }
+      } catch {
+        if (!cancelado) {
+          setRegraPartida(null);
+          setErroRegraPartida(true);
+        }
+      } finally {
+        if (!cancelado) {
+          setCarregandoRegraPartida(false);
+        }
+      }
+    }
+
+    carregarRegraPartida();
+
+    return () => {
+      cancelado = true;
+    };
+  }, [contextoPartida?.competicaoId]);
 
   useEffect(() => {
     let cancelado = false;
@@ -534,7 +643,7 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
   }
 
   function revisar() {
-    const erroValidacao = validarAtletas(dados) || validarPlacar(dados);
+    const erroValidacao = validarAtletas(dados) || validarPlacar(dados, regraPartida);
 
     if (erroValidacao) {
       setErro(erroValidacao);
@@ -542,7 +651,7 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
     }
 
     setErro('');
-    setIndiceEtapa(1);
+    setIndiceEtapa(etapas.findIndex((etapa) => etapa.id === 'revisao'));
   }
 
   async function salvarPartida(payload) {
@@ -590,7 +699,7 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
       return;
     }
 
-    const erroValidacao = validarAtletas(dados) || validarPlacar(dados);
+    const erroValidacao = validarAtletas(dados) || validarPlacar(dados, regraPartida);
 
     if (erroValidacao) {
       setErro(erroValidacao);
@@ -613,7 +722,15 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
       return;
     }
 
-    revisar();
+    const erroValidacao = validarEtapaAtual(etapaAtual.id, dados, regraPartida);
+
+    if (erroValidacao) {
+      setErro(erroValidacao);
+      return;
+    }
+
+    setErro('');
+    setIndiceEtapa((atual) => Math.min(etapas.length - 1, atual + 1));
   }
 
   function cancelarDuplicidade() {
@@ -628,9 +745,7 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
     }
   }
 
-  async function abrirSeletorGrupo() {
-    setSeletorGrupoAberto(true);
-
+  async function carregarGruposParaSelecao() {
     if (gruposDisponiveis.length || carregandoGruposDisponiveis) {
       return;
     }
@@ -646,6 +761,11 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
     } finally {
       setCarregandoGruposDisponiveis(false);
     }
+  }
+
+  async function abrirSeletorGrupo() {
+    setSeletorGrupoAberto(true);
+    await carregarGruposParaSelecao();
   }
 
   function selecionarGrupo(grupo) {
@@ -698,7 +818,10 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
     setDados(dadosRevanche);
     setSucesso(null);
     setErro('');
-    setIndiceEtapa(0);
+    setDuplicidade(null);
+    setPayloadPendente(null);
+    setSugestoes({});
+    setIndiceEtapa(etapas.findIndex((etapa) => etapa.id === 'placar'));
   }
 
   function registrarNovaPartida() {
@@ -755,12 +878,16 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
         salvando={carregando}
         revisando={revisando}
         duplicidade={duplicidade}
+        regraPartida={regraPartida}
+        carregandoRegraPartida={carregandoRegraPartida}
+        erroRegraPartida={erroRegraPartida}
         grupo={grupoContexto}
         carregandoGrupo={carregandoGrupo}
         gruposDisponiveis={gruposDisponiveis}
         carregandoGruposDisponiveis={carregandoGruposDisponiveis}
         erroGruposDisponiveis={erroGruposDisponiveis}
         seletorGrupoAberto={seletorGrupoAberto}
+        onCarregarGrupos={carregarGruposParaSelecao}
         onSelecionarGrupo={abrirSeletorGrupo}
         onEscolherGrupo={selecionarGrupo}
         onRemoverGrupo={removerGrupo}
