@@ -1111,6 +1111,8 @@ export function RegistrarPartidaNovoModal({
   const ctaRef = useRef(null);
   const corpoRef = useRef(null);
   const [inputEmFoco, setInputEmFoco] = useState(false);
+  const [tecladoAberto, setTecladoAberto] = useState(false);
+  const [modoMobile, setModoMobile] = useState(false);
   const revisaoInvalida = etapaAtual?.id === 'revisao' && revisaoPossuiInconsistencia(dados, regraPartida);
   const acaoPrincipalDesabilitada = salvando || Boolean(duplicidade) || revisaoInvalida;
 
@@ -1150,28 +1152,39 @@ export function RegistrarPartidaNovoModal({
         const offset = viewport
           ? Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop)
           : 0;
-        const tecladoAberto = offset > 90;
-        const alturaViewport = tecladoAberto ? window.innerHeight : viewport?.height || window.innerHeight;
+        const tecladoAbertoDetectado = offset > 90;
+        const alturaViewport = tecladoAbertoDetectado ? window.innerHeight : viewport?.height || window.innerHeight;
 
         modal.style.setProperty('--registrar-partida-viewport-height', `${Math.round(alturaViewport)}px`);
-        modal.style.setProperty('--registrar-partida-teclado-offset', `${Math.round(tecladoAberto ? offset : 0)}px`);
-        modal.dataset.tecladoAberto = tecladoAberto ? 'true' : 'false';
+        modal.style.setProperty('--registrar-partida-teclado-offset', `${Math.round(tecladoAbertoDetectado ? offset : 0)}px`);
+        modal.dataset.tecladoAberto = tecladoAbertoDetectado ? 'true' : 'false';
+        setTecladoAberto(tecladoAbertoDetectado);
       });
     }
 
+    const mediaMobile = window.matchMedia('(max-width: 720px), (pointer: coarse)');
+
+    function atualizarModoMobile() {
+      setModoMobile(mediaMobile.matches);
+    }
+
+    atualizarModoMobile();
     atualizarOffsetTeclado();
     viewport?.addEventListener('resize', atualizarOffsetTeclado);
     viewport?.addEventListener('scroll', atualizarOffsetTeclado);
     window.addEventListener('orientationchange', atualizarOffsetTeclado);
+    mediaMobile.addEventListener('change', atualizarModoMobile);
 
     return () => {
       viewport?.removeEventListener('resize', atualizarOffsetTeclado);
       viewport?.removeEventListener('scroll', atualizarOffsetTeclado);
       window.removeEventListener('orientationchange', atualizarOffsetTeclado);
+      mediaMobile.removeEventListener('change', atualizarModoMobile);
       window.cancelAnimationFrame(rafId);
       modal?.style.removeProperty('--registrar-partida-teclado-offset');
       modal?.style.removeProperty('--registrar-partida-viewport-height');
       modal?.removeAttribute('data-teclado-aberto');
+      setTecladoAberto(false);
     };
   }, [aberto]);
 
@@ -1274,6 +1287,8 @@ export function RegistrarPartidaNovoModal({
     return null;
   }
 
+  const ocultarAcoesMobile = modoMobile && (inputEmFoco || tecladoAberto);
+
   return (
     <div className="modal-sobreposicao registrar-partida-novo-sobreposicao" role="presentation">
       <section
@@ -1350,21 +1365,23 @@ export function RegistrarPartidaNovoModal({
               />
             </main>
 
-            <footer
-              ref={ctaRef}
-              className="registrar-partida-novo-acoes registrar-partida-novo-cta-sticky"
-              data-estado={salvando ? 'loading' : acaoPrincipalDesabilitada ? 'disabled' : 'enabled'}
-              aria-busy={salvando}
-            >
-              {indiceEtapa > 0 && !duplicidade && (
-                <button type="button" className="botao-secundario" onClick={onVoltar} disabled={salvando}>
-                  Voltar
+            {!ocultarAcoesMobile && (
+              <footer
+                ref={ctaRef}
+                className="registrar-partida-novo-acoes registrar-partida-novo-cta-sticky"
+                data-estado={salvando ? 'loading' : acaoPrincipalDesabilitada ? 'disabled' : 'enabled'}
+                aria-busy={salvando}
+              >
+                {indiceEtapa > 0 && !duplicidade && (
+                  <button type="button" className="botao-secundario" onClick={onVoltar} disabled={salvando}>
+                    Voltar
+                  </button>
+                )}
+                <button type="submit" className="botao-primario" disabled={acaoPrincipalDesabilitada} aria-busy={salvando}>
+                  {obterRotuloAcao(etapaAtual, salvando)}
                 </button>
-              )}
-              <button type="submit" className="botao-primario" disabled={acaoPrincipalDesabilitada} aria-busy={salvando}>
-                {obterRotuloAcao(etapaAtual, salvando)}
-              </button>
-            </footer>
+              </footer>
+            )}
 
             <SeletorGrupoPartida
               aberto={seletorGrupoAberto}
