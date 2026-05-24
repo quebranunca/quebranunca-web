@@ -1224,8 +1224,17 @@ export function RegistrarPartidaNovoModal({
       }
 
       window.setTimeout(() => {
-        elemento.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-      }, 120);
+        const areaUtil = container.getBoundingClientRect();
+        const campo = elemento.getBoundingClientRect();
+        const centroCampo = campo.top + campo.height / 2;
+        const centroAreaUtil = areaUtil.top + areaUtil.height / 2;
+        const deslocamento = centroCampo - centroAreaUtil;
+
+        container.scrollBy({
+          top: deslocamento,
+          behavior: 'smooth'
+        });
+      }, 140);
     }
 
     function aoFocar(evento) {
@@ -1304,7 +1313,7 @@ export function RegistrarPartidaNovoModal({
             onSubmit={onConfirmarEtapa}
             autoComplete="off"
           >
-            {!inputEmFoco && <Stepper etapas={etapas} indiceEtapa={indiceEtapa} />}
+            <Stepper etapas={etapas} indiceEtapa={indiceEtapa} />
 
             <main ref={corpoRef} className="registrar-partida-novo-corpo">
               {erro && <p className="texto-erro registrar-partida-novo-erro">{erro}</p>}
