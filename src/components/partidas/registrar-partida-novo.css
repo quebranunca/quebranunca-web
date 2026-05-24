@@ -740,6 +740,53 @@
   animation: registrarPartidaFeedback 180ms ease both;
 }
 
+.registrar-partida-novo-sugestoes-rapidas {
+  display: flex;
+  flex-direction: column;
+  gap: 0.42rem;
+  padding-top: 0.1rem;
+}
+
+.registrar-partida-novo-sugestoes-rapidas > span {
+  color: var(--color-text-secondary);
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0;
+}
+
+.registrar-partida-novo-sugestoes-rapidas > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.42rem;
+}
+
+.registrar-partida-novo-sugestao-rapida {
+  max-width: 100%;
+  min-height: 2rem;
+  padding: 0.34rem 0.68rem;
+  border: 1px solid rgba(248, 195, 0, 0.22);
+  border-radius: 999px;
+  background: rgba(248, 195, 0, 0.08);
+  color: var(--color-text-primary);
+  font-size: 0.78rem;
+  font-weight: 850;
+  line-height: 1.15;
+  text-align: left;
+  overflow-wrap: anywhere;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.registrar-partida-novo-sugestao-rapida:hover,
+.registrar-partida-novo-sugestao-rapida:focus-visible {
+  border-color: rgba(248, 195, 0, 0.48);
+  background: rgba(248, 195, 0, 0.14);
+}
+
+.registrar-partida-novo-sugestao-rapida:active {
+  transform: scale(0.98);
+}
+
 .registrar-partida-novo-sugestoes {
   max-height: min(14rem, 34dvh);
   display: flex;
@@ -1836,6 +1883,7 @@
 
   .registrar-partida-novo-acoes,
   .registrar-partida-novo-grupo-opcao,
+  .registrar-partida-novo-sugestao-rapida,
   .registrar-partida-novo-campo input,
   .registrar-partida-novo-placar input,
   .registrar-partida-novo-stepper-item {

@@ -289,6 +289,7 @@ function AutocompleteAtleta({
   dados,
   selecao,
   sugestoes,
+  sugestoesRapidas,
   buscando,
   inputRef,
   proximoRef,
@@ -298,6 +299,7 @@ function AutocompleteAtleta({
 }) {
   const valor = obterValorCampo(dados, campo);
   const sugestoesCampo = sugestoes[campo] || [];
+  const sugestoesRapidasCampo = sugestoesRapidas?.atletas || [];
   const possuiProximoCampo = Boolean(proximoRef);
 
   function avancarCampo() {
@@ -333,6 +335,30 @@ function AutocompleteAtleta({
         <small className="registrar-partida-novo-selecionado">
           Selecionado: {selecao.apelido || selecao.nome}
         </small>
+      )}
+
+      {sugestoesRapidasCampo.length > 0 && (
+        <div className="registrar-partida-novo-sugestoes-rapidas">
+          <span>{sugestoesRapidas.titulo}</span>
+          <div>
+            {sugestoesRapidasCampo.map((atleta) => (
+              <button
+                type="button"
+                key={`${campo}-rapida-${atleta.id}`}
+                className="registrar-partida-novo-sugestao-rapida"
+                onMouseDown={(evento) => evento.preventDefault()}
+                onClick={() => {
+                  onSelecionarAtleta(campo, atleta);
+                  if (possuiProximoCampo) {
+                    focusNextField(proximoRef);
+                  }
+                }}
+              >
+                {atleta.nome}
+              </button>
+            ))}
+          </div>
+        </div>
       )}
 
       {(sugestoesCampo.length > 0 || buscando) && (
@@ -381,7 +407,7 @@ function AutocompleteAtleta({
   );
 }
 
-function DuplaRegistro({ numero, dados, selecoes, sugestoes, campoBuscando, inputRef, inputRef2, proximoRef1, proximoRef2, vencedora, onAlterarCampo, onSelecionarAtleta, onConcluir }) {
+function DuplaRegistro({ numero, dados, selecoes, sugestoes, sugestoesRapidas, campoBuscando, inputRef, inputRef2, proximoRef1, proximoRef2, vencedora, onAlterarCampo, onSelecionarAtleta, onConcluir }) {
   const prefixo = numero === 1 ? 'dupla1' : 'dupla2';
   const ganhou = vencedora === prefixo;
 
@@ -399,6 +425,7 @@ function DuplaRegistro({ numero, dados, selecoes, sugestoes, campoBuscando, inpu
           dados={dados}
           selecao={selecoes[`${prefixo}.atletaDireita`]}
           sugestoes={sugestoes}
+          sugestoesRapidas={sugestoesRapidas?.[`${prefixo}.atletaDireita`]}
           buscando={campoBuscando === `${prefixo}.atletaDireita`}
           inputRef={inputRef}
           proximoRef={proximoRef1}
@@ -413,6 +440,7 @@ function DuplaRegistro({ numero, dados, selecoes, sugestoes, campoBuscando, inpu
           dados={dados}
           selecao={selecoes[`${prefixo}.atletaEsquerda`]}
           sugestoes={sugestoes}
+          sugestoesRapidas={sugestoesRapidas?.[`${prefixo}.atletaEsquerda`]}
           buscando={campoBuscando === `${prefixo}.atletaEsquerda`}
           inputRef={inputRef2}
           proximoRef={proximoRef2}
@@ -967,6 +995,7 @@ function ConteudoEtapa({
   selecoes,
   resumo,
   sugestoes,
+  sugestoesRapidas,
   campoBuscando,
   duplicidade,
   regraPartida,
@@ -997,6 +1026,7 @@ function ConteudoEtapa({
     selecoes,
     resumo,
     sugestoes,
+    sugestoesRapidas,
     campoBuscando,
     regraPartida,
     carregandoRegraPartida,
@@ -1063,6 +1093,7 @@ export function RegistrarPartidaNovoModal({
   resumo,
   sucesso,
   sugestoes,
+  sugestoesRapidas,
   campoBuscando,
   erro,
   salvando,
@@ -1338,6 +1369,7 @@ export function RegistrarPartidaNovoModal({
                 selecoes={selecoes}
                 resumo={resumo}
                 sugestoes={sugestoes}
+                sugestoesRapidas={sugestoesRapidas}
                 campoBuscando={campoBuscando}
                 duplicidade={duplicidade}
                 regraPartida={regraPartida}

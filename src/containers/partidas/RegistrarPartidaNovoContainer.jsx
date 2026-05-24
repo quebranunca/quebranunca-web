@@ -106,6 +106,7 @@ function criarAtletaSelecao(atleta) {
     estado: atleta.estado,
     posicaoRanking: atleta.posicaoRanking,
     quantidadeJogos: atleta.quantidadeJogos,
+    totalPartidas: atleta.totalPartidas,
     avatarUrl: atleta.avatarUrl,
     fotoPerfilUrl: atleta.fotoPerfilUrl,
     origemSugestao: atleta.origemSugestao
@@ -322,6 +323,10 @@ function obterGrupoId(grupo) {
   return grupo?.id || grupo?.grupoId || null;
 }
 
+function normalizarNomeSugestao(valor) {
+  return limparTexto(valor).toLowerCase();
+}
+
 function normalizarGrupoContexto(grupo, quantidadeAtletas) {
   if (!grupo) {
     return null;
@@ -351,6 +356,10 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
   const [atletaUsuario, setAtletaUsuario] = useState(usuario?.atleta || null);
   const [carregandoAtletaUsuario, setCarregandoAtletaUsuario] = useState(false);
   const [sugestoes, setSugestoes] = useState({});
+  const [sugestoesPartida, setSugestoesPartida] = useState({
+    parceirosFrequentes: [],
+    rivaisFrequentes: []
+  });
   const [campoBuscando, setCampoBuscando] = useState('');
   const [sucesso, setSucesso] = useState(null);
   const [uploadMidiaAberto, setUploadMidiaAberto] = useState(false);
@@ -365,6 +374,7 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
   const [carregandoRegraPartida, setCarregandoRegraPartida] = useState(false);
   const [erroRegraPartida, setErroRegraPartida] = useState(false);
   const cacheBuscaRef = useRef(new Map());
+  const cacheSugestoesPartidaRef = useRef(new Map());
   const buscaTimersRef = useRef({});
 
   const atletaUsuarioNome = obterAtletaUsuarioNome(usuario, atletaUsuario);
@@ -372,6 +382,8 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
   const revisando = etapaAtual.id === 'revisao';
   const fixarAtletaUsuario = deveFixarAtletaUsuario(usuario, contextoPartida);
   const carregando = salvando || (fixarAtletaUsuario && carregandoAtletaUsuario);
+  const atletaUsuarioId = obterAtletaUsuarioId(usuario, atletaUsuario);
+  const campoAtletaUsuario = obterCampoAtletaUsuario(obterAtletaUsuarioLado(usuario, atletaUsuario));
 
   const resumo = useMemo(() => ({
     dupla1: [
@@ -390,9 +402,106 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
     contexto: contextoPartida
   }), [dados, contextoPartida]);
 
+  const sugestoesRapidas = useMemo(() => {
+    const idsSelecionados = new Set();
+    const nomesSelecionados = new Set();
+
+    CAMPOS_ATLETAS.forEach((campo) => {
+      const selecao = selecoes[campo];
+      if (selecao?.id) {
+        idsSelecionados.add(selecao.id);
+      }
+
+      const nome = normalizarNomeSugestao(obterValorCampo(dados, campo));
+      if (nome) {
+        nomesSelecionados.add(nome);
+      }
+    });
+
+    function filtrar(lista, { removerAtletaUsuario = false } = {}) {
+      return (lista || [])
+        .filter((atleta) => atleta?.id)
+        .filter((atleta) => !idsSelecionados.has(atleta.id))
+        .filter((atleta) => !nomesSelecionados.has(normalizarNomeSugestao(atleta.nome)))
+        .filter((atleta) => !removerAtletaUsuario || atleta.id !== atletaUsuarioId)
+        .map((atleta) => criarAtletaSelecao({
+          id: atleta.id,
+          nome: atleta.nome,
+          quantidadeJogos: atleta.totalPartidas,
+          totalPartidas: atleta.totalPartidas,
+          origemSugestao: 'frequente'
+        }));
+    }
+
+    const campoParceiro = campoAtletaUsuario === 'dupla1.atletaDireita'
+      ? 'dupla1.atletaEsquerda'
+      : 'dupla1.atletaDireita';
+    const campoRival = limparTexto(dados.dupla2.atletaDireita)
+      ? 'dupla2.atletaEsquerda'
+      : 'dupla2.atletaDireita';
+    const parceiroDisponivel = fixarAtletaUsuario && !limparTexto(obterValorCampo(dados, campoParceiro));
+    const rivalDisponivel = !limparTexto(obterValorCampo(dados, campoRival));
+
+    return {
+      [campoParceiro]: parceiroDisponivel
+        ? {
+            titulo: 'Parceiros frequentes',
+            atletas: filtrar(sugestoesPartida.parceirosFrequentes, { removerAtletaUsuario: true })
+          }
+        : null,
+      [campoRival]: rivalDisponivel
+        ? {
+            titulo: 'Rivais frequentes',
+            atletas: filtrar(sugestoesPartida.rivaisFrequentes, { removerAtletaUsuario: true })
+          }
+        : null
+    };
+  }, [dados, selecoes, sugestoesPartida, fixarAtletaUsuario, campoAtletaUsuario, atletaUsuarioId]);
+
   useEffect(() => {
     setContextoPartida(contextoInicial);
   }, [contextoInicial?.competicaoId, contextoInicial?.grupoId, contextoInicial?.categoriaId]);
+
+  useEffect(() => {
+    let cancelado = false;
+    const grupoId = contextoPartida?.grupoId || null;
+    const chaveCache = grupoId || 'geral';
+
+    async function carregarSugestoesPartida() {
+      if (!usuario?.atletaId) {
+        setSugestoesPartida({ parceirosFrequentes: [], rivaisFrequentes: [] });
+        return;
+      }
+
+      if (cacheSugestoesPartidaRef.current.has(chaveCache)) {
+        setSugestoesPartida(cacheSugestoesPartidaRef.current.get(chaveCache));
+        return;
+      }
+
+      try {
+        const resposta = await atletasServico.obterSugestoesPartida({ grupoId });
+        const dadosSugestoes = {
+          parceirosFrequentes: resposta?.parceirosFrequentes || [],
+          rivaisFrequentes: resposta?.rivaisFrequentes || []
+        };
+
+        cacheSugestoesPartidaRef.current.set(chaveCache, dadosSugestoes);
+        if (!cancelado) {
+          setSugestoesPartida(dadosSugestoes);
+        }
+      } catch {
+        if (!cancelado) {
+          setSugestoesPartida({ parceirosFrequentes: [], rivaisFrequentes: [] });
+        }
+      }
+    }
+
+    carregarSugestoesPartida();
+
+    return () => {
+      cancelado = true;
+    };
+  }, [usuario?.atletaId, contextoPartida?.grupoId]);
 
   useEffect(() => {
     let cancelado = false;
@@ -873,6 +982,7 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
         resumo={resumo}
         sucesso={sucesso}
         sugestoes={sugestoes}
+        sugestoesRapidas={sugestoesRapidas}
         campoBuscando={campoBuscando}
         erro={erro}
         salvando={carregando}

@@ -18,6 +18,7 @@
 - Em páginas de ranking e competição, preservar a navegação já simplificada e evitar filtros ou blocos extras sem ganho claro
 - Em telas de campeonato, refletir a fase da partida quando existir e não esconder campos que já são obrigatórios no backend para esse tipo de competição
 - Autocomplete no registro de partidas só deve consultar sugestões da competição quando houver competição selecionada e termo com ao menos 3 caracteres; sem competição, preservar o fluxo atual
+- Sugestões rápidas no registro de partidas devem ser chips discretos abaixo dos inputs, carregadas uma vez por contexto, sem bloquear digitação e sem repetir atletas já preenchidos.
 - Banner rotativo reutilizável deve aceitar slides de imagem e componente
 - Campos de data/hora do frontend devem reutilizar `utils/formatacao.js`; horários selecionáveis devem respeitar intervalos de 15 minutos e horários padrão devem usar o arredondamento centralizado.
 

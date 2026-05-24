@@ -18,6 +18,13 @@ export const atletasServico = {
     return resposta.data;
   },
 
+  async obterSugestoesPartida({ grupoId } = {}) {
+    const resposta = await http.get('/atletas/sugestoes/partida', {
+      params: grupoId ? { grupoId } : undefined
+    });
+    return resposta.data;
+  },
+
   async listarPendencias() {
     const resposta = await http.get('/atletas/pendencias');
     return resposta.data;
