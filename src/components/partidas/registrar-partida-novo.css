@@ -1315,17 +1315,25 @@
     padding-bottom: 0.3rem;
   }
 
-  .registrar-partida-novo-modal.keyboard-active .registrar-partida-novo-progresso {
-    display: none;
-  }
-
   .registrar-partida-novo-modal.keyboard-active .registrar-partida-novo-corpo {
     padding-top: 0.45rem;
-    padding-bottom: calc(0.9rem + var(--registrar-partida-cta-height, 0px) + var(--registrar-partida-teclado-offset, 0px));
+    padding-bottom: 0.9rem;
   }
 
   .registrar-partida-novo-acoes {
+    position: static;
+    right: auto;
+    bottom: auto;
+    left: auto;
+    transform: none;
+    box-shadow: none;
+    margin-top: auto;
     flex-direction: row;
+  }
+
+  .registrar-partida-novo-modal.keyboard-active .registrar-partida-novo-acoes,
+  .registrar-partida-novo-modal[data-teclado-aberto="true"] .registrar-partida-novo-acoes {
+    display: none;
   }
 
   .registrar-partida-novo-acoes .botao-secundario {
