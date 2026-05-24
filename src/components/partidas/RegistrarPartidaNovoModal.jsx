@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import {
   FaCheck,
   FaChevronLeft,
@@ -319,7 +319,7 @@ function AutocompleteAtleta({
         name={obterNomeInputAtleta(campo)}
         autoComplete="off"
         autoCorrect="off"
-        autoCapitalize="words"
+        autoCapitalize="none"
         spellCheck={false}
         enterKeyHint={possuiProximoCampo ? 'next' : 'done'}
         value={valor}
@@ -550,7 +550,6 @@ function EtapaGrupo({
   return (
     <section className="registrar-partida-novo-etapa registrar-partida-novo-etapa-grupo">
       <div className="registrar-partida-novo-intro">
-        <span className="registrar-partida-novo-kicker">Etapa 1</span>
         <h3>Grupo da partida</h3>
         <p>Escolha um grupo ou continue sem vincular.</p>
       </div>
@@ -646,9 +645,8 @@ function EtapaDupla({ numero, propsDupla, onConcluir }) {
   return (
     <section className="registrar-partida-novo-etapa registrar-partida-novo-etapa-dupla">
       <div className="registrar-partida-novo-intro">
-        <span className="registrar-partida-novo-kicker">Etapa {numero + 1}</span>
-        <h3>Dupla {numero}</h3>
-        <p>Informe os dois atletas desta dupla.</p>
+        <h3>Informe os atletas da Dupla {numero}</h3>
+        <p>Preencha os dois atletas desta dupla.</p>
       </div>
 
       <DuplaRegistro
@@ -666,7 +664,6 @@ function EtapaPlacar(props) {
   return (
     <section className="registrar-partida-novo-etapa registrar-partida-novo-etapa-placar">
       <div className="registrar-partida-novo-intro">
-        <span className="registrar-partida-novo-kicker">Etapa 4</span>
         <h3>Placar</h3>
         <p>Digite os pontos e revise as validações automáticas.</p>
       </div>
@@ -773,7 +770,6 @@ function RevisaoRapida({
     <section className="registrar-partida-novo-revisao" aria-label="Revisão rápida da partida">
       <div className="registrar-partida-novo-sheet">
         <div className="registrar-partida-novo-intro">
-          <span className="registrar-partida-novo-kicker">Etapa 5</span>
           <h3>Conferir partida</h3>
           <p>Confira atletas, placar e regras antes de confirmar.</p>
         </div>
@@ -1113,6 +1109,8 @@ export function RegistrarPartidaNovoModal({
   const formRef = useRef(null);
   const modalRef = useRef(null);
   const ctaRef = useRef(null);
+  const corpoRef = useRef(null);
+  const [inputEmFoco, setInputEmFoco] = useState(false);
   const revisaoInvalida = etapaAtual?.id === 'revisao' && revisaoPossuiInconsistencia(dados, regraPartida);
   const acaoPrincipalDesabilitada = salvando || Boolean(duplicidade) || revisaoInvalida;
 
@@ -1208,6 +1206,61 @@ export function RegistrarPartidaNovoModal({
     };
   }, [aberto, sucesso, indiceEtapa, duplicidade]);
 
+  useEffect(() => {
+    if (!aberto || !corpoRef.current) {
+      return undefined;
+    }
+
+    const container = corpoRef.current;
+
+    function centralizarCampoAtivo(alvo) {
+      if (!(alvo instanceof HTMLElement)) {
+        return;
+      }
+
+      const elemento = alvo.closest('input, textarea, select');
+      if (!(elemento instanceof HTMLElement)) {
+        return;
+      }
+
+      window.setTimeout(() => {
+        elemento.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+      }, 120);
+    }
+
+    function aoFocar(evento) {
+      const elementoFoco = evento.target;
+      if (!(elementoFoco instanceof HTMLElement)) {
+        return;
+      }
+
+      if (!elementoFoco.matches('input, textarea, select')) {
+        return;
+      }
+
+      setInputEmFoco(true);
+      centralizarCampoAtivo(elementoFoco);
+    }
+
+    function aoPerderFoco() {
+      window.setTimeout(() => {
+        const ativo = document.activeElement;
+        const segueNoFormulario = ativo instanceof HTMLElement && container.contains(ativo) && ativo.matches('input, textarea, select');
+        if (!segueNoFormulario) {
+          setInputEmFoco(false);
+        }
+      }, 40);
+    }
+
+    container.addEventListener('focusin', aoFocar);
+    container.addEventListener('focusout', aoPerderFoco);
+
+    return () => {
+      container.removeEventListener('focusin', aoFocar);
+      container.removeEventListener('focusout', aoPerderFoco);
+    };
+  }, [aberto]);
+
   if (!aberto) {
     return null;
   }
@@ -1216,7 +1269,11 @@ export function RegistrarPartidaNovoModal({
     <div className="modal-sobreposicao registrar-partida-novo-sobreposicao" role="presentation">
       <section
         ref={modalRef}
-        className="modal-conteudo registrar-partida-novo-modal"
+        className={[
+          'modal-conteudo',
+          'registrar-partida-novo-modal',
+          inputEmFoco ? 'keyboard-active' : ''
+        ].join(' ')}
         role="dialog"
         aria-modal="true"
         aria-labelledby="registrar-partida-novo-titulo"
@@ -1245,10 +1302,11 @@ export function RegistrarPartidaNovoModal({
             ref={formRef}
             className="registrar-partida-novo-formulario"
             onSubmit={onConfirmarEtapa}
+            autoComplete="off"
           >
-            <Stepper etapas={etapas} indiceEtapa={indiceEtapa} />
+            {!inputEmFoco && <Stepper etapas={etapas} indiceEtapa={indiceEtapa} />}
 
-            <main className="registrar-partida-novo-corpo">
+            <main ref={corpoRef} className="registrar-partida-novo-corpo">
               {erro && <p className="texto-erro registrar-partida-novo-erro">{erro}</p>}
               <ConteudoEtapa
                 etapaAtual={etapaAtual}
