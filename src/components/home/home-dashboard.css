@@ -622,7 +622,7 @@
 }
 
 .home-dashboard-skeleton-feed {
-  min-height: 22rem;
+  min-height: 14rem;
 }
 
 .home-dashboard-skeleton-connections {
@@ -1118,93 +1118,158 @@
   box-shadow: inset 2px 0 0 rgba(57, 217, 138, 0.54);
 }
 
-.home-dashboard .feed-partida-card {
-  border-color: rgba(255, 179, 0, 0.12);
-  border-radius: 18px;
-  background:
-    linear-gradient(135deg, rgba(255, 179, 0, 0.1), transparent 40%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.02)),
-    rgba(12, 14, 18, 0.86);
-  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.18);
-}
-
-.home-dashboard .feed-partida-card:hover {
-  border-color: rgba(255, 179, 0, 0.26);
-  background:
-    linear-gradient(135deg, rgba(255, 179, 0, 0.14), transparent 42%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.065), rgba(255, 255, 255, 0.024)),
-    rgba(12, 14, 18, 0.92);
-}
-
-.home-dashboard .feed-partida-card.sem-midia {
-  background:
-    linear-gradient(135deg, rgba(255, 179, 0, 0.12), transparent 36%),
-    linear-gradient(225deg, rgba(57, 217, 138, 0.08), transparent 42%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.02)),
-    rgba(12, 14, 18, 0.86);
-}
-
 .home-dashboard .feed-partida-card-home {
-  grid-template-columns: 7.4rem minmax(0, 1fr);
-  align-items: stretch;
+  gap: 0.58rem;
+  padding: 0.7rem 0.74rem 0.58rem;
+  border-color: rgba(255, 255, 255, 0.065);
+  border-radius: 15px;
+  color: inherit;
+  text-decoration: none;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.038), rgba(255, 255, 255, 0.014)),
+    rgba(11, 13, 17, 0.7);
+  box-shadow: none;
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
 }
 
-.home-dashboard .feed-partida-card-home .feed-partida-midia {
-  grid-row: span 2;
-  height: 100%;
-  min-height: 9.8rem;
-  aspect-ratio: auto;
+.home-dashboard .feed-partida-card-home:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 179, 0, 0.22);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.052), rgba(255, 255, 255, 0.02)),
+    rgba(11, 13, 17, 0.82);
 }
 
-.home-dashboard .feed-partida-card-home .feed-partida-social-topo {
-  padding: 0.82rem 0.82rem 0;
-  border-bottom: 0;
+.home-dashboard .feed-partida-card-home:focus-visible {
+  border-color: rgba(255, 179, 0, 0.3);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 179, 0, 0.13);
 }
 
-.home-dashboard .feed-partida-card-home .feed-partida-corpo {
-  padding: 0.66rem 0.82rem 0.82rem;
+.home-dashboard .feed-partida-card-home:active {
+  transform: scale(0.992);
 }
 
-.home-dashboard .feed-partida-corpo {
-  gap: 0.72rem;
+.home-dashboard .feed-partida-home-topo {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.58rem;
+  min-width: 0;
 }
 
-.home-dashboard .feed-partida-registrador-avatar {
+.home-dashboard .feed-partida-card-home .feed-partida-registrador-avatar {
+  width: 2.05rem;
+  height: 2.05rem;
   border-color: rgba(255, 209, 102, 0.18);
   background: rgba(255, 209, 102, 0.08);
 }
 
-.home-dashboard .feed-partida-card-home .feed-partida-placar {
-  gap: 0.42rem;
-  padding: 0.58rem;
+.home-dashboard .feed-partida-card-home .feed-partida-autoria {
+  min-width: 0;
 }
 
-.home-dashboard .feed-partida-card-home .feed-partida-contexto {
-  padding: 0.55rem 0.62rem;
-  border-radius: 12px;
+.home-dashboard .feed-partida-card-home .feed-partida-autoria strong {
+  display: block;
+  overflow: hidden;
+  color: var(--cor-texto);
+  font-size: 0.87rem;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.home-dashboard .feed-partida-card-home .feed-partida-contexto strong {
-  font-size: 0.86rem;
+.home-dashboard .feed-partida-card-home .feed-partida-autoria span {
+  display: block;
+  overflow: hidden;
+  margin-top: 0.08rem;
+  color: var(--cor-texto-suave);
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.18;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.home-dashboard .feed-partida-card-home .feed-partida-dupla div strong {
+.home-dashboard .feed-partida-home-metadata {
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 0.34rem;
+  min-width: 0;
+  margin: 0;
+  color: var(--cor-texto-suave);
+  font-size: 0.7rem;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.home-dashboard .feed-partida-home-metadata strong {
+  overflow: hidden;
+  min-width: 0;
+  color: rgba(255, 255, 255, 0.74);
+  font-weight: 750;
+  text-overflow: ellipsis;
+}
+
+.home-dashboard .feed-partida-home-placar {
+  display: grid;
+  gap: 0.22rem;
+  padding-top: 0.14rem;
+}
+
+.home-dashboard .feed-partida-home-linha {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.7rem;
+  min-width: 0;
+  min-height: 1.38rem;
+  color: rgba(255, 255, 255, 0.67);
   font-size: 0.84rem;
+  font-weight: 700;
 }
 
-.home-dashboard .feed-partida-card-home .feed-partida-placar-numero {
-  min-width: 1.8rem;
-  font-size: 1.48rem;
+.home-dashboard .feed-partida-home-linha span {
+  overflow: hidden;
+  min-width: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.home-dashboard .feed-partida-card-home .feed-partida-acoes {
-  justify-content: flex-start;
+.home-dashboard .feed-partida-home-linha strong {
+  min-width: 1.38rem;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.98rem;
+  line-height: 1;
+  text-align: right;
 }
 
-.home-dashboard .feed-partida-card-home .feed-partida-acoes .botao-compacto {
-  min-height: 2.08rem;
-  padding: 0.4rem 0.64rem;
-  font-size: 0.76rem;
+.home-dashboard .feed-partida-home-linha.vencedora {
+  color: var(--cor-texto);
+  font-weight: 850;
+}
+
+.home-dashboard .feed-partida-home-linha.vencedora strong {
+  color: var(--cor-primaria);
+  font-weight: 950;
+}
+
+.home-dashboard .feed-partida-home-acao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.25rem;
+  padding-top: 0.48rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.055);
+  color: rgba(255, 179, 0, 0.88);
+  font-size: 0.7rem;
+  font-weight: 850;
+}
+
+.home-dashboard .feed-partida-home-acao svg {
+  width: 0.6rem;
+  height: 0.6rem;
 }
 
 .home-dashboard-conexoes-grid {
@@ -1537,13 +1602,13 @@
   }
 
   .home-dashboard .feed-partida-card-home {
-    grid-template-columns: 1fr;
+    gap: 0.52rem;
+    padding: 0.64rem 0.66rem 0.54rem;
   }
 
-  .home-dashboard .feed-partida-card-home .feed-partida-midia {
-    grid-row: auto;
-    min-height: 7rem;
-    max-height: 10rem;
+  .home-dashboard .feed-partida-home-linha {
+    gap: 0.5rem;
+    font-size: 0.8rem;
   }
 
   .home-dashboard-grafico-barras {

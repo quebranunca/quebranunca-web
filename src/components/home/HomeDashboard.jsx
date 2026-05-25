@@ -287,7 +287,7 @@ export function HomeDashboard({ modulos, dashboard, carregando, erro, onAtualiza
       setFeedErro('');
 
       try {
-        const resposta = await partidaFeedServico.listar({ page: 1, pageSize: 3 });
+        const resposta = await partidaFeedServico.listar({ page: 1, pageSize: 2 });
         if (ativo) {
           setFeedPartidas(resposta.itens || []);
         }
@@ -943,18 +943,17 @@ function HomeFeedSection({ feedCarregando, feedErro, feedPartidas }) {
       <CabecalhoHome
         eyebrow="Feed"
         titulo="Jogos da comunidade"
-        descricao="Partidas publicadas por atletas e grupos para acompanhar, compartilhar e descobrir."
-        acao={<Link to={HOME_NAVIGATION.feed}>Abrir feed</Link>}
+        acao={<Link to={HOME_NAVIGATION.feed}>Ver feed</Link>}
       />
 
       {feedCarregando && (
-        <HomeSkeletonLista linhas={3} sectionType={HomeSectionType.Feed} />
+        <HomeSkeletonLista linhas={2} sectionType={HomeSectionType.Feed} />
       )}
       {feedErro && !feedCarregando && (
         <p className="home-dashboard-vazio">Não foi possível carregar o feed agora.</p>
       )}
       {!feedCarregando && !feedErro && feedPartidas.length === 0 && (
-        <p className="home-dashboard-vazio">As partidas registradas aparecerão aqui.</p>
+        <p className="home-dashboard-vazio">Nenhuma partida publicada ainda.</p>
       )}
       {!feedCarregando && !feedErro && feedPartidas.length > 0 && (
         <div className="feed-partidas-lista">

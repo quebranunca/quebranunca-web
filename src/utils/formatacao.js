@@ -14,6 +14,17 @@ export function formatarDataHora(data) {
   return new Date(data).toLocaleString('pt-BR');
 }
 
+export function formatarHora(data) {
+  if (!data) {
+    return '-';
+  }
+
+  return new Date(data).toLocaleTimeString('pt-BR', {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
 export function paraInputData(data) {
   if (!data) {
     return '';
