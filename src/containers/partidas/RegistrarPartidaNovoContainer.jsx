@@ -128,7 +128,8 @@ function criarSelecaoAtletaUsuario(usuario, atletaUsuario) {
     cidade: atletaUsuario?.cidade || usuario?.atleta?.cidade,
     estado: atletaUsuario?.estado || usuario?.atleta?.estado,
     quantidadeJogos: atletaUsuario?.quantidadeJogos || usuario?.atleta?.quantidadeJogos,
-    avatarUrl: atletaUsuario?.avatarUrl || usuario?.atleta?.avatarUrl
+    avatarUrl: atletaUsuario?.avatarUrl || usuario?.atleta?.avatarUrl,
+    fotoPerfilUrl: atletaUsuario?.fotoPerfilUrl || usuario?.atleta?.fotoPerfilUrl || usuario?.fotoPerfilUrl
   });
 }
 

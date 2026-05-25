@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ConteudoBotao } from '../components/ConteudoBotao';
 import { AtletaPerfilLink } from '../components/AtletaPerfilLink';
+import { AvatarUsuario, obterFotoPerfilAvatar } from '../components/AvatarUsuario';
 import { EmailDomainSuggestions } from '../components/formularios/EmailDomainSuggestions';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { atletasServico } from '../services/atletasServico';
@@ -388,11 +389,19 @@ export function PaginaAtletas() {
           {atletas.map((atleta) => (
             <article key={atleta.id} className="cartao-lista">
               <div>
-                <h3>
-                  <AtletaPerfilLink atleta={atleta} className="atleta-nome-link">
-                    {obterNomeExibicaoAtleta(atleta)}
-                  </AtletaPerfilLink>
-                </h3>
+                <div className="atleta-lista-identidade">
+                  <AvatarUsuario
+                    nome={obterNomeExibicaoAtleta(atleta)}
+                    fotoPerfilUrl={obterFotoPerfilAvatar(atleta)}
+                    tamanho="sm"
+                    className="atleta-lista-avatar"
+                  />
+                  <h3>
+                    <AtletaPerfilLink atleta={atleta} className="atleta-nome-link">
+                      {obterNomeExibicaoAtleta(atleta)}
+                    </AtletaPerfilLink>
+                  </h3>
+                </div>
                 <p>Apelido: {atleta.apelido || '-'}</p>
                 {podeEditarAtleta(atleta) && atleta.telefone && <p>Telefone: {atleta.telefone}</p>}
                 {podeEditarAtleta(atleta) && atleta.email && <p>E-mail: {atleta.email}</p>}

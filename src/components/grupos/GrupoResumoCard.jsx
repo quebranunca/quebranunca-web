@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { AtletaPerfilLink } from '../AtletaPerfilLink';
+import { AvatarUsuario, obterFotoPerfilAvatar } from '../AvatarUsuario';
 import { useAutenticacao } from '../../hooks/useAutenticacao';
 import { gruposServico } from '../../services/gruposServico';
 import { PlacarDupla } from '../partidas/PlacarDupla';
@@ -196,6 +197,12 @@ export function GrupoResumoCard({
                 {rankingTop3.map((atleta) => (
                   <li key={`${atleta.posicao}-${atleta.nomeAtleta}`}>
                     <span>{atleta.posicao}º</span>
+                    <AvatarUsuario
+                      nome={obterNomeExibicaoAtleta(atleta)}
+                      fotoPerfilUrl={obterFotoPerfilAvatar(atleta)}
+                      tamanho="sm"
+                      className="grupo-ranking-avatar"
+                    />
                     <AtletaPerfilLink atleta={atleta} className="atleta-nome-link">
                       <strong>{obterNomeExibicaoAtleta(atleta)}</strong>
                     </AtletaPerfilLink>

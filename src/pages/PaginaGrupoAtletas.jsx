@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { AtletaPerfilLink } from '../components/AtletaPerfilLink';
+import { AvatarUsuario, obterFotoPerfilAvatar } from '../components/AvatarUsuario';
 import { EmailDomainSuggestions } from '../components/formularios/EmailDomainSuggestions';
 import { useNotification } from '../contexts/NotificationContext';
 import { useAutenticacao } from '../hooks/useAutenticacao';
@@ -390,11 +391,19 @@ export function PaginaGrupoAtletas() {
               return (
                 <article key={item.id} className="cartao-lista">
                   <div>
-                    <h3>
-                      <AtletaPerfilLink atleta={item} className="atleta-nome-link">
-                        {obterNomeExibicaoAtleta(item)}
-                      </AtletaPerfilLink>
-                    </h3>
+                    <div className="atleta-lista-identidade">
+                      <AvatarUsuario
+                        nome={obterNomeExibicaoAtleta(item)}
+                        fotoPerfilUrl={obterFotoPerfilAvatar(item)}
+                        tamanho="sm"
+                        className="atleta-lista-avatar"
+                      />
+                      <h3>
+                        <AtletaPerfilLink atleta={item} className="atleta-nome-link">
+                          {obterNomeExibicaoAtleta(item)}
+                        </AtletaPerfilLink>
+                      </h3>
+                    </div>
                     <p>Apelido: {item.apelidoAtleta || '-'}</p>
                     {gerenciavel && <p>Email: {item.emailAtleta || 'Pendente'}</p>}
                     {gerenciavel && <p>Cadastro no sistema: {item.cadastroPendente ? 'Pendente' : 'Completo'}</p>}

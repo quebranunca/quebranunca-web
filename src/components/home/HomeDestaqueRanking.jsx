@@ -1,5 +1,6 @@
 import { HomeSecaoCabecalho } from './HomeSecaoCabecalho';
 import { AtletaPerfilLink } from '../AtletaPerfilLink';
+import { AvatarUsuario, obterFotoPerfilAvatar } from '../AvatarUsuario';
 import { obterNomeExibicaoAtleta } from '../../utils/atletaUtils';
 
 export function HomeDestaqueRanking({ destaqueRanking }) {
@@ -18,6 +19,12 @@ export function HomeDestaqueRanking({ destaqueRanking }) {
             destaqueRanking.atletas.map((atleta) => (
               <div key={atleta.atletaId} className="home-ranking-linha">
                 <span>{atleta.posicao}º</span>
+                <AvatarUsuario
+                  nome={obterNomeExibicaoAtleta(atleta)}
+                  fotoPerfilUrl={obterFotoPerfilAvatar(atleta)}
+                  tamanho="sm"
+                  className="grupo-ranking-avatar"
+                />
                 <AtletaPerfilLink atleta={atleta} className="atleta-nome-link">
                   <strong>{obterNomeExibicaoAtleta(atleta)}</strong>
                 </AtletaPerfilLink>

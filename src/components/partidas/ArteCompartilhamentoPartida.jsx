@@ -53,8 +53,15 @@ function LinhaRanking({ rotulo, atleta, destaque }) {
   }
 
   return (
-    <div className={`arte-ranking-linha ${destaque ? 'arte-ranking-linha-destaque' : ''}`}>
+    <div className={`arte-ranking-linha arte-partida-ranking-linha ${destaque ? 'arte-ranking-linha-destaque' : ''}`}>
       <span>{rotulo}</span>
+      <AvatarUsuario
+        nome={obterNomeExibicaoAtleta(atleta)}
+        fotoPerfilUrl={obterFotoPerfilAvatar(atleta)}
+        tamanho="sm"
+        className="arte-partida-ranking-avatar"
+        crossOrigin="anonymous"
+      />
       <strong>#{atleta.posicao} {obterNomeExibicaoAtleta(atleta)}</strong>
       <small>{formatarPontos(atleta.pontos)}</small>
     </div>

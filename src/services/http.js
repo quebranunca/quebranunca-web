@@ -36,6 +36,27 @@ export const http = axios.create({
   }
 });
 
+export function resolverUrlRecurso(url) {
+  const valor = typeof url === 'string' ? url.trim() : '';
+  if (!valor) {
+    return '';
+  }
+
+  if (/^(blob:|data:image\/)/i.test(valor)) {
+    return valor;
+  }
+
+  try {
+    const origemPagina = typeof window === 'undefined' ? 'http://localhost' : window.location.origin;
+    const origemApi = new URL(http.defaults.baseURL || '/api', origemPagina).origin;
+    const urlResolvida = new URL(valor, `${origemApi}/`);
+
+    return ['http:', 'https:'].includes(urlResolvida.protocol) ? urlResolvida.href : '';
+  } catch {
+    return '';
+  }
+}
+
 let manipuladorNaoAutorizado = null;
 
 http.interceptors.request.use((config) => {

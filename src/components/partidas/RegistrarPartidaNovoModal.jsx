@@ -356,6 +356,7 @@ function AutocompleteAtleta({
               >
                 <AvatarUsuario
                   nome={atleta.nome}
+                  fotoPerfilUrl={obterFotoPerfilAvatar(atleta)}
                   tamanho="sm"
                   className="registrar-partida-novo-sugestao-rapida-avatar"
                 />

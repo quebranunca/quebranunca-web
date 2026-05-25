@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { FaUser } from 'react-icons/fa';
+import { resolverUrlRecurso } from '../services/http';
 
 const classesTamanho = {
   sm: 'avatar-usuario-sm',
@@ -39,6 +41,8 @@ export function obterFotoPerfilAvatar(item) {
     || item.fotoUrl
     || item.urlFoto
     || item.avatarUrl
+    || item.atleta?.fotoPerfilUrl
+    || item.atleta?.avatarUrl
     || '';
 
   return typeof fotoUrl === 'string' ? fotoUrl.trim() : fotoUrl;
@@ -53,7 +57,9 @@ export function AvatarUsuario({
   crossOrigin
 }) {
   const [imagemComErro, setImagemComErro] = useState(false);
-  const exibirImagem = Boolean(fotoPerfilUrl) && !imagemComErro;
+  const urlImagem = resolverUrlRecurso(fotoPerfilUrl);
+  const exibirImagem = Boolean(urlImagem) && !imagemComErro;
+  const possuiNome = Boolean(String(nome || '').trim());
   const classeTamanho = classesTamanho[tamanho] || classesTamanho.md;
 
   useEffect(() => {
@@ -64,13 +70,15 @@ export function AvatarUsuario({
     <span className={`avatar-usuario ${classeTamanho} ${className}`.trim()} aria-label={nome ? `Avatar de ${nome}` : 'Avatar'}>
       {exibirImagem ? (
         <img
-          src={fotoPerfilUrl}
+          src={urlImagem}
           alt={alt ?? (nome ? `Foto de ${nome}` : 'Foto de perfil')}
           crossOrigin={crossOrigin}
           onError={() => setImagemComErro(true)}
         />
       ) : (
-        <span className="avatar-usuario-iniciais">{obterIniciaisAvatar(nome)}</span>
+        <span className="avatar-usuario-iniciais">
+          {possuiNome ? obterIniciaisAvatar(nome) : <FaUser aria-hidden="true" />}
+        </span>
       )}
     </span>
   );

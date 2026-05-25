@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { AtletaPerfilLink } from '../AtletaPerfilLink';
+import { AvatarUsuario, obterFotoPerfilAvatar } from '../AvatarUsuario';
 import { gruposServico } from '../../services/gruposServico';
 import { formatarNomeDupla, obterNomeExibicaoAtleta } from '../../utils/atletaUtils';
 import { formatarDataHora } from '../../utils/formatacao';
@@ -114,6 +115,12 @@ function GrupoUsuarioCard({ resumo }) {
                 }
               >
                 <span>{atleta.posicao}º</span>
+                <AvatarUsuario
+                  nome={obterNomeExibicaoAtleta(atleta)}
+                  fotoPerfilUrl={obterFotoPerfilAvatar(atleta)}
+                  tamanho="sm"
+                  className="grupo-ranking-avatar"
+                />
                 <AtletaPerfilLink atleta={atleta} className="atleta-nome-link">
                   <strong>{obterNomeExibicaoAtleta(atleta)}</strong>
                 </AtletaPerfilLink>

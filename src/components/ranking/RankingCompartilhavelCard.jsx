@@ -1,5 +1,6 @@
 import { forwardRef } from 'react';
 import { CompartilhamentoCardBase } from '../compartilhamento/CompartilhamentoCardBase';
+import { AvatarUsuario, obterFotoPerfilAvatar } from '../AvatarUsuario';
 import { obterNomeExibicaoAtleta } from '../../utils/atletaUtils';
 
 function formatarPontos(valor) {
@@ -26,6 +27,13 @@ function LinhaRanking({ atleta }) {
   return (
     <div className={`arte-ranking-linha ${top3 ? 'arte-ranking-linha-destaque' : ''}`}>
       <span>#{atleta.posicao}</span>
+      <AvatarUsuario
+        nome={obterNomeExibicaoAtleta(atleta)}
+        fotoPerfilUrl={obterFotoPerfilAvatar(atleta)}
+        tamanho="sm"
+        className="arte-ranking-avatar"
+        crossOrigin="anonymous"
+      />
       <strong>{obterNomeExibicaoAtleta(atleta) || atleta.nomeAtleta || 'Atleta'}</strong>
       <small>{formatarPontos(atleta.pontos)}</small>
     </div>
