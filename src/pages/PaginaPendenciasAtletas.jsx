@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FaBell, FaCheck, FaClock, FaGamepad, FaLink, FaRegCheckCircle } from 'react-icons/fa';
+import { FaCheck, FaChevronDown, FaClock, FaGamepad } from 'react-icons/fa';
 import { EmailDomainSuggestions } from '../components/formularios/EmailDomainSuggestions';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { atletasServico } from '../services/atletasServico';
@@ -135,22 +135,38 @@ function obterContextoPartida(item) {
   return item.nomeGrupo || item.nomeCategoria || 'Partida QNF';
 }
 
+function PendenciasCabecalho({ metricas }) {
+  const textoAcoes = metricas.abertas === 1
+    ? '1 ação precisa da sua atenção'
+    : `${metricas.abertas} ações precisam da sua atenção`;
+  const textoImportantes = metricas.importantes === 0
+    ? 'Nenhuma ação urgente'
+    : `${metricas.importantes} ${metricas.importantes === 1 ? 'pendência importante' : 'pendências importantes'}`;
+
+  return (
+    <header className="pendencias-cabecalho">
+      <h2>Pendências</h2>
+      <strong>{metricas.abertas === 0 ? 'Tudo resolvido' : textoAcoes}</strong>
+      <p>{textoImportantes}</p>
+    </header>
+  );
+}
+
 function PendenciasResumo({ metricas }) {
   const itens = [
-    { id: 'abertas', rotulo: 'abertas', valor: metricas.abertas, icone: <FaBell /> },
-    { id: 'validacoes', rotulo: 'validações', valor: metricas.validacoes, icone: <FaGamepad /> },
-    { id: 'vinculos', rotulo: 'vínculos', valor: metricas.vinculos, icone: <FaLink /> },
-    { id: 'perfil', rotulo: 'perfil', valor: metricas.perfil, icone: <FaRegCheckCircle /> }
+    { id: 'abertas', rotulo: 'abertas', valor: metricas.abertas },
+    { id: 'validacoes', rotulo: 'partidas', valor: metricas.validacoes },
+    { id: 'vinculos', rotulo: 'vínculos', valor: metricas.vinculos },
+    { id: 'perfil', rotulo: 'perfil', valor: metricas.perfil }
   ];
 
   return (
     <section className="pendencias-resumo" aria-label="Resumo de pendências">
       {itens.map((item) => (
-        <article key={item.id} className="pendencias-resumo-item">
-          <span aria-hidden="true">{item.icone}</span>
+        <span key={item.id} className="pendencias-resumo-item">
           <strong>{item.valor}</strong>
           <small>{item.rotulo}</small>
-        </article>
+        </span>
       ))}
     </section>
   );
@@ -188,7 +204,7 @@ function PendenciaPerfilCard({ item }) {
   return (
     <article className={`pendencia-card pendencia-vinculo-card prioridade-${prioridade.classe}`}>
       <div className="pendencia-card-topo">
-        <div>
+        <div className="pendencia-card-conteudo">
           <span>{prioridade.rotulo} · Perfil</span>
           <h3>{item.titulo}</h3>
           <p>{item.descricao}</p>
@@ -196,7 +212,7 @@ function PendenciaPerfilCard({ item }) {
         <PendenciaStatusBadge>Cadastro</PendenciaStatusBadge>
       </div>
 
-      <div className="pendencia-card-acoes">
+      <div className="pendencia-card-atalho">
         <Link to="/app/perfil" className="botao-primario">
           {item.acaoTexto}
         </Link>
@@ -205,127 +221,167 @@ function PendenciaPerfilCard({ item }) {
   );
 }
 
-function PendenciaPartidaCard({ item, processando, onResponder }) {
+function PendenciaPartidaCard({ item, expandida, onExpandir, processando, onResponder }) {
   const status = obterRotuloStatusAprovacao(item.statusAprovacaoPartida);
   const prioridade = obterApresentacaoPrioridade(item);
+  const detalhesId = `pendencia-detalhes-${item.id}`;
 
   return (
-    <article className={`pendencia-card pendencia-partida-card prioridade-${prioridade.classe}`}>
+    <article className={`pendencia-card pendencia-partida-card prioridade-${prioridade.classe}${expandida ? ' expandida' : ''}`}>
       <div className="pendencia-card-topo">
-        <div>
-          <span>{prioridade.rotulo} · Validação de partida</span>
+        <div className="pendencia-card-conteudo">
+          <span>{prioridade.rotulo} · Partida</span>
           <h3>Confirmar resultado</h3>
-          <p>{obterContextoPartida(item)} · {formatarDataHora(item.dataPartida || item.dataCriacao)}</p>
+          <p>Uma partida aguarda sua confirmação.</p>
+          <small>{obterContextoPartida(item)} · {formatarDataHora(item.dataPartida || item.dataCriacao)}</small>
         </div>
         <PendenciaStatusBadge tipo={obterClasseStatusAprovacao(item.statusAprovacaoPartida)}>
           {status}
         </PendenciaStatusBadge>
       </div>
 
-      <div className="pendencia-partida-placar">
-        <div>
-          <span>Dupla 1</span>
-          <strong>{obterDupla(item, 'A')}</strong>
-          <b>{item.placarDuplaA ?? '-'}</b>
-        </div>
-        <div>
-          <span>Dupla 2</span>
-          <strong>{obterDupla(item, 'B')}</strong>
-          <b>{item.placarDuplaB ?? '-'}</b>
-        </div>
-      </div>
-
-      <dl className="pendencia-detalhes">
-        <div>
-          <dt>Registrado por</dt>
-          <dd>{item.nomeCriadoPorUsuario || 'Usuário QNF'}</dd>
-        </div>
-        <div>
-          <dt>Data</dt>
-          <dd>{formatarDataHora(item.dataPartida)}</dd>
-        </div>
-      </dl>
-
-      <div className="pendencia-card-acoes">
+      <div className="pendencia-card-atalho">
         <button
           type="button"
           className="botao-primario"
-          onClick={() => onResponder(item.id, 'aprovar')}
+          aria-expanded={expandida}
+          aria-controls={detalhesId}
+          onClick={() => onExpandir(item.id)}
           disabled={processando}
         >
-          {processando ? 'Processando...' : 'Confirmar partida'}
-        </button>
-        <Link to="/partidas/consulta" className="botao-secundario">
-          Ver partida
-        </Link>
-        <button
-          type="button"
-          className="botao-terciario"
-          onClick={() => onResponder(item.id, 'contestar')}
-          disabled={processando}
-        >
-          {processando ? 'Processando...' : 'Recusar resultado'}
+          {expandida ? 'Fechar' : 'Resolver'}
+          <FaChevronDown className={expandida ? 'girado' : ''} aria-hidden="true" />
         </button>
       </div>
+
+      {expandida && (
+        <section id={detalhesId} className="pendencia-expandido">
+          <div className="pendencia-partida-placar">
+            <div>
+              <span>Dupla 1</span>
+              <strong>{obterDupla(item, 'A')}</strong>
+              <b>{item.placarDuplaA ?? '-'}</b>
+            </div>
+            <div>
+              <span>Dupla 2</span>
+              <strong>{obterDupla(item, 'B')}</strong>
+              <b>{item.placarDuplaB ?? '-'}</b>
+            </div>
+          </div>
+
+          <dl className="pendencia-detalhes">
+            <div>
+              <dt>Registrado por</dt>
+              <dd>{item.nomeCriadoPorUsuario || 'Usuário QNF'}</dd>
+            </div>
+            <div>
+              <dt>Data</dt>
+              <dd>{formatarDataHora(item.dataPartida)}</dd>
+            </div>
+          </dl>
+
+          <div className="pendencia-card-acoes">
+            <button
+              type="button"
+              className="botao-primario"
+              onClick={() => onResponder(item.id, 'aprovar')}
+              disabled={processando}
+            >
+              {processando ? 'Processando...' : 'Confirmar partida'}
+            </button>
+            <Link to="/partidas/consulta" className="botao-secundario">
+              Ver partida
+            </Link>
+            <button
+              type="button"
+              className="botao-terciario"
+              onClick={() => onResponder(item.id, 'contestar')}
+              disabled={processando}
+            >
+              {processando ? 'Processando...' : 'Recusar resultado'}
+            </button>
+          </div>
+        </section>
+      )}
     </article>
   );
 }
 
-function PendenciaVinculoCard({ item, email, onEmailChange, onSalvar, processando }) {
-  const nomeAtleta = obterNomeExibicaoAtleta(item) || 'atleta pendente';
+function PendenciaVinculoCard({ item, expandida, onExpandir, email, onEmailChange, onSalvar, processando }) {
+  const nomeAtleta = obterNomeExibicaoAtleta(item) || 'Atleta pendente';
   const prioridade = obterApresentacaoPrioridade(item);
   const emailRef = useRef(null);
+  const detalhesId = `pendencia-detalhes-${item.id}`;
 
   return (
-    <article className={`pendencia-card pendencia-vinculo-card prioridade-${prioridade.classe}`}>
+    <article className={`pendencia-card pendencia-vinculo-card prioridade-${prioridade.classe}${expandida ? ' expandida' : ''}`}>
       <div className="pendencia-card-topo">
-        <div>
-          <span>{prioridade.rotulo} · Vínculo pendente</span>
+        <div className="pendencia-card-conteudo">
+          <span>{prioridade.rotulo} · Vínculo</span>
           <h3>Confirmar vínculo do atleta</h3>
-          <p>Encontramos uma partida onde aparece {nomeAtleta}. Complete o contato para regularizar o vínculo.</p>
+          <p>{nomeAtleta} apareceu em uma partida registrada.</p>
+          <small>{formatarDataHora(item.dataPartida || item.dataCriacao)}</small>
         </div>
         <PendenciaStatusBadge>Sem contato</PendenciaStatusBadge>
       </div>
 
-      {item.partidaId && (
-        <div className="pendencia-vinculo-partida">
-          <FaGamepad aria-hidden="true" />
-          <span>
-            {obterDupla(item, 'A')} x {obterDupla(item, 'B')} · {formatarDataHora(item.dataPartida)}
-          </span>
-        </div>
-      )}
-
-      <label className="pendencia-campo-email">
-        E-mail do atleta
-        <input
-          ref={emailRef}
-          type="email"
-          inputMode="email"
-          autoComplete="email"
-          enterKeyHint="done"
-          value={email || ''}
-          onChange={(evento) => onEmailChange(item.id, evento.target.value)}
-          onFocus={scrollFocusedInputIntoView}
-          placeholder="atleta@exemplo.com"
-        />
-        <EmailDomainSuggestions
-          valor={email}
-          onChange={(valor) => onEmailChange(item.id, valor)}
-          inputRef={emailRef}
-        />
-      </label>
-
-      <div className="pendencia-card-acoes">
+      <div className="pendencia-card-atalho">
         <button
           type="button"
           className="botao-primario"
-          onClick={() => onSalvar(item.id)}
+          aria-expanded={expandida}
+          aria-controls={detalhesId}
+          onClick={() => onExpandir(item.id)}
           disabled={processando}
         >
-          {processando ? 'Salvando...' : 'Confirmar vínculo'}
+          {expandida ? 'Fechar' : 'Resolver'}
+          <FaChevronDown className={expandida ? 'girado' : ''} aria-hidden="true" />
         </button>
       </div>
+
+      {expandida && (
+        <section id={detalhesId} className="pendencia-expandido">
+          {item.partidaId && (
+            <div className="pendencia-vinculo-partida">
+              <FaGamepad aria-hidden="true" />
+              <span>
+                {obterDupla(item, 'A')} x {obterDupla(item, 'B')} · {formatarDataHora(item.dataPartida)}
+              </span>
+            </div>
+          )}
+
+          <label className="pendencia-campo-email">
+            E-mail do atleta
+            <input
+              ref={emailRef}
+              type="email"
+              inputMode="email"
+              autoComplete="email"
+              enterKeyHint="done"
+              value={email || ''}
+              onChange={(evento) => onEmailChange(item.id, evento.target.value)}
+              onFocus={scrollFocusedInputIntoView}
+              placeholder="atleta@exemplo.com"
+            />
+            <EmailDomainSuggestions
+              valor={email}
+              onChange={(valor) => onEmailChange(item.id, valor)}
+              inputRef={emailRef}
+            />
+          </label>
+
+          <div className="pendencia-card-acoes">
+            <button
+              type="button"
+              className="botao-primario"
+              onClick={() => onSalvar(item.id)}
+              disabled={processando}
+            >
+              {processando ? 'Salvando...' : 'Confirmar vínculo'}
+            </button>
+          </div>
+        </section>
+      )}
     </article>
   );
 }
@@ -334,7 +390,7 @@ function PendenciaResolvidaCard({ item }) {
   return (
     <article className="pendencia-card pendencia-resolvida-card">
       <div className="pendencia-card-topo">
-        <div>
+        <div className="pendencia-card-conteudo">
           <span>Resolvida</span>
           <h3>{item.titulo}</h3>
           <p>{item.descricao}</p>
@@ -345,19 +401,33 @@ function PendenciaResolvidaCard({ item }) {
   );
 }
 
-function EstadoPendencias({ tipo }) {
+function EstadoPendencias({ tipo, filtro = 'todas' }) {
   const ehErro = tipo === 'erro';
-  const titulo = ehErro ? 'Não foi possível carregar' : 'Você está em dia';
+  const estadoVazio = filtro === 'resolvidas'
+    ? {
+      titulo: 'Nenhuma resolução recente',
+      texto: 'Ações concluídas nesta sessão aparecerão aqui.'
+    }
+    : filtro !== 'todas'
+      ? {
+        titulo: 'Nada neste filtro',
+        texto: 'Não há ações desse tipo aguardando você.'
+      }
+      : {
+        titulo: 'Você está em dia',
+        texto: 'Não há pendências para resolver agora.'
+      };
+  const titulo = ehErro ? 'Não foi possível carregar' : estadoVazio.titulo;
   const texto = ehErro
     ? 'Tente atualizar a central de pendências em instantes.'
-    : 'Não há pendências para resolver agora.';
+    : estadoVazio.texto;
 
   return (
     <section className="pendencias-estado">
       {ehErro ? <FaClock aria-hidden="true" /> : <FaCheck aria-hidden="true" />}
       <strong>{titulo}</strong>
       <p>{texto}</p>
-      {!ehErro && (
+      {!ehErro && filtro === 'todas' && (
         <Link to="/app/meus-jogos" className="botao-secundario">
           Ver meus jogos
         </Link>
@@ -376,6 +446,7 @@ export function PaginaPendenciasAtletas() {
   const [carregando, setCarregando] = useState(true);
   const [erroCarregamento, setErroCarregamento] = useState('');
   const [processandoId, setProcessandoId] = useState(null);
+  const [pendenciaExpandidaId, setPendenciaExpandidaId] = useState(null);
   const { showNotification, closeNotification } = useNotification();
 
   useEffect(() => {
@@ -390,12 +461,14 @@ export function PaginaPendenciasAtletas() {
   const metricas = useMemo(() => {
     const validacoes = pendencias.filter((item) => item.tipo === TIPOS_PENDENCIA.aprovarPartida).length;
     const vinculos = pendencias.filter((item) => item.tipo === TIPOS_PENDENCIA.completarContato).length;
+    const importantes = pendencias.filter((item) => obterPrioridade(item) === PRIORIDADES.alta).length;
 
     return {
       abertas: pendencias.length,
       validacoes,
       vinculos,
       perfil: pendenciasPerfil.length,
+      importantes,
       resolvidas: pendenciasResolvidas.length
     };
   }, [pendencias, pendenciasPerfil.length, pendenciasResolvidas.length]);
@@ -477,6 +550,15 @@ export function PaginaPendenciasAtletas() {
     }));
   }
 
+  function alterarFiltro(filtro) {
+    setFiltroAtivo(filtro);
+    setPendenciaExpandidaId(null);
+  }
+
+  function alternarExpansao(pendenciaId) {
+    setPendenciaExpandidaId((idAtual) => idAtual === pendenciaId ? null : pendenciaId);
+  }
+
   async function salvarEmail(pendenciaId) {
     setProcessandoId(pendenciaId);
 
@@ -497,6 +579,7 @@ export function PaginaPendenciasAtletas() {
         )
       ));
       registrarResolvida('Vínculo regularizado', 'O contato do atleta foi atualizado.');
+      setPendenciaExpandidaId(null);
 
       showNotification({
         type: 'success',
@@ -560,6 +643,7 @@ export function PaginaPendenciasAtletas() {
         )
       ));
       registrarResolvida('Atleta vinculado', 'A participação foi vinculada ao atleta cadastrado.');
+      setPendenciaExpandidaId(null);
 
       showNotification({
         type: 'success',
@@ -604,6 +688,7 @@ export function PaginaPendenciasAtletas() {
       }
 
       setPendencias((listaAtual) => listaAtual.filter((item) => item.id !== pendenciaId));
+      setPendenciaExpandidaId(null);
     } catch (error) {
       showNotification({
         type: 'error',
@@ -624,19 +709,13 @@ export function PaginaPendenciasAtletas() {
 
   return (
     <section className="pagina pendencias-pagina">
-      <section className="pendencias-hero">
-        <div>
-          <span>Central de ações</span>
-          <h2>Pendências</h2>
-          <p>Confirme partidas e regularize vínculos para manter seu histórico confiável.</p>
-        </div>
-      </section>
+      <PendenciasCabecalho metricas={metricas} />
 
       <PendenciasResumo metricas={metricas} />
 
       <PendenciasFiltros
         filtroAtivo={filtroAtivo}
-        aoAlterar={setFiltroAtivo}
+        aoAlterar={alterarFiltro}
         totais={totaisFiltros}
       />
 
@@ -650,7 +729,7 @@ export function PaginaPendenciasAtletas() {
 
       {!carregando && erroCarregamento && <EstadoPendencias tipo="erro" />}
 
-      {listaVazia && <EstadoPendencias />}
+      {listaVazia && <EstadoPendencias filtro={filtroAtivo} />}
 
       {!carregando && !erroCarregamento && !listaVazia && (
         <div className="pendencias-lista">
@@ -664,6 +743,8 @@ export function PaginaPendenciasAtletas() {
                 <PendenciaVinculoCard
                   key={item.id}
                   item={item}
+                  expandida={pendenciaExpandidaId === item.id}
+                  onExpandir={alternarExpansao}
                   email={emails[item.id]}
                   onEmailChange={atualizarEmail}
                   onSalvar={salvarEmail}
@@ -673,6 +754,8 @@ export function PaginaPendenciasAtletas() {
                 <PendenciaPartidaCard
                   key={item.id}
                   item={item}
+                  expandida={pendenciaExpandidaId === item.id}
+                  onExpandir={alternarExpansao}
                   processando={processandoId === item.id}
                   onResponder={responderPartida}
                 />
