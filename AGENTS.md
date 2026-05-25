@@ -21,7 +21,9 @@ Seguir o `AGENTS.md` da raiz. Neste diretório, além disso:
 
 ## Fluxos já adotados
 - `Competições` já concentra atalhos para categorias e inscrições; preservar esse papel antes de criar navegação paralela
-- `Locais` é cadastro próprio e `Competições` apenas referencia o local escolhido
+- `Arena` é o cadastro principal de local esportivo; `Competições` e `Grupos` podem referenciar a Arena escolhida
+- A interface não deve introduzir cadastros principais paralelos de `Local`, `Quadra` ou `Rede`; espaços internos pertencem à Arena
+- Partidas e treinos podem indicar Arena, mantendo válido o registro de partida avulsa sem Arena
 - `Inscrições` aceita dupla existente ou criação no fluxo a partir de `Jogador 1` e `Jogador 2`
 - `Meu Perfil` existe para qualquer usuário e concentra vínculo `Usuario` ↔ `Atleta`
 - `Meu Perfil` também concentra preferências de privacidade; e-mail público, localização e imagem/foto devem respeitar as preferências retornadas pela API
