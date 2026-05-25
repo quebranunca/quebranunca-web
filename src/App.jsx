@@ -27,6 +27,10 @@ import { PaginaPartidasCampeonato } from './pages/PaginaPartidasCampeonato';
 import { PaginaMeusJogos } from './pages/PaginaMeusJogos';
 import { MinhasPartidasRegistradasPagina } from './pages/MinhasPartidasRegistradasPagina';
 import { PaginaMeuPerfil } from './pages/PaginaMeuPerfil';
+import { PaginaArenas } from './pages/PaginaArenas';
+import { PaginaArenaPublica } from './pages/PaginaArenaPublica';
+import { MinhasArenasPage } from './pages/arena/MinhasArenasPage';
+import { ArenaAdminDashboardPage } from './pages/arena/ArenaAdminDashboardPage';
 import { PaginaPerfilUsuario } from './pages/PaginaPerfilUsuario';
 import { PaginaPrivacidade } from './pages/PaginaPrivacidade';
 import { PaginaPendenciasAtletas } from './pages/PaginaPendenciasAtletas';
@@ -51,6 +55,9 @@ export default function App() {
         <Route path="/ranking" element={<PaginaRanking />} />
         <Route path="/ranking/liga" element={<RankingLiga />} />
         <Route path="/competicoes" element={<PaginaCompeticoes />} />
+        <Route path="/arenas" element={<PaginaArenas />} />
+        <Route path="/arenas/admin/:arenaId" element={<ArenaAdminDashboardPage />} />
+        <Route path="/arenas/:slug" element={<PaginaArenaPublica />} />
         <Route path="/inscricoes" element={<PaginaInscricoesCampeonato />} />
         <Route path="/atletas" element={<PaginaAtletas />} />
         <Route path="/atletas/:atletaId" element={<PaginaAtletaDashboard />} />
@@ -83,6 +90,16 @@ export default function App() {
               estadosPermitidos={[ESTADOS_ACESSO.ativo]}
             >
               <PaginaMeusJogos />
+            </RotaProtegida>
+          }
+        />
+        <Route
+          path="/minhas-arenas"
+          element={
+            <RotaProtegida
+              estadosPermitidos={[ESTADOS_ACESSO.ativo]}
+            >
+              <MinhasArenasPage />
             </RotaProtegida>
           }
         />

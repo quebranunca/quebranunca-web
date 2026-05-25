@@ -15,6 +15,10 @@ const ITENS_NAVEGACAO_PUBLICA = [
     nome: 'Competições'
   },
   {
+    caminho: '/arenas',
+    nome: 'Arenas'
+  },
+  {
     caminho: 'https://www.quebranunca.com/quebranunca',
     externo: true,
     nome: 'Loja'
@@ -128,6 +132,18 @@ const ITENS_NAVEGACAO = [
     visivel: ({ administrador, estadoAtivo }) => administrador && estadoAtivo
   },
   {
+    caminho: '/arenas',
+    nome: 'Arenas',
+    descricao: 'Consulte arenas públicas ativas.',
+    visivel: () => true
+  },
+  {
+    caminho: '/minhas-arenas',
+    nome: 'Minhas Arenas',
+    descricao: 'Acesse o dashboard administrativo das arenas que você gerencia.',
+    visivel: ({ estadoAtivo }) => estadoAtivo
+  },
+  {
     caminho: '/formatos-campeonato',
     nome: 'Formatos',
     descricao: 'Gerencie formatos reutilizáveis para grupos, chaves e mata-mata.',
@@ -233,6 +249,10 @@ export const ROTAS_APP_HEADER = [
   { path: '/duplas', title: 'Duplas', tipoTela: TIPOS_TELA.raiz },
   { path: '/ligas', title: 'Ligas', tipoTela: TIPOS_TELA.raiz },
   { path: '/locais', title: 'Locais', tipoTela: TIPOS_TELA.raiz },
+  { path: '/arenas', title: 'Arenas', tipoTela: TIPOS_TELA.raiz },
+  { path: '/minhas-arenas', title: 'Minhas Arenas', tipoTela: TIPOS_TELA.raiz },
+  { path: '/arenas/admin/:arenaId', title: 'Dashboard da Arena', tipoTela: TIPOS_TELA.contexto },
+  { path: '/arenas/:slug', title: 'Arena', tipoTela: TIPOS_TELA.contexto },
   { path: '/formatos-campeonato', title: 'Formatos', tipoTela: TIPOS_TELA.raiz },
   { path: '/regras', title: 'Regras', tipoTela: TIPOS_TELA.raiz },
   { path: '/modelos-importacao', title: 'Modelos', tipoTela: TIPOS_TELA.raiz },
