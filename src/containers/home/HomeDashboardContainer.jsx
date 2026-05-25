@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { dashboardServico } from '../../services/dashboardServico';
+import { EVENTO_PENDENCIAS_ATUALIZADAS, pendenciasServico } from '../../services/pendenciasServico';
 import { HomeDashboard } from '../../components/home/HomeDashboard';
 import { extrairMensagemErro } from '../../utils/erros';
 import '../../components/home/home-dashboard.css';
@@ -13,6 +14,7 @@ const estadoInicialModulo = Object.freeze({
 function criarEstadoInicialModulos() {
   return {
     perfil: { ...estadoInicialModulo },
+    pendencias: { ...estadoInicialModulo },
     resumo: { ...estadoInicialModulo },
     insights: { ...estadoInicialModulo },
     ultimasPartidas: { ...estadoInicialModulo },
@@ -59,6 +61,7 @@ export function HomeDashboardContainer() {
   function carregarModulos(estaAtivo = () => true) {
     const carregamentos = [
       carregarModulo('perfil', dashboardServico.obterPerfilAtleta, estaAtivo),
+      carregarModulo('pendencias', pendenciasServico.obterResumo, estaAtivo),
       carregarModulo('resumo', dashboardServico.obterResumoAtleta, estaAtivo),
       carregarModulo('insights', dashboardServico.obterInsightsAtleta, estaAtivo),
       carregarModulo('ultimasPartidas', dashboardServico.listarUltimasPartidasAtleta, estaAtivo),
@@ -76,6 +79,15 @@ export function HomeDashboardContainer() {
     return () => {
       ativo = false;
     };
+  }, []);
+
+  useEffect(() => {
+    function atualizarPendencias() {
+      carregarModulo('pendencias', pendenciasServico.obterResumo);
+    }
+
+    window.addEventListener(EVENTO_PENDENCIAS_ATUALIZADAS, atualizarPendencias);
+    return () => window.removeEventListener(EVENTO_PENDENCIAS_ATUALIZADAS, atualizarPendencias);
   }, []);
 
   return <HomeDashboard modulos={modulos} onAtualizar={carregarModulos} />;

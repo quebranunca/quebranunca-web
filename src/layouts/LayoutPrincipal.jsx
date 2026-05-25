@@ -64,6 +64,7 @@ export function LayoutPrincipal() {
         autenticado={autenticado}
         usuario={usuario}
         estadoAcesso={estadoAcesso}
+        mostrarNotificacoes={!homeDashboardApp}
         menuAberto={menuAberto}
         aoAlternarMenu={() => setMenuAberto((aberto) => !aberto)}
         aoSair={aoSair}

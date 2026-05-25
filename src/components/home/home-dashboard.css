@@ -144,6 +144,63 @@
   box-shadow: 0 0 16px rgba(255, 179, 0, 0.13);
 }
 
+.home-dashboard-pendencias {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.78rem;
+  padding: 0.82rem;
+  border: 1px solid rgba(255, 179, 0, 0.28);
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 8% 10%, rgba(255, 179, 0, 0.19), transparent 38%),
+    linear-gradient(130deg, rgba(255, 179, 0, 0.1), rgba(15, 18, 23, 0.88));
+  box-shadow: 0 15px 34px rgba(0, 0, 0, 0.22);
+}
+
+.home-dashboard-pendencias-icone {
+  display: grid;
+  place-items: center;
+  width: 2.7rem;
+  height: 2.7rem;
+  border-radius: 14px;
+  background: rgba(255, 179, 0, 0.14);
+  color: var(--cor-primaria);
+  font-size: 1.1rem;
+}
+
+.home-dashboard-pendencias-texto {
+  min-width: 0;
+}
+
+.home-dashboard-pendencias-texto span {
+  color: var(--cor-primaria);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.home-dashboard-pendencias-texto strong {
+  display: block;
+  margin-top: 0.12rem;
+  color: var(--cor-texto);
+  font-size: 1rem;
+}
+
+.home-dashboard-pendencias-texto p {
+  margin: 0.15rem 0 0;
+  color: var(--cor-texto-suave);
+  font-size: 0.78rem;
+}
+
+.botao-primario.home-dashboard-pendencias-cta {
+  min-height: 2.5rem;
+  padding-inline: 0.95rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
 .home-dashboard-topo-avatar {
   display: grid;
   place-items: center;
@@ -1403,6 +1460,15 @@
   .home-dashboard {
     padding-left: 0.72rem;
     padding-right: 0.72rem;
+  }
+
+  .home-dashboard-pendencias {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .botao-primario.home-dashboard-pendencias-cta {
+    grid-column: 1 / -1;
+    width: 100%;
   }
 
   .home-dashboard-atleta-card {

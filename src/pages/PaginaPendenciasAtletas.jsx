@@ -29,10 +29,17 @@ const STATUS_PENDENCIA = {
   pendente: 1
 };
 
+const PRIORIDADES = {
+  alta: 1,
+  media: 2,
+  baixa: 3
+};
+
 const FILTROS = [
   { id: 'todas', rotulo: 'Todas' },
   { id: 'partidas', rotulo: 'Partidas' },
   { id: 'vinculos', rotulo: 'Vínculos' },
+  { id: 'perfil', rotulo: 'Perfil' },
   { id: 'resolvidas', rotulo: 'Resolvidas' }
 ];
 
@@ -84,6 +91,27 @@ function obterClasseStatusAprovacao(status) {
   }
 }
 
+function obterPrioridade(item) {
+  if (item?.prioridade) {
+    return Number(item.prioridade);
+  }
+
+  return item?.tipo === TIPOS_PENDENCIA.aprovarPartida
+    ? PRIORIDADES.alta
+    : PRIORIDADES.media;
+}
+
+function obterApresentacaoPrioridade(item) {
+  switch (obterPrioridade(item)) {
+    case PRIORIDADES.alta:
+      return { rotulo: 'Alta prioridade', classe: 'alta' };
+    case PRIORIDADES.baixa:
+      return { rotulo: 'Baixa prioridade', classe: 'baixa' };
+    default:
+      return { rotulo: 'Média prioridade', classe: 'media' };
+  }
+}
+
 function obterNomeConfirmacaoAtleta(atleta) {
   const nome = atleta?.nome?.trim();
   const apelido = atleta?.apelido?.trim();
@@ -112,7 +140,7 @@ function PendenciasResumo({ metricas }) {
     { id: 'abertas', rotulo: 'abertas', valor: metricas.abertas, icone: <FaBell /> },
     { id: 'validacoes', rotulo: 'validações', valor: metricas.validacoes, icone: <FaGamepad /> },
     { id: 'vinculos', rotulo: 'vínculos', valor: metricas.vinculos, icone: <FaLink /> },
-    { id: 'resolvidas', rotulo: 'resolvidas', valor: metricas.resolvidas, icone: <FaRegCheckCircle /> }
+    { id: 'perfil', rotulo: 'perfil', valor: metricas.perfil, icone: <FaRegCheckCircle /> }
   ];
 
   return (
@@ -155,11 +183,13 @@ function PendenciaStatusBadge({ children, tipo = 'alerta' }) {
 }
 
 function PendenciaPerfilCard({ item }) {
+  const prioridade = obterApresentacaoPrioridade(item);
+
   return (
-    <article className="pendencia-card pendencia-vinculo-card">
+    <article className={`pendencia-card pendencia-vinculo-card prioridade-${prioridade.classe}`}>
       <div className="pendencia-card-topo">
         <div>
-          <span>Perfil</span>
+          <span>{prioridade.rotulo} · Perfil</span>
           <h3>{item.titulo}</h3>
           <p>{item.descricao}</p>
         </div>
@@ -177,12 +207,13 @@ function PendenciaPerfilCard({ item }) {
 
 function PendenciaPartidaCard({ item, processando, onResponder }) {
   const status = obterRotuloStatusAprovacao(item.statusAprovacaoPartida);
+  const prioridade = obterApresentacaoPrioridade(item);
 
   return (
-    <article className="pendencia-card pendencia-partida-card">
+    <article className={`pendencia-card pendencia-partida-card prioridade-${prioridade.classe}`}>
       <div className="pendencia-card-topo">
         <div>
-          <span>Validação de partida</span>
+          <span>{prioridade.rotulo} · Validação de partida</span>
           <h3>Confirmar resultado</h3>
           <p>{obterContextoPartida(item)} · {formatarDataHora(item.dataPartida || item.dataCriacao)}</p>
         </div>
@@ -222,7 +253,7 @@ function PendenciaPartidaCard({ item, processando, onResponder }) {
           onClick={() => onResponder(item.id, 'aprovar')}
           disabled={processando}
         >
-          {processando ? 'Processando...' : 'Validar partida'}
+          {processando ? 'Processando...' : 'Confirmar partida'}
         </button>
         <Link to="/partidas/consulta" className="botao-secundario">
           Ver partida
@@ -242,13 +273,14 @@ function PendenciaPartidaCard({ item, processando, onResponder }) {
 
 function PendenciaVinculoCard({ item, email, onEmailChange, onSalvar, processando }) {
   const nomeAtleta = obterNomeExibicaoAtleta(item) || 'atleta pendente';
+  const prioridade = obterApresentacaoPrioridade(item);
   const emailRef = useRef(null);
 
   return (
-    <article className="pendencia-card pendencia-vinculo-card">
+    <article className={`pendencia-card pendencia-vinculo-card prioridade-${prioridade.classe}`}>
       <div className="pendencia-card-topo">
         <div>
-          <span>Vínculo pendente</span>
+          <span>{prioridade.rotulo} · Vínculo pendente</span>
           <h3>Confirmar vínculo do atleta</h3>
           <p>Encontramos uma partida onde aparece {nomeAtleta}. Complete o contato para regularizar o vínculo.</p>
         </div>
@@ -357,12 +389,13 @@ export function PaginaPendenciasAtletas() {
 
   const metricas = useMemo(() => {
     const validacoes = pendencias.filter((item) => item.tipo === TIPOS_PENDENCIA.aprovarPartida).length;
-    const vinculos = pendencias.filter((item) => item.tipo === TIPOS_PENDENCIA.completarContato).length + pendenciasPerfil.length;
+    const vinculos = pendencias.filter((item) => item.tipo === TIPOS_PENDENCIA.completarContato).length;
 
     return {
-      abertas: pendencias.length + pendenciasPerfil.length,
+      abertas: pendencias.length,
       validacoes,
       vinculos,
+      perfil: pendenciasPerfil.length,
       resolvidas: pendenciasResolvidas.length
     };
   }, [pendencias, pendenciasPerfil.length, pendenciasResolvidas.length]);
@@ -371,6 +404,7 @@ export function PaginaPendenciasAtletas() {
     todas: metricas.abertas,
     partidas: metricas.validacoes,
     vinculos: metricas.vinculos,
+    perfil: metricas.perfil,
     resolvidas: metricas.resolvidas
   }), [metricas]);
 
@@ -385,6 +419,10 @@ export function PaginaPendenciasAtletas() {
 
     if (filtroAtivo === 'resolvidas') {
       return pendenciasResolvidas;
+    }
+
+    if (filtroAtivo === 'perfil') {
+      return [];
     }
 
     return pendencias;
@@ -462,11 +500,10 @@ export function PaginaPendenciasAtletas() {
 
       showNotification({
         type: 'success',
-        title: 'Contato atualizado!',
-        message: 'A pendência saiu da lista.'
+        title: 'Pendência resolvida',
+        message: 'Contato atualizado com sucesso.'
       });
 
-      await carregarPendencias();
       rolarParaTopo();
     } catch (error) {
       showNotification({
@@ -530,7 +567,6 @@ export function PaginaPendenciasAtletas() {
         message: 'A participação foi vinculada ao atleta cadastrado.'
       });
 
-      await carregarPendencias();
       rolarParaTopo();
     } catch (error) {
       showNotification({
@@ -553,22 +589,21 @@ export function PaginaPendenciasAtletas() {
 
         showNotification({
           type: 'success',
-          title: 'Contestação registrada!',
-          message: 'A partida foi contestada com sucesso.'
+          title: 'Solicitação recusada',
+          message: 'O resultado foi contestado com sucesso.'
         });
       } else {
         await pendenciasServico.aprovarPartida(pendenciaId);
-        registrarResolvida('Partida validada', 'O resultado foi confirmado e enviado para o ranking.');
+        registrarResolvida('Partida confirmada', 'O resultado foi confirmado com sucesso.');
 
         showNotification({
           type: 'success',
-          title: 'Aprovação registrada!',
-          message: 'A partida foi aprovada com sucesso.'
+          title: 'Partida confirmada com sucesso',
+          message: 'A pendência foi resolvida.'
         });
       }
 
       setPendencias((listaAtual) => listaAtual.filter((item) => item.id !== pendenciaId));
-      await carregarPendencias();
     } catch (error) {
       showNotification({
         type: 'error',
@@ -580,7 +615,7 @@ export function PaginaPendenciasAtletas() {
     }
   }
 
-  const mostrarPerfil = filtroAtivo === 'todas' || filtroAtivo === 'vinculos';
+  const mostrarPerfil = filtroAtivo === 'perfil';
   const listaVazia =
     !carregando &&
     !erroCarregamento &&
@@ -593,7 +628,7 @@ export function PaginaPendenciasAtletas() {
         <div>
           <span>Central de ações</span>
           <h2>Pendências</h2>
-          <p>Valide partidas, regularize vínculos e mantenha seu ranking atualizado.</p>
+          <p>Confirme partidas e regularize vínculos para manter seu histórico confiável.</p>
         </div>
       </section>
 
@@ -619,10 +654,6 @@ export function PaginaPendenciasAtletas() {
 
       {!carregando && !erroCarregamento && !listaVazia && (
         <div className="pendencias-lista">
-          {mostrarPerfil && pendenciasPerfil.map((item) => (
-            <PendenciaPerfilCard key={item.id} item={item} />
-          ))}
-
           {filtroAtivo === 'resolvidas' ? (
             pendenciasResolvidas.map((item) => (
               <PendenciaResolvidaCard key={item.id} item={item} />
@@ -648,6 +679,10 @@ export function PaginaPendenciasAtletas() {
               )
             ))
           )}
+
+          {filtroAtivo !== 'resolvidas' && mostrarPerfil && pendenciasPerfil.map((item) => (
+            <PendenciaPerfilCard key={item.id} item={item} />
+          ))}
         </div>
       )}
     </section>

@@ -2817,6 +2817,21 @@ code {
   border-color: rgba(255, 179, 0, 0.28);
 }
 
+.pendencia-card.prioridade-alta {
+  border-color: rgba(255, 179, 0, 0.34);
+  background:
+    linear-gradient(145deg, rgba(255, 179, 0, 0.16), transparent 38%),
+    rgba(15, 18, 23, 0.96);
+}
+
+.pendencia-card.prioridade-media {
+  border-color: rgba(255, 179, 0, 0.18);
+}
+
+.pendencia-card.prioridade-baixa .pendencia-card-topo > div > span {
+  color: var(--cor-texto-suave);
+}
+
 .pendencia-card-topo {
   display: flex;
   align-items: flex-start;

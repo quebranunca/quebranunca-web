@@ -53,7 +53,8 @@ function obterConfiguracaoHeader(pathname) {
 export function AppHeader({
   autenticado,
   usuario,
-  estadoAcesso
+  estadoAcesso,
+  mostrarNotificacoes = true
 }) {
   const location = useLocation();
 
@@ -171,7 +172,7 @@ export function AppHeader({
           )}
         </span>
 
-        {autenticado && (
+        {autenticado && mostrarNotificacoes && (
           <NotificacoesBotao
             autenticado={autenticado}
           />

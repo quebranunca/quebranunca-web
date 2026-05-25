@@ -1,30 +1,40 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaBell } from 'react-icons/fa';
-import { http } from '../services/http';
+import { EVENTO_PENDENCIAS_ATUALIZADAS, pendenciasServico } from '../services/pendenciasServico';
 
-export function NotificacoesBotao({ autenticado, contador = null }) {
+export function NotificacoesBotao({ autenticado, resumo }) {
   const navegar = useNavigate();
-  const [temPendencia, setTemPendencia] = useState(false);
+  const [resumoCarregado, setResumoCarregado] = useState(null);
+  const resumoControlado = resumo !== undefined;
+  const resumoAtual = resumoControlado ? resumo : resumoCarregado;
+  const totalPendencias = Number(resumoAtual?.total || 0);
+  const temPendencia = totalPendencias > 0;
 
   useEffect(() => {
     async function carregarPendencias() {
-      if (!autenticado) {
-        setTemPendencia(false);
+      if (!autenticado || resumoControlado) {
+        setResumoCarregado(null);
         return;
       }
 
       try {
-        const resposta = await http.get('/pendencias/existe');
-        setTemPendencia(resposta.data === true);
+        setResumoCarregado(await pendenciasServico.obterResumo());
       } catch (erro) {
         console.error('Erro ao carregar notificações.', erro);
-        setTemPendencia(false);
+        setResumoCarregado(null);
       }
     }
 
     carregarPendencias();
-  }, [autenticado]);
+
+    if (!autenticado || resumoControlado) {
+      return undefined;
+    }
+
+    window.addEventListener(EVENTO_PENDENCIAS_ATUALIZADAS, carregarPendencias);
+    return () => window.removeEventListener(EVENTO_PENDENCIAS_ATUALIZADAS, carregarPendencias);
+  }, [autenticado, resumoControlado]);
 
   function aoAbrirPendencias() {
     navegar('/app/pendencias');
@@ -37,15 +47,15 @@ export function NotificacoesBotao({ autenticado, contador = null }) {
         temPendencia ? 'tem-notificacao' : ''
       }`}
       onClick={aoAbrirPendencias}
-      aria-label={temPendencia ? 'Abrir pendências e notificações' : 'Abrir notificações'}
+      aria-label={temPendencia ? `Abrir ${totalPendencias} pendência(s)` : 'Abrir pendências'}
       title="Pendências"
     >
       <span className="icone-notificacao" aria-hidden="true">
         <FaBell />
 
         {temPendencia && (
-          <span className="indicador-alerta">
-            {contador ? contador : ''}
+          <span className="indicador-alerta" aria-hidden="true">
+            {totalPendencias > 99 ? '99+' : totalPendencias}
           </span>
         )}
       </span>

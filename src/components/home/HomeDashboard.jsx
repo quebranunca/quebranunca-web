@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
+  FaBell,
   FaBolt,
   FaChartLine,
   FaChevronRight,
@@ -55,6 +56,11 @@ const skeletonsHomePorSecao = Object.freeze({
     eyebrow: 'Seu momento',
     titulo: 'Preparando seu painel',
     variante: 'hero'
+  },
+  [HomeSectionType.PendingActions]: {
+    eyebrow: 'Pendências',
+    titulo: 'Ações abertas',
+    variante: 'pending'
   },
   [HomeSectionType.Stats]: {
     eyebrow: 'Resumo',
@@ -316,6 +322,7 @@ export function HomeDashboard({ modulos, dashboard, carregando, erro, onAtualiza
   }
 
   const perfilModulo = obterEstadoModulo(modulos, 'perfil', dashboard?.perfil || null);
+  const pendenciasModulo = obterEstadoModulo(modulos, 'pendencias', null);
   const resumoModulo = obterEstadoModulo(modulos, 'resumo', dashboard?.resumo || null);
   const insightsModulo = obterEstadoModulo(modulos, 'insights', dashboard?.insights || []);
   const ultimasPartidasModulo = obterEstadoModulo(modulos, 'ultimasPartidas', dashboard?.ultimasPartidas || []);
@@ -327,6 +334,7 @@ export function HomeDashboard({ modulos, dashboard, carregando, erro, onAtualiza
   });
   const frequenciaModulo = obterEstadoModulo(modulos, 'frequencia', dashboard?.heatmap || []);
   const perfil = obterDadosModulo(perfilModulo, {});
+  const resumoPendencias = obterDadosModulo(pendenciasModulo, null);
   const resumo = obterDadosModulo(resumoModulo, {});
   const heatmap = obterDadosModulo(frequenciaModulo, []);
   const ultimasPartidas = (obterDadosModulo(ultimasPartidasModulo, []) || []).slice(0, 3);
@@ -419,6 +427,12 @@ export function HomeDashboard({ modulos, dashboard, carregando, erro, onAtualiza
         badgeMomento={badgeMomento}
         perfilDestino={montarRotaPerfilAtleta(perfil.atletaId || usuario?.atletaId, usuario)}
         erro={perfilModulo.erro}
+      />
+    ),
+    [HomeSectionType.PendingActions]: () => moduloCarregandoSemDados(pendenciasModulo) ? null : (
+      <HomePendenciasOperacionaisSection
+        resumo={resumoPendencias}
+        erro={pendenciasModulo.erro}
       />
     ),
     [HomeSectionType.Stats]: () => moduloCarregandoSemDados(resumoModulo) ? (
@@ -529,6 +543,7 @@ export function HomeDashboard({ modulos, dashboard, carregando, erro, onAtualiza
       <HomeDashboardHeader
         nome={nomePrincipal}
         saudacao={saudacao}
+        resumoPendencias={resumoPendencias}
       />
 
       {homeSectionsConfig
@@ -1050,7 +1065,35 @@ function HomeFrequenciaSection({
   );
 }
 
-function HomeDashboardHeader({ nome, saudacao }) {
+function HomePendenciasOperacionaisSection({ resumo, erro }) {
+  const total = Number(resumo?.total || 0);
+  if (erro || total <= 0) {
+    return null;
+  }
+
+  const altaPrioridade = Number(resumo?.altaPrioridade || 0);
+  const descricao = altaPrioridade > 0
+    ? `${altaPrioridade} ${altaPrioridade === 1 ? 'ação prioritária aguarda' : 'ações prioritárias aguardam'} sua confirmação.`
+    : 'Ações rápidas ajudam a manter o histórico das partidas confiável.';
+
+  return (
+    <section className="home-dashboard-pendencias" aria-label="Pendências abertas">
+      <div className="home-dashboard-pendencias-icone" aria-hidden="true">
+        <FaBell />
+      </div>
+      <div className="home-dashboard-pendencias-texto">
+        <span>Pendências</span>
+        <strong>{total === 1 ? '1 ação aguardando' : `${total} ações aguardando`}</strong>
+        <p>{descricao}</p>
+      </div>
+      <Link to="/app/pendencias" className="botao-primario home-dashboard-pendencias-cta">
+        Resolver agora
+      </Link>
+    </section>
+  );
+}
+
+function HomeDashboardHeader({ nome, saudacao, resumoPendencias }) {
   const [compacto, setCompacto] = useState(false);
 
   useEffect(() => {
@@ -1080,7 +1123,7 @@ function HomeDashboardHeader({ nome, saudacao }) {
       </div>
 
       <div className="home-dashboard-topo-acoes">
-        <NotificacoesBotao autenticado />
+        <NotificacoesBotao autenticado resumo={resumoPendencias} />
       </div>
     </div>
   );
