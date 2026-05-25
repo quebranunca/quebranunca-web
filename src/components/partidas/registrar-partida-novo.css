@@ -761,9 +761,12 @@
 }
 
 .registrar-partida-novo-sugestao-rapida {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
   max-width: 100%;
   min-height: 2rem;
-  padding: 0.34rem 0.68rem;
+  padding: 0.24rem 0.6rem 0.24rem 0.28rem;
   border: 1px solid rgba(248, 195, 0, 0.22);
   border-radius: 999px;
   background: rgba(248, 195, 0, 0.08);
@@ -775,6 +778,15 @@
   overflow-wrap: anywhere;
   -webkit-tap-highlight-color: transparent;
   transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.registrar-partida-novo-sugestao-rapida-avatar {
+  width: 1.35rem;
+  height: 1.35rem;
+  background: rgba(248, 195, 0, 0.16);
+  color: var(--color-primary);
+  font-size: 0.54rem;
+  font-weight: 900;
 }
 
 .registrar-partida-novo-sugestao-rapida:hover,

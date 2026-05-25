@@ -436,11 +436,10 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
     const campoParceiro = campoAtletaUsuario === 'dupla1.atletaDireita'
       ? 'dupla1.atletaEsquerda'
       : 'dupla1.atletaDireita';
-    const campoRival = limparTexto(dados.dupla2.atletaDireita)
-      ? 'dupla2.atletaEsquerda'
-      : 'dupla2.atletaDireita';
-    const parceiroDisponivel = fixarAtletaUsuario && !limparTexto(obterValorCampo(dados, campoParceiro));
-    const rivalDisponivel = !limparTexto(obterValorCampo(dados, campoRival));
+    const campoRivalDireita = 'dupla2.atletaDireita';
+    const campoRivalEsquerda = 'dupla2.atletaEsquerda';
+    const parceiroDisponivel = fixarAtletaUsuario && !selecoes[campoParceiro]?.id;
+    const rivaisDisponiveis = filtrar(sugestoesPartida.rivaisFrequentes, { removerAtletaUsuario: true });
 
     return {
       [campoParceiro]: parceiroDisponivel
@@ -449,10 +448,16 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
             atletas: filtrar(sugestoesPartida.parceirosFrequentes, { removerAtletaUsuario: true })
           }
         : null,
-      [campoRival]: rivalDisponivel
+      [campoRivalDireita]: !selecoes[campoRivalDireita]?.id
         ? {
             titulo: 'Rivais frequentes',
-            atletas: filtrar(sugestoesPartida.rivaisFrequentes, { removerAtletaUsuario: true })
+            atletas: rivaisDisponiveis
+          }
+        : null,
+      [campoRivalEsquerda]: !selecoes[campoRivalEsquerda]?.id
+        ? {
+            titulo: 'Rivais frequentes',
+            atletas: rivaisDisponiveis
           }
         : null
     };
@@ -473,23 +478,24 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
         return;
       }
 
-      if (cacheSugestoesPartidaRef.current.has(chaveCache)) {
-        setSugestoesPartida(cacheSugestoesPartidaRef.current.get(chaveCache));
-        return;
-      }
-
       try {
-        const resposta = await atletasServico.obterSugestoesPartida({ grupoId });
-        const dadosSugestoes = {
-          parceirosFrequentes: resposta?.parceirosFrequentes || [],
-          rivaisFrequentes: resposta?.rivaisFrequentes || []
-        };
+        let dadosSugestoes = cacheSugestoesPartidaRef.current.get(chaveCache);
+        if (!dadosSugestoes) {
+          dadosSugestoes = atletasServico.obterSugestoesPartida({ grupoId })
+            .then((resposta) => ({
+              parceirosFrequentes: resposta?.parceirosFrequentes || [],
+              rivaisFrequentes: resposta?.rivaisFrequentes || []
+            }));
+          cacheSugestoesPartidaRef.current.set(chaveCache, dadosSugestoes);
+        }
 
+        dadosSugestoes = await dadosSugestoes;
         cacheSugestoesPartidaRef.current.set(chaveCache, dadosSugestoes);
         if (!cancelado) {
           setSugestoesPartida(dadosSugestoes);
         }
       } catch {
+        cacheSugestoesPartidaRef.current.delete(chaveCache);
         if (!cancelado) {
           setSugestoesPartida({ parceirosFrequentes: [], rivaisFrequentes: [] });
         }

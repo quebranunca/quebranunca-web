@@ -354,7 +354,12 @@ function AutocompleteAtleta({
                   }
                 }}
               >
-                {atleta.nome}
+                <AvatarUsuario
+                  nome={atleta.nome}
+                  tamanho="sm"
+                  className="registrar-partida-novo-sugestao-rapida-avatar"
+                />
+                <span>{atleta.nome}</span>
               </button>
             ))}
           </div>
