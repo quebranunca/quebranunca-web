@@ -1428,8 +1428,6 @@ export function RegistrarPartidaNovoModal({
     return null;
   }
 
-  const ocultarAcoesMobile = modoMobile && tecladoAberto;
-
   return (
     <div className="modal-sobreposicao registrar-partida-novo-sobreposicao" role="presentation">
       <section
@@ -1509,23 +1507,21 @@ export function RegistrarPartidaNovoModal({
               />
             </main>
 
-            {!ocultarAcoesMobile && (
-              <footer
-                ref={ctaRef}
-                className="registrar-partida-novo-acoes registrar-partida-novo-cta-sticky"
-                data-estado={salvando ? 'loading' : acaoPrincipalDesabilitada ? 'disabled' : 'enabled'}
-                aria-busy={salvando}
-              >
-                {indiceEtapa > 0 && !duplicidade && (
-                  <button type="button" className="botao-secundario" onClick={onVoltar} disabled={salvando}>
-                    Voltar
-                  </button>
-                )}
-                <button type="submit" className="botao-primario" disabled={acaoPrincipalDesabilitada} aria-busy={salvando}>
-                  {obterRotuloAcao(etapaAtual, salvando)}
+            <footer
+              ref={ctaRef}
+              className="registrar-partida-novo-acoes registrar-partida-novo-cta-sticky"
+              data-estado={salvando ? 'loading' : acaoPrincipalDesabilitada ? 'disabled' : 'enabled'}
+              aria-busy={salvando}
+            >
+              {indiceEtapa > 0 && !duplicidade && (
+                <button type="button" className="botao-secundario" onClick={onVoltar} disabled={salvando}>
+                  Voltar
                 </button>
-              </footer>
-            )}
+              )}
+              <button type="submit" className="botao-primario" disabled={acaoPrincipalDesabilitada} aria-busy={salvando}>
+                {obterRotuloAcao(etapaAtual, salvando)}
+              </button>
+            </footer>
 
             <SeletorGrupoPartida
               aberto={seletorGrupoAberto}

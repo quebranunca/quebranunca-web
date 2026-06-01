@@ -1467,10 +1467,6 @@
     flex-direction: row;
   }
 
-  .registrar-partida-novo-modal[data-teclado-aberto="true"] .registrar-partida-novo-acoes {
-    display: none;
-  }
-
   .registrar-partida-novo-acoes .botao-secundario {
     width: auto;
     min-width: 6.25rem;
