@@ -368,6 +368,9 @@ function PendenciaVinculoCard({ item, expandida, onExpandir, email, onEmailChang
               onChange={(valor) => onEmailChange(item.id, valor)}
               inputRef={emailRef}
             />
+            <small>
+              Se este e-mail já for de um atleta cadastrado, esta partida será vinculada ao perfil dele e a pendência será encerrada.
+            </small>
           </label>
 
           <div className="pendencia-card-acoes">
