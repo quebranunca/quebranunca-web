@@ -996,7 +996,7 @@ function RevisaoRapida({
   );
 }
 
-function TelaSucesso({ sucesso, onAdicionarMidia, onVerPartida, onRegistrarRevanche, onRegistrarNovaPartida, onFechar }) {
+function TelaSucesso({ sucesso, grupo, onAdicionarMidia, onVerPartida, onAbrirGrupo, onRegistrarRevanche, onRegistrarNovaPartida, onFechar }) {
   const resumo = sucesso?.resumo;
   const partidaId = sucesso?.partida?.id;
   const pontos = Number(sucesso?.partida?.pontosRankingVitoria);
@@ -1032,6 +1032,12 @@ function TelaSucesso({ sucesso, onAdicionarMidia, onVerPartida, onRegistrarRevan
         )}
 
         <div className="registrar-partida-novo-acoes-secundarias">
+          {grupo?.id && (
+            <button type="button" className="botao-secundario" onClick={onAbrirGrupo}>
+              <FaLayerGroup aria-hidden="true" />
+              Abrir grupo
+            </button>
+          )}
           <button type="button" className="botao-secundario" onClick={onAdicionarMidia}>
             <FaImage aria-hidden="true" />
             Adicionar mídia
@@ -1450,8 +1456,10 @@ export function RegistrarPartidaNovoModal({
         {sucesso ? (
           <TelaSucesso
             sucesso={sucesso}
+            grupo={grupo}
             onAdicionarMidia={onAdicionarMidia}
             onVerPartida={onVerPartida}
+            onAbrirGrupo={onAbrirGrupo}
             onRegistrarRevanche={onRegistrarRevanche}
             onRegistrarNovaPartida={onRegistrarNovaPartida}
             onFechar={onFechar}

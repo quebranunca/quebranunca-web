@@ -979,6 +979,13 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
     navegar('/minhas-partidas-registradas');
   }
 
+  function abrirGrupo() {
+    if (grupoContexto?.id) {
+      onFechar?.();
+      navegar(`/grupos/${grupoContexto.id}`);
+    }
+  }
+
   function concluirUploadMidia(resposta) {
     setSucesso((atual) => atual
       ? {
@@ -1039,6 +1046,7 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
         onFechar={onFechar}
         onAdicionarMidia={() => setUploadMidiaAberto(true)}
         onVerPartida={verPartida}
+        onAbrirGrupo={abrirGrupo}
         onRegistrarRevanche={registrarRevanche}
         onRegistrarNovaPartida={registrarNovaPartida}
       />
