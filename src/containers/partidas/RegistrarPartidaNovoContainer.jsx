@@ -35,6 +35,10 @@ const estadoInicial = {
     atletaDireita: '',
     atletaEsquerda: '',
     pontos: ''
+  },
+  resultado: {
+    modo: 'PlacarDetalhado',
+    duplaVencedora: ''
   }
 };
 
@@ -191,8 +195,14 @@ function criarPayload(dados, selecoes, usuario, atletaUsuario, contextoInicial) 
     duplaBAtleta2Nome: limparTexto(dadosPayload.dupla2.atletaEsquerda),
     faseCampeonato: null,
     status: 2,
-    placarDuplaA: Number(dadosPayload.dupla1.pontos),
-    placarDuplaB: Number(dadosPayload.dupla2.pontos),
+    placarDuplaA: dadosPayload.resultado?.modo === 'ApenasResultado' ? null : Number(dadosPayload.dupla1.pontos),
+    placarDuplaB: dadosPayload.resultado?.modo === 'ApenasResultado' ? null : Number(dadosPayload.dupla2.pontos),
+    duplaVencedora: dadosPayload.resultado?.modo === 'ApenasResultado'
+      ? Number(dadosPayload.resultado.duplaVencedora)
+      : null,
+    tipoRegistroResultado: dadosPayload.resultado?.modo === 'ApenasResultado'
+      ? 'ApenasResultado'
+      : 'PlacarDetalhado',
     dataPartida: new Date().toISOString(),
     observacoes: null
   };
@@ -254,6 +264,10 @@ function obterNumeroRegra(valor) {
 }
 
 function validarPlacar(dados, regraPartida = null) {
+  if (dados.resultado?.modo === 'ApenasResultado') {
+    return dados.resultado.duplaVencedora ? '' : 'Informe qual dupla venceu a partida.';
+  }
+
   const placarA = Number(dados.dupla1.pontos);
   const placarB = Number(dados.dupla2.pontos);
   const pontosMinimos = obterNumeroRegra(regraPartida?.pontosMinimosPartida);
@@ -399,6 +413,8 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
       dupla1: dados.dupla1.pontos,
       dupla2: dados.dupla2.pontos
     },
+    tipoRegistroResultado: dados.resultado?.modo || 'PlacarDetalhado',
+    duplaVencedora: dados.resultado?.duplaVencedora || '',
     data: new Date(),
     contexto: contextoPartida
   }), [dados, contextoPartida]);
@@ -928,6 +944,10 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
         atletaDireita: dados.dupla2.atletaDireita,
         atletaEsquerda: dados.dupla2.atletaEsquerda,
         pontos: ''
+      },
+      resultado: {
+        modo: dados.resultado?.modo || 'PlacarDetalhado',
+        duplaVencedora: ''
       }
     };
 

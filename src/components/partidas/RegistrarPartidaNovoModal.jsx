@@ -42,6 +42,11 @@ function formatarIdPartida(partida) {
 }
 
 function obterVencedora(dados) {
+  if (dados.resultado?.modo === 'ApenasResultado') {
+    return dados.resultado.duplaVencedora === '1' || dados.resultado.duplaVencedora === 1 ? 'dupla1' :
+      dados.resultado.duplaVencedora === '2' || dados.resultado.duplaVencedora === 2 ? 'dupla2' : '';
+  }
+
   const pontos1 = Number(dados.dupla1.pontos);
   const pontos2 = Number(dados.dupla2.pontos);
 
@@ -58,6 +63,21 @@ function obterNumeroRegra(valor) {
 }
 
 function montarValidacoesPlacar(dados, regraPartida) {
+  if (dados.resultado?.modo === 'ApenasResultado') {
+    return [
+      {
+        id: 'vencedora',
+        texto: 'Dupla vencedora informada',
+        ok: Boolean(dados.resultado.duplaVencedora)
+      },
+      {
+        id: 'sem-placar',
+        texto: 'Resultado sem placar detalhado',
+        ok: true
+      }
+    ];
+  }
+
   const placarA = Number(dados.dupla1.pontos);
   const placarB = Number(dados.dupla2.pontos);
   const temPlacar = dados.dupla1.pontos !== '' && dados.dupla2.pontos !== '';
@@ -105,6 +125,7 @@ function montarValidacoesRevisao(dados, regraPartida) {
   const placarB = Number(dados.dupla2.pontos);
   const temPlacar = dados.dupla1.pontos !== '' && dados.dupla2.pontos !== '';
   const placarNumerico = temPlacar && Number.isFinite(placarA) && Number.isFinite(placarB) && placarA >= 0 && placarB >= 0;
+  const apenasResultado = dados.resultado?.modo === 'ApenasResultado';
 
   return [
     {
@@ -119,8 +140,8 @@ function montarValidacoesRevisao(dados, regraPartida) {
     },
     {
       id: 'placar',
-      texto: 'Placar final preenchido',
-      ok: placarNumerico
+      texto: apenasResultado ? 'Dupla vencedora informada' : 'Placar final preenchido',
+      ok: apenasResultado ? Boolean(dados.resultado.duplaVencedora) : placarNumerico
     },
     ...montarValidacoesPlacar(dados, regraPartida)
   ];
@@ -557,6 +578,21 @@ function PlacarCentral({
   );
 }
 
+function DuplaVencedoraCard({ numero, nomes, selecionada, onSelecionar }) {
+  return (
+    <button
+      type="button"
+      className={`registrar-partida-novo-vencedora-card ${selecionada ? 'selecionada' : ''}`}
+      onClick={onSelecionar}
+      aria-pressed={selecionada}
+    >
+      <span>Dupla {numero}</span>
+      <strong>{nomes.filter(Boolean).join(' / ') || 'Atletas da dupla'}</strong>
+      {selecionada && <FaTrophy aria-hidden="true" />}
+    </button>
+  );
+}
+
 function EtapaGrupo({
   grupo,
   carregandoGrupo,
@@ -695,23 +731,62 @@ function EtapaDupla({ numero, propsDupla, onConcluir }) {
 }
 
 function EtapaPlacar(props) {
+  const modo = props.dados.resultado?.modo || 'PlacarDetalhado';
+  const apenasResultado = modo === 'ApenasResultado';
+  const duplaVencedora = props.dados.resultado?.duplaVencedora || '';
+
   return (
     <section className="registrar-partida-novo-etapa registrar-partida-novo-etapa-placar">
       <div className="registrar-partida-novo-intro">
-        <h3>Placar</h3>
-        <p>Digite os pontos e revise as validações automáticas.</p>
+        <h3>Resultado</h3>
+        <p>{apenasResultado ? 'Não lembra o placar? Sem problema. Informe apenas quem venceu.' : 'Digite os pontos e revise as validações automáticas.'}</p>
       </div>
 
-      <PlacarCentral
-        dados={props.dados}
-        placar1Ref={props.placar1Ref}
-        placar2Ref={props.placar2Ref}
-        regraPartida={props.regraPartida}
-        carregandoRegraPartida={props.carregandoRegraPartida}
-        erroRegraPartida={props.erroRegraPartida}
-        onAlterarCampo={props.onAlterarCampo}
-        onRevisar={props.onRevisar}
-      />
+      <div className="registrar-partida-novo-modo-resultado" role="group" aria-label="Como registrar o resultado">
+        <button
+          type="button"
+          className={modo === 'PlacarDetalhado' ? 'selecionado' : ''}
+          onClick={() => props.onAlterarCampo('resultado.modo', 'PlacarDetalhado')}
+        >
+          Informar placar
+        </button>
+        <button
+          type="button"
+          className={apenasResultado ? 'selecionado' : ''}
+          onClick={() => props.onAlterarCampo('resultado.modo', 'ApenasResultado')}
+        >
+          Só quem ganhou
+        </button>
+      </div>
+
+      {apenasResultado ? (
+        <section className="registrar-partida-novo-apenas-resultado" aria-label="Escolha da dupla vencedora">
+          <DuplaVencedoraCard
+            numero={1}
+            nomes={[props.dados.dupla1.atletaDireita, props.dados.dupla1.atletaEsquerda]}
+            selecionada={String(duplaVencedora) === '1'}
+            onSelecionar={() => props.onAlterarCampo('resultado.duplaVencedora', '1')}
+          />
+          <DuplaVencedoraCard
+            numero={2}
+            nomes={[props.dados.dupla2.atletaDireita, props.dados.dupla2.atletaEsquerda]}
+            selecionada={String(duplaVencedora) === '2'}
+            onSelecionar={() => props.onAlterarCampo('resultado.duplaVencedora', '2')}
+          />
+          <span className="registrar-partida-novo-badge-sem-placar">Resultado sem placar</span>
+        </section>
+      ) : (
+        <PlacarCentral
+          dados={props.dados}
+          placar1Ref={props.placar1Ref}
+          placar2Ref={props.placar2Ref}
+          regraPartida={props.regraPartida}
+          carregandoRegraPartida={props.carregandoRegraPartida}
+          erroRegraPartida={props.erroRegraPartida}
+          onAlterarCampo={props.onAlterarCampo}
+          onRevisar={props.onRevisar}
+        />
+      )}
     </section>
   );
 }
@@ -739,9 +814,14 @@ function EstatisticaSucesso({ rotulo, valor }) {
 function ResultadoSucessoPremium({ resumo, partida }) {
   const vencedora = obterVencedora({
     dupla1: { pontos: resumo?.placar?.dupla1 ?? partida?.placarDuplaA },
-    dupla2: { pontos: resumo?.placar?.dupla2 ?? partida?.placarDuplaB }
+    dupla2: { pontos: resumo?.placar?.dupla2 ?? partida?.placarDuplaB },
+    resultado: {
+      modo: resumo?.tipoRegistroResultado || partida?.tipoRegistroResultado,
+      duplaVencedora: resumo?.duplaVencedora || partida?.duplaVencedora
+    }
   });
   const grupo = partida?.nomeGrupo || 'Partida avulsa';
+  const apenasResultado = resumo?.tipoRegistroResultado === 'ApenasResultado' || partida?.tipoRegistroResultado === 'ApenasResultado';
 
   return (
     <div className="registrar-partida-novo-sucesso-card">
@@ -761,11 +841,18 @@ function ResultadoSucessoPremium({ resumo, partida }) {
           ))}
         </div>
 
-        <div className="registrar-partida-novo-sucesso-placar">
-          <strong>{resumo?.placar?.dupla1 ?? partida?.placarDuplaA ?? 0}</strong>
-          <span>x</span>
-          <strong>{resumo?.placar?.dupla2 ?? partida?.placarDuplaB ?? 0}</strong>
-        </div>
+        {apenasResultado ? (
+          <div className="registrar-partida-novo-sucesso-placar sem-placar">
+            <strong>{vencedora === 'dupla1' ? 'Dupla 1' : 'Dupla 2'}</strong>
+            <span>venceu</span>
+          </div>
+        ) : (
+          <div className="registrar-partida-novo-sucesso-placar">
+            <strong>{resumo?.placar?.dupla1 ?? partida?.placarDuplaA ?? 0}</strong>
+            <span>x</span>
+            <strong>{resumo?.placar?.dupla2 ?? partida?.placarDuplaB ?? 0}</strong>
+          </div>
+        )}
 
         <div className={`registrar-partida-novo-sucesso-dupla ${vencedora === 'dupla2' ? 'vencedora' : ''}`}>
           <span>Dupla 2</span>
@@ -777,6 +864,9 @@ function ResultadoSucessoPremium({ resumo, partida }) {
           ))}
         </div>
       </div>
+      {apenasResultado && (
+        <span className="registrar-partida-novo-badge-sem-placar">Resultado informado sem placar detalhado</span>
+      )}
     </div>
   );
 }
@@ -799,6 +889,7 @@ function RevisaoRapida({
   const validacoes = montarValidacoesRevisao(dados, regraPartida);
   const possuiInconsistencia = validacoes.some((validacao) => !validacao.ok);
   const nomeVencedora = vencedora === 'dupla1' ? 'Dupla 1' : vencedora === 'dupla2' ? 'Dupla 2' : '';
+  const apenasResultado = resumo.tipoRegistroResultado === 'ApenasResultado' || dados.resultado?.modo === 'ApenasResultado';
 
   return (
     <section className="registrar-partida-novo-revisao" aria-label="Revisão rápida da partida">
@@ -818,11 +909,18 @@ function RevisaoRapida({
 
         <div className="registrar-partida-novo-resumo-card">
           <ResumoDupla titulo="Dupla 1" atletas={resumo.dupla1} destaque={vencedora === 'dupla1'} />
-          <div className="registrar-partida-novo-resumo-placar">
-            <strong>{resumo.placar.dupla1 || 0}</strong>
-            <span>x</span>
-            <strong>{resumo.placar.dupla2 || 0}</strong>
-          </div>
+          {apenasResultado ? (
+            <div className="registrar-partida-novo-resumo-sem-placar">
+              <strong>{nomeVencedora ? `${nomeVencedora} venceu` : 'Resultado sem placar'}</strong>
+              <span>Resultado informado sem placar detalhado</span>
+            </div>
+          ) : (
+            <div className="registrar-partida-novo-resumo-placar">
+              <strong>{resumo.placar.dupla1 || 0}</strong>
+              <span>x</span>
+              <strong>{resumo.placar.dupla2 || 0}</strong>
+            </div>
+          )}
           <ResumoDupla titulo="Dupla 2" atletas={resumo.dupla2} destaque={vencedora === 'dupla2'} />
         </div>
 

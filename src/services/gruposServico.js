@@ -26,6 +26,11 @@ export const gruposServico = {
     return resposta.data;
   },
 
+  async obterDashboardGrupo(id) {
+    const resposta = await http.get(`/grupos/${id}/dashboard`);
+    return resposta.data;
+  },
+
   async listarResumosUsuario() {
     try {
       const resposta = await http.get('/grupos/resumos-usuario');

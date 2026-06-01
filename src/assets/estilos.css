@@ -237,6 +237,161 @@ textarea {
   justify-content: center;
 }
 
+.grupo-dashboard-pagina {
+  display: grid;
+  gap: var(--espaco-lg);
+}
+
+.grupo-dashboard-header,
+.grupo-dashboard-bloco,
+.grupo-dashboard-resumo-card {
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-lg);
+  background: var(--cor-superficie);
+  box-shadow: var(--sombra-suave);
+}
+
+.grupo-dashboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-lg);
+  padding: var(--espaco-lg);
+}
+
+.grupo-dashboard-identidade,
+.grupo-dashboard-acoes {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-md);
+}
+
+.grupo-dashboard-identidade h2 {
+  font-size: clamp(1.45rem, 4vw, 2.25rem);
+}
+
+.grupo-dashboard-identidade span,
+.grupo-dashboard-identidade p,
+.grupo-dashboard-bloco small,
+.grupo-dashboard-partida span,
+.grupo-dashboard-partida em {
+  color: var(--cor-texto-suave);
+}
+
+.grupo-dashboard-resumo {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--espaco-md);
+}
+
+.grupo-dashboard-resumo-card {
+  display: grid;
+  gap: 0.35rem;
+  min-height: 5.4rem;
+  padding: var(--espaco-md);
+}
+
+.grupo-dashboard-resumo-card span {
+  color: var(--cor-texto-suave);
+}
+
+.grupo-dashboard-resumo-card strong {
+  font-size: 1.35rem;
+}
+
+.grupo-dashboard-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+  gap: var(--espaco-md);
+}
+
+.grupo-dashboard-bloco {
+  display: grid;
+  gap: var(--espaco-md);
+  padding: var(--espaco-lg);
+}
+
+.grupo-dashboard-bloco-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-md);
+}
+
+.grupo-dashboard-bloco-topo button {
+  border: 0;
+  background: transparent;
+  color: var(--cor-primaria);
+  font-weight: 800;
+}
+
+.grupo-dashboard-lista-atletas {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.grupo-dashboard-lista-atletas li {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.7rem;
+  min-height: 3rem;
+}
+
+.grupo-dashboard-lista-atletas strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.grupo-dashboard-lista-atletas small {
+  grid-column: 3;
+}
+
+.grupo-dashboard-posicao {
+  width: 2rem;
+  color: var(--cor-primaria);
+  font-weight: 900;
+}
+
+.grupo-dashboard-partidas {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.grupo-dashboard-partida {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.grupo-dashboard-partida:last-child {
+  border-bottom: 0;
+}
+
+.grupo-dashboard-partida em {
+  font-style: normal;
+  color: var(--cor-primaria);
+}
+
+@media (max-width: 760px) {
+  .grupo-dashboard-header,
+  .grupo-dashboard-identidade,
+  .grupo-dashboard-acoes {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .grupo-dashboard-resumo,
+  .grupo-dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* EFEITO leve (opcional, recomendo) */
 .tem-notificacao {
   border-color: rgba(255, 179, 0, 0.5);

@@ -895,6 +895,69 @@
   box-shadow: 0 18px 46px rgba(0, 0, 0, 0.2);
 }
 
+.registrar-partida-novo-modo-resultado {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+  width: min(30rem, 100%);
+}
+
+.registrar-partida-novo-modo-resultado button,
+.registrar-partida-novo-vencedora-card {
+  min-height: 3.2rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.9rem;
+  background: rgba(255, 255, 255, 0.045);
+  color: var(--color-text-primary);
+  font-weight: 850;
+}
+
+.registrar-partida-novo-modo-resultado button.selecionado,
+.registrar-partida-novo-vencedora-card.selecionada {
+  border-color: rgba(248, 195, 0, 0.55);
+  background: rgba(248, 195, 0, 0.13);
+  color: var(--color-primary);
+}
+
+.registrar-partida-novo-apenas-resultado {
+  display: grid;
+  gap: 0.75rem;
+  width: min(30rem, 100%);
+}
+
+.registrar-partida-novo-vencedora-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.85rem;
+  text-align: left;
+}
+
+.registrar-partida-novo-vencedora-card span {
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+}
+
+.registrar-partida-novo-vencedora-card strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.registrar-partida-novo-badge-sem-placar {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  justify-self: center;
+  border: 1px solid rgba(248, 195, 0, 0.35);
+  border-radius: 999px;
+  padding: 0.32rem 0.7rem;
+  background: rgba(248, 195, 0, 0.12);
+  color: var(--color-primary);
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
 .registrar-partida-novo-placar-regra {
   display: flex;
   flex-direction: column;
@@ -1130,6 +1193,20 @@
   color: var(--color-text-secondary);
   font-size: 0.9rem;
   font-weight: 900;
+}
+
+.registrar-partida-novo-resumo-sem-placar {
+  display: grid;
+  gap: 0.2rem;
+  place-items: center;
+  min-width: 8rem;
+  color: var(--color-primary);
+  text-align: center;
+}
+
+.registrar-partida-novo-resumo-sem-placar span {
+  color: var(--color-text-secondary);
+  font-size: 0.78rem;
 }
 
 .registrar-partida-novo-meta {

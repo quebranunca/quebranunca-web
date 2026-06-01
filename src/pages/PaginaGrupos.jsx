@@ -454,7 +454,7 @@ export function PaginaGrupos() {
                 <button
                   type="button"
                   className="grupos-dashboard-card-corpo"
-                  onClick={() => navegar(`/grupos/${grupoId}/atletas`)}
+                  onClick={() => navegar(`/grupos/${grupoId}`)}
                 >
                   <div className="grupos-dashboard-card-topo">
                     <div>
@@ -477,7 +477,7 @@ export function PaginaGrupos() {
                 <RankingPreview ranking={grupo.rankingTop3} />
 
                 <div className="grupos-dashboard-acoes">
-                  <button type="button" className="botao-primario" onClick={() => navegar(`/grupos/${grupoId}/atletas`)}>
+                  <button type="button" className="botao-primario" onClick={() => navegar(`/grupos/${grupoId}`)}>
                     Abrir grupo
                   </button>
                   <button type="button" className="botao-secundario" onClick={() => navegarParaRegistro(grupoId)}>

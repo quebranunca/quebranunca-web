@@ -16,6 +16,7 @@ import { PaginaModelosImportacao } from './pages/PaginaModelosImportacao';
 import { PaginaCompeticoes } from './pages/PaginaCompeticoes';
 import { PaginaFormularioCampeonato } from './pages/PaginaFormularioCampeonato';
 import { PaginaGrupos } from './pages/PaginaGrupos';
+import { PaginaGrupoDashboard } from './pages/PaginaGrupoDashboard';
 import { PaginaGrupoAtletas } from './pages/PaginaGrupoAtletas';
 import { PaginaRanking } from './pages/PaginaRanking';
 import { RankingLiga } from './pages/PaginaRankingLiga';
@@ -64,7 +65,7 @@ export default function App() {
         <Route path="/atletas/:atletaId/dashboard" element={<PaginaAtletaDashboard />} />
         <Route path="/duplas/:atleta1Id/:atleta2Id" element={<PaginaDuplaDashboard />} />
         <Route path="/grupos" element={<PaginaGrupos />} />
-        <Route path="/grupos/:grupoId" element={<PaginaGrupoAtletas />} />
+        <Route path="/grupos/:grupoId" element={<PaginaGrupoDashboard />} />
         <Route path="/grupos/:grupoId/atletas" element={<PaginaGrupoAtletas />} />
         <Route path="/partidas" element={<RedirecionamentoPartidas />} />
         <Route path="/feed" element={<FeedPartidasPage />} />
