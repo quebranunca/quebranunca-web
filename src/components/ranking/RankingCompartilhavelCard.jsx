@@ -9,16 +9,25 @@ function formatarPontos(valor) {
     ? String(numero)
     : numero.toLocaleString('pt-BR', { maximumFractionDigits: 1 });
 
-  return `${texto} pts`;
+  return texto;
+}
+
+function calcularAproveitamento(atleta) {
+  const jogos = Number(atleta?.jogos || 0);
+  if (jogos <= 0) {
+    return 0;
+  }
+
+  return Math.round((Number(atleta?.vitorias || 0) / jogos) * 100);
 }
 
 function obterGrupoPrincipal(ranking) {
   return (ranking || []).find((grupo) => (grupo.atletas || []).length > 0) || ranking?.[0] || null;
 }
 
-function obterAtletasTop(ranking) {
+function obterAtletas(ranking) {
   const grupo = obterGrupoPrincipal(ranking);
-  return (grupo?.atletas || []).slice(0, 6);
+  return grupo?.atletas || [];
 }
 
 function LinhaRanking({ atleta }) {
@@ -35,7 +44,10 @@ function LinhaRanking({ atleta }) {
         crossOrigin="anonymous"
       />
       <strong>{obterNomeExibicaoAtleta(atleta) || atleta.nomeAtleta || 'Atleta'}</strong>
-      <small>{formatarPontos(atleta.pontos)}</small>
+      <small className="arte-ranking-pontos">{formatarPontos(atleta.pontos)} pts</small>
+      <small className="arte-ranking-metricas">
+        {Number(atleta.jogos || 0)}J · {Number(atleta.vitorias || 0)}V · {Number(atleta.derrotas || 0)}D · {calcularAproveitamento(atleta)}%
+      </small>
     </div>
   );
 }
@@ -45,7 +57,7 @@ export const RankingCompartilhavelCard = forwardRef(function RankingCompartilhav
   ref
 ) {
   const grupoPrincipal = obterGrupoPrincipal(ranking);
-  const atletas = obterAtletasTop(ranking);
+  const atletas = obterAtletas(ranking);
   const detalhe = contexto || grupoPrincipal?.nomeCompeticao || 'Ranking geral';
   const categoria = grupoPrincipal?.nomeCategoria;
 
@@ -59,7 +71,7 @@ export const RankingCompartilhavelCard = forwardRef(function RankingCompartilhav
       className="arte-compartilhamento-ranking-card"
     >
       <section className="arte-ranking arte-ranking-compartilhavel">
-        <h2>TOP ATLETAS</h2>
+        <h2>RANKING COMPLETO</h2>
         {atletas.length === 0 ? (
           <p className="arte-compartilhamento-vazio">Ranking sem atletas para exibir.</p>
         ) : (

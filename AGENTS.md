@@ -39,6 +39,7 @@ Seguir o `AGENTS.md` da raiz. Neste diretório, além disso:
 - Em dupla eliminação, `Partidas` deve deixar claro se o jogo pertence à chave vencedora, perdedora, final ou final reset
 - `Ranking` já possui modos de liga e competição; o da liga é consolidado e o da competição segue separado por categoria
 - `Ranking` deve exibir atletas sem usuário como pendentes no mesmo ranking, sem tela ou cálculo paralelo de pontos
+- Rankings de grupo devem considerar todos os atletas membros do grupo e/ou participantes de partidas do grupo, mesmo sem pontuação. Não filtrar atletas apenas por pontos, vitórias ou partidas vencidas.
 - `Pendências` centraliza aprovar/contestar partidas e completar contato de atleta pendente; o frontend só reflete as pendências e ações retornadas pela API
 - `Modelos de importação` já oferece download e upload CSV por tipo de cadastro
 - Aceite de convite deve tratar o código no formato curto `000-000`, sem depender do frontend para definir perfil, validade ou regras de uso do convite
