@@ -53,9 +53,51 @@ function scrollCampoParaAreaVisivel(campo) {
     return;
   }
 
+  const container = encontrarContainerRolavel(campo);
+
+  if (container) {
+    centralizarNoContainer(campo, container);
+    return;
+  }
+
   campo.scrollIntoView?.({
     block: 'center',
     inline: 'nearest',
+    behavior: 'smooth'
+  });
+}
+
+function encontrarContainerRolavel(campo) {
+  let atual = campo.parentElement;
+
+  while (atual && atual !== document.body) {
+    const estilos = window.getComputedStyle(atual);
+    const permiteScroll = /(auto|scroll)/.test(`${estilos.overflowY}${estilos.overflow}`);
+
+    if (permiteScroll && atual.scrollHeight > atual.clientHeight) {
+      return atual;
+    }
+
+    atual = atual.parentElement;
+  }
+
+  return null;
+}
+
+function centralizarNoContainer(campo, container) {
+  const area = container.getBoundingClientRect();
+  const retanguloCampo = campo.getBoundingClientRect();
+  const visualViewport = window.visualViewport;
+  const topoVisivel = visualViewport ? Math.max(area.top, visualViewport.offsetTop) : area.top;
+  const alturaVisivel = visualViewport
+    ? Math.min(area.bottom, visualViewport.offsetTop + visualViewport.height) - topoVisivel
+    : area.height;
+  const centroCampo = retanguloCampo.top + retanguloCampo.height / 2;
+  const centroVisivel = topoVisivel + Math.max(alturaVisivel, retanguloCampo.height) / 2;
+  const deslocamento = centroCampo - centroVisivel;
+
+  container.scrollBy({
+    top: deslocamento,
     behavior: 'smooth'
   });
 }

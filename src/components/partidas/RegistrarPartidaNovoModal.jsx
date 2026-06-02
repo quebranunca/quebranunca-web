@@ -302,6 +302,35 @@ function obterNomeInputAtleta(campo) {
   return nomes[campo] || 'atletaPartida';
 }
 
+function obterContextoEdicaoCampo(campo) {
+  const contextos = {
+    'dupla1.atletaDireita': { dupla: 'Dupla 1', atleta: 'Atleta 1' },
+    'dupla1.atletaEsquerda': { dupla: 'Dupla 1', atleta: 'Atleta 2' },
+    'dupla2.atletaDireita': { dupla: 'Dupla 2', atleta: 'Atleta 1' },
+    'dupla2.atletaEsquerda': { dupla: 'Dupla 2', atleta: 'Atleta 2' },
+    'dupla1.pontos': { dupla: 'Dupla 1', atleta: 'Placar' },
+    'dupla2.pontos': { dupla: 'Dupla 2', atleta: 'Placar' }
+  };
+
+  return contextos[campo] || null;
+}
+
+function CabecalhoEdicaoAtiva({ campoAtivo }) {
+  const contexto = obterContextoEdicaoCampo(campoAtivo);
+
+  if (!contexto) {
+    return null;
+  }
+
+  return (
+    <div className="registrar-partida-novo-edicao-ativa" aria-live="polite">
+      <span>Editando</span>
+      <strong>{contexto.dupla}</strong>
+      <strong>{contexto.atleta}</strong>
+    </div>
+  );
+}
+
 function AutocompleteAtleta({
   campo,
   rotulo,
@@ -313,6 +342,7 @@ function AutocompleteAtleta({
   buscando,
   inputRef,
   proximoRef,
+  campoAtivo,
   onConcluirCampo,
   onAlterarCampo,
   onSelecionarAtleta
@@ -332,10 +362,11 @@ function AutocompleteAtleta({
   }
 
   return (
-    <label className="registrar-partida-novo-campo">
+    <label className={`registrar-partida-novo-campo ${campoAtivo === campo ? 'ativo' : ''}`}>
       <span>{rotulo}</span>
       <input
         ref={inputRef}
+        data-campo-registro-partida={campo}
         type="text"
         inputMode="text"
         name={obterNomeInputAtleta(campo)}
@@ -433,7 +464,7 @@ function AutocompleteAtleta({
   );
 }
 
-function DuplaRegistro({ numero, dados, selecoes, sugestoes, sugestoesRapidas, campoBuscando, inputRef, inputRef2, proximoRef1, proximoRef2, vencedora, onAlterarCampo, onSelecionarAtleta, onConcluir }) {
+function DuplaRegistro({ numero, dados, selecoes, sugestoes, sugestoesRapidas, campoBuscando, inputRef, inputRef2, proximoRef1, proximoRef2, vencedora, campoAtivo, onAlterarCampo, onSelecionarAtleta, onConcluir }) {
   const prefixo = numero === 1 ? 'dupla1' : 'dupla2';
   const ganhou = vencedora === prefixo;
 
@@ -455,6 +486,7 @@ function DuplaRegistro({ numero, dados, selecoes, sugestoes, sugestoesRapidas, c
           buscando={campoBuscando === `${prefixo}.atletaDireita`}
           inputRef={inputRef}
           proximoRef={proximoRef1}
+          campoAtivo={campoAtivo}
           onConcluirCampo={onConcluir}
           onAlterarCampo={onAlterarCampo}
           onSelecionarAtleta={onSelecionarAtleta}
@@ -470,6 +502,7 @@ function DuplaRegistro({ numero, dados, selecoes, sugestoes, sugestoesRapidas, c
           buscando={campoBuscando === `${prefixo}.atletaEsquerda`}
           inputRef={inputRef2}
           proximoRef={proximoRef2}
+          campoAtivo={campoAtivo}
           onConcluirCampo={onConcluir}
           onAlterarCampo={onAlterarCampo}
           onSelecionarAtleta={onSelecionarAtleta}
@@ -508,6 +541,7 @@ function PlacarCentral({
           <small>Dupla 1</small>
           <input
             ref={placar1Ref}
+            data-campo-registro-partida="dupla1.pontos"
             type="text"
             name="placarDupla1"
             inputMode="numeric"
@@ -530,6 +564,7 @@ function PlacarCentral({
           <small>Dupla 2</small>
           <input
             ref={placar2Ref}
+            data-campo-registro-partida="dupla2.pontos"
             type="text"
             name="placarDupla2"
             inputMode="numeric"
@@ -1122,6 +1157,7 @@ function ConteudoEtapa({
   atletaRefs,
   placar1Ref,
   placar2Ref,
+  campoAtivo,
   onCarregarGrupos,
   onSelecionarGrupo,
   onEscolherGrupo,
@@ -1146,6 +1182,7 @@ function ConteudoEtapa({
     atletaRefs,
     placar1Ref,
     placar2Ref,
+    campoAtivo,
     onAlterarCampo,
     onSelecionarAtleta,
     onRevisar
@@ -1253,7 +1290,9 @@ export function RegistrarPartidaNovoModal({
   const modalRef = useRef(null);
   const ctaRef = useRef(null);
   const corpoRef = useRef(null);
+  const alturaViewportBaseRef = useRef(0);
   const [inputEmFoco, setInputEmFoco] = useState(false);
+  const [campoAtivo, setCampoAtivo] = useState('');
   const [tecladoAberto, setTecladoAberto] = useState(false);
   const [modoMobile, setModoMobile] = useState(false);
   const revisaoInvalida = etapaAtual?.id === 'revisao' && revisaoPossuiInconsistencia(dados, regraPartida);
@@ -1292,11 +1331,18 @@ export function RegistrarPartidaNovoModal({
 
       window.cancelAnimationFrame(rafId);
       rafId = window.requestAnimationFrame(() => {
+        const alturaVisual = viewport?.height || window.innerHeight;
+        alturaViewportBaseRef.current = Math.max(
+          alturaViewportBaseRef.current,
+          window.innerHeight,
+          alturaVisual
+        );
         const offset = viewport
           ? Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop)
           : 0;
-        const tecladoAbertoDetectado = offset > 90;
-        const alturaViewport = tecladoAbertoDetectado ? window.innerHeight : viewport?.height || window.innerHeight;
+        const reducaoViewport = Math.max(0, alturaViewportBaseRef.current - alturaVisual);
+        const tecladoAbertoDetectado = offset > 90 || (document.activeElement instanceof HTMLElement && reducaoViewport > 120);
+        const alturaViewport = viewport?.height || window.innerHeight;
 
         modal.style.setProperty('--registrar-partida-viewport-height', `${Math.round(alturaViewport)}px`);
         modal.style.setProperty('--registrar-partida-teclado-offset', `${Math.round(tecladoAbertoDetectado ? offset : 0)}px`);
@@ -1316,13 +1362,21 @@ export function RegistrarPartidaNovoModal({
     viewport?.addEventListener('resize', atualizarOffsetTeclado);
     viewport?.addEventListener('scroll', atualizarOffsetTeclado);
     window.addEventListener('orientationchange', atualizarOffsetTeclado);
-    mediaMobile.addEventListener('change', atualizarModoMobile);
+    if (typeof mediaMobile.addEventListener === 'function') {
+      mediaMobile.addEventListener('change', atualizarModoMobile);
+    } else {
+      mediaMobile.addListener(atualizarModoMobile);
+    }
 
     return () => {
       viewport?.removeEventListener('resize', atualizarOffsetTeclado);
       viewport?.removeEventListener('scroll', atualizarOffsetTeclado);
       window.removeEventListener('orientationchange', atualizarOffsetTeclado);
-      mediaMobile.removeEventListener('change', atualizarModoMobile);
+      if (typeof mediaMobile.removeEventListener === 'function') {
+        mediaMobile.removeEventListener('change', atualizarModoMobile);
+      } else {
+        mediaMobile.removeListener(atualizarModoMobile);
+      }
       window.cancelAnimationFrame(rafId);
       modal?.style.removeProperty('--registrar-partida-teclado-offset');
       modal?.style.removeProperty('--registrar-partida-viewport-height');
@@ -1404,6 +1458,7 @@ export function RegistrarPartidaNovoModal({
       }
 
       setInputEmFoco(true);
+      setCampoAtivo(elementoFoco.dataset.campoRegistroPartida || '');
       centralizarCampoAtivo(elementoFoco);
     }
 
@@ -1413,6 +1468,7 @@ export function RegistrarPartidaNovoModal({
         const segueNoFormulario = ativo instanceof HTMLElement && container.contains(ativo) && ativo.matches('input, textarea, select');
         if (!segueNoFormulario) {
           setInputEmFoco(false);
+          setCampoAtivo('');
         }
       }, 40);
     }
@@ -1437,7 +1493,8 @@ export function RegistrarPartidaNovoModal({
         className={[
           'modal-conteudo',
           'registrar-partida-novo-modal',
-          inputEmFoco ? 'keyboard-active' : ''
+          inputEmFoco ? 'keyboard-active' : '',
+          tecladoAberto ? 'teclado-aberto' : ''
         ].join(' ')}
         role="dialog"
         aria-modal="true"
@@ -1474,6 +1531,7 @@ export function RegistrarPartidaNovoModal({
             <Stepper etapas={etapas} indiceEtapa={indiceEtapa} />
 
             <main ref={corpoRef} className="registrar-partida-novo-corpo">
+              <CabecalhoEdicaoAtiva campoAtivo={campoAtivo} />
               {erro && <p className="texto-erro registrar-partida-novo-erro">{erro}</p>}
               <ConteudoEtapa
                 etapaAtual={etapaAtual}
@@ -1496,6 +1554,7 @@ export function RegistrarPartidaNovoModal({
                 atletaRefs={atletaRefs}
                 placar1Ref={placar1Ref}
                 placar2Ref={placar2Ref}
+                campoAtivo={campoAtivo}
                 onCarregarGrupos={onCarregarGrupos}
                 onSelecionarGrupo={onSelecionarGrupo}
                 onEscolherGrupo={onEscolherGrupo}
