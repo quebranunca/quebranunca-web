@@ -502,20 +502,7 @@ function PlacarCentral({
   }
 
   return (
-    <section className="registrar-partida-novo-placar-central" aria-label="Placar da partida">
-      <div className="registrar-partida-novo-placar-regra">
-        <span>Regra</span>
-        {carregandoRegraPartida ? (
-          <strong>Carregando regra...</strong>
-        ) : possuiRegraCompeticao ? (
-          <strong>{regraPartida.nome}</strong>
-        ) : erroRegraPartida ? (
-          <strong>A API validará a regra da competição.</strong>
-        ) : (
-          <strong>Partida avulsa validada pela API.</strong>
-        )}
-      </div>
-
+    <section className="registrar-partida-novo-placar-central" aria-label="Placar da partida">      
       <div className="registrar-partida-novo-placar">
         <label>
           <small>Dupla 1</small>
