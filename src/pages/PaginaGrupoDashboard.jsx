@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { FaChartLine, FaClock, FaExclamationTriangle, FaFire, FaTrophy } from 'react-icons/fa';
+import { FaChevronRight, FaClock, FaExclamationTriangle, FaFire, FaTrophy, FaUsers } from 'react-icons/fa';
 import { useNavigate, useParams } from 'react-router-dom';
 import { AvatarUsuario, obterFotoPerfilAvatar } from '../components/AvatarUsuario';
 import { RegistrarPartidaNovoContainer } from '../containers/partidas/RegistrarPartidaNovoContainer';
@@ -15,8 +15,6 @@ const TIPOS_PENDENCIA = {
   aprovarPartida: 1,
   completarContato: 2
 };
-
-const MEDALHAS = ['1º', '2º', '3º'];
 
 function formatarPontos(valor) {
   const numero = Number(valor);
@@ -59,6 +57,25 @@ function formatarResultadoTexto(partida) {
   }
 
   return `${partida.placarDupla1} x ${partida.placarDupla2}`;
+}
+
+function obterStatusPartidaGrupo(partida) {
+  const status = String(partida?.status || '').trim();
+  const statusNormalizado = status.toLowerCase();
+
+  if (statusNormalizado === 'aprovada' || statusNormalizado === 'confirmada') {
+    return { texto: 'Confirmada', classe: 'confirmada' };
+  }
+
+  if (statusNormalizado.includes('vinculo') || statusNormalizado.includes('vínculo')) {
+    return { texto: 'Pendente de vínculo', classe: 'pendente' };
+  }
+
+  if (statusNormalizado.includes('pendente')) {
+    return { texto: 'Pendente de confirmação', classe: 'pendente' };
+  }
+
+  return { texto: status || 'Pendente', classe: 'pendente' };
 }
 
 function formatarUltimaAtividade(data) {
@@ -110,6 +127,27 @@ function obterDuplasDaPartida(partida) {
   return [partida?.dupla1 || [], partida?.dupla2 || []].filter((dupla) => dupla.length > 0);
 }
 
+function montarAtletasPreview(dashboard) {
+  const mapa = new Map();
+
+  function adicionar(atleta) {
+    const atletaId = atleta?.atletaId || atleta?.id;
+    if (!atletaId || mapa.has(atletaId)) {
+      return;
+    }
+
+    mapa.set(atletaId, atleta);
+  }
+
+  (dashboard?.ranking || []).forEach(adicionar);
+  (dashboard?.membrosMaisAtivos || []).forEach(adicionar);
+  (dashboard?.ultimasPartidas || []).forEach((partida) => {
+    obterDuplasDaPartida(partida).forEach((dupla) => dupla.forEach(adicionar));
+  });
+
+  return [...mapa.values()];
+}
+
 function calcularDuplaDoMomento(partidas = []) {
   const mapa = new Map();
 
@@ -137,30 +175,6 @@ function calcularDuplaDoMomento(partidas = []) {
     [0] || null;
 }
 
-function CardResumo({ rotulo, valor }) {
-  return (
-    <article className="grupo-dashboard-resumo-card">
-      <strong>{valor}</strong>
-      <span>{rotulo}</span>
-    </article>
-  );
-}
-
-function ListaAtleta({ atleta, detalhe, posicao, destaque }) {
-  return (
-    <li className={destaque ? 'grupo-dashboard-atleta-destaque' : undefined}>
-      {posicao && <span className="grupo-dashboard-posicao">{posicao}</span>}
-      <AvatarUsuario
-        nome={nomeAtleta(atleta)}
-        fotoPerfilUrl={obterFotoPerfilAvatar(atleta)}
-        tamanho="sm"
-      />
-      <strong>{nomeAtleta(atleta)}</strong>
-      <small>{detalhe}</small>
-    </li>
-  );
-}
-
 function AvatarDupla({ atletas }) {
   const dupla = atletas || [];
 
@@ -175,6 +189,36 @@ function AvatarDupla({ atletas }) {
         />
       ))}
     </div>
+  );
+}
+
+function AtletaRankingLinhaGrupo({ atleta, posicao, detalhe, pontos, onClick }) {
+  return (
+    <button
+      type="button"
+      className="ranking-linha-compacta grupo-dashboard-ranking-linha"
+      onClick={onClick}
+      aria-label={`Abrir detalhes de ${nomeAtleta(atleta)}`}
+    >
+      <span className="ranking-linha-posicao">{posicao}</span>
+      <AvatarUsuario
+        nome={nomeAtleta(atleta)}
+        fotoPerfilUrl={obterFotoPerfilAvatar(atleta)}
+        tamanho="md"
+        className="ranking-avatar"
+      />
+      <span className="ranking-linha-info">
+        <strong>{nomeAtleta(atleta)}</strong>
+        <small>{detalhe}</small>
+      </span>
+      {pontos !== undefined && (
+        <span className="ranking-linha-pontos">
+          <strong>{formatarPontos(pontos)}</strong>
+          <small>pts</small>
+        </span>
+      )}
+      <FaChevronRight className="ranking-linha-seta" aria-hidden="true" />
+    </button>
   );
 }
 
@@ -194,6 +238,7 @@ export function PaginaGrupoDashboard() {
   const rankingTop3 = useMemo(() => (dashboard?.ranking || []).slice(0, 3), [dashboard?.ranking]);
   const membrosMaisAtivos = useMemo(() => (dashboard?.membrosMaisAtivos || []).slice(0, 5), [dashboard?.membrosMaisAtivos]);
   const ultimasPartidas = dashboard?.ultimasPartidas || [];
+  const membrosPreview = useMemo(() => montarAtletasPreview(dashboard), [dashboard]);
   const duplaDoMomento = useMemo(() => calcularDuplaDoMomento(ultimasPartidas), [ultimasPartidas]);
   const pendenciasResumo = useMemo(() => {
     const lista = Array.isArray(pendencias) ? pendencias : [];
@@ -204,26 +249,6 @@ export function PaginaGrupoDashboard() {
       atletas: lista.filter((item) => item.tipo === TIPOS_PENDENCIA.completarContato).length
     };
   }, [pendencias]);
-  const estatisticas = useMemo(() => {
-    const duplas = new Set();
-
-    ultimasPartidas.forEach((partida) => {
-      obterDuplasDaPartida(partida).forEach((dupla) => {
-        const chave = obterChaveDupla(dupla);
-        if (chave) {
-          duplas.add(chave);
-        }
-      });
-    });
-
-    return {
-      partidas: resumo?.totalPartidas || 0,
-      atletas: resumo?.totalAtletasAtivos || 0,
-      duplas: duplas.size,
-      ultimaAtividade: formatarUltimaAtividade(resumo?.ultimaPartidaEm)
-    };
-  }, [resumo?.totalAtletasAtivos, resumo?.totalPartidas, resumo?.ultimaPartidaEm, ultimasPartidas]);
-
   useEffect(() => {
     carregarDashboard();
   }, [grupoId, token]);
@@ -282,7 +307,7 @@ export function PaginaGrupoDashboard() {
           <div>
             <span className="grupo-dashboard-privacidade">{grupo.privacidade}</span>
             <h2>{grupo.nome}</h2>
-            <p>{grupo.totalMembros} membros • {grupo.totalPartidas} partidas • {resumo.totalAtletasAtivos} atletas ativos</p>
+            <p>{grupo.totalMembros} membros • {grupo.totalPartidas} partidas</p>
             <small>Última atividade: {formatarUltimaAtividade(resumo.ultimaPartidaEm)}</small>
           </div>
         </div>
@@ -298,10 +323,27 @@ export function PaginaGrupoDashboard() {
         </div>
       </header>
 
-      <section className="grupo-dashboard-resumo">
-        <CardResumo rotulo="Membros" valor={resumo.totalMembros} />
-        <CardResumo rotulo="Partidas" valor={resumo.totalPartidas} />
-        <CardResumo rotulo="Ativos" valor={resumo.totalAtletasAtivos} />
+      <section className="grupo-dashboard-membros" aria-label="Membros do grupo">
+        <button type="button" className="grupo-dashboard-membros-card" onClick={() => navegar(`/grupos/${grupo.id}/atletas`)}>
+          <span className="grupo-dashboard-eyebrow"><FaUsers aria-hidden="true" /> Membros do grupo</span>
+          <strong>{grupo.totalMembros} membros</strong>
+          <span className="grupo-dashboard-membros-avatares" aria-hidden="true">
+            {membrosPreview.slice(0, 5).map((atleta) => (
+              <AvatarUsuario
+                key={atleta.atletaId || atleta.id}
+                nome={nomeAtleta(atleta)}
+                fotoPerfilUrl={obterFotoPerfilAvatar(atleta)}
+                tamanho="sm"
+              />
+            ))}
+            {grupo.totalMembros > membrosPreview.slice(0, 5).length && (
+              <span className="grupo-dashboard-membros-restante">
+                +{grupo.totalMembros - membrosPreview.slice(0, 5).length}
+              </span>
+            )}
+          </span>
+          <FaChevronRight aria-hidden="true" />
+        </button>
       </section>
 
       <article className="grupo-dashboard-bloco grupo-dashboard-ranking">
@@ -313,17 +355,18 @@ export function PaginaGrupoDashboard() {
           <button type="button" onClick={() => navegar(`/ranking?tipo=grupos&grupoId=${grupo.id}`)}>Ver ranking completo →</button>
         </div>
         {rankingTop3.length > 0 ? (
-          <ol className="grupo-dashboard-lista-atletas grupo-dashboard-ranking-lista">
+          <div className="ranking-lista-compacta grupo-dashboard-ranking-lista">
             {rankingTop3.map((atleta, indice) => (
-              <ListaAtleta
+              <AtletaRankingLinhaGrupo
                 key={atleta.atletaId}
                 atleta={atleta}
-                posicao={MEDALHAS[indice] || `${atleta.posicao}º`}
-                detalhe={`${atleta.vitorias} ${pluralizar(atleta.vitorias, 'vitória')} • ${formatarPontos(atleta.pontos)} pontos`}
-                destaque={indice === 0}
+                posicao={`${atleta.posicao || indice + 1}º`}
+                detalhe={`${atleta.vitorias} ${pluralizar(atleta.vitorias, 'vitória')} • ${atleta.jogos} jogos`}
+                pontos={atleta.pontos}
+                onClick={() => navegar(`/ranking?tipo=grupos&grupoId=${grupo.id}`)}
               />
             ))}
-          </ol>
+          </div>
         ) : (
           <p className="grupo-dashboard-vazio">O ranking aparece quando o grupo tiver partidas registradas.</p>
         )}
@@ -380,7 +423,7 @@ export function PaginaGrupoDashboard() {
             {ultimasPartidas.slice(0, 4).map((partida) => (
               <div key={partida.id} className="grupo-dashboard-atividade-item">
                 <span>{formatarDiaAtividade(partida.data)}</span>
-                <strong>{formatarResultadoTexto(partida)}</strong>
+                <strong>Partida registrada</strong>
                 <small>{nomeDupla(partida.dupla1)} contra {nomeDupla(partida.dupla2)}</small>
               </div>
             ))}
@@ -390,57 +433,45 @@ export function PaginaGrupoDashboard() {
         )}
       </article>
 
-      <section className="grupo-dashboard-grid">
-        <article className="grupo-dashboard-bloco">
-          <div className="grupo-dashboard-bloco-topo">
-            <h3>Membros mais ativos</h3>
-            <button type="button" onClick={() => navegar(`/grupos/${grupo.id}/atletas`)}>Ver todos →</button>
-          </div>
-          <ol className="grupo-dashboard-lista-atletas">
-            {membrosMaisAtivos.map((atleta, indice) => (
-              <ListaAtleta
-                key={atleta.atletaId}
-                atleta={atleta}
-                posicao={`${indice + 1}`}
-                detalhe={`${atleta.totalPartidas} partidas`}
-              />
-            ))}
-          </ol>
-        </article>
-
-        <article className="grupo-dashboard-bloco">
-          <div className="grupo-dashboard-bloco-topo">
-            <div>
-              <span className="grupo-dashboard-eyebrow"><FaChartLine aria-hidden="true" /> Estatísticas</span>
-              <h3>Nível de atividade</h3>
-            </div>
-          </div>
-          <div className="grupo-dashboard-estatisticas">
-            <span><strong>{estatisticas.partidas}</strong> partidas registradas</span>
-            <span><strong>{estatisticas.atletas}</strong> atletas únicos</span>
-            <span><strong>{estatisticas.duplas}</strong> duplas diferentes</span>
-            <span><strong>Última atividade</strong> {estatisticas.ultimaAtividade}</span>
-          </div>
-        </article>
-      </section>
+      <article className="grupo-dashboard-bloco">
+        <div className="grupo-dashboard-bloco-topo">
+          <h3>Membros mais ativos</h3>
+          <button type="button" onClick={() => navegar(`/grupos/${grupo.id}/atletas`)}>Ver todos →</button>
+        </div>
+        <div className="ranking-lista-compacta">
+          {membrosMaisAtivos.map((atleta, indice) => (
+            <AtletaRankingLinhaGrupo
+              key={atleta.atletaId}
+              atleta={atleta}
+              posicao={`${indice + 1}`}
+              detalhe={`${atleta.totalPartidas} partidas`}
+              onClick={() => navegar(`/grupos/${grupo.id}/atletas`)}
+            />
+          ))}
+        </div>
+      </article>
 
       <article className="grupo-dashboard-bloco">
         <h3>Últimas partidas</h3>
         <div className="grupo-dashboard-partidas">
-          {ultimasPartidas.map((partida) => (
-            <div key={partida.id} className="grupo-dashboard-partida">
-              <span>{partida.data ? formatarData(partida.data) : 'Sem data'}</span>
-              <div className="grupo-dashboard-partida-placar">
-                <strong>{nomeDupla(partida.dupla1)}</strong>
-                <b>{formatarResultadoTexto(partida)}</b>
-                <strong>{nomeDupla(partida.dupla2)}</strong>
+          {ultimasPartidas.map((partida) => {
+            const statusPartida = obterStatusPartidaGrupo(partida);
+
+            return (
+              <div key={partida.id} className="grupo-dashboard-partida">
+                <span>{partida.data ? formatarData(partida.data) : 'Sem data'}</span>
+                <div className="grupo-dashboard-partida-placar">
+                  <strong>{nomeDupla(partida.dupla1)}</strong>
+                  <b>{formatarResultadoTexto(partida)}</b>
+                  <strong>{nomeDupla(partida.dupla2)}</strong>
+                </div>
+                <small className={`grupo-dashboard-status ${statusPartida.classe}`}>{statusPartida.texto}</small>
+                {!partida.possuiPlacarDetalhado && (
+                  <em>Resultado informado sem placar detalhado</em>
+                )}
               </div>
-              <small>Status: {partida.status === 'Aprovada' ? 'Confirmada' : partida.status}</small>
-              {!partida.possuiPlacarDetalhado && (
-                <em>Resultado informado sem placar detalhado</em>
-              )}
-            </div>
-          ))}
+            );
+          })}
           {ultimasPartidas.length === 0 && (
             <p className="grupo-dashboard-vazio">Nenhuma partida registrada neste grupo.</p>
           )}
