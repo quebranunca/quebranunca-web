@@ -14,7 +14,6 @@ import {
 } from 'react-icons/fa';
 import { AvatarUsuario, obterFotoPerfilAvatar } from '../AvatarUsuario';
 import { CompartilharPartidaBotao } from './CompartilharPartidaBotao';
-import { GrupoContextoPartida } from './GrupoContextoPartida';
 import { SeletorGrupoPartida } from './SeletorGrupoPartida';
 import {
   aoPressionarEnterParaProximo,
@@ -625,27 +624,42 @@ function EtapaGrupo({
       </div>
 
       <div className="registrar-partida-novo-grupo-escolha">
-        <button
-          type="button"
-          className={`registrar-partida-novo-grupo-opcao ${!grupoSelecionadoId ? 'selecionada' : ''}`}
-          onClick={onRemoverGrupo}
-        >
-          <GrupoOpcaoAvatar semGrupo />
-          <span>
-            <strong>Nenhum grupo</strong>
-            <small>Registrar como partida avulsa.</small>
-          </span>
-          {!grupoSelecionadoId && <FaCheck aria-hidden="true" />}
-        </button>
+        {!grupoSelecionadoId && (
+          <button
+            type="button"
+            className="registrar-partida-novo-grupo-opcao selecionada"
+            onClick={onRemoverGrupo}
+            aria-pressed="true"
+          >
+            <GrupoOpcaoAvatar semGrupo />
+            <span>
+              <strong>Nenhum grupo</strong>
+              <small>Registrar como partida avulsa.</small>
+            </span>
+            <FaCheck aria-hidden="true" />
+          </button>
+        )}
 
         {grupoSelecionadoId && (
           <div className="registrar-partida-novo-grupo-selecionado">
             <span>Grupo selecionado</span>
-            <GrupoContextoPartida
-              grupo={grupo}
-              carregando={carregandoGrupo}
-              onSelecionarGrupo={onSelecionarGrupo}
-            />
+            <button
+              type="button"
+              className="registrar-partida-novo-grupo-opcao selecionada"
+              onClick={onRemoverGrupo}
+              aria-pressed="true"
+            >
+              <GrupoOpcaoAvatar grupo={grupo} />
+              <span>
+                <strong>{carregandoGrupo ? 'Carregando grupo...' : grupo?.nome || 'Grupo selecionado'}</strong>
+                <small>
+                  {carregandoGrupo
+                    ? 'Buscando contexto da partida.'
+                    : `${formatarQuantidadeAtletasGrupo(grupo?.quantidadeAtletas)} • ${grupo?.privacidade || 'Privado'}`}
+                </small>
+              </span>
+              <FaCheck aria-hidden="true" />
+            </button>
           </div>
         )}
 
@@ -678,7 +692,8 @@ function EtapaGrupo({
                 type="button"
                 key={grupoOpcao.id}
                 className={`registrar-partida-novo-grupo-opcao ${selecionada ? 'selecionada' : ''}`}
-                onClick={() => onEscolherGrupo?.(grupoOpcao)}
+                onClick={() => (selecionada ? onRemoverGrupo?.() : onEscolherGrupo?.(grupoOpcao))}
+                aria-pressed={selecionada}
               >
                 <GrupoOpcaoAvatar grupo={grupoOpcao} />
                 <span>

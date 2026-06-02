@@ -14,6 +14,11 @@
   --registrar-partida-teclado-offset: 0px;
   --registrar-partida-viewport-height: 100dvh;
   --registrar-partida-cta-height: 0px;
+  --registrar-partida-bottom-nav-height: 5.85rem;
+  --registrar-partida-bottom-comfort: 1rem;
+  --registrar-partida-mobile-bottom-space: calc(
+    var(--registrar-partida-bottom-nav-height) + var(--registrar-partida-bottom-comfort) + env(safe-area-inset-bottom, 0px)
+  );
   position: relative;
   width: min(100%, 860px);
   max-width: none;
@@ -144,7 +149,7 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 0.8rem 1rem 1.25rem;
+  padding: 0.8rem 1rem calc(1.25rem + var(--registrar-partida-cta-height, 0px));
   overscroll-behavior: contain;
   scroll-padding-block: 1rem calc(1.25rem + var(--registrar-partida-cta-height, 0px));
   -webkit-overflow-scrolling: touch;
@@ -422,13 +427,20 @@
 }
 
 .registrar-partida-novo-grupo-opcao:hover,
-.registrar-partida-novo-grupo-opcao:focus-visible,
-.registrar-partida-novo-grupo-opcao.selecionada {
+.registrar-partida-novo-grupo-opcao:focus-visible {
   border-color: rgba(248, 195, 0, 0.52);
   background:
     linear-gradient(135deg, rgba(248, 195, 0, 0.12), transparent 62%),
     rgba(255, 255, 255, 0.06);
   box-shadow: 0 12px 30px rgba(248, 195, 0, 0.08);
+}
+
+.registrar-partida-novo-grupo-opcao.selecionada {
+  border-color: rgba(248, 195, 0, 0.78);
+  background:
+    linear-gradient(135deg, rgba(248, 195, 0, 0.18), transparent 62%),
+    rgba(255, 255, 255, 0.065);
+  box-shadow: 0 14px 32px rgba(248, 195, 0, 0.12);
 }
 
 .registrar-partida-novo-grupo-opcao:active {
@@ -439,6 +451,15 @@
   justify-self: center;
   color: var(--color-primary);
   font-size: 0.9rem;
+}
+
+.registrar-partida-novo-grupo-opcao.selecionada > svg {
+  width: 1.45rem;
+  height: 1.45rem;
+  padding: 0.32rem;
+  border-radius: 999px;
+  background: rgba(248, 195, 0, 0.18);
+  color: #f8c300;
 }
 
 .registrar-partida-novo-grupo-opcao-avatar {
@@ -1420,6 +1441,14 @@
 
   .registrar-partida-novo-corpo {
     padding-top: 0.65rem;
+    padding-bottom: max(
+      calc(1.25rem + var(--registrar-partida-cta-height, 0px)),
+      calc(120px + env(safe-area-inset-bottom, 0px))
+    );
+    scroll-padding-bottom: max(
+      calc(1.25rem + var(--registrar-partida-cta-height, 0px)),
+      calc(120px + env(safe-area-inset-bottom, 0px))
+    );
   }
 
   .registrar-partida-novo-stepper-item small {
@@ -1453,7 +1482,8 @@
 
   .registrar-partida-novo-modal.keyboard-active .registrar-partida-novo-corpo {
     padding-top: 0.45rem;
-    padding-bottom: 0.9rem;
+    padding-bottom: calc(0.9rem + var(--registrar-partida-cta-height, 0px) + env(safe-area-inset-bottom, 0px));
+    scroll-padding-bottom: calc(0.9rem + var(--registrar-partida-cta-height, 0px) + env(safe-area-inset-bottom, 0px));
   }
 
   .registrar-partida-novo-acoes {
@@ -1464,6 +1494,7 @@
     transform: none;
     box-shadow: none;
     margin-top: auto;
+    margin-bottom: var(--registrar-partida-mobile-bottom-space);
     flex-direction: row;
   }
 
