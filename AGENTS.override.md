@@ -19,6 +19,9 @@
 - Em telas de campeonato, refletir a fase da partida quando existir e não esconder campos que já são obrigatórios no backend para esse tipo de competição
 - Autocomplete no registro de partidas só deve consultar sugestões da competição quando houver competição selecionada e termo com ao menos 3 caracteres; sem competição, preservar o fluxo atual
 - Sugestões rápidas no registro de partidas devem ser chips discretos abaixo dos inputs, carregadas uma vez por contexto, sem bloquear digitação e sem repetir atletas já preenchidos.
+- Em wizards mobile, conteúdo importante não deve ficar escondido por header, stepper, footer, teclado ou barras fixas; ajustar scroll e espaçamento antes de adicionar novos blocos.
+- Modos alternativos com duas opções, como placar detalhado e apenas vencedor, devem usar segmented control com estado ativo claro.
+- Cards clicáveis de atleta ou dupla devem reutilizar avatar centralizado, ter área inteira clicável e estado selecionado evidente.
 - Banner rotativo reutilizável deve aceitar slides de imagem e componente
 - Campos de data/hora do frontend devem reutilizar `utils/formatacao.js`; horários selecionáveis devem respeitar intervalos de 15 minutos e horários padrão devem usar o arredondamento centralizado.
 - Fotos, avatares, iniciais e nomes de atletas devem navegar pelo helper/hook central de perfil de atleta: atleta logado abre `/app/perfil`; outro atleta abre o perfil público em `/atletas/:atletaId/dashboard`.

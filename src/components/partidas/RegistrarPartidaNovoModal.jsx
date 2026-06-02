@@ -599,7 +599,22 @@ function PlacarCentral({
   );
 }
 
-function DuplaVencedoraCard({ numero, nomes, selecionada, onSelecionar }) {
+function montarAtletasDuplaVencedora(dados, selecoes, prefixo) {
+  const campos = [`${prefixo}.atletaDireita`, `${prefixo}.atletaEsquerda`];
+
+  return campos.map((campo) => {
+    const selecao = selecoes?.[campo];
+    const nomeDigitado = limparTexto(obterValorCampo(dados, campo));
+    const nome = selecao?.apelido || selecao?.nome || nomeDigitado || 'Atleta pendente';
+
+    return {
+      nome,
+      fotoPerfilUrl: obterFotoPerfilAvatar(selecao)
+    };
+  });
+}
+
+function DuplaVencedoraCard({ numero, atletas, selecionada, onSelecionar }) {
   return (
     <button
       type="button"
@@ -607,9 +622,33 @@ function DuplaVencedoraCard({ numero, nomes, selecionada, onSelecionar }) {
       onClick={onSelecionar}
       aria-pressed={selecionada}
     >
-      <span>Dupla {numero}</span>
-      <strong>{nomes.filter(Boolean).join(' / ') || 'Atletas da dupla'}</strong>
-      {selecionada && <FaTrophy aria-hidden="true" />}
+      <span className="registrar-partida-novo-vencedora-topo">
+        <strong>Dupla {numero}</strong>
+        {selecionada ? (
+          <span className="registrar-partida-novo-vencedora-badge">
+            <FaTrophy aria-hidden="true" />
+            Vencedora
+          </span>
+        ) : (
+          <small>Toque para selecionar</small>
+        )}
+      </span>
+
+      <span className="registrar-partida-novo-vencedora-atletas">
+        {atletas.map((atleta, indice) => (
+          <span key={`dupla-${numero}-vencedora-atleta-${indice}`} className="registrar-partida-novo-vencedora-atleta">
+            <AvatarUsuario
+              nome={atleta.nome}
+              fotoPerfilUrl={atleta.fotoPerfilUrl}
+              tamanho="sm"
+              className="registrar-partida-novo-vencedora-avatar"
+            />
+            <strong>{atleta.nome}</strong>
+          </span>
+        ))}
+      </span>
+
+      {selecionada && <FaCheck className="registrar-partida-novo-vencedora-check" aria-hidden="true" />}
     </button>
   );
 }
@@ -771,6 +810,8 @@ function EtapaPlacar(props) {
   const modo = props.dados.resultado?.modo || 'PlacarDetalhado';
   const apenasResultado = modo === 'ApenasResultado';
   const duplaVencedora = props.dados.resultado?.duplaVencedora || '';
+  const atletasDupla1 = montarAtletasDuplaVencedora(props.dados, props.selecoes, 'dupla1');
+  const atletasDupla2 = montarAtletasDuplaVencedora(props.dados, props.selecoes, 'dupla2');
 
   return (
     <section className="registrar-partida-novo-etapa registrar-partida-novo-etapa-placar">
@@ -784,6 +825,7 @@ function EtapaPlacar(props) {
           type="button"
           className={modo === 'PlacarDetalhado' ? 'selecionado' : ''}
           onClick={() => props.onAlterarCampo('resultado.modo', 'PlacarDetalhado')}
+          aria-pressed={modo === 'PlacarDetalhado'}
         >
           Informar placar
         </button>
@@ -791,25 +833,40 @@ function EtapaPlacar(props) {
           type="button"
           className={apenasResultado ? 'selecionado' : ''}
           onClick={() => props.onAlterarCampo('resultado.modo', 'ApenasResultado')}
+          aria-pressed={apenasResultado}
         >
-          Só quem ganhou
+          Apenas vencedor
         </button>
       </div>
 
       {apenasResultado ? (
         <section className="registrar-partida-novo-apenas-resultado" aria-label="Escolha da dupla vencedora">
-          <DuplaVencedoraCard
-            numero={1}
-            nomes={[props.dados.dupla1.atletaDireita, props.dados.dupla1.atletaEsquerda]}
-            selecionada={String(duplaVencedora) === '1'}
-            onSelecionar={() => props.onAlterarCampo('resultado.duplaVencedora', '1')}
-          />
-          <DuplaVencedoraCard
-            numero={2}
-            nomes={[props.dados.dupla2.atletaDireita, props.dados.dupla2.atletaEsquerda]}
-            selecionada={String(duplaVencedora) === '2'}
-            onSelecionar={() => props.onAlterarCampo('resultado.duplaVencedora', '2')}
-          />
+          <div className="registrar-partida-novo-apenas-resultado-intro">
+            <strong>Selecione a dupla vencedora</strong>
+            <span>Você pode registrar a partida mesmo sem lembrar o placar.</span>
+          </div>
+
+          <div className="registrar-partida-novo-vencedora-lista">
+            <DuplaVencedoraCard
+              numero={1}
+              atletas={atletasDupla1}
+              selecionada={String(duplaVencedora) === '1'}
+              onSelecionar={() => props.onAlterarCampo('resultado.duplaVencedora', '1')}
+            />
+            <DuplaVencedoraCard
+              numero={2}
+              atletas={atletasDupla2}
+              selecionada={String(duplaVencedora) === '2'}
+              onSelecionar={() => props.onAlterarCampo('resultado.duplaVencedora', '2')}
+            />
+          </div>
+
+          {!duplaVencedora && (
+            <span className="registrar-partida-novo-vencedora-pendente">
+              Escolha uma dupla para continuar.
+            </span>
+          )}
+
           <span className="registrar-partida-novo-badge-sem-placar">Resultado sem placar</span>
         </section>
       ) : (
