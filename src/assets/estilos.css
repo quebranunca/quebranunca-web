@@ -546,42 +546,43 @@ textarea {
 }
 
 .grupo-dashboard-dupla-momento {
-  gap: 0.65rem;
-  padding-block: 0.75rem;
+  gap: 0.5rem;
+  padding-block: 0.68rem;
   background:
     linear-gradient(135deg, rgba(255, 179, 0, 0.09), transparent 42%),
     var(--color-card-secondary);
 }
 
-.grupo-dashboard-dupla-topo {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--espaco-md);
+.grupo-dashboard-dupla-cabecalho {
   min-width: 0;
 }
 
-.grupo-dashboard-dupla-titulo {
+.grupo-dashboard-dupla-identidade {
   display: grid;
-  gap: 0.25rem;
+  justify-items: start;
+  gap: 0.38rem;
   min-width: 0;
 }
 
-.grupo-dashboard-dupla-titulo h3 {
+.grupo-dashboard-dupla-identidade h3,
+.grupo-dashboard-dupla-vazio h3 {
   margin: 0;
   max-width: 100%;
   overflow-wrap: anywhere;
-  font-size: clamp(1.05rem, 3.8vw, 1.35rem);
-  line-height: 1.12;
+  font-size: clamp(1rem, 3.5vw, 1.26rem);
+  line-height: 1.08;
 }
 
 .grupo-dashboard-dupla-avatares {
   display: flex;
   align-items: center;
-  flex: 0 0 auto;
+  min-height: 2.45rem;
 }
 
 .grupo-dashboard-dupla-avatares .avatar-usuario {
+  width: 2.45rem;
+  height: 2.45rem;
+  font-size: 0.78rem;
   border: 2px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.06);
 }
@@ -598,8 +599,10 @@ textarea {
 
 .grupo-dashboard-dupla-metricas {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(6.6rem, 1fr));
-  gap: 0.5rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.4rem;
+  align-items: stretch;
+  max-width: 32rem;
 }
 
 .grupo-dashboard-pendencias-lista span {
@@ -613,31 +616,40 @@ textarea {
 }
 
 .grupo-dashboard-dupla-metricas span {
-  display: inline-flex;
-  align-items: baseline;
+  display: grid;
+  align-content: center;
   justify-content: center;
-  gap: 0.32rem;
-  min-height: 2.4rem;
-  padding: 0.45rem 0.58rem;
+  gap: 0.12rem;
+  min-width: 0;
+  min-height: 3rem;
+  padding: 0.34rem 0.38rem;
   border: 1px solid rgba(255, 179, 0, 0.18);
   border-radius: var(--raio-md);
   background: rgba(255, 255, 255, 0.035);
   color: var(--color-text-secondary);
-  white-space: nowrap;
+  text-align: center;
 }
 
 .grupo-dashboard-dupla-metricas strong {
   color: var(--color-text-primary);
-  font-size: 1.02rem;
+  font-size: 1rem;
   line-height: 1;
 }
 
 .grupo-dashboard-dupla-metricas small {
-  font-size: 0.78rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.68rem;
   line-height: 1;
+  white-space: nowrap;
 }
 
 .grupo-dashboard-dupla-vazio {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.grupo-dashboard-dupla-vazio p {
   margin: 0;
 }
 
@@ -766,18 +778,22 @@ textarea {
     grid-template-columns: 1fr;
   }
 
-  .grupo-dashboard-dupla-topo {
-    align-items: flex-start;
-  }
-
   .grupo-dashboard-dupla-metricas {
-    grid-template-columns: repeat(auto-fit, minmax(6.2rem, 1fr));
-    gap: 0.45rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.35rem;
   }
 
   .grupo-dashboard-dupla-metricas span {
-    min-height: 2.25rem;
-    padding-inline: 0.42rem;
+    min-height: 2.75rem;
+    padding-inline: 0.3rem;
+  }
+
+  .grupo-dashboard-dupla-metricas strong {
+    font-size: 0.94rem;
+  }
+
+  .grupo-dashboard-dupla-metricas small {
+    font-size: 0.62rem;
   }
 
   .grupo-dashboard-membros-card {
@@ -811,6 +827,13 @@ textarea {
   .grupo-dashboard-partida-placar strong:last-child {
     text-align: left;
     white-space: normal;
+  }
+}
+
+@media (max-width: 340px) {
+  .grupo-dashboard-dupla-metricas {
+    grid-template-columns: repeat(2, minmax(0, 7.4rem));
+    justify-content: start;
   }
 }
 
