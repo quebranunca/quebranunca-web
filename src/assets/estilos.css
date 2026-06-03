@@ -243,7 +243,8 @@ textarea {
 }
 
 .grupo-dashboard-header,
-.grupo-dashboard-bloco {
+.grupo-dashboard-bloco,
+.grupo-dashboard-membros-card {
   border: 1px solid var(--color-border);
   border-radius: var(--raio-md);
   background: var(--color-card-secondary);
@@ -334,7 +335,8 @@ textarea {
   margin: 0.2rem 0 0;
 }
 
-.grupo-dashboard-bloco-topo button {
+.grupo-dashboard-bloco-topo button,
+.grupo-dashboard-link-acao {
   border: 0;
   background: transparent;
   color: var(--color-primary);
@@ -343,55 +345,47 @@ textarea {
 }
 
 .grupo-dashboard-membros-card {
-  width: 100%;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
-  align-items: center;
-  gap: 0.8rem;
-  padding: 0.82rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--raio-md);
-  background: var(--color-card-secondary);
-  color: inherit;
-  text-align: left;
-  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+  gap: 0.85rem;
+  padding: 0.85rem;
 }
 
-.grupo-dashboard-membros-card:hover,
-.grupo-dashboard-membros-card:focus-visible {
-  border-color: var(--color-border-highlight);
-  background: rgba(255, 255, 255, 0.045);
-  outline: none;
-  transform: translateY(-1px);
-}
-
-.grupo-dashboard-membros-card strong {
-  display: block;
-  margin-top: 0.15rem;
-}
-
-.grupo-dashboard-membros-card > svg {
-  color: var(--color-primary);
-}
-
-.grupo-dashboard-membros-avatares {
+.grupo-dashboard-membros-topo,
+.grupo-dashboard-membros-convite,
+.grupo-dashboard-link-acao {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
+  gap: 0.55rem;
 }
 
-.grupo-dashboard-membros-avatares .avatar-usuario,
-.grupo-dashboard-membros-restante {
-  border: 2px solid var(--color-card-secondary);
+.grupo-dashboard-link-acao,
+.grupo-dashboard-membros-convite {
+  cursor: pointer;
 }
 
-.grupo-dashboard-membros-avatares .avatar-usuario + .avatar-usuario,
-.grupo-dashboard-membros-restante {
-  margin-left: -0.55rem;
+.grupo-dashboard-membros-corpo {
+  display: grid;
+  grid-template-columns: minmax(8.5rem, 0.35fr) minmax(0, 1fr);
+  gap: 0.85rem;
+  align-items: stretch;
 }
 
-.grupo-dashboard-membros-restante {
-  min-width: 2rem;
+.grupo-dashboard-membros-total {
+  display: grid;
+  align-content: center;
+  gap: 0.25rem;
+  min-height: 7rem;
+  padding: 0.85rem;
+  border: 1px solid rgba(255, 179, 0, 0.24);
+  border-radius: var(--raio-md);
+  background:
+    radial-gradient(circle at 0 0, rgba(255, 179, 0, 0.14), transparent 48%),
+    rgba(255, 255, 255, 0.035);
+}
+
+.grupo-dashboard-membros-total-icone {
+  width: 2rem;
   height: 2rem;
   display: inline-flex;
   align-items: center;
@@ -399,8 +393,137 @@ textarea {
   border-radius: 999px;
   background: rgba(255, 179, 0, 0.16);
   color: var(--color-primary);
-  font-size: 0.75rem;
+}
+
+.grupo-dashboard-membros-total strong {
+  color: var(--color-text);
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.grupo-dashboard-membros-total small,
+.grupo-dashboard-membros-subtitulo,
+.grupo-dashboard-membro small,
+.grupo-dashboard-membros-restante small {
+  color: var(--color-text-secondary);
+}
+
+.grupo-dashboard-membros-destaques {
+  display: grid;
+  align-content: center;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.grupo-dashboard-membros-subtitulo {
+  font-size: 0.72rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.grupo-dashboard-membros-lista {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+  overflow-x: auto;
+  padding-bottom: 0.1rem;
+}
+
+.grupo-dashboard-membro,
+.grupo-dashboard-membros-restante {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 0.35rem;
+  min-width: 3.7rem;
+}
+
+.grupo-dashboard-membro-avatar {
+  position: relative;
+  display: inline-flex;
+}
+
+.grupo-dashboard-membro .avatar-usuario {
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.grupo-dashboard-membro-posicao {
+  position: absolute;
+  right: -0.35rem;
+  bottom: -0.2rem;
+  min-width: 1.35rem;
+  height: 1.35rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--color-card-secondary);
+  border-radius: 999px;
+  background: var(--color-primary);
+  color: #15110a;
+  font-size: 0.66rem;
   font-weight: 900;
+}
+
+.grupo-dashboard-membro small {
+  max-width: 4.4rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.grupo-dashboard-membros-restante {
+  min-height: 3rem;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid rgba(255, 179, 0, 0.22);
+  border-radius: var(--raio-md);
+  background: rgba(255, 179, 0, 0.16);
+}
+
+.grupo-dashboard-membros-restante strong {
+  color: var(--color-primary);
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.grupo-dashboard-membros-restante small {
+  max-width: 5.5rem;
+  font-size: 0.72rem;
+  line-height: 1.1;
+  text-align: center;
+}
+
+.grupo-dashboard-membros-convite {
+  width: 100%;
+  padding: 0.75rem 0 0;
+  border: 0;
+  border-top: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text);
+  font-weight: 800;
+  text-align: left;
+}
+
+.grupo-dashboard-membros-convite span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.grupo-dashboard-membros-convite svg,
+.grupo-dashboard-link-acao svg {
+  flex: 0 0 auto;
+  color: var(--color-primary);
+}
+
+.grupo-dashboard-link-acao:hover,
+.grupo-dashboard-link-acao:focus-visible,
+.grupo-dashboard-membros-convite:hover,
+.grupo-dashboard-membros-convite:focus-visible {
+  color: var(--color-primary);
+  outline: none;
 }
 
 .grupo-dashboard-ranking {
@@ -586,12 +709,24 @@ textarea {
 
   .grupo-dashboard-dupla-metricas,
   .grupo-dashboard-pendencias-lista,
-  .grupo-dashboard-membros-card {
+  .grupo-dashboard-membros-corpo {
     grid-template-columns: 1fr;
   }
 
-  .grupo-dashboard-membros-avatares {
-    justify-content: flex-start;
+  .grupo-dashboard-membros-card {
+    padding: 0.78rem;
+  }
+
+  .grupo-dashboard-membros-topo {
+    align-items: flex-start;
+  }
+
+  .grupo-dashboard-membros-lista {
+    gap: 0.65rem;
+  }
+
+  .grupo-dashboard-membros-total {
+    min-height: auto;
   }
 
   .grupo-dashboard-atividade-item,

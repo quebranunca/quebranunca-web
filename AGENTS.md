@@ -46,6 +46,7 @@ Seguir o `AGENTS.md` da raiz. Neste diretório, além disso:
 - Aceite de convite deve exigir Política de Privacidade e Termos de Uso; localização e imagem/foto são consentimentos separados e opcionais
 - Foto de perfil é enviada pelo frontend para a API usando `multipart/form-data`; o frontend nunca chama Cloudinary diretamente, usa apenas a URL retornada pela API e mantém fallback visual com iniciais quando não houver foto.
 - Avatar de usuário deve usar componente reutilizável, sempre priorizando `fotoPerfilUrl` quando disponível e voltando para iniciais quando não houver foto ou a imagem falhar.
+- Cards de dashboard devem reutilizar padrões visuais existentes, tratar estados vazios de forma amigável e evitar badges ou atalhos soltos sem contexto visual.
 - E-mail e WhatsApp são canais do mesmo convite; a interface não deve sugerir que reenviar por outro canal cria convite ou código diferente
 - Todo campo de seleção (dropdown) deve possuir indicação visual clara (ex: ícone de seta) para melhorar a usabilidade
 

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { FaChevronRight, FaClock, FaExclamationTriangle, FaFire, FaTrophy, FaUsers } from 'react-icons/fa';
+import { FaChevronRight, FaClock, FaExclamationTriangle, FaFire, FaTrophy, FaUserPlus, FaUsers } from 'react-icons/fa';
 import { useNavigate, useParams } from 'react-router-dom';
 import { AvatarUsuario, obterFotoPerfilAvatar } from '../components/AvatarUsuario';
 import { RegistrarPartidaNovoContainer } from '../containers/partidas/RegistrarPartidaNovoContainer';
@@ -31,6 +31,19 @@ function pluralizar(valor, singular, plural = `${singular}s`) {
 
 function nomeAtleta(atleta) {
   return obterNomeExibicaoAtleta(atleta) || atleta?.nome || 'Atleta';
+}
+
+function nomeCurtoAtleta(atleta) {
+  return nomeAtleta(atleta).split(/\s+/).filter(Boolean)[0] || 'Atleta';
+}
+
+function formatarPosicaoDestaque(posicao) {
+  if (!posicao) {
+    return '';
+  }
+
+  const texto = String(posicao);
+  return texto.includes('º') ? texto : `${texto}º`;
 }
 
 function nomeDupla(dupla, separador = ' + ') {
@@ -239,6 +252,11 @@ export function PaginaGrupoDashboard() {
   const membrosMaisAtivos = useMemo(() => (dashboard?.membrosMaisAtivos || []).slice(0, 5), [dashboard?.membrosMaisAtivos]);
   const ultimasPartidas = dashboard?.ultimasPartidas || [];
   const membrosPreview = useMemo(() => montarAtletasPreview(dashboard), [dashboard]);
+  const membrosDestaque = useMemo(() => membrosPreview.slice(0, 3), [membrosPreview]);
+  const membrosRestantes = Math.max((grupo?.totalMembros || 0) - membrosDestaque.length, 0);
+  const mensagemMembrosVazia = (grupo?.totalMembros || 0) > 0
+    ? 'Veja a lista completa para consultar os membros cadastrados.'
+    : 'Nenhum membro no grupo ainda.';
   const duplaDoMomento = useMemo(() => calcularDuplaDoMomento(ultimasPartidas), [ultimasPartidas]);
   const pendenciasResumo = useMemo(() => {
     const lista = Array.isArray(pendencias) ? pendencias : [];
@@ -323,25 +341,54 @@ export function PaginaGrupoDashboard() {
         </div>
       </header>
 
-      <section className="grupo-dashboard-membros" aria-label="Membros do grupo">
-        <button type="button" className="grupo-dashboard-membros-card" onClick={() => navegar(`/grupos/${grupo.id}/atletas`)}>
+      <section className="grupo-dashboard-membros-card" aria-label="Membros do grupo">
+        <div className="grupo-dashboard-membros-topo">
           <span className="grupo-dashboard-eyebrow"><FaUsers aria-hidden="true" /> Membros do grupo</span>
-          <strong>{grupo.totalMembros} membros</strong>
-          <span className="grupo-dashboard-membros-avatares" aria-hidden="true">
-            {membrosPreview.slice(0, 5).map((atleta) => (
-              <AvatarUsuario
-                key={atleta.atletaId || atleta.id}
-                nome={nomeAtleta(atleta)}
-                fotoPerfilUrl={obterFotoPerfilAvatar(atleta)}
-                tamanho="sm"
-              />
-            ))}
-            {grupo.totalMembros > membrosPreview.slice(0, 5).length && (
-              <span className="grupo-dashboard-membros-restante">
-                +{grupo.totalMembros - membrosPreview.slice(0, 5).length}
-              </span>
+          <button type="button" className="grupo-dashboard-link-acao" onClick={() => navegar(`/grupos/${grupo.id}/atletas`)}>
+            Ver todos
+            <FaChevronRight aria-hidden="true" />
+          </button>
+        </div>
+
+        <div className="grupo-dashboard-membros-corpo">
+          <div className="grupo-dashboard-membros-total">
+            <span className="grupo-dashboard-membros-total-icone"><FaUsers aria-hidden="true" /></span>
+            <strong>{grupo.totalMembros}</strong>
+            <small>{pluralizar(grupo.totalMembros, 'membro')}</small>
+          </div>
+
+          <div className="grupo-dashboard-membros-destaques">
+            <span className="grupo-dashboard-membros-subtitulo">Membros em destaque</span>
+            {membrosDestaque.length > 0 ? (
+              <div className="grupo-dashboard-membros-lista">
+                {membrosDestaque.map((atleta) => (
+                  <div key={atleta.atletaId || atleta.id || nomeAtleta(atleta)} className="grupo-dashboard-membro">
+                    <span className="grupo-dashboard-membro-avatar">
+                      <AvatarUsuario
+                        nome={nomeAtleta(atleta)}
+                        fotoPerfilUrl={obterFotoPerfilAvatar(atleta)}
+                        tamanho="md"
+                      />
+                      {atleta.posicao && <span className="grupo-dashboard-membro-posicao">{formatarPosicaoDestaque(atleta.posicao)}</span>}
+                    </span>
+                    <small title={nomeAtleta(atleta)}>{nomeCurtoAtleta(atleta)}</small>
+                  </div>
+                ))}
+                {membrosRestantes > 0 && (
+                  <div className="grupo-dashboard-membros-restante">
+                    <strong>+{membrosRestantes}</strong>
+                    <small>{pluralizar(membrosRestantes, 'outro membro', 'outros membros')}</small>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="grupo-dashboard-vazio">{mensagemMembrosVazia}</p>
             )}
-          </span>
+          </div>
+        </div>
+
+        <button type="button" className="grupo-dashboard-membros-convite" onClick={() => navegar(`/grupos/${grupo.id}/atletas`)}>
+          <span><FaUserPlus aria-hidden="true" /> Convide atletas para o grupo</span>
           <FaChevronRight aria-hidden="true" />
         </button>
       </section>
