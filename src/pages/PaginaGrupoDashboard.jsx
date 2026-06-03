@@ -420,21 +420,21 @@ export function PaginaGrupoDashboard() {
       </article>
 
       <article className="grupo-dashboard-bloco grupo-dashboard-dupla-momento">
-        <div className="grupo-dashboard-bloco-topo">
-          <div>
+        <div className="grupo-dashboard-dupla-topo">
+          <div className="grupo-dashboard-dupla-titulo">
             <span className="grupo-dashboard-eyebrow"><FaFire aria-hidden="true" /> Dupla do momento</span>
-            <h3>{duplaDoMomento ? nomeDupla(duplaDoMomento.atletas) : 'Aguardando partidas'}</h3>
+            <h3>{duplaDoMomento ? nomeDupla(duplaDoMomento.atletas) : 'Ainda não há dupla em destaque'}</h3>
           </div>
           {duplaDoMomento && <AvatarDupla atletas={duplaDoMomento.atletas} />}
         </div>
         {duplaDoMomento ? (
           <div className="grupo-dashboard-dupla-metricas">
-            <span><strong>{duplaDoMomento.jogos}</strong> jogos</span>
-            <span><strong>{duplaDoMomento.vitorias}</strong> vitórias</span>
-            <span><strong>{duplaDoMomento.jogos ? Math.round((duplaDoMomento.vitorias / duplaDoMomento.jogos) * 100) : 0}%</strong> aproveitamento</span>
+            <span><strong>{duplaDoMomento.jogos}</strong><small>jogos</small></span>
+            <span><strong>{duplaDoMomento.vitorias}</strong><small>vitórias</small></span>
+            <span><strong>{duplaDoMomento.jogos ? Math.round((duplaDoMomento.vitorias / duplaDoMomento.jogos) * 100) : 0}%</strong><small>aproveitamento</small></span>
           </div>
         ) : (
-          <p className="grupo-dashboard-vazio">Registre partidas para destacar a dupla em melhor fase.</p>
+          <p className="grupo-dashboard-vazio grupo-dashboard-dupla-vazio">Registre partidas para gerar esse destaque.</p>
         )}
       </article>
 

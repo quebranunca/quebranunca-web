@@ -546,32 +546,62 @@ textarea {
 }
 
 .grupo-dashboard-dupla-momento {
+  gap: 0.65rem;
+  padding-block: 0.75rem;
   background:
     linear-gradient(135deg, rgba(255, 179, 0, 0.09), transparent 42%),
     var(--color-card-secondary);
 }
 
+.grupo-dashboard-dupla-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-md);
+  min-width: 0;
+}
+
+.grupo-dashboard-dupla-titulo {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.grupo-dashboard-dupla-titulo h3 {
+  margin: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  font-size: clamp(1.05rem, 3.8vw, 1.35rem);
+  line-height: 1.12;
+}
+
 .grupo-dashboard-dupla-avatares {
   display: flex;
   align-items: center;
+  flex: 0 0 auto;
+}
+
+.grupo-dashboard-dupla-avatares .avatar-usuario {
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .grupo-dashboard-dupla-avatares .avatar-usuario + .avatar-usuario {
-  margin-left: -0.8rem;
+  margin-left: -0.65rem;
   border: 2px solid var(--color-card-secondary);
 }
 
-.grupo-dashboard-dupla-metricas,
 .grupo-dashboard-pendencias-lista {
   display: grid;
   gap: 0.65rem;
 }
 
 .grupo-dashboard-dupla-metricas {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(6.6rem, 1fr));
+  gap: 0.5rem;
 }
 
-.grupo-dashboard-dupla-metricas span,
 .grupo-dashboard-pendencias-lista span {
   display: grid;
   gap: 0.15rem;
@@ -582,9 +612,33 @@ textarea {
   color: var(--color-text-secondary);
 }
 
+.grupo-dashboard-dupla-metricas span {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.32rem;
+  min-height: 2.4rem;
+  padding: 0.45rem 0.58rem;
+  border: 1px solid rgba(255, 179, 0, 0.18);
+  border-radius: var(--raio-md);
+  background: rgba(255, 255, 255, 0.035);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
 .grupo-dashboard-dupla-metricas strong {
   color: var(--color-text-primary);
-  font-size: 1.15rem;
+  font-size: 1.02rem;
+  line-height: 1;
+}
+
+.grupo-dashboard-dupla-metricas small {
+  font-size: 0.78rem;
+  line-height: 1;
+}
+
+.grupo-dashboard-dupla-vazio {
+  margin: 0;
 }
 
 .grupo-dashboard-pendencias {
@@ -707,10 +761,23 @@ textarea {
     flex-direction: column;
   }
 
-  .grupo-dashboard-dupla-metricas,
   .grupo-dashboard-pendencias-lista,
   .grupo-dashboard-membros-corpo {
     grid-template-columns: 1fr;
+  }
+
+  .grupo-dashboard-dupla-topo {
+    align-items: flex-start;
+  }
+
+  .grupo-dashboard-dupla-metricas {
+    grid-template-columns: repeat(auto-fit, minmax(6.2rem, 1fr));
+    gap: 0.45rem;
+  }
+
+  .grupo-dashboard-dupla-metricas span {
+    min-height: 2.25rem;
+    padding-inline: 0.42rem;
   }
 
   .grupo-dashboard-membros-card {
