@@ -1,5 +1,18 @@
 import { useEffect, useMemo, useState } from 'react';
-import { FaChevronRight, FaClock, FaExclamationTriangle, FaFire, FaTrophy, FaUserPlus, FaUsers } from 'react-icons/fa';
+import {
+  FaChevronRight,
+  FaClock,
+  FaCog,
+  FaExclamationTriangle,
+  FaFire,
+  FaGlobeAmericas,
+  FaLock,
+  FaShareAlt,
+  FaTrophy,
+  FaUserPlus,
+  FaUsers,
+  FaVolleyballBall
+} from 'react-icons/fa';
 import { useNavigate, useParams } from 'react-router-dom';
 import { AvatarUsuario, obterFotoPerfilAvatar } from '../components/AvatarUsuario';
 import { RegistrarPartidaNovoContainer } from '../containers/partidas/RegistrarPartidaNovoContainer';
@@ -8,6 +21,7 @@ import { useAutenticacao } from '../hooks/useAutenticacao';
 import { gruposServico } from '../services/gruposServico';
 import { pendenciasServico } from '../services/pendenciasServico';
 import { obterNomeExibicaoAtleta } from '../utils/atletaUtils';
+import { compartilharLink } from '../utils/compartilhamento';
 import { extrairMensagemErro } from '../utils/erros';
 import { formatarData, formatarDataHora, formatarHora } from '../utils/formatacao';
 
@@ -126,6 +140,27 @@ function formatarDiaAtividade(data) {
   }
 
   return formatarData(data);
+}
+
+function obterPrivacidadeGrupo(privacidade) {
+  const texto = String(privacidade || '').trim();
+  const normalizado = texto.toLowerCase();
+  const privado = normalizado.includes('priv');
+
+  return {
+    texto: texto || (privado ? 'Privado' : 'Público'),
+    Icone: privado ? FaLock : FaGlobeAmericas
+  };
+}
+
+function nomeParaAvatarGrupo(nome) {
+  const conectores = new Set(['de', 'da', 'do', 'das', 'dos', 'e']);
+  const partes = String(nome || '')
+    .trim()
+    .split(/\s+/)
+    .filter((parte) => parte && !conectores.has(parte.toLowerCase()));
+
+  return partes.length > 0 ? partes.join(' ') : nome;
 }
 
 function obterChaveDupla(dupla) {
@@ -302,6 +337,34 @@ export function PaginaGrupoDashboard() {
     }
   }
 
+  async function compartilharGrupo() {
+    try {
+      const resultado = await compartilharLink({
+        titulo: grupo.nome,
+        texto: `Veja o grupo ${grupo.nome} no QuebraNunca.`,
+        url: `/grupos/${grupo.id}`
+      });
+
+      showNotification({
+        type: 'success',
+        title: resultado === 'copiado' ? 'Link copiado' : 'Grupo compartilhado',
+        message: resultado === 'copiado'
+          ? 'O link do grupo foi copiado para a área de transferência.'
+          : 'O grupo foi enviado para compartilhamento.'
+      });
+    } catch (error) {
+      if (error?.name === 'AbortError') {
+        return;
+      }
+
+      showNotification({
+        type: 'error',
+        title: 'Erro ao compartilhar grupo',
+        message: extrairMensagemErro(error)
+      });
+    }
+  }
+
   if (carregando) {
     return <section className="pagina grupo-dashboard-pagina"><article className="cartao-lista">Carregando dashboard do grupo...</article></section>;
   }
@@ -317,29 +380,60 @@ export function PaginaGrupoDashboard() {
     );
   }
 
+  const privacidadeGrupo = obterPrivacidadeGrupo(grupo.privacidade);
+  const PrivacidadeIcone = privacidadeGrupo.Icone;
+
   return (
     <section className="pagina grupo-dashboard-pagina">
-      <header className="grupo-dashboard-header">
-        <div className="grupo-dashboard-identidade">
-          <AvatarUsuario nome={grupo.nome} fotoPerfilUrl={grupo.imagemUrl} tamanho="xl" />
-          <div>
-            <span className="grupo-dashboard-privacidade">{grupo.privacidade}</span>
-            <h2>{grupo.nome}</h2>
-            <p>{grupo.totalMembros} membros • {grupo.totalPartidas} partidas</p>
-            <small>Última atividade: {formatarUltimaAtividade(resumo.ultimaPartidaEm)}</small>
+      <header className="grupo-dashboard-header grupo-dashboard-hero">
+        <div className="grupo-dashboard-hero-topo">
+          <AvatarUsuario
+            nome={nomeParaAvatarGrupo(grupo.nome)}
+            fotoPerfilUrl={grupo.imagemUrl}
+            tamanho="xl"
+            className="grupo-dashboard-hero-avatar"
+            alt={`Imagem do grupo ${grupo.nome}`}
+          />
+          <span className="grupo-dashboard-privacidade">
+            <PrivacidadeIcone aria-hidden="true" />
+            {privacidadeGrupo.texto}
+          </span>
+        </div>
+
+        <div className="grupo-dashboard-hero-conteudo">
+          <h2>{grupo.nome}</h2>
+          <div className="grupo-dashboard-hero-resumo" aria-label="Resumo do grupo">
+            <span><FaUsers aria-hidden="true" /> {grupo.totalMembros} {pluralizar(grupo.totalMembros, 'membro')}</span>
+            <span><FaVolleyballBall aria-hidden="true" /> {grupo.totalPartidas} {pluralizar(grupo.totalPartidas, 'partida')}</span>
+            <span><FaClock aria-hidden="true" /> Última atividade: {formatarUltimaAtividade(resumo.ultimaPartidaEm)}</span>
           </div>
         </div>
-        <div className="grupo-dashboard-acoes">
-          {grupo.podeEditar && (
-            <button type="button" className="botao-secundario" onClick={() => navegar(`/grupos/${grupo.id}/atletas`)}>
-              Editar grupo
-            </button>
-          )}
-          <button type="button" className="botao-primario" onClick={() => setRegistroAberto(true)}>
-            Registrar partida
-          </button>
-        </div>
+
+        <button type="button" className="botao-primario grupo-dashboard-hero-cta" onClick={() => setRegistroAberto(true)}>
+          Registrar partida
+        </button>
       </header>
+
+      <section className="grupo-dashboard-acoes-rapidas" aria-label="Ações rápidas do grupo">
+        {grupo.podeEditar && (
+          <button type="button" className="grupo-dashboard-acao-rapida" onClick={() => navegar(`/grupos/${grupo.id}/atletas`)}>
+            <span><FaCog aria-hidden="true" /> Editar grupo</span>
+            <FaChevronRight aria-hidden="true" />
+          </button>
+        )}
+        <button type="button" className="grupo-dashboard-acao-rapida" onClick={() => navegar(`/grupos/${grupo.id}/atletas`)}>
+          <span><FaUserPlus aria-hidden="true" /> Convidar atleta</span>
+          <FaChevronRight aria-hidden="true" />
+        </button>
+        <button type="button" className="grupo-dashboard-acao-rapida" onClick={compartilharGrupo}>
+          <span><FaShareAlt aria-hidden="true" /> Compartilhar grupo</span>
+          <FaChevronRight aria-hidden="true" />
+        </button>
+        <button type="button" className="grupo-dashboard-acao-rapida" onClick={() => navegar(`/ranking?tipo=grupos&grupoId=${grupo.id}`)}>
+          <span><FaTrophy aria-hidden="true" /> Ver ranking</span>
+          <FaChevronRight aria-hidden="true" />
+        </button>
+      </section>
 
       <section className="grupo-dashboard-membros-card" aria-label="Membros do grupo">
         <div className="grupo-dashboard-membros-topo">
