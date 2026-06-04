@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { FaCheck, FaPlus, FaSearch, FaUserPlus } from 'react-icons/fa';
 import { AtletaPerfilLink } from '../components/AtletaPerfilLink';
 import { AvatarUsuario, obterFotoPerfilAvatar } from '../components/AvatarUsuario';
 import { EmailDomainSuggestions } from '../components/formularios/EmailDomainSuggestions';
 import { useNotification } from '../contexts/NotificationContext';
 import { useAutenticacao } from '../hooks/useAutenticacao';
+import { atletasServico } from '../services/atletasServico';
 import { grupoAtletasServico } from '../services/grupoAtletasServico';
 import { gruposServico } from '../services/gruposServico';
 import { ESTADOS_ACESSO } from '../utils/acesso';
@@ -24,6 +26,8 @@ const MENSAGEM_ATLETA_SEM_EMAIL = 'Atleta adicionado, mas ficou pendente preench
 const MENSAGEM_ATLETA_COM_EMAIL = 'Atleta adicionado ao grupo.';
 const MENSAGEM_BLOQUEIO_NOME_DUPLICADO = 'Já existe um atleta com esse nome ou apelido e sem email. Se for outro atleta, altere o nome ou apelido para diferenciar.';
 const MENSAGEM_MESMO_ATLETA_SEM_EMAIL = 'Esse atleta já está no grupo sem email. Preencha o email quando tiver essa informação.';
+const MINIMO_CARACTERES_BUSCA_ATLETA = 3;
+const TEMPO_DEBOUNCE_BUSCA_ATLETA_MS = 300;
 
 export function PaginaGrupoAtletas() {
   const { grupoId, competicaoId } = useParams();
@@ -37,6 +41,12 @@ export function PaginaGrupoAtletas() {
   const [grupoAtletas, setGrupoAtletas] = useState([]);
   const [formularioGrupoAtleta, setFormularioGrupoAtleta] = useState(estadoInicialGrupoAtleta);
   const [grupoAtletaSelecionadoId, setGrupoAtletaSelecionadoId] = useState('');
+  const [termoBuscaAtleta, setTermoBuscaAtleta] = useState('');
+  const [resultadosBuscaAtleta, setResultadosBuscaAtleta] = useState([]);
+  const [atletaSelecionadoBusca, setAtletaSelecionadoBusca] = useState(null);
+  const [criandoNovoAtleta, setCriandoNovoAtleta] = useState(false);
+  const [buscandoAtletas, setBuscandoAtletas] = useState(false);
+  const [erroBuscaAtletas, setErroBuscaAtletas] = useState('');
   const [carregando, setCarregando] = useState(true);
   const [salvandoGrupoAtleta, setSalvandoGrupoAtleta] = useState(false);
   const [assumindoNomeGrupo, setAssumindoNomeGrupo] = useState(false);
@@ -63,10 +73,45 @@ export function PaginaGrupoAtletas() {
   const nomesDisponiveisParaAssumir = grupoAtletas.filter((item) => (
     !item.vinculadoAUsuario || item.atletaId === usuario?.atletaId
   ));
+  const atletasIdsNoGrupo = useMemo(
+    () => new Set(grupoAtletas.map((item) => item.atletaId)),
+    [grupoAtletas]
+  );
+  const termoBuscaPossuiMinimo = termoBuscaAtleta.trim().length >= MINIMO_CARACTERES_BUSCA_ATLETA;
+  const podeSubmeterAdicaoAtleta = Boolean(atletaSelecionadoBusca)
+    || (criandoNovoAtleta && Boolean(formularioGrupoAtleta.nomeAtleta.trim()));
 
   useEffect(() => {
     carregarDados();
   }, [idGrupo]);
+
+  useEffect(() => {
+    const termo = termoBuscaAtleta.trim();
+
+    if (termo.length < MINIMO_CARACTERES_BUSCA_ATLETA) {
+      setResultadosBuscaAtleta([]);
+      setBuscandoAtletas(false);
+      setErroBuscaAtletas('');
+      return undefined;
+    }
+
+    setBuscandoAtletas(true);
+    setErroBuscaAtletas('');
+
+    const timeout = setTimeout(async () => {
+      try {
+        const resultados = await atletasServico.buscar(termo);
+        setResultadosBuscaAtleta(resultados.slice(0, 10));
+      } catch {
+        setResultadosBuscaAtleta([]);
+        setErroBuscaAtletas('Não foi possível realizar a busca');
+      } finally {
+        setBuscandoAtletas(false);
+      }
+    }, TEMPO_DEBOUNCE_BUSCA_ATLETA_MS);
+
+    return () => clearTimeout(timeout);
+  }, [termoBuscaAtleta]);
 
   async function carregarDados() {
     setCarregando(true);
@@ -96,23 +141,79 @@ export function PaginaGrupoAtletas() {
     setFormularioGrupoAtleta((anterior) => ({ ...anterior, [campo]: valor }));
   }
 
+  function atualizarTermoBuscaAtleta(valor) {
+    setTermoBuscaAtleta(valor);
+    setAtletaSelecionadoBusca(null);
+    if (!criandoNovoAtleta) {
+      setFormularioGrupoAtleta((anterior) => ({ ...anterior, nomeAtleta: valor }));
+    }
+  }
+
+  function selecionarAtletaExistente(atleta) {
+    setAtletaSelecionadoBusca(atleta);
+    setCriandoNovoAtleta(false);
+    setTermoBuscaAtleta(obterNomeExibicaoAtleta(atleta) || atleta.nome || '');
+    setFormularioGrupoAtleta({
+      nomeAtleta: atleta.nome || '',
+      email: ''
+    });
+  }
+
+  function iniciarCadastroNovoAtleta() {
+    const termo = termoBuscaAtleta.trim();
+    setAtletaSelecionadoBusca(null);
+    setCriandoNovoAtleta(true);
+    setFormularioGrupoAtleta((anterior) => ({
+      ...anterior,
+      nomeAtleta: anterior.nomeAtleta.trim() || termo,
+      email: anterior.email
+    }));
+    window.requestAnimationFrame(() => nomeAtletaRef.current?.focus());
+  }
+
+  function limparFluxoAdicaoAtleta() {
+    setFormularioGrupoAtleta(estadoInicialGrupoAtleta);
+    setTermoBuscaAtleta('');
+    setResultadosBuscaAtleta([]);
+    setAtletaSelecionadoBusca(null);
+    setCriandoNovoAtleta(false);
+    setErroBuscaAtletas('');
+  }
+
   async function aoSubmeterGrupoAtleta(evento) {
     evento.preventDefault();
+
+    if (atletaSelecionadoBusca && atletasIdsNoGrupo.has(atletaSelecionadoBusca.id)) {
+      showNotification({
+        type: 'warning',
+        title: 'Atleta já está no grupo',
+        message: 'Este atleta já faz parte do grupo.'
+      });
+      return;
+    }
+
+    if (!podeSubmeterAdicaoAtleta) {
+      iniciarCadastroNovoAtleta();
+      return;
+    }
+
     setSalvandoGrupoAtleta(true);
 
     try {
       await grupoAtletasServico.criar(idGrupo, {
-        nomeAtleta: formularioGrupoAtleta.nomeAtleta,
+        atletaId: atletaSelecionadoBusca?.id || null,
+        nomeAtleta: atletaSelecionadoBusca?.nome || formularioGrupoAtleta.nomeAtleta,
+        apelidoAtleta: atletaSelecionadoBusca?.apelido || null,
         email: formularioGrupoAtleta.email || null
       });
 
       const possuiEmail = Boolean(formularioGrupoAtleta.email.trim());
       showNotification({
-        type: possuiEmail ? 'success' : 'warning',
+        type: atletaSelecionadoBusca || possuiEmail ? 'success' : 'warning',
         title: 'Atleta adicionado',
-        message: possuiEmail ? MENSAGEM_ATLETA_COM_EMAIL : MENSAGEM_ATLETA_SEM_EMAIL
+        message: atletaSelecionadoBusca || possuiEmail ? MENSAGEM_ATLETA_COM_EMAIL : MENSAGEM_ATLETA_SEM_EMAIL
       });
-      setFormularioGrupoAtleta(estadoInicialGrupoAtleta);
+      limparFluxoAdicaoAtleta();
       const lista = await grupoAtletasServico.listarPorGrupo(idGrupo);
       setGrupoAtletas(lista);
       rolarParaTopo();
@@ -189,7 +290,7 @@ export function PaginaGrupoAtletas() {
         title: 'Email atualizado',
         message: 'Email do atleta atualizado no grupo.'
       });
-      setFormularioGrupoAtleta(estadoInicialGrupoAtleta);
+      limparFluxoAdicaoAtleta();
       const lista = await grupoAtletasServico.listarPorGrupo(idGrupo);
       setGrupoAtletas(lista);
       rolarParaTopo();
@@ -211,6 +312,11 @@ export function PaginaGrupoAtletas() {
       title: 'Nome indisponível',
       message: MENSAGEM_BLOQUEIO_NOME_DUPLICADO
     });
+  }
+
+  function formatarQuantidadePartidas(quantidade) {
+    const total = Number(quantidade || 0);
+    return `${total} ${total === 1 ? 'partida' : 'partidas'}`;
   }
 
   async function removerGrupoAtleta(id) {
@@ -302,45 +408,149 @@ export function PaginaGrupoAtletas() {
       ) : (
         <>
           {gerenciavel && (
-            <form className="formulario-grid" onSubmit={aoSubmeterGrupoAtleta}>
-              <label>
-                Nome ou apelido
-                <input
-                  ref={nomeAtletaRef}
-                  type="text"
-                  autoComplete="name"
-                  enterKeyHint="next"
-                  value={formularioGrupoAtleta.nomeAtleta}
-                  onChange={(evento) => atualizarCampoGrupoAtleta('nomeAtleta', evento.target.value)}
-                  onFocus={scrollFocusedInputIntoView}
-                  onKeyDown={(evento) => aoPressionarEnterParaProximo(evento, () => focusNextField(emailRef))}
-                  required
-                />
-              </label>
+            <form className="grupo-atletas-adicao" onSubmit={aoSubmeterGrupoAtleta}>
+              <div className="grupo-atletas-busca">
+                <label>
+                  Adicionar atleta
+                  <span className="campo-com-icone">
+                    <FaSearch aria-hidden="true" />
+                    <input
+                      type="search"
+                      autoComplete="off"
+                      enterKeyHint="search"
+                      placeholder="Nome ou apelido"
+                      value={termoBuscaAtleta}
+                      onChange={(evento) => atualizarTermoBuscaAtleta(evento.target.value)}
+                      onFocus={scrollFocusedInputIntoView}
+                    />
+                  </span>
+                </label>
+              </div>
 
-              <label>
-                Email
-                <input
-                  ref={emailRef}
-                  type="email"
-                  inputMode="email"
-                  autoComplete="email"
-                  enterKeyHint="done"
-                  value={formularioGrupoAtleta.email}
-                  placeholder="Opcional, mas necessário para vincular a um usuário"
-                  onChange={(evento) => atualizarCampoGrupoAtleta('email', evento.target.value)}
-                  onFocus={scrollFocusedInputIntoView}
-                />
-                <EmailDomainSuggestions
-                  valor={formularioGrupoAtleta.email}
-                  onChange={(valor) => atualizarCampoGrupoAtleta('email', valor)}
-                  inputRef={emailRef}
-                />
-              </label>
+              {atletaSelecionadoBusca && (
+                <article className="grupo-atletas-card-selecionado">
+                  <div className="grupo-atletas-card-status">
+                    <FaCheck aria-hidden="true" />
+                    <span>Atleta encontrado</span>
+                  </div>
+                  <div className="grupo-atletas-resultado-identidade">
+                    <AvatarUsuario
+                      nome={obterNomeExibicaoAtleta(atletaSelecionadoBusca)}
+                      fotoPerfilUrl={obterFotoPerfilAvatar(atletaSelecionadoBusca)}
+                      tamanho="md"
+                    />
+                    <div>
+                      <strong>{obterNomeExibicaoAtleta(atletaSelecionadoBusca)}</strong>
+                      <span>{formatarQuantidadePartidas(atletaSelecionadoBusca.quantidadeJogos)}</span>
+                    </div>
+                  </div>
+                </article>
+              )}
 
-              <div className="acoes-formulario">
-                <button type="submit" className="botao-primario" disabled={salvandoGrupoAtleta}>
-                  {salvandoGrupoAtleta ? 'Salvando...' : 'Adicionar atleta ao grupo'}
+              {!atletaSelecionadoBusca && termoBuscaPossuiMinimo && (
+                <div className="grupo-atletas-resultados" aria-live="polite">
+                  {buscandoAtletas && [0, 1, 2].map((indice) => (
+                    <div key={indice} className="grupo-atletas-resultado-skeleton" aria-hidden="true">
+                      <span />
+                      <div>
+                        <span />
+                        <span />
+                      </div>
+                    </div>
+                  ))}
+
+                  {!buscandoAtletas && erroBuscaAtletas && (
+                    <p className="texto-erro grupo-atletas-estado-busca">{erroBuscaAtletas}</p>
+                  )}
+
+                  {!buscandoAtletas && !erroBuscaAtletas && resultadosBuscaAtleta.length === 0 && (
+                    <p className="grupo-atletas-estado-busca">Nenhum atleta encontrado</p>
+                  )}
+
+                  {!buscandoAtletas && !erroBuscaAtletas && resultadosBuscaAtleta.map((atleta) => {
+                    const jaEstaNoGrupo = atletasIdsNoGrupo.has(atleta.id);
+
+                    return (
+                      <button
+                        key={atleta.id}
+                        type="button"
+                        className="grupo-atletas-resultado"
+                        onClick={() => selecionarAtletaExistente(atleta)}
+                        disabled={jaEstaNoGrupo}
+                      >
+                        <AvatarUsuario
+                          nome={obterNomeExibicaoAtleta(atleta)}
+                          fotoPerfilUrl={obterFotoPerfilAvatar(atleta)}
+                          tamanho="md"
+                        />
+                        <span className="grupo-atletas-resultado-texto">
+                          <strong>{obterNomeExibicaoAtleta(atleta)}</strong>
+                          {atleta.apelido && atleta.apelido !== atleta.nome && <span>{atleta.apelido}</span>}
+                          <span>{formatarQuantidadePartidas(atleta.quantidadeJogos)}</span>
+                        </span>
+                        {jaEstaNoGrupo && <span className="grupo-atletas-ja-vinculado">Já está no grupo</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {!atletaSelecionadoBusca && (
+                <button type="button" className="grupo-atletas-criar-novo" onClick={iniciarCadastroNovoAtleta}>
+                  <FaPlus aria-hidden="true" />
+                  <span>
+                    Criar novo atleta{termoBuscaAtleta.trim() ? ` "${termoBuscaAtleta.trim()}"` : ''}
+                  </span>
+                </button>
+              )}
+
+              {criandoNovoAtleta && (
+                <div className="formulario-grid grupo-atletas-formulario-novo">
+                  <label>
+                    Nome ou apelido
+                    <input
+                      ref={nomeAtletaRef}
+                      type="text"
+                      autoComplete="name"
+                      enterKeyHint="next"
+                      value={formularioGrupoAtleta.nomeAtleta}
+                      onChange={(evento) => atualizarCampoGrupoAtleta('nomeAtleta', evento.target.value)}
+                      onFocus={scrollFocusedInputIntoView}
+                      onKeyDown={(evento) => aoPressionarEnterParaProximo(evento, () => focusNextField(emailRef))}
+                      required
+                    />
+                  </label>
+
+                  <label>
+                    Email (opcional)
+                    <input
+                      ref={emailRef}
+                      type="email"
+                      inputMode="email"
+                      autoComplete="email"
+                      enterKeyHint="done"
+                      value={formularioGrupoAtleta.email}
+                      placeholder="Opcional"
+                      onChange={(evento) => atualizarCampoGrupoAtleta('email', evento.target.value)}
+                      onFocus={scrollFocusedInputIntoView}
+                    />
+                    <EmailDomainSuggestions
+                      valor={formularioGrupoAtleta.email}
+                      onChange={(valor) => atualizarCampoGrupoAtleta('email', valor)}
+                      inputRef={emailRef}
+                    />
+                  </label>
+                </div>
+              )}
+
+              <div className="acoes-formulario grupo-atletas-acoes-principais">
+                <button type="submit" className="botao-primario" disabled={salvandoGrupoAtleta || !podeSubmeterAdicaoAtleta}>
+                  <FaUserPlus aria-hidden="true" />
+                  {salvandoGrupoAtleta
+                    ? 'Salvando...'
+                    : atletaSelecionadoBusca
+                      ? 'Adicionar atleta ao grupo'
+                      : 'Cadastrar e adicionar'}
                 </button>
               </div>
             </form>
