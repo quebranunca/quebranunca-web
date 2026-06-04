@@ -500,7 +500,7 @@ export function PaginaGrupos() {
         });
       }
 
-      limparFormulario();
+      limparFormularioSemConfirmacao();
       await carregarDados();
     } catch (error) {
       showNotification({

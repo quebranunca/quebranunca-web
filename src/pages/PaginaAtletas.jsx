@@ -51,6 +51,7 @@ export function PaginaAtletas() {
   const [carregando, setCarregando] = useState(true);
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState('');
+  const [erroEmail, setErroEmail] = useState('');
   const formularioRef = useRef(null);
   const emailRef = useRef(null);
 
@@ -88,12 +89,17 @@ export function PaginaAtletas() {
   }
 
   function atualizarCampo(campo, valor) {
+    if (campo === 'email') {
+      setErroEmail('');
+    }
+
     setFormulario((anterior) => ({ ...anterior, [campo]: valor }));
   }
 
   function iniciarEdicao(atleta) {
     setFormularioAberto(true);
     setAtletaEdicaoId(atleta.id);
+    setErroEmail('');
     setFormulario({
       nome: atleta.nome || '',
       apelido: atleta.apelido || '',
@@ -116,11 +122,13 @@ export function PaginaAtletas() {
     setFormularioAberto(false);
     setAtletaEdicaoId(null);
     setFormulario(estadoInicial);
+    setErroEmail('');
   }
 
   function abrirFormulario() {
     setAtletaEdicaoId(null);
     setFormulario(estadoInicial);
+    setErroEmail('');
     setFormularioAberto(true);
     setTimeout(() => rolarParaElemento(formularioRef.current), 0);
   }
@@ -163,6 +171,18 @@ export function PaginaAtletas() {
     };
 
     try {
+      const emailInformado = dados.email;
+      if (emailInformado) {
+        const disponibilidade = await atletasServico.verificarEmail(emailInformado, atletaEdicaoId);
+        if (!disponibilidade.disponivel) {
+          const mensagem = disponibilidade.mensagem || 'Já existe um atleta cadastrado com este e-mail.';
+          setErroEmail(mensagem);
+          setErro(mensagem);
+          emailRef.current?.focus();
+          return;
+        }
+      }
+
       if (atletaEdicaoId) {
         await atletasServico.atualizar(atletaEdicaoId, dados);
       } else {
@@ -269,6 +289,7 @@ export function PaginaAtletas() {
               onChange={(valor) => atualizarCampo('email', valor)}
               inputRef={emailRef}
             />
+            {erroEmail && <span className="texto-erro">{erroEmail}</span>}
           </label>
 
           <label>

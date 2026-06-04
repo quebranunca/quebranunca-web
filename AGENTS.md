@@ -26,6 +26,8 @@ Seguir o `AGENTS.md` da raiz. Neste diretório, além disso:
 - Partidas e treinos podem indicar Arena, mantendo válido o registro de partida avulsa sem Arena
 - `Inscrições` aceita dupla existente ou criação no fluxo a partir de `Jogador 1` e `Jogador 2`
 - `Meu Perfil` existe para qualquer usuário e concentra vínculo `Usuario` ↔ `Atleta`
+- `Meu Perfil` deve manter Perfil Esportivo separado de Medidas e Uniformes; arena principal deve usar seleção de Arena cadastrada, sem texto livre.
+- Medidas e Uniformes devem exibir apenas campos compatíveis com o sexo/gênero do atleta, usando selects e mantendo preenchimento opcional.
 - `Meu Perfil` também concentra preferências de privacidade; e-mail público, localização e imagem/foto devem respeitar as preferências retornadas pela API
 - `Meu Perfil` deve manter acessíveis as ações globais de atualizar o aplicativo e sair da conta.
 - Usuário comum (`Atleta`) não vincula atleta existente; cria apenas o próprio atleta com o mesmo nome e e-mail do usuário

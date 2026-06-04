@@ -42,6 +42,16 @@ export const atletasServico = {
     return resposta.status === 204 ? null : resposta.data;
   },
 
+  async verificarEmail(email, atletaIgnoradoId = null) {
+    const resposta = await http.get('/atletas/email/disponibilidade', {
+      params: {
+        email,
+        ...(atletaIgnoradoId ? { atletaIgnoradoId } : {})
+      }
+    });
+    return resposta.data;
+  },
+
   async criar(dados) {
     const resposta = await http.post('/atletas', dados);
     return resposta.data;
@@ -49,6 +59,11 @@ export const atletasServico = {
 
   async salvarMeu(dados) {
     const resposta = await http.put('/atletas/me', dados);
+    return resposta.data;
+  },
+
+  async salvarMinhasMedidas(dados) {
+    const resposta = await http.put('/atletas/me/medidas', dados);
     return resposta.data;
   },
 

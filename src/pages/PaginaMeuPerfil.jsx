@@ -20,6 +20,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { obterFotoPerfilAvatar } from '../components/AvatarUsuario';
 import { FotoPerfilUpload } from '../components/FotoPerfilUpload';
+import { arenaService } from '../services/arenaService';
 import { atletasServico } from '../services/atletasServico';
 import { dashboardServico } from '../services/dashboardServico';
 import { privacidadeServico } from '../services/privacidadeServico';
@@ -54,9 +55,24 @@ const estadoInicialAtleta = {
   cidade: '',
   estado: '',
   cadastroPendente: false,
+  sexo: '',
   nivel: '',
   lado: '3',
-  dataNascimento: ''
+  dataNascimento: '',
+  peDominante: '',
+  tempoPratica: '',
+  arenaPrincipalId: '',
+  arenaPrincipalNome: '',
+  objetivoAtual: ''
+};
+
+const estadoInicialMedidas = {
+  camiseta: '',
+  regata: '',
+  short: '',
+  sunga: '',
+  top: '',
+  biquini: ''
 };
 
 const abasPerfil = [
@@ -79,6 +95,36 @@ const preferenciasPrivacidadeIniciais = {
 const mensagemErroAcessoOrganizador =
   'O organizador só pode alterar atletas inscritos em competições vinculadas ao próprio usuário.';
 const dataMinimaNascimento = '1900-01-01';
+
+const opcoesSexoAtleta = [
+  { valor: 1, rotulo: 'Masculino' },
+  { valor: 2, rotulo: 'Feminino' }
+];
+
+const opcoesPeDominante = [
+  { valor: 1, rotulo: 'Direito' },
+  { valor: 2, rotulo: 'Esquerdo' },
+  { valor: 3, rotulo: 'Ambidestro' }
+];
+
+const opcoesTempoPratica = [
+  { valor: 1, rotulo: 'Menos de 1 ano' },
+  { valor: 2, rotulo: '1 a 3 anos' },
+  { valor: 3, rotulo: '3 a 5 anos' },
+  { valor: 4, rotulo: '5 a 10 anos' },
+  { valor: 5, rotulo: 'Mais de 10 anos' }
+];
+
+const opcoesObjetivoAtual = [
+  { valor: 1, rotulo: 'Diversão e lazer' },
+  { valor: 2, rotulo: 'Evoluir tecnicamente' },
+  { valor: 3, rotulo: 'Jogar mais partidas' },
+  { valor: 4, rotulo: 'Disputar campeonatos' },
+  { valor: 5, rotulo: 'Melhorar condicionamento físico' }
+];
+
+const tamanhosRoupa = ['PP', 'P', 'M', 'G', 'GG', 'XGG'];
+const tamanhosShort = ['36', '38', '40', '42', '44', '46', '48', '50'];
 
 function obterDataMaximaNascimento() {
   return new Date().toISOString().slice(0, 10);
@@ -124,6 +170,11 @@ function criarEstadoInicialAtleta(usuario) {
   };
 }
 
+function obterRotuloOpcao(opcoes, valor, fallback = 'Não informado') {
+  const opcao = opcoes.find((item) => String(item.valor) === String(valor));
+  return opcao?.rotulo || fallback;
+}
+
 function obterMensagemErroPerfil(error) {
   const mensagem = extrairMensagemErro(error);
   if (mensagem === mensagemErroAcessoOrganizador) {
@@ -150,7 +201,8 @@ function criarResumoAtleta(atleta) {
     bairro: atleta.bairro,
     cidade: atleta.cidade,
     estado: atleta.estado,
-    nivel: atleta.nivel
+    nivel: atleta.nivel,
+    sexo: atleta.sexo
   };
 }
 
@@ -175,6 +227,28 @@ function obterRotuloLado(valor) {
   };
 
   return lados[String(valor)] || 'Ambos';
+}
+
+function criarEstadoMedidas(medidas) {
+  return {
+    camiseta: medidas?.camiseta || '',
+    regata: medidas?.regata || '',
+    short: medidas?.short || '',
+    sunga: medidas?.sunga || '',
+    top: medidas?.top || '',
+    biquini: medidas?.biquini || ''
+  };
+}
+
+function normalizarMedidasParaSexo(medidas, sexo) {
+  return {
+    camiseta: medidas.camiseta || null,
+    regata: medidas.regata || null,
+    short: medidas.short || null,
+    sunga: Number(sexo) === 1 ? (medidas.sunga || null) : null,
+    top: Number(sexo) === 2 ? (medidas.top || null) : null,
+    biquini: Number(sexo) === 2 ? (medidas.biquini || null) : null
+  };
 }
 
 function obterLocalizacaoCompacta(atleta) {
@@ -250,17 +324,22 @@ export function PaginaMeuPerfil() {
   const [usuarioDetalhe, setUsuarioDetalhe] = useState(null);
   const [formularioUsuario, setFormularioUsuario] = useState({ nome: '' });
   const [formularioAtleta, setFormularioAtleta] = useState(estadoInicialAtleta);
+  const [formularioMedidas, setFormularioMedidas] = useState(estadoInicialMedidas);
   const [dashboardAtleta, setDashboardAtleta] = useState(null);
   const [abaAtiva, setAbaAtiva] = useState('resumo');
   const [editandoPerfil, setEditandoPerfil] = useState(false);
   const [carregando, setCarregando] = useState(true);
   const [salvandoUsuario, setSalvandoUsuario] = useState(false);
   const [salvandoAtleta, setSalvandoAtleta] = useState(false);
+  const [salvandoMedidas, setSalvandoMedidas] = useState(false);
   const [salvandoPrivacidade, setSalvandoPrivacidade] = useState(false);
   const [excluindoPerfil, setExcluindoPerfil] = useState(false);
   const [preferenciasPrivacidade, setPreferenciasPrivacidade] = useState(preferenciasPrivacidadeIniciais);
   const [cidadesEstado, setCidadesEstado] = useState([]);
   const [carregandoCidades, setCarregandoCidades] = useState(false);
+  const [arenasPerfil, setArenasPerfil] = useState([]);
+  const [termoArenaPerfil, setTermoArenaPerfil] = useState('');
+  const [carregandoArenasPerfil, setCarregandoArenasPerfil] = useState(false);
   const [erro, setErro] = useState('');
   const [mensagem, setMensagem] = useState('');
   const emailUsuarioPerfil = usuarioDetalhe?.email || usuario?.email || '';
@@ -300,6 +379,42 @@ export function PaginaMeuPerfil() {
     };
   }, [formularioAtleta.estado]);
 
+  useEffect(() => {
+    const termo = termoArenaPerfil.trim();
+    if (termo.length < 2) {
+      setArenasPerfil([]);
+      return;
+    }
+
+    let ativo = true;
+    setCarregandoArenasPerfil(true);
+
+    arenaService.listarArenas({ termoBusca: termo })
+      .then((lista) => {
+        if (ativo) {
+          setArenasPerfil(Array.isArray(lista) ? lista.slice(0, 8) : []);
+        }
+      })
+      .catch(() => {
+        if (ativo) {
+          setArenasPerfil([]);
+        }
+      })
+      .finally(() => {
+        if (ativo) {
+          setCarregandoArenasPerfil(false);
+        }
+      });
+
+    return () => {
+      ativo = false;
+    };
+  }, [termoArenaPerfil]);
+
+  useEffect(() => {
+    setFormularioMedidas((anterior) => normalizarMedidasParaSexo(anterior, formularioAtleta.sexo));
+  }, [formularioAtleta.sexo]);
+
   async function carregarPerfil() {
     setCarregando(true);
     setErro('');
@@ -310,6 +425,7 @@ export function PaginaMeuPerfil() {
       if (!usuario) {
         setUsuarioDetalhe(null);
         setFormularioAtleta(estadoInicialAtleta);
+        setFormularioMedidas(estadoInicialMedidas);
         return;
       }
 
@@ -322,6 +438,7 @@ export function PaginaMeuPerfil() {
         const atleta = await atletasServico.obterMeu();
         if (atleta) {
           preencherFormularioAtleta(atleta, dadosUsuario);
+          setFormularioMedidas(criarEstadoMedidas(atleta.medidas));
           proximoUsuarioDetalhe = {
             ...dadosUsuario,
             atleta: criarResumoAtleta(atleta)
@@ -335,10 +452,12 @@ export function PaginaMeuPerfil() {
 
           atualizarUsuarioLocal(proximoUsuarioDetalhe);
           setFormularioAtleta(criarEstadoInicialAtleta(dadosUsuario));
+          setFormularioMedidas(estadoInicialMedidas);
           setErro('Atleta vinculado não encontrado. Você pode criar novamente seu atleta pelo perfil.');
         }
       } else {
         setFormularioAtleta(criarEstadoInicialAtleta(dadosUsuario));
+        setFormularioMedidas(estadoInicialMedidas);
       }
 
       setUsuarioDetalhe(proximoUsuarioDetalhe);
@@ -389,10 +508,17 @@ export function PaginaMeuPerfil() {
       cidade: atleta.cidade || '',
       estado: normalizarEstadoParaUf(atleta.estado || ''),
       cadastroPendente: Boolean(atleta.cadastroPendente),
+      sexo: atleta.sexo ? String(atleta.sexo) : '',
       nivel: atleta.nivel ? String(atleta.nivel) : '',
       lado: String(atleta.lado || 3),
-      dataNascimento: paraInputData(atleta.dataNascimento)
+      dataNascimento: paraInputData(atleta.dataNascimento),
+      peDominante: atleta.peDominante ? String(atleta.peDominante) : '',
+      tempoPratica: atleta.tempoPratica ? String(atleta.tempoPratica) : '',
+      arenaPrincipalId: atleta.arenaPrincipalId || '',
+      arenaPrincipalNome: atleta.arenaPrincipalNome || '',
+      objetivoAtual: atleta.objetivoAtual ? String(atleta.objetivoAtual) : ''
     });
+    setTermoArenaPerfil(atleta.arenaPrincipalNome || '');
   }
 
   function atualizarCampoAtleta(campo, valor) {
@@ -416,6 +542,42 @@ export function PaginaMeuPerfil() {
     }
 
     setFormularioAtleta((anterior) => ({ ...anterior, [campo]: valor }));
+  }
+
+  function atualizarBuscaArenaPrincipal(valor) {
+    setTermoArenaPerfil(valor);
+    setFormularioAtleta((anterior) => ({
+      ...anterior,
+      arenaPrincipalNome: valor,
+      arenaPrincipalId: valor === anterior.arenaPrincipalNome ? anterior.arenaPrincipalId : ''
+    }));
+  }
+
+  function selecionarArenaPrincipal(arena) {
+    setTermoArenaPerfil(arena?.nome || '');
+    setFormularioAtleta((anterior) => ({
+      ...anterior,
+      arenaPrincipalId: arena?.id || '',
+      arenaPrincipalNome: arena?.nome || ''
+    }));
+    setArenasPerfil([]);
+  }
+
+  function limparArenaPrincipal() {
+    setTermoArenaPerfil('');
+    setArenasPerfil([]);
+    setFormularioAtleta((anterior) => ({
+      ...anterior,
+      arenaPrincipalId: '',
+      arenaPrincipalNome: ''
+    }));
+  }
+
+  function atualizarCampoMedida(campo, valor) {
+    setFormularioMedidas((anterior) => ({
+      ...anterior,
+      [campo]: valor
+    }));
   }
 
   async function salvarUsuario(evento) {
@@ -489,6 +651,24 @@ export function PaginaMeuPerfil() {
       return;
     }
 
+    if (!formularioAtleta.peDominante || !formularioAtleta.tempoPratica || !formularioAtleta.objetivoAtual) {
+      showNotification({
+        type: 'warning',
+        title: 'Perfil esportivo incompleto',
+        message: 'Informe pé dominante, tempo de prática e objetivo atual.'
+      });
+      return;
+    }
+
+    if (formularioAtleta.arenaPrincipalNome && !formularioAtleta.arenaPrincipalId) {
+      showNotification({
+        type: 'warning',
+        title: 'Arena principal inválida',
+        message: 'Selecione uma arena cadastrada ou limpe o campo.'
+      });
+      return;
+    }
+
     setSalvandoAtleta(true);
     setErro('');
     setMensagem('');
@@ -504,13 +684,36 @@ export function PaginaMeuPerfil() {
       cidade: formularioAtleta.cidade.trim() || null,
       estado: normalizarEstadoParaUf(formularioAtleta.estado.trim()) || null,
       cadastroPendente: Boolean(formularioAtleta.cadastroPendente),
+      sexo: formularioAtleta.sexo ? Number(formularioAtleta.sexo) : null,
       nivel: formularioAtleta.nivel ? Number(formularioAtleta.nivel) : null,
       lado: Number(formularioAtleta.lado),
-      dataNascimento: normalizarDataParaApi(formularioAtleta.dataNascimento)
+      dataNascimento: normalizarDataParaApi(formularioAtleta.dataNascimento),
+      peDominante: Number(formularioAtleta.peDominante),
+      tempoPratica: Number(formularioAtleta.tempoPratica),
+      arenaPrincipalId: formularioAtleta.arenaPrincipalId || null,
+      objetivoAtual: Number(formularioAtleta.objetivoAtual)
     };
 
     try {
-      const atleta = await atletasServico.salvarMeu(dados);
+      if (emailUsuarioPerfil) {
+        const disponibilidade = await atletasServico.verificarEmail(emailUsuarioPerfil, usuarioDetalhe?.atletaId || null);
+        if (!disponibilidade.disponivel) {
+          const mensagem = disponibilidade.mensagem || 'Já existe um atleta cadastrado com este e-mail.';
+          setErro(mensagem);
+          showNotification({
+            type: 'error',
+            title: 'Erro ao salvar atleta',
+            message: mensagem
+          });
+          return;
+        }
+      }
+
+      const atletaResposta = await atletasServico.salvarMeu(dados);
+      const atleta = {
+        ...atletaResposta,
+        arenaPrincipalNome: atletaResposta.arenaPrincipalNome || formularioAtleta.arenaPrincipalNome
+      };
       const possuiAtletaAnterior = Boolean(usuarioDetalhe?.atletaId);
       const usuarioAtualEhAtleta = Number(usuarioDetalhe?.perfil || usuario?.perfil) === PERFIS_USUARIO.atleta;
       const proximoUsuario = {
@@ -579,6 +782,39 @@ export function PaginaMeuPerfil() {
       });
     } finally {
       setExcluindoPerfil(false);
+    }
+  }
+
+  async function salvarMedidas(evento) {
+    evento?.preventDefault();
+    if (!possuiAtleta) {
+      showNotification({
+        type: 'warning',
+        title: 'Atleta não criado',
+        message: 'Crie seu atleta antes de informar medidas.'
+      });
+      return;
+    }
+
+    setSalvandoMedidas(true);
+    try {
+      const medidas = await atletasServico.salvarMinhasMedidas(
+        normalizarMedidasParaSexo(formularioMedidas, formularioAtleta.sexo)
+      );
+      setFormularioMedidas(criarEstadoMedidas(medidas));
+      showNotification({
+        type: 'success',
+        title: 'Medidas salvas',
+        message: 'Medidas e uniformes atualizados com sucesso.'
+      });
+    } catch (error) {
+      showNotification({
+        type: 'error',
+        title: 'Erro ao salvar medidas',
+        message: extrairMensagemErro(error)
+      });
+    } finally {
+      setSalvandoMedidas(false);
     }
   }
 
@@ -860,7 +1096,8 @@ export function PaginaMeuPerfil() {
         )}
 
         {abaAtiva === 'perfil' && (
-          <form className="perfil-tab-fade" onSubmit={salvarAtleta}>
+          <div className="perfil-tab-fade perfil-perfil-stack">
+          <form onSubmit={salvarAtleta}>
             <div className="perfil-secao-titulo">
               <div>
                 <span>Dados esportivos</span>
@@ -879,6 +1116,7 @@ export function PaginaMeuPerfil() {
                 <InfoItem rotulo="Apelido" valor={formularioAtleta.apelido} />
                 <InfoItem rotulo="Nascimento" valor={formularioAtleta.dataNascimento ? formatarData(formularioAtleta.dataNascimento) : ''} />
                 <InfoItem rotulo="CPF" valor={formularioAtleta.cpf} />
+                <InfoItem rotulo="Sexo/gênero" valor={obterRotuloOpcao(opcoesSexoAtleta, formularioAtleta.sexo)} />
                 <InfoItem rotulo="Lado preferido" valor={obterRotuloLado(formularioAtleta.lado)} />
                 <InfoItem rotulo="Nível" valor={obterRotuloNivel(formularioAtleta.nivel)} />
               </div>
@@ -931,6 +1169,21 @@ export function PaginaMeuPerfil() {
                   />
                 </CampoEdicao>
 
+                <CampoEdicao label="Sexo/gênero">
+                  <select
+                    value={formularioAtleta.sexo}
+                    onChange={(evento) => atualizarCampoAtleta('sexo', evento.target.value)}
+                    onFocus={scrollFocusedInputIntoView}
+                  >
+                    <option value="">Selecione</option>
+                    {opcoesSexoAtleta.map((opcao) => (
+                      <option key={opcao.valor} value={opcao.valor}>
+                        {opcao.rotulo}
+                      </option>
+                    ))}
+                  </select>
+                </CampoEdicao>
+
                 <CampoEdicao label="Lado">
                   <select
                     value={formularioAtleta.lado}
@@ -970,7 +1223,205 @@ export function PaginaMeuPerfil() {
                 </div>
               </div>
             )}
+
+            <div className="perfil-subsecao">
+              <div className="perfil-secao-titulo">
+                <div>
+                  <span>Perfil Esportivo</span>
+                  <h2>Preferências de jogo</h2>
+                </div>
+              </div>
+
+              {!editandoPerfil ? (
+                <div className="perfil-info-grid">
+                  <InfoItem rotulo="Pé dominante" valor={obterRotuloOpcao(opcoesPeDominante, formularioAtleta.peDominante)} />
+                  <InfoItem rotulo="Tempo de prática" valor={obterRotuloOpcao(opcoesTempoPratica, formularioAtleta.tempoPratica)} />
+                  <InfoItem rotulo="Arena principal" valor={formularioAtleta.arenaPrincipalNome} />
+                  <InfoItem rotulo="Objetivo atual" valor={obterRotuloOpcao(opcoesObjetivoAtual, formularioAtleta.objetivoAtual)} />
+                </div>
+              ) : (
+                <div className="perfil-edicao-grid">
+                  <CampoEdicao label="Pé dominante">
+                    <select
+                      value={formularioAtleta.peDominante}
+                      onChange={(evento) => atualizarCampoAtleta('peDominante', evento.target.value)}
+                      onFocus={scrollFocusedInputIntoView}
+                      required
+                    >
+                      <option value="">Selecione</option>
+                      {opcoesPeDominante.map((opcao) => (
+                        <option key={opcao.valor} value={opcao.valor}>
+                          {opcao.rotulo}
+                        </option>
+                      ))}
+                    </select>
+                  </CampoEdicao>
+
+                  <CampoEdicao label="Tempo de prática">
+                    <select
+                      value={formularioAtleta.tempoPratica}
+                      onChange={(evento) => atualizarCampoAtleta('tempoPratica', evento.target.value)}
+                      onFocus={scrollFocusedInputIntoView}
+                      required
+                    >
+                      <option value="">Selecione</option>
+                      {opcoesTempoPratica.map((opcao) => (
+                        <option key={opcao.valor} value={opcao.valor}>
+                          {opcao.rotulo}
+                        </option>
+                      ))}
+                    </select>
+                  </CampoEdicao>
+
+                  <CampoEdicao label="Arena principal" largo>
+                    <div className="perfil-autocomplete">
+                      <input
+                        type="text"
+                        value={termoArenaPerfil}
+                        onChange={(evento) => atualizarBuscaArenaPrincipal(evento.target.value)}
+                        onFocus={scrollFocusedInputIntoView}
+                        autoComplete="off"
+                        placeholder="Busque uma arena cadastrada"
+                      />
+                      {formularioAtleta.arenaPrincipalId && (
+                        <button type="button" className="botao-secundario compacto" onClick={limparArenaPrincipal}>
+                          Limpar
+                        </button>
+                      )}
+                    </div>
+                    {carregandoArenasPerfil && <small>Buscando arenas...</small>}
+                    {!formularioAtleta.arenaPrincipalId && arenasPerfil.length > 0 && (
+                      <div className="perfil-autocomplete-lista">
+                        {arenasPerfil.map((arena) => (
+                          <button key={arena.id} type="button" onClick={() => selecionarArenaPrincipal(arena)}>
+                            <strong>{arena.nome}</strong>
+                            <small>{[arena.cidade, arena.estado].filter(Boolean).join(' • ') || 'Arena cadastrada'}</small>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    {formularioAtleta.arenaPrincipalNome && !formularioAtleta.arenaPrincipalId && (
+                      <small>Selecione uma arena da lista ou limpe o campo.</small>
+                    )}
+                  </CampoEdicao>
+
+                  <CampoEdicao label="Objetivo atual" largo>
+                    <select
+                      value={formularioAtleta.objetivoAtual}
+                      onChange={(evento) => atualizarCampoAtleta('objetivoAtual', evento.target.value)}
+                      onFocus={scrollFocusedInputIntoView}
+                      required
+                    >
+                      <option value="">Selecione</option>
+                      {opcoesObjetivoAtual.map((opcao) => (
+                        <option key={opcao.valor} value={opcao.valor}>
+                          {opcao.rotulo}
+                        </option>
+                      ))}
+                    </select>
+                  </CampoEdicao>
+                </div>
+              )}
+            </div>
           </form>
+          <form className="perfil-subsecao" onSubmit={salvarMedidas}>
+            <div className="perfil-secao-titulo">
+              <div>
+                <span>Medidas e Uniformes</span>
+                <h2>Tamanhos do atleta</h2>
+                <p className="perfil-texto-auxiliar">
+                  Essas informações ajudam em campeonatos, eventos, uniformes e ações da QNF.
+                </p>
+              </div>
+            </div>
+
+            <div className="perfil-edicao-grid">
+              <CampoEdicao label="Camiseta">
+                <select
+                  value={formularioMedidas.camiseta}
+                  onChange={(evento) => atualizarCampoMedida('camiseta', evento.target.value)}
+                  disabled={!possuiAtleta}
+                >
+                  <option value="">Não informado</option>
+                  {tamanhosRoupa.map((tamanho) => <option key={tamanho} value={tamanho}>{tamanho}</option>)}
+                </select>
+              </CampoEdicao>
+
+              <CampoEdicao label="Regata">
+                <select
+                  value={formularioMedidas.regata}
+                  onChange={(evento) => atualizarCampoMedida('regata', evento.target.value)}
+                  disabled={!possuiAtleta}
+                >
+                  <option value="">Não informado</option>
+                  {tamanhosRoupa.map((tamanho) => <option key={tamanho} value={tamanho}>{tamanho}</option>)}
+                </select>
+              </CampoEdicao>
+
+              <CampoEdicao label="Short">
+                <select
+                  value={formularioMedidas.short}
+                  onChange={(evento) => atualizarCampoMedida('short', evento.target.value)}
+                  disabled={!possuiAtleta}
+                >
+                  <option value="">Não informado</option>
+                  {tamanhosShort.map((tamanho) => <option key={tamanho} value={tamanho}>{tamanho}</option>)}
+                </select>
+              </CampoEdicao>
+
+              {Number(formularioAtleta.sexo) === 1 && (
+                <CampoEdicao label="Sunga">
+                  <select
+                    value={formularioMedidas.sunga}
+                    onChange={(evento) => atualizarCampoMedida('sunga', evento.target.value)}
+                    disabled={!possuiAtleta}
+                  >
+                    <option value="">Não informado</option>
+                    {tamanhosRoupa.map((tamanho) => <option key={tamanho} value={tamanho}>{tamanho}</option>)}
+                  </select>
+                </CampoEdicao>
+              )}
+
+              {Number(formularioAtleta.sexo) === 2 && (
+                <>
+                  <CampoEdicao label="Top">
+                    <select
+                      value={formularioMedidas.top}
+                      onChange={(evento) => atualizarCampoMedida('top', evento.target.value)}
+                      disabled={!possuiAtleta}
+                    >
+                      <option value="">Não informado</option>
+                      {tamanhosRoupa.map((tamanho) => <option key={tamanho} value={tamanho}>{tamanho}</option>)}
+                    </select>
+                  </CampoEdicao>
+
+                  <CampoEdicao label="Biquíni">
+                    <select
+                      value={formularioMedidas.biquini}
+                      onChange={(evento) => atualizarCampoMedida('biquini', evento.target.value)}
+                      disabled={!possuiAtleta}
+                    >
+                      <option value="">Não informado</option>
+                      {tamanhosRoupa.map((tamanho) => <option key={tamanho} value={tamanho}>{tamanho}</option>)}
+                    </select>
+                  </CampoEdicao>
+                </>
+              )}
+
+              {!formularioAtleta.sexo && (
+                <p className="perfil-texto-auxiliar perfil-campo-largo">
+                  Informe o sexo/gênero no perfil do atleta para exibir os campos específicos de uniforme.
+                </p>
+              )}
+            </div>
+
+            <div className="perfil-acoes-edicao">
+              <button type="submit" className="botao-primario" disabled={salvandoMedidas || !possuiAtleta}>
+                {salvandoMedidas ? 'Salvando...' : 'Salvar medidas'}
+              </button>
+            </div>
+          </form>
+          </div>
         )}
 
         {abaAtiva === 'contato' && (
