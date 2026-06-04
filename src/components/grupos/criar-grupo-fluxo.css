@@ -29,7 +29,7 @@ body.criar-grupo-wizard-aberto .layout-com-bottom-nav {
 .criar-grupo-modal {
   position: relative;
   width: min(100%, 560px);
-  height: min(100%, calc(100dvh - 1.5rem));
+  height: min(100%, calc(var(--criar-grupo-viewport-height, 100dvh) - 1.5rem));
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -126,6 +126,11 @@ body.criar-grupo-wizard-aberto .layout-com-bottom-nav {
   background: linear-gradient(90deg, rgba(255, 179, 0, 0.95), rgba(255, 222, 116, 0.88));
 }
 
+.criar-grupo-modal[data-teclado-aberto="true"] .criar-grupo-header {
+  padding-top: calc(env(safe-area-inset-top, 0px) + 0.55rem);
+  padding-bottom: 0.55rem;
+}
+
 .criar-grupo-corpo {
   min-height: 0;
   flex: 1;
@@ -136,6 +141,7 @@ body.criar-grupo-wizard-aberto .layout-com-bottom-nav {
   scroll-behavior: smooth;
   touch-action: pan-y;
   overscroll-behavior: contain;
+  scroll-padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px));
 }
 
 .criar-grupo-etapa {
@@ -224,8 +230,7 @@ body.criar-grupo-wizard-aberto .layout-com-bottom-nav {
   font-weight: 800;
 }
 
-.criar-grupo-campo input,
-.criar-grupo-campo textarea {
+.criar-grupo-campo input {
   width: 100%;
   border: 1px solid rgba(255, 255, 255, 0.13);
   border-radius: 0.85rem;
@@ -237,16 +242,11 @@ body.criar-grupo-wizard-aberto .layout-com-bottom-nav {
   transition: all 0.15s ease;
 }
 
-.criar-grupo-campo input:focus,
-.criar-grupo-campo textarea:focus {
+.criar-grupo-campo input:focus {
   outline: none;
   border-color: rgba(255, 179, 0, 0.4);
   background: rgba(255, 255, 255, 0.075);
   box-shadow: 0 0 0 2px rgba(255, 179, 0, 0.1);
-}
-
-.criar-grupo-campo textarea {
-  resize: vertical;
 }
 
 .criar-grupo-contador {
@@ -366,9 +366,27 @@ body.criar-grupo-wizard-aberto .layout-com-bottom-nav {
   gap: 0.7rem;
 }
 
+.criar-grupo-visibilidade,
+.criar-grupo-dias {
+  min-width: 0;
+  display: grid;
+  gap: 0.7rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.criar-grupo-visibilidade legend,
+.criar-grupo-dias legend {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.82rem;
+  font-weight: 850;
+}
+
 .criar-grupo-opcao {
   display: grid;
-  grid-template-columns: 2.6rem 1fr;
+  grid-template-columns: 1fr;
   align-items: center;
   gap: 0.75rem;
   padding: 0.9rem;
@@ -389,6 +407,7 @@ body.criar-grupo-wizard-aberto .layout-com-bottom-nav {
 .criar-grupo-opcao.selecionada {
   border-color: rgba(255, 179, 0, 0.58);
   background: rgba(255, 179, 0, 0.1);
+  box-shadow: 0 0 0 2px rgba(255, 179, 0, 0.1);
 }
 
 .criar-grupo-opcao svg {
@@ -410,6 +429,30 @@ body.criar-grupo-wizard-aberto .layout-com-bottom-nav {
   color: var(--color-text-secondary);
   font-size: 0.82rem;
   line-height: 1.45;
+}
+
+.criar-grupo-dias > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.criar-grupo-dias button {
+  min-height: 2.35rem;
+  padding: 0.5rem 0.78rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--color-text-primary);
+  font-size: 0.82rem;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.criar-grupo-dias button.selecionado {
+  border-color: rgba(255, 179, 0, 0.62);
+  background: rgba(255, 179, 0, 0.13);
+  color: var(--color-primary);
 }
 
 .criar-grupo-acoes {
@@ -605,8 +648,8 @@ body.criar-grupo-wizard-aberto .layout-com-bottom-nav {
 
   .criar-grupo-modal {
     width: 100%;
-    height: 100dvh;
-    max-height: 100dvh;
+    height: var(--criar-grupo-viewport-height, 100dvh);
+    max-height: var(--criar-grupo-viewport-height, 100dvh);
     border: 0;
     border-radius: 0;
   }
@@ -629,6 +672,10 @@ body.criar-grupo-wizard-aberto .layout-com-bottom-nav {
   .criar-grupo-corpo {
     padding-bottom: calc(1.35rem + env(safe-area-inset-bottom, 0px));
   }
+
+  .criar-grupo-modal[data-teclado-aberto="true"] .criar-grupo-corpo {
+    padding-bottom: calc(0.9rem + env(safe-area-inset-bottom, 0px));
+  }
 }
 
 /* Mobile e acessibilidade */
@@ -649,8 +696,7 @@ body.criar-grupo-wizard-aberto .layout-com-bottom-nav {
 }
 
 /* Melhorar foco em inputs mobile */
-input[type="text"]:focus,
-textarea:focus {
+input[type="text"]:focus {
   font-size: 16px;
 }
 

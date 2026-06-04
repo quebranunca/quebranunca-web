@@ -18,7 +18,9 @@ import { PERFIS_USUARIO, ehAtleta } from '../utils/perfis';
 const estadoInicial = {
   nome: '',
   privacidade: 'Privado',
-  imagemUrl: ''
+  imagemUrl: '',
+  localPrincipal: '',
+  diasDaSemana: []
 };
 
 const tamanhoMaximoImagemGrupoBytes = 2 * 1024 * 1024;
@@ -26,15 +28,17 @@ const tamanhoMaximoImagemGrupoBytes = 2 * 1024 * 1024;
 const opcoesPrivacidade = [
   {
     valor: 'Público',
-    titulo: 'Público',
-    descricao: 'Permite encontrar o grupo e registrar partidas com atletas de fora conforme as regras atuais.'
+    titulo: '🌎 Público',
+    descricao: 'Qualquer atleta pode encontrar e solicitar participação.'
   },
   {
     valor: 'Privado',
-    titulo: 'Privado',
-    descricao: 'Mantém o grupo restrito aos atletas já vinculados ao grupo.'
+    titulo: '🔒 Privado',
+    descricao: 'Somente convidados podem participar.'
   }
 ];
+
+const diasSemana = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
 
 const dashboardVazio = {
   totais: {
@@ -149,18 +153,22 @@ export function PaginaGrupos() {
   const [previewImagemGrupo, setPreviewImagemGrupo] = useState('');
   const [removerImagemGrupo, setRemoverImagemGrupo] = useState(false);
   const inputImagemGrupoRef = useRef(null);
+  const modalEdicaoRef = useRef(null);
   const nomeNormalizado = normalizarNome(formulario.nome);
+  const localPrincipalNormalizado = normalizarNome(formulario.localPrincipal);
   const temDadosAlterados = grupoEdicaoId ? (
     nomeNormalizado !== normalizarNome(formularioOriginal.nome) ||
     formulario.privacidade !== formularioOriginal.privacidade ||
+    localPrincipalNormalizado !== normalizarNome(formularioOriginal.localPrincipal) ||
+    JSON.stringify(formulario.diasDaSemana || []) !== JSON.stringify(formularioOriginal.diasDaSemana || []) ||
     Boolean(arquivoImagemGrupo || previewImagemGrupo)
     || removerImagemGrupo
   ) : (
-    nomeNormalizado !== '' && (
-      formulario.nome !== estadoInicial.nome ||
-      formulario.privacidade !== estadoInicial.privacidade ||
-      Boolean(arquivoImagemGrupo || previewImagemGrupo)
-    )
+    nomeNormalizado !== '' ||
+    formulario.privacidade !== estadoInicial.privacidade ||
+    localPrincipalNormalizado !== estadoInicial.localPrincipal ||
+    formulario.diasDaSemana.length > 0 ||
+    Boolean(arquivoImagemGrupo || previewImagemGrupo)
   );
 
   const gruposOrdenados = useMemo(
@@ -187,6 +195,49 @@ export function PaginaGrupos() {
     return () => {
       document.documentElement.classList.remove('grupos-edicao-modal-aberto');
       document.body.classList.remove('grupos-edicao-modal-aberto');
+    };
+  }, [formularioAberto]);
+
+  useEffect(() => {
+    if (!formularioAberto) {
+      return undefined;
+    }
+
+    const viewport = window.visualViewport;
+    const modal = modalEdicaoRef.current;
+    let rafId = 0;
+
+    function atualizarViewport() {
+      if (!modal) {
+        return;
+      }
+
+      window.cancelAnimationFrame(rafId);
+      rafId = window.requestAnimationFrame(() => {
+        const altura = viewport?.height || window.innerHeight;
+        const offset = viewport
+          ? Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop)
+          : 0;
+        const tecladoAberto = offset > 90 || (document.activeElement instanceof HTMLElement && window.innerHeight - altura > 120);
+        modal.style.setProperty('--grupos-edicao-viewport-height', `${Math.round(altura)}px`);
+        modal.dataset.tecladoAberto = tecladoAberto ? 'true' : 'false';
+      });
+    }
+
+    atualizarViewport();
+    viewport?.addEventListener('resize', atualizarViewport);
+    viewport?.addEventListener('scroll', atualizarViewport);
+    window.addEventListener('orientationchange', atualizarViewport);
+    document.addEventListener('focusin', atualizarViewport);
+    document.addEventListener('focusout', atualizarViewport);
+
+    return () => {
+      window.cancelAnimationFrame(rafId);
+      viewport?.removeEventListener('resize', atualizarViewport);
+      viewport?.removeEventListener('scroll', atualizarViewport);
+      window.removeEventListener('orientationchange', atualizarViewport);
+      document.removeEventListener('focusin', atualizarViewport);
+      document.removeEventListener('focusout', atualizarViewport);
     };
   }, [formularioAberto]);
 
@@ -222,6 +273,19 @@ export function PaginaGrupos() {
     setFormulario((anterior) => ({ ...anterior, [campo]: valor }));
   }
 
+  function alternarDiaSemana(dia) {
+    setFormulario((anterior) => {
+      const diasAtuais = Array.isArray(anterior.diasDaSemana) ? anterior.diasDaSemana : [];
+      const selecionado = diasAtuais.includes(dia);
+      return {
+        ...anterior,
+        diasDaSemana: selecionado
+          ? diasAtuais.filter((item) => item !== dia)
+          : diasSemana.filter((item) => [...diasAtuais, dia].includes(item))
+      };
+    });
+  }
+
   useEffect(() => {
     return () => {
       if (previewImagemGrupo) {
@@ -255,7 +319,9 @@ export function PaginaGrupos() {
       const dadosFormulario = {
         nome: dadosGrupo.nome || '',
         privacidade: dadosGrupo.privacidade === 'Público' ? 'Público' : 'Privado',
-        imagemUrl: dadosGrupo.imagemUrl || ''
+        imagemUrl: dadosGrupo.imagemUrl || '',
+        localPrincipal: dadosGrupo.localPrincipal || '',
+        diasDaSemana: Array.isArray(dadosGrupo.diasDaSemana) ? dadosGrupo.diasDaSemana : []
       };
       setFormulario(dadosFormulario);
       setFormularioOriginal(dadosFormulario);
@@ -377,7 +443,9 @@ export function PaginaGrupos() {
 
       const dados = {
         nome,
-        publico: formulario.privacidade === 'Público'
+        publico: formulario.privacidade === 'Público',
+        localPrincipal: localPrincipalNormalizado || null,
+        diasDaSemana: formulario.diasDaSemana
       };
 
       if (grupoEdicaoId) {
@@ -492,6 +560,7 @@ export function PaginaGrupos() {
         <div className="modal-sobreposicao grupos-edicao-sobreposicao" role="presentation" onClick={limparFormulario}>
           <article
             className="modal-conteudo grupos-edicao-modal"
+            ref={modalEdicaoRef}
             role="dialog"
             aria-modal="true"
             aria-labelledby="grupos-edicao-titulo"
@@ -566,7 +635,7 @@ export function PaginaGrupos() {
               </label>
 
               <fieldset className="grupos-edicao-visibilidade">
-                <legend>Visibilidade</legend>
+                <legend>Quem pode encontrar este grupo?</legend>
                 <div>
                   {opcoesPrivacidade.map((opcao) => {
                     const selecionada = formulario.privacidade === opcao.valor;
@@ -581,6 +650,38 @@ export function PaginaGrupos() {
                       >
                         <strong>{opcao.titulo}</strong>
                         <span>{opcao.descricao}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </fieldset>
+
+              <label className="grupos-edicao-campo">
+                <span>Local principal</span>
+                <input
+                  value={formulario.localPrincipal}
+                  onChange={(evento) => atualizarCampo('localPrincipal', evento.target.value)}
+                  onBlur={(evento) => atualizarCampo('localPrincipal', normalizarNome(evento.target.value))}
+                  placeholder="Ex.: Praia do Forte"
+                  maxLength="200"
+                />
+              </label>
+
+              <fieldset className="grupos-edicao-dias">
+                <legend>Quando o grupo normalmente joga?</legend>
+                <div>
+                  {diasSemana.map((dia) => {
+                    const selecionado = formulario.diasDaSemana.includes(dia);
+
+                    return (
+                      <button
+                        type="button"
+                        key={dia}
+                        className={selecionado ? 'selecionado' : undefined}
+                        onClick={() => alternarDiaSemana(dia)}
+                        aria-pressed={selecionado}
+                      >
+                        {dia}
                       </button>
                     );
                   })}

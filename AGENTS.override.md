@@ -20,6 +20,7 @@
 - Autocomplete no registro de partidas só deve consultar sugestões da competição quando houver competição selecionada e termo com ao menos 3 caracteres; sem competição, preservar o fluxo atual
 - Sugestões rápidas no registro de partidas devem ser chips discretos abaixo dos inputs, carregadas uma vez por contexto, sem bloquear digitação e sem repetir atletas já preenchidos.
 - Em wizards mobile, conteúdo importante não deve ficar escondido por header, stepper, footer, teclado ou barras fixas; ajustar scroll e espaçamento antes de adicionar novos blocos. Padrão do wizard: header fixo com voltar/fechar, corpo com scroll e footer sticky. Botão fechar com dados preenchidos deve pedir confirmação via modal. Preview de entrada deve atualizar em tempo real. Validação do botão continuar deve ser clara (desabilitado se campo obrigatório vazio). Footer deve ter 2 colunas (Cancelar + Continuar/Salvar) ou 1 coluna na etapa final de sucesso.
+- Formulários mobile devem garantir campo focado e ações principais visíveis com teclado aberto, respeitando safe-area e sem sobreposição da bottom navigation.
 - Modos alternativos com duas opções, como placar detalhado e apenas vencedor, devem usar segmented control com estado ativo claro.
 - Cards clicáveis de atleta ou dupla devem reutilizar avatar centralizado, ter área inteira clicável e estado selecionado evidente.
 - Banner rotativo reutilizável deve aceitar slides de imagem e componente
