@@ -1,21 +1,27 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { FaTrash, FaUpload } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { AtletaPerfilLink } from '../components/AtletaPerfilLink';
 import { AvatarUsuario, obterFotoPerfilAvatar } from '../components/AvatarUsuario';
+import { AvatarGrupo } from '../components/grupos/AvatarGrupo';
 import { CriarGrupoFluxoModal } from '../components/grupos/CriarGrupoFluxoModal';
 import { useNotification } from '../contexts/NotificationContext';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { gruposServico } from '../services/gruposServico';
 import { ESTADOS_ACESSO } from '../utils/acesso';
 import { obterNomeExibicaoAtleta } from '../utils/atletaUtils';
+import { comprimirImagemParaUpload, ehImagemNaoSuportada, ehImagemPermitida } from '../utils/compressaoImagem';
 import { extrairMensagemErro } from '../utils/erros';
 import { formatarDataHora } from '../utils/formatacao';
 import { PERFIS_USUARIO, ehAtleta } from '../utils/perfis';
 
 const estadoInicial = {
   nome: '',
-  privacidade: 'Privado'
+  privacidade: 'Privado',
+  imagemUrl: ''
 };
+
+const tamanhoMaximoImagemGrupoBytes = 2 * 1024 * 1024;
 
 const opcoesPrivacidade = [
   {
@@ -78,7 +84,7 @@ function normalizarNome(nome) {
 function CardTotal({ rotulo, valor }) {
   return (
     <article className="grupos-dashboard-total">
-      <span>{rotulo}</span>
+      <span className="grupos-dashboard-total-rotulo">{rotulo}</span>
       <strong>{valor}</strong>
     </article>
   );
@@ -89,31 +95,31 @@ function RankingPreview({ ranking }) {
 
   return (
     <section className="grupos-dashboard-ranking" aria-label="Prévia do ranking">
-      <span className="grupo-resumo-rotulo">Ranking</span>
+      <span className="grupo-resumo-rotulo grupos-dashboard-ranking-titulo">Ranking</span>
 
       {lista.length > 0 ? (
-        <ol className="grupo-resumo-ranking">
+        <ol className="grupo-resumo-ranking grupos-dashboard-ranking-lista">
           {lista.map((atleta) => (
             <li
               key={`${atleta.posicao}-${atleta.atletaId}`}
               className={atleta.usuarioLogado ? 'home-grupo-usuario-ranking-atual' : undefined}
             >
-              <span>{atleta.posicao}º</span>
+              <span className="grupos-dashboard-ranking-posicao">{atleta.posicao}º</span>
               <AvatarUsuario
                 nome={obterNomeExibicaoAtleta(atleta)}
                 fotoPerfilUrl={obterFotoPerfilAvatar(atleta)}
                 tamanho="sm"
                 className="grupo-ranking-avatar"
               />
-              <AtletaPerfilLink atleta={atleta} className="atleta-nome-link">
+              <AtletaPerfilLink atleta={atleta} className="atleta-nome-link grupos-dashboard-ranking-nome">
                 <strong>{obterNomeExibicaoAtleta(atleta) || 'Atleta'}</strong>
               </AtletaPerfilLink>
-              <small>{formatarPontuacao(atleta.pontuacao)}</small>
+              <small className="grupos-dashboard-ranking-pontos">{formatarPontuacao(atleta.pontuacao)}</small>
             </li>
           ))}
         </ol>
       ) : (
-        <p>Ranking ainda não disponível</p>
+        <p>Ainda sem ranking</p>
       )}
     </section>
   );
@@ -137,6 +143,10 @@ export function PaginaGrupos() {
   const [carregando, setCarregando] = useState(true);
   const [erroCarregamento, setErroCarregamento] = useState(false);
   const [salvando, setSalvando] = useState(false);
+  const [arquivoImagemGrupo, setArquivoImagemGrupo] = useState(null);
+  const [previewImagemGrupo, setPreviewImagemGrupo] = useState('');
+  const [removerImagemGrupo, setRemoverImagemGrupo] = useState(false);
+  const inputImagemGrupoRef = useRef(null);
 
   const gruposOrdenados = useMemo(
     () => [...(dashboard.grupos || [])].sort((a, b) => {
@@ -183,6 +193,14 @@ export function PaginaGrupos() {
     setFormulario((anterior) => ({ ...anterior, [campo]: valor }));
   }
 
+  useEffect(() => {
+    return () => {
+      if (previewImagemGrupo) {
+        URL.revokeObjectURL(previewImagemGrupo);
+      }
+    };
+  }, [previewImagemGrupo]);
+
   function podeGerenciar(grupo) {
     if (!usuarioAtivo) {
       return false;
@@ -207,8 +225,12 @@ export function PaginaGrupos() {
       setGrupoEdicaoId(grupoId);
       setFormulario({
         nome: dadosGrupo.nome || '',
-        privacidade: dadosGrupo.privacidade === 'Público' ? 'Público' : 'Privado'
+        privacidade: dadosGrupo.privacidade === 'Público' ? 'Público' : 'Privado',
+        imagemUrl: dadosGrupo.imagemUrl || ''
       });
+      setArquivoImagemGrupo(null);
+      setPreviewImagemGrupo('');
+      setRemoverImagemGrupo(false);
       setFormularioAberto(true);
     } catch (error) {
       showNotification({
@@ -227,6 +249,70 @@ export function PaginaGrupos() {
     setGrupoEdicaoId(null);
     setFormulario(estadoInicial);
     setFormularioAberto(false);
+    setArquivoImagemGrupo(null);
+    setPreviewImagemGrupo('');
+    setRemoverImagemGrupo(false);
+    if (inputImagemGrupoRef.current) {
+      inputImagemGrupoRef.current.value = '';
+    }
+  }
+
+  async function selecionarImagemGrupo(evento) {
+    const arquivo = evento.target.files?.[0];
+    if (!arquivo) {
+      return;
+    }
+
+    if (ehImagemNaoSuportada(arquivo)) {
+      showNotification({
+        type: 'error',
+        title: 'Formato não suportado',
+        message: 'Envie uma imagem JPG, PNG ou WEBP.'
+      });
+      evento.target.value = '';
+      return;
+    }
+
+    if (!ehImagemPermitida(arquivo)) {
+      showNotification({
+        type: 'error',
+        title: 'Formato inválido',
+        message: 'A foto do grupo deve ser uma imagem JPG, PNG ou WEBP.'
+      });
+      evento.target.value = '';
+      return;
+    }
+
+    if (arquivo.size > tamanhoMaximoImagemGrupoBytes) {
+      showNotification({
+        type: 'error',
+        title: 'Imagem muito grande',
+        message: 'A foto do grupo deve ter no máximo 2MB.'
+      });
+      evento.target.value = '';
+      return;
+    }
+
+    if (previewImagemGrupo) {
+      URL.revokeObjectURL(previewImagemGrupo);
+    }
+
+    setArquivoImagemGrupo(arquivo);
+    setPreviewImagemGrupo(URL.createObjectURL(arquivo));
+    setRemoverImagemGrupo(false);
+  }
+
+  function marcarRemocaoImagemGrupo() {
+    if (previewImagemGrupo) {
+      URL.revokeObjectURL(previewImagemGrupo);
+    }
+
+    setArquivoImagemGrupo(null);
+    setPreviewImagemGrupo('');
+    setRemoverImagemGrupo(Boolean(formulario.imagemUrl));
+    if (inputImagemGrupoRef.current) {
+      inputImagemGrupoRef.current.value = '';
+    }
   }
 
   async function aoSubmeter(evento) {
@@ -251,6 +337,15 @@ export function PaginaGrupos() {
 
       if (grupoEdicaoId) {
         await gruposServico.atualizar(grupoEdicaoId, dados);
+        if (arquivoImagemGrupo) {
+          const imagemParaUpload = await comprimirImagemParaUpload(arquivoImagemGrupo, {
+            maxSizeMB: 2,
+            maxWidthOrHeight: 900
+          });
+          await gruposServico.atualizarImagem(grupoEdicaoId, imagemParaUpload);
+        } else if (removerImagemGrupo) {
+          await gruposServico.removerImagem(grupoEdicaoId);
+        }
         showNotification({
           type: 'success',
           title: 'Grupo atualizado',
@@ -365,6 +460,36 @@ export function PaginaGrupos() {
             </div>
 
             <form className="grupos-edicao-formulario" onSubmit={aoSubmeter}>
+              <section className="grupos-edicao-avatar-bloco" aria-label="Foto do grupo">
+                <AvatarGrupo
+                  nome={formulario.nome}
+                  imagemUrl={previewImagemGrupo || (removerImagemGrupo ? '' : formulario.imagemUrl)}
+                  tamanho="xl"
+                  className="grupos-edicao-avatar"
+                />
+                <div className="grupos-edicao-avatar-info">
+                  <strong>Foto do grupo</strong>
+                  <span>Opcional. Use uma imagem JPG, PNG ou WEBP de até 2MB.</span>
+                  <div className="grupos-edicao-avatar-acoes">
+                    <input
+                      ref={inputImagemGrupoRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="sr-only"
+                      onChange={selecionarImagemGrupo}
+                    />
+                    <button type="button" className="botao-secundario" onClick={() => inputImagemGrupoRef.current?.click()} disabled={salvando}>
+                      <FaUpload aria-hidden="true" /> Alterar foto
+                    </button>
+                    {(formulario.imagemUrl || previewImagemGrupo) && !removerImagemGrupo && (
+                      <button type="button" className="botao-texto-perigo" onClick={marcarRemocaoImagemGrupo} disabled={salvando}>
+                        <FaTrash aria-hidden="true" /> Remover foto
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </section>
+
               <label className="grupos-edicao-campo">
                 <span>Nome do grupo</span>
                 <input
@@ -457,13 +582,24 @@ export function PaginaGrupos() {
                   onClick={() => navegar(`/grupos/${grupoId}`)}
                 >
                   <div className="grupos-dashboard-card-topo">
+                    <AvatarGrupo
+                      grupo={grupo}
+                      tamanho="lg"
+                      className="grupos-dashboard-card-avatar"
+                      alt={`Foto do grupo ${grupo.nome}`}
+                    />
                     <div>
                       <span className="grupos-dashboard-privacidade">{grupo.privacidade || 'Privado'}</span>
                       <h3>{grupo.nome}</h3>
+                      {(grupo.criadoEm || grupo.dataCriacao) && (
+                        <span className="grupos-dashboard-criacao">
+                          Criado em {formatarUltimaAtividade(grupo.criadoEm || grupo.dataCriacao)}
+                        </span>
+                      )}
                     </div>
 
                     <span className="grupos-dashboard-atividade">
-                      {formatarUltimaAtividade(grupo.ultimaAtividade)}
+                      Última atividade: {formatarUltimaAtividade(grupo.ultimaAtividade)}
                     </span>
                   </div>
 
@@ -477,18 +613,18 @@ export function PaginaGrupos() {
                 <RankingPreview ranking={grupo.rankingTop3} />
 
                 <div className="grupos-dashboard-acoes">
-                  <button type="button" className="botao-primario" onClick={() => navegar(`/grupos/${grupoId}`)}>
+                  <button type="button" className="botao-primario grupos-dashboard-acao-principal" onClick={() => navegar(`/grupos/${grupoId}`)}>
                     Abrir grupo
                   </button>
-                  <button type="button" className="botao-secundario" onClick={() => navegarParaRegistro(grupoId)}>
+                  <button type="button" className="botao-secundario grupos-dashboard-acao-principal" onClick={() => navegarParaRegistro(grupoId)}>
                     Registrar partida
                   </button>
                   {podeGerenciar(grupo) && (
                     <>
-                      <button type="button" className="botao-secundario" onClick={() => iniciarEdicao(grupo)}>
+                      <button type="button" className="botao-secundario grupos-dashboard-acao-menor" onClick={() => iniciarEdicao(grupo)}>
                         Editar
                       </button>
-                      <button type="button" className="botao-perigo" onClick={() => confirmarRemocaoGrupo(grupoId)}>
+                      <button type="button" className="botao-perigo grupos-dashboard-acao-menor" onClick={() => confirmarRemocaoGrupo(grupoId)}>
                         Remover
                       </button>
                     </>

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { obterImagemGrupoAvatar } from '../../components/grupos/AvatarGrupo';
 import { PartidaMidiaUploadModal } from '../../components/partidas/PartidaMidiaUploadModal';
 import { RegistrarPartidaNovoModal } from '../../components/partidas/RegistrarPartidaNovoModal';
 import { useNotification } from '../../contexts/NotificationContext';
@@ -353,7 +354,7 @@ function normalizarGrupoContexto(grupo, quantidadeAtletas) {
     nome: grupo.nome || grupo.nomeGrupo || 'Grupo',
     quantidadeAtletas: grupo.quantidadeAtletas ?? grupo.totalAtletas ?? quantidadeAtletas ?? null,
     privacidade: grupo.privacidade || grupo.tipoPrivacidade || 'Privado',
-    imagemUrl: grupo.imagemUrl || grupo.fotoUrl || grupo.avatarUrl || ''
+    imagemUrl: obterImagemGrupoAvatar(grupo)
   };
 }
 

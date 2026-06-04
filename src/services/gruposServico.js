@@ -62,6 +62,22 @@ export const gruposServico = {
     return resposta.data;
   },
 
+  async atualizarImagem(id, arquivo) {
+    const dados = new FormData();
+    dados.append('arquivo', arquivo);
+
+    const resposta = await http.post(`/grupos/${id}/imagem`, dados, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return resposta.data;
+  },
+
+  async removerImagem(id) {
+    await http.delete(`/grupos/${id}/imagem`);
+  },
+
   async remover(id) {
     await http.delete(`/grupos/${id}`);
   }

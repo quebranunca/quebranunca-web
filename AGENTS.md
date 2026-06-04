@@ -46,6 +46,7 @@ Seguir o `AGENTS.md` da raiz. Neste diretório, além disso:
 - Aceite de convite deve exigir Política de Privacidade e Termos de Uso; localização e imagem/foto são consentimentos separados e opcionais
 - Foto de perfil é enviada pelo frontend para a API usando `multipart/form-data`; o frontend nunca chama Cloudinary diretamente, usa apenas a URL retornada pela API e mantém fallback visual com iniciais quando não houver foto.
 - Avatar de usuário deve usar componente reutilizável, sempre priorizando `fotoPerfilUrl` quando disponível e voltando para iniciais quando não houver foto ou a imagem falhar.
+- Avatar de grupo é opcional e deve usar componente/helper reutilizável, priorizando `imagemUrl` quando disponível e mantendo fallback visual consistente quando não houver foto ou a imagem falhar.
 - Cards de dashboard devem reutilizar padrões visuais existentes, tratar estados vazios de forma amigável e evitar badges ou atalhos soltos sem contexto visual; no mobile, estatísticas simples devem preferir chips/mini-cards compactos, sem empilhar cards grandes para dados curtos, e cards de destaque devem priorizar leitura rápida com baixa altura.
 - Dashboards de entidades principais devem usar Hero Cards com CTA principal destacado; informações de resumo vêm antes das ações administrativas, que devem ficar em área separada.
 - E-mail e WhatsApp são canais do mesmo convite; a interface não deve sugerir que reenviar por outro canal cria convite ou código diferente

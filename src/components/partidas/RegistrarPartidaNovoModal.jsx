@@ -13,6 +13,7 @@ import {
   FaUserFriends
 } from 'react-icons/fa';
 import { AvatarUsuario, obterFotoPerfilAvatar } from '../AvatarUsuario';
+import { AvatarGrupo } from '../grupos/AvatarGrupo';
 import { CompartilharPartidaBotao } from './CompartilharPartidaBotao';
 import { SeletorGrupoPartida } from './SeletorGrupoPartida';
 import {
@@ -277,18 +278,16 @@ function formatarQuantidadeAtletasGrupo(valor) {
   return `${quantidade} ${quantidade === 1 ? 'atleta' : 'atletas'}`;
 }
 
-function obterImagemGrupo(grupo) {
-  return grupo?.imagemUrl || grupo?.fotoUrl || grupo?.avatarUrl || '';
-}
-
 function GrupoOpcaoAvatar({ grupo, semGrupo = false }) {
-  const imagem = obterImagemGrupo(grupo);
+  if (semGrupo) {
+    return (
+      <span className="registrar-partida-novo-grupo-opcao-avatar" aria-hidden="true">
+        <FaTimes />
+      </span>
+    );
+  }
 
-  return (
-    <span className="registrar-partida-novo-grupo-opcao-avatar" aria-hidden="true">
-      {semGrupo ? <FaTimes /> : imagem ? <img src={imagem} alt="" /> : <FaLayerGroup />}
-    </span>
-  );
+  return <AvatarGrupo grupo={grupo} tamanho="md" className="registrar-partida-novo-grupo-opcao-avatar" alt="" />;
 }
 
 function obterNomeInputAtleta(campo) {

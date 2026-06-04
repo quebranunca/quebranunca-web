@@ -1,4 +1,5 @@
-import { FaChevronRight, FaTimes, FaVolleyballBall } from 'react-icons/fa';
+import { FaChevronRight, FaTimes } from 'react-icons/fa';
+import { AvatarGrupo } from '../grupos/AvatarGrupo';
 
 function formatarQuantidadeAtletas(valor) {
   const quantidade = Number(valor);
@@ -10,18 +11,8 @@ function formatarQuantidadeAtletas(valor) {
   return `${quantidade} ${quantidade === 1 ? 'atleta' : 'atletas'}`;
 }
 
-function obterImagemGrupo(grupo) {
-  return grupo?.imagemUrl || grupo?.fotoUrl || grupo?.avatarUrl || '';
-}
-
 function GrupoAvatar({ grupo }) {
-  const imagem = obterImagemGrupo(grupo);
-
-  return (
-    <span className="seletor-grupo-partida-avatar" aria-hidden="true">
-      {imagem ? <img src={imagem} alt="" /> : <FaVolleyballBall />}
-    </span>
-  );
+  return <AvatarGrupo grupo={grupo} tamanho="md" className="seletor-grupo-partida-avatar" alt="" />;
 }
 
 export function SeletorGrupoPartida({

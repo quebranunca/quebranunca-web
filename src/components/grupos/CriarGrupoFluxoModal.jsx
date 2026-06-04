@@ -1,25 +1,30 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   FaCheck,
   FaChevronLeft,
+  FaImage,
   FaGlobeAmericas,
   FaLock,
   FaShareAlt,
+  FaTrash,
   FaTimes,
   FaUsers,
   FaUserPlus
 } from 'react-icons/fa';
 import { gruposServico } from '../../services/gruposServico';
+import { comprimirImagemParaUpload, ehImagemNaoSuportada, ehImagemPermitida } from '../../utils/compressaoImagem';
 import { extrairMensagemErro } from '../../utils/erros';
 import { paraInputData } from '../../utils/formatacao';
+import { AvatarGrupo } from './AvatarGrupo';
 import './criar-grupo-fluxo.css';
 
 const estadoInicial = {
   nome: '',
   descricao: '',
-  imagemUrl: '',
   privacidade: 'Privado'
 };
+
+const tamanhoMaximoImagemGrupoBytes = 2 * 1024 * 1024;
 
 const opcoesPrivacidade = [
   {
@@ -59,10 +64,21 @@ export function CriarGrupoFluxoModal({
   const [verificacaoNome, setVerificacaoNome] = useState(null);
   const [modalSimilaresAberto, setModalSimilaresAberto] = useState(false);
   const [grupoCriado, setGrupoCriado] = useState(null);
+  const [arquivoImagemGrupo, setArquivoImagemGrupo] = useState(null);
+  const [previewImagemGrupo, setPreviewImagemGrupo] = useState('');
+  const inputImagemGrupoRef = useRef(null);
 
   const similares = useMemo(() => obterSimilares(verificacaoNome), [verificacaoNome]);
   const existeExato = Boolean(verificacaoNome?.existeExato || verificacaoNome?.existe || verificacaoNome?.existente);
   const podeCriarComMesmoNome = !existeExato;
+
+  useEffect(() => {
+    return () => {
+      if (previewImagemGrupo) {
+        URL.revokeObjectURL(previewImagemGrupo);
+      }
+    };
+  }, [previewImagemGrupo]);
 
   if (!aberto) {
     return null;
@@ -84,7 +100,51 @@ export function CriarGrupoFluxoModal({
     setVerificacaoNome(null);
     setModalSimilaresAberto(false);
     setGrupoCriado(null);
+    setArquivoImagemGrupo(null);
+    setPreviewImagemGrupo('');
+    if (inputImagemGrupoRef.current) {
+      inputImagemGrupoRef.current.value = '';
+    }
     onFechar?.();
+  }
+
+  function removerImagemSelecionada() {
+    if (previewImagemGrupo) {
+      URL.revokeObjectURL(previewImagemGrupo);
+    }
+
+    setArquivoImagemGrupo(null);
+    setPreviewImagemGrupo('');
+    if (inputImagemGrupoRef.current) {
+      inputImagemGrupoRef.current.value = '';
+    }
+  }
+
+  function selecionarImagemGrupo(evento) {
+    const arquivo = evento.target.files?.[0];
+    if (!arquivo) {
+      return;
+    }
+
+    if (ehImagemNaoSuportada(arquivo) || !ehImagemPermitida(arquivo)) {
+      setErro('Envie uma imagem JPG, PNG ou WEBP.');
+      evento.target.value = '';
+      return;
+    }
+
+    if (arquivo.size > tamanhoMaximoImagemGrupoBytes) {
+      setErro('A foto do grupo deve ter no máximo 2MB.');
+      evento.target.value = '';
+      return;
+    }
+
+    if (previewImagemGrupo) {
+      URL.revokeObjectURL(previewImagemGrupo);
+    }
+
+    setErro('');
+    setArquivoImagemGrupo(arquivo);
+    setPreviewImagemGrupo(URL.createObjectURL(arquivo));
   }
 
   async function avancarDados() {
@@ -117,7 +177,7 @@ export function CriarGrupoFluxoModal({
     try {
       setSalvando(true);
       setErro('');
-      const grupo = await gruposServico.criar({
+      let grupo = await gruposServico.criar({
         nome: normalizarNome(formulario.nome),
         descricao: formulario.descricao.trim() || null,
         link: null,
@@ -125,8 +185,20 @@ export function CriarGrupoFluxoModal({
         dataFim: null,
         localId: null,
         privacidade: formulario.privacidade,
-        imagemUrl: formulario.imagemUrl.trim() || null
+        imagemUrl: null
       });
+      if (arquivoImagemGrupo) {
+        try {
+          const imagemParaUpload = await comprimirImagemParaUpload(arquivoImagemGrupo, {
+            maxSizeMB: 2,
+            maxWidthOrHeight: 900
+          });
+          const respostaImagem = await gruposServico.atualizarImagem(grupo.id, imagemParaUpload);
+          grupo = { ...grupo, imagemUrl: respostaImagem?.imagemUrl || grupo.imagemUrl };
+        } catch (falhaUpload) {
+          setErro(`Grupo criado, mas não foi possível enviar a foto. ${extrairMensagemErro(falhaUpload)}`);
+        }
+      }
       setGrupoCriado(grupo);
       setEtapa(2);
       onCriado?.(grupo);
@@ -241,15 +313,35 @@ export function CriarGrupoFluxoModal({
           />
         </label>
 
-        <label className="criar-grupo-campo">
-          <span>Foto/banner</span>
-          <input
-            type="url"
-            value={formulario.imagemUrl}
-            onChange={(evento) => atualizarCampo('imagemUrl', evento.target.value)}
-            placeholder="URL da imagem, opcional"
+        <section className="criar-grupo-foto">
+          <AvatarGrupo
+            nome={formulario.nome}
+            imagemUrl={previewImagemGrupo}
+            tamanho="lg"
+            className="criar-grupo-foto-avatar"
           />
-        </label>
+          <div>
+            <strong>Foto do grupo</strong>
+            <span>Opcional. JPG, PNG ou WEBP até 2MB.</span>
+            <div className="criar-grupo-foto-acoes">
+              <input
+                ref={inputImagemGrupoRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="sr-only"
+                onChange={selecionarImagemGrupo}
+              />
+              <button type="button" className="botao-secundario" onClick={() => inputImagemGrupoRef.current?.click()}>
+                <FaImage aria-hidden="true" /> Escolher foto
+              </button>
+              {previewImagemGrupo && (
+                <button type="button" className="criar-grupo-foto-remover" onClick={removerImagemSelecionada}>
+                  <FaTrash aria-hidden="true" /> Remover
+                </button>
+              )}
+            </div>
+          </div>
+        </section>
       </section>
     );
   }

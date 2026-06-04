@@ -15,6 +15,7 @@ import {
 } from 'react-icons/fa';
 import { useNavigate, useParams } from 'react-router-dom';
 import { AvatarUsuario, obterFotoPerfilAvatar } from '../components/AvatarUsuario';
+import { AvatarGrupo } from '../components/grupos/AvatarGrupo';
 import { RegistrarPartidaNovoContainer } from '../containers/partidas/RegistrarPartidaNovoContainer';
 import { useNotification } from '../contexts/NotificationContext';
 import { useAutenticacao } from '../hooks/useAutenticacao';
@@ -387,9 +388,10 @@ export function PaginaGrupoDashboard() {
     <section className="pagina grupo-dashboard-pagina">
       <header className="grupo-dashboard-header grupo-dashboard-hero">
         <div className="grupo-dashboard-hero-topo">
-          <AvatarUsuario
+          <AvatarGrupo
+            grupo={grupo}
             nome={nomeParaAvatarGrupo(grupo.nome)}
-            fotoPerfilUrl={grupo.imagemUrl}
+            imagemUrl={grupo.imagemUrl}
             tamanho="xl"
             className="grupo-dashboard-hero-avatar"
             alt={`Imagem do grupo ${grupo.nome}`}
