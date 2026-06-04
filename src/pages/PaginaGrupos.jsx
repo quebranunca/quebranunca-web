@@ -137,6 +137,7 @@ export function PaginaGrupos() {
 
   const [dashboard, setDashboard] = useState(dashboardVazio);
   const [formulario, setFormulario] = useState(estadoInicial);
+  const [formularioOriginal, setFormularioOriginal] = useState(estadoInicial);
   const [grupoEdicaoId, setGrupoEdicaoId] = useState(null);
   const [formularioAberto, setFormularioAberto] = useState(false);
   const [modalConfirmacaoSaidaAberto, setModalConfirmacaoSaidaAberto] = useState(false);
@@ -149,10 +150,17 @@ export function PaginaGrupos() {
   const [removerImagemGrupo, setRemoverImagemGrupo] = useState(false);
   const inputImagemGrupoRef = useRef(null);
   const nomeNormalizado = normalizarNome(formulario.nome);
-  const temDadosAlterados = nomeNormalizado !== '' && (
-    formulario.nome !== estadoInicial.nome ||
-    formulario.privacidade !== estadoInicial.privacidade ||
+  const temDadosAlterados = grupoEdicaoId ? (
+    nomeNormalizado !== normalizarNome(formularioOriginal.nome) ||
+    formulario.privacidade !== formularioOriginal.privacidade ||
     Boolean(arquivoImagemGrupo || previewImagemGrupo)
+    || removerImagemGrupo
+  ) : (
+    nomeNormalizado !== '' && (
+      formulario.nome !== estadoInicial.nome ||
+      formulario.privacidade !== estadoInicial.privacidade ||
+      Boolean(arquivoImagemGrupo || previewImagemGrupo)
+    )
   );
 
   const gruposOrdenados = useMemo(
@@ -167,6 +175,20 @@ export function PaginaGrupos() {
   useEffect(() => {
     carregarDados();
   }, [token, usuario?.id]);
+
+  useEffect(() => {
+    if (!formularioAberto) {
+      return undefined;
+    }
+
+    document.documentElement.classList.add('grupos-edicao-modal-aberto');
+    document.body.classList.add('grupos-edicao-modal-aberto');
+
+    return () => {
+      document.documentElement.classList.remove('grupos-edicao-modal-aberto');
+      document.body.classList.remove('grupos-edicao-modal-aberto');
+    };
+  }, [formularioAberto]);
 
   async function carregarDados() {
     setCarregando(true);
@@ -230,11 +252,13 @@ export function PaginaGrupos() {
     try {
       const dadosGrupo = await gruposServico.obterPorId(grupoId);
       setGrupoEdicaoId(grupoId);
-      setFormulario({
+      const dadosFormulario = {
         nome: dadosGrupo.nome || '',
         privacidade: dadosGrupo.privacidade === 'Público' ? 'Público' : 'Privado',
         imagemUrl: dadosGrupo.imagemUrl || ''
-      });
+      };
+      setFormulario(dadosFormulario);
+      setFormularioOriginal(dadosFormulario);
       setArquivoImagemGrupo(null);
       setPreviewImagemGrupo('');
       setRemoverImagemGrupo(false);
@@ -267,6 +291,7 @@ export function PaginaGrupos() {
   function limparFormularioSemConfirmacao() {
     setGrupoEdicaoId(null);
     setFormulario(estadoInicial);
+    setFormularioOriginal(estadoInicial);
     setFormularioAberto(false);
     setModalConfirmacaoSaidaAberto(false);
     setArquivoImagemGrupo(null);
@@ -499,7 +524,7 @@ export function PaginaGrupos() {
               </button>
             </header>
 
-            <form className="grupos-edicao-formulario" onSubmit={aoSubmeter}>
+            <form id="grupos-edicao-formulario" className="grupos-edicao-formulario" onSubmit={aoSubmeter}>
               <section className="grupos-edicao-avatar-bloco" aria-label="Foto do grupo">
                 <AvatarGrupo
                   nome={formulario.nome}
@@ -562,15 +587,16 @@ export function PaginaGrupos() {
                 </div>
               </fieldset>
 
-              <div className="grupos-edicao-acoes">
-                <button type="button" className="botao-secundario" onClick={limparFormulario} disabled={salvando}>
-                  Cancelar
-                </button>
-                <button type="submit" className="botao-primario" disabled={salvando}>
-                  {salvando ? 'Salvando...' : 'Salvar alterações'}
-                </button>
-              </div>
             </form>
+
+            <footer className="grupos-edicao-acoes">
+              <button type="button" className="botao-secundario" onClick={limparFormulario} disabled={salvando}>
+                Cancelar
+              </button>
+              <button type="submit" form="grupos-edicao-formulario" className="botao-primario" disabled={salvando}>
+                {salvando ? 'Salvando...' : 'Salvar alterações'}
+              </button>
+            </footer>
 
             {modalConfirmacaoSaidaAberto && (
               <div className="grupos-edicao-confirmacao-backdrop" role="presentation">
