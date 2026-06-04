@@ -66,11 +66,15 @@ export function CriarGrupoFluxoModal({
   const [grupoCriado, setGrupoCriado] = useState(null);
   const [arquivoImagemGrupo, setArquivoImagemGrupo] = useState(null);
   const [previewImagemGrupo, setPreviewImagemGrupo] = useState('');
+  const [modalConfirmacaoSaidaAberto, setModalConfirmacaoSaidaAberto] = useState(false);
   const inputImagemGrupoRef = useRef(null);
+  const nomeNormalizado = normalizarNome(formulario.nome);
+  const temDadosPreenchidos = Boolean(nomeNormalizado || formulario.descricao.trim() || previewImagemGrupo);
 
   const similares = useMemo(() => obterSimilares(verificacaoNome), [verificacaoNome]);
   const existeExato = Boolean(verificacaoNome?.existeExato || verificacaoNome?.existe || verificacaoNome?.existente);
   const podeCriarComMesmoNome = !existeExato;
+  const corpoRef = useRef(null);
 
   useEffect(() => {
     return () => {
@@ -94,11 +98,22 @@ export function CriarGrupoFluxoModal({
       return;
     }
 
+    // Se há dados preenchidos e não estamos na etapa de sucesso, pedir confirmação
+    if (temDadosPreenchidos && etapa !== 2) {
+      setModalConfirmacaoSaidaAberto(true);
+      return;
+    }
+
+    fecharSemConfirmacao();
+  }
+
+  function fecharSemConfirmacao() {
     setEtapa(0);
     setFormulario(estadoInicial);
     setErro('');
     setVerificacaoNome(null);
     setModalSimilaresAberto(false);
+    setModalConfirmacaoSaidaAberto(false);
     setGrupoCriado(null);
     setArquivoImagemGrupo(null);
     setPreviewImagemGrupo('');
@@ -150,7 +165,12 @@ export function CriarGrupoFluxoModal({
   async function avancarDados() {
     const nome = normalizarNome(formulario.nome);
     if (!nome) {
-      setErro('Informe o nome do grupo.');
+      setErro('Informe o nome do grupo para continuar.');
+      return;
+    }
+
+    if (nome.length > 50) {
+      setErro('O nome do grupo deve ter no máximo 50 caracteres.');
       return;
     }
 
@@ -165,6 +185,7 @@ export function CriarGrupoFluxoModal({
         return;
       }
 
+      setErro('');
       setEtapa(1);
     } catch (falha) {
       setErro(extrairMensagemErro(falha));
@@ -280,6 +301,32 @@ export function CriarGrupoFluxoModal({
               );
             })}
           </div>
+
+          <section className="criar-grupo-beneficios">
+            <h4 className="criar-grupo-beneficios-titulo">O que você poderá fazer:</h4>
+            <ul className="criar-grupo-beneficios-lista">
+              <li>
+                <FaCheck aria-hidden="true" />
+                <span>Ranking exclusivo</span>
+              </li>
+              <li>
+                <FaCheck aria-hidden="true" />
+                <span>Estatísticas da turma</span>
+              </li>
+              <li>
+                <FaCheck aria-hidden="true" />
+                <span>Histórico de partidas</span>
+              </li>
+              <li>
+                <FaCheck aria-hidden="true" />
+                <span>Convites para atletas</span>
+              </li>
+              <li>
+                <FaCheck aria-hidden="true" />
+                <span>Dashboard do grupo</span>
+              </li>
+            </ul>
+          </section>
         </section>
       );
     }
@@ -289,10 +336,31 @@ export function CriarGrupoFluxoModal({
         <div className="criar-grupo-etapa-titulo">
           <span>Dados do grupo</span>
           <h3>Crie o espaço da sua turma</h3>
+          <p className="criar-grupo-etapa-subtitulo">Reúna sua turma e acompanhe rankings, partidas e estatísticas exclusivas.</p>
         </div>
 
+        {/* Preview do grupo */}
+        <section className="criar-grupo-preview">
+          <article className="criar-grupo-preview-card">
+            <div className="criar-grupo-preview-header">
+              <AvatarGrupo
+                nome={formulario.nome}
+                imagemUrl={previewImagemGrupo}
+                tamanho="lg"
+                className="criar-grupo-preview-avatar"
+              />
+              <div>
+                <h4 className="criar-grupo-preview-nome">
+                  {nomeNormalizado || 'Seu grupo aparecerá aqui'}
+                </h4>
+                <p className="criar-grupo-preview-descricao">Grupo de futevôlei</p>
+              </div>
+            </div>
+          </article>
+        </section>
+
         <label className="criar-grupo-campo">
-          <span>Nome</span>
+          <span>Nome do grupo</span>
           <input
             value={formulario.nome}
             onChange={(evento) => atualizarCampo('nome', evento.target.value)}
@@ -300,7 +368,11 @@ export function CriarGrupoFluxoModal({
             placeholder="Ex.: Fechado de Quinta"
             autoFocus
             required
+            maxLength="50"
           />
+          <small className="criar-grupo-contador">
+            {formulario.nome.length} de 50 caracteres
+          </small>
         </label>
 
         <label className="criar-grupo-campo">
@@ -310,7 +382,11 @@ export function CriarGrupoFluxoModal({
             onChange={(evento) => atualizarCampo('descricao', evento.target.value)}
             rows={3}
             placeholder="Opcional"
+            maxLength="200"
           />
+          <small className="criar-grupo-contador">
+            {formulario.descricao.length} de 200 caracteres
+          </small>
         </label>
 
         <section className="criar-grupo-foto">
@@ -353,9 +429,16 @@ export function CriarGrupoFluxoModal({
           <button
             type="button"
             className="criar-grupo-icone-botao"
-            onClick={() => setEtapa((atual) => Math.max(0, atual - 1))}
-            disabled={etapa === 0 || etapa === 2 || salvando || verificando}
+            onClick={() => {
+              if (etapa > 0 && etapa < 2) {
+                setEtapa((atual) => Math.max(0, atual - 1));
+              } else if (etapa === 0) {
+                fechar();
+              }
+            }}
+            disabled={etapa === 2 || salvando || verificando}
             aria-label="Voltar"
+            title={etapa === 0 ? 'Fechar' : 'Voltar'}
           >
             <FaChevronLeft aria-hidden="true" />
           </button>
@@ -363,7 +446,14 @@ export function CriarGrupoFluxoModal({
             <strong id="criar-grupo-titulo">Criar grupo</strong>
             <span>{etapa + 1} de 3</span>
           </div>
-          <button type="button" className="criar-grupo-icone-botao" onClick={fechar} aria-label="Fechar">
+          <button
+            type="button"
+            className="criar-grupo-icone-botao"
+            onClick={fechar}
+            disabled={salvando || verificando}
+            aria-label="Fechar"
+            title="Fechar"
+          >
             <FaTimes aria-hidden="true" />
           </button>
         </header>
@@ -374,26 +464,81 @@ export function CriarGrupoFluxoModal({
           ))}
         </div>
 
-        <main className="criar-grupo-corpo">
+        <main className="criar-grupo-corpo" ref={corpoRef}>
           {renderizarConteudo()}
           {erro && <p className="criar-grupo-erro">{erro}</p>}
         </main>
 
         {etapa < 2 && (
           <footer className="criar-grupo-acoes">
-            <button type="button" className="botao-secundario" onClick={fechar} disabled={salvando || verificando}>
+            <button
+              type="button"
+              className="botao-secundario"
+              onClick={fechar}
+              disabled={salvando || verificando}
+            >
               Cancelar
             </button>
             {etapa === 0 ? (
-              <button type="button" className="botao-primario" onClick={avancarDados} disabled={verificando}>
+              <button
+                type="button"
+                className="botao-primario"
+                onClick={avancarDados}
+                disabled={verificando || !nomeNormalizado}
+              >
                 {verificando ? 'Verificando...' : 'Continuar'}
               </button>
             ) : (
-              <button type="button" className="botao-primario" onClick={criarGrupo} disabled={salvando}>
+              <button
+                type="button"
+                className="botao-primario"
+                onClick={criarGrupo}
+                disabled={salvando}
+              >
                 {salvando ? 'Criando...' : 'Criar grupo'}
               </button>
             )}
           </footer>
+        )}
+
+        {etapa === 2 && (
+          <footer className="criar-grupo-acoes criar-grupo-acoes-sucesso-footer">
+            <button
+              type="button"
+              className="botao-primario"
+              onClick={() => onEntrarGrupo?.(grupoCriado)}
+            >
+              Entrar no grupo
+            </button>
+          </footer>
+        )}
+
+        {modalConfirmacaoSaidaAberto && (
+          <div className="criar-grupo-confirmacao-backdrop" role="presentation">
+            <section className="criar-grupo-confirmacao" role="dialog" aria-modal="true">
+              <div className="criar-grupo-confirmacao-topo">
+                <h3>Deseja sair da criação do grupo?</h3>
+                <p>As informações preenchidas serão perdidas.</p>
+              </div>
+
+              <div className="criar-grupo-confirmacao-acoes">
+                <button
+                  type="button"
+                  className="botao-secundario"
+                  onClick={() => setModalConfirmacaoSaidaAberto(false)}
+                >
+                  Continuar editando
+                </button>
+                <button
+                  type="button"
+                  className="botao-perigo"
+                  onClick={fecharSemConfirmacao}
+                >
+                  Sair
+                </button>
+              </div>
+            </section>
+          </div>
         )}
 
         {modalSimilaresAberto && (

@@ -19,7 +19,7 @@
 - Em telas de campeonato, refletir a fase da partida quando existir e não esconder campos que já são obrigatórios no backend para esse tipo de competição
 - Autocomplete no registro de partidas só deve consultar sugestões da competição quando houver competição selecionada e termo com ao menos 3 caracteres; sem competição, preservar o fluxo atual
 - Sugestões rápidas no registro de partidas devem ser chips discretos abaixo dos inputs, carregadas uma vez por contexto, sem bloquear digitação e sem repetir atletas já preenchidos.
-- Em wizards mobile, conteúdo importante não deve ficar escondido por header, stepper, footer, teclado ou barras fixas; ajustar scroll e espaçamento antes de adicionar novos blocos.
+- Em wizards mobile, conteúdo importante não deve ficar escondido por header, stepper, footer, teclado ou barras fixas; ajustar scroll e espaçamento antes de adicionar novos blocos. Padrão do wizard: header fixo com voltar/fechar, corpo com scroll e footer sticky. Botão fechar com dados preenchidos deve pedir confirmação via modal. Preview de entrada deve atualizar em tempo real. Validação do botão continuar deve ser clara (desabilitado se campo obrigatório vazio). Footer deve ter 2 colunas (Cancelar + Continuar/Salvar) ou 1 coluna na etapa final de sucesso.
 - Modos alternativos com duas opções, como placar detalhado e apenas vencedor, devem usar segmented control com estado ativo claro.
 - Cards clicáveis de atleta ou dupla devem reutilizar avatar centralizado, ter área inteira clicável e estado selecionado evidente.
 - Banner rotativo reutilizável deve aceitar slides de imagem e componente
@@ -35,3 +35,4 @@
 - Fluxos de uma única tela não devem exibir botão Voltar.
 - Botão Home deve estar disponível em telas internas e navegar para `/app`.
 - Manter navegação simples, clara e mobile-first.
+- Em wizards modais ou fluxos de criação focados, usar header simplificado (Voltar/Fechar + título + etapa) sem expor sino de notificações ou ações secundárias durante o fluxo.
