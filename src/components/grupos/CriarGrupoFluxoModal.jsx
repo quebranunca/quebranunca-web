@@ -77,6 +77,28 @@ export function CriarGrupoFluxoModal({
   const corpoRef = useRef(null);
 
   useEffect(() => {
+    if (!aberto) {
+      return undefined;
+    }
+
+    document.documentElement.classList.add('criar-grupo-wizard-aberto');
+    document.body.classList.add('criar-grupo-wizard-aberto');
+
+    return () => {
+      document.documentElement.classList.remove('criar-grupo-wizard-aberto');
+      document.body.classList.remove('criar-grupo-wizard-aberto');
+    };
+  }, [aberto]);
+
+  useEffect(() => {
+    if (!aberto || !corpoRef.current) {
+      return;
+    }
+
+    corpoRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [aberto, etapa]);
+
+  useEffect(() => {
     return () => {
       if (previewImagemGrupo) {
         URL.revokeObjectURL(previewImagemGrupo);
@@ -121,6 +143,16 @@ export function CriarGrupoFluxoModal({
       inputImagemGrupoRef.current.value = '';
     }
     onFechar?.();
+  }
+
+  function voltar() {
+    if (salvando || verificando || etapa === 2) {
+      return;
+    }
+
+    if (etapa > 0) {
+      setEtapa((atual) => Math.max(0, atual - 1));
+    }
   }
 
   function removerImagemSelecionada() {
@@ -428,32 +460,28 @@ export function CriarGrupoFluxoModal({
         <header className="criar-grupo-header">
           <button
             type="button"
-            className="criar-grupo-icone-botao"
-            onClick={() => {
-              if (etapa > 0 && etapa < 2) {
-                setEtapa((atual) => Math.max(0, atual - 1));
-              } else if (etapa === 0) {
-                fechar();
-              }
-            }}
+            className="criar-grupo-header-acao criar-grupo-header-voltar"
+            onClick={voltar}
             disabled={etapa === 2 || salvando || verificando}
             aria-label="Voltar"
-            title={etapa === 0 ? 'Fechar' : 'Voltar'}
+            title="Voltar"
           >
             <FaChevronLeft aria-hidden="true" />
+            <span>Voltar</span>
           </button>
           <div>
             <strong id="criar-grupo-titulo">Criar grupo</strong>
-            <span>{etapa + 1} de 3</span>
+            <span>Etapa {etapa + 1} de 3</span>
           </div>
           <button
             type="button"
-            className="criar-grupo-icone-botao"
+            className="criar-grupo-header-acao criar-grupo-header-fechar"
             onClick={fechar}
             disabled={salvando || verificando}
             aria-label="Fechar"
             title="Fechar"
           >
+            <span>Fechar</span>
             <FaTimes aria-hidden="true" />
           </button>
         </header>
@@ -474,10 +502,10 @@ export function CriarGrupoFluxoModal({
             <button
               type="button"
               className="botao-secundario"
-              onClick={fechar}
+              onClick={etapa === 0 ? fechar : voltar}
               disabled={salvando || verificando}
             >
-              Cancelar
+              {etapa === 0 ? 'Cancelar' : 'Voltar'}
             </button>
             {etapa === 0 ? (
               <button
