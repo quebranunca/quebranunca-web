@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { FaTrash, FaUpload } from 'react-icons/fa';
+import { FaTrash, FaUpload, FaTimes, FaChevronLeft } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { AtletaPerfilLink } from '../components/AtletaPerfilLink';
 import { AvatarUsuario, obterFotoPerfilAvatar } from '../components/AvatarUsuario';
@@ -139,6 +139,7 @@ export function PaginaGrupos() {
   const [formulario, setFormulario] = useState(estadoInicial);
   const [grupoEdicaoId, setGrupoEdicaoId] = useState(null);
   const [formularioAberto, setFormularioAberto] = useState(false);
+  const [modalConfirmacaoSaidaAberto, setModalConfirmacaoSaidaAberto] = useState(false);
   const [fluxoCriarAberto, setFluxoCriarAberto] = useState(false);
   const [carregando, setCarregando] = useState(true);
   const [erroCarregamento, setErroCarregamento] = useState(false);
@@ -147,6 +148,12 @@ export function PaginaGrupos() {
   const [previewImagemGrupo, setPreviewImagemGrupo] = useState('');
   const [removerImagemGrupo, setRemoverImagemGrupo] = useState(false);
   const inputImagemGrupoRef = useRef(null);
+  const nomeNormalizado = normalizarNome(formulario.nome);
+  const temDadosAlterados = nomeNormalizado !== '' && (
+    formulario.nome !== estadoInicial.nome ||
+    formulario.privacidade !== estadoInicial.privacidade ||
+    Boolean(arquivoImagemGrupo || previewImagemGrupo)
+  );
 
   const gruposOrdenados = useMemo(
     () => [...(dashboard.grupos || [])].sort((a, b) => {
@@ -246,9 +253,22 @@ export function PaginaGrupos() {
   }
 
   function limparFormulario() {
+    if (salvando) return;
+
+    // Se há dados alterados, pedir confirmação
+    if (temDadosAlterados) {
+      setModalConfirmacaoSaidaAberto(true);
+      return;
+    }
+
+    limparFormularioSemConfirmacao();
+  }
+
+  function limparFormularioSemConfirmacao() {
     setGrupoEdicaoId(null);
     setFormulario(estadoInicial);
     setFormularioAberto(false);
+    setModalConfirmacaoSaidaAberto(false);
     setArquivoImagemGrupo(null);
     setPreviewImagemGrupo('');
     setRemoverImagemGrupo(false);
@@ -452,12 +472,32 @@ export function PaginaGrupos() {
             aria-labelledby="grupos-edicao-titulo"
             onClick={(evento) => evento.stopPropagation()}
           >
-            <div className="modal-cabecalho">
+            <header className="grupos-edicao-header">
+              <button
+                type="button"
+                className="grupos-edicao-icone-botao"
+                onClick={limparFormulario}
+                disabled={salvando}
+                aria-label="Voltar"
+                title="Voltar"
+              >
+                <FaChevronLeft aria-hidden="true" />
+              </button>
               <div>
-                <h3 id="grupos-edicao-titulo">Editar grupo</h3>
+                <strong id="grupos-edicao-titulo">Editar grupo</strong>
                 <p>Atualize as informações básicas do grupo.</p>
               </div>
-            </div>
+              <button
+                type="button"
+                className="grupos-edicao-icone-botao"
+                onClick={limparFormulario}
+                disabled={salvando}
+                aria-label="Fechar"
+                title="Fechar"
+              >
+                <FaTimes aria-hidden="true" />
+              </button>
+            </header>
 
             <form className="grupos-edicao-formulario" onSubmit={aoSubmeter}>
               <section className="grupos-edicao-avatar-bloco" aria-label="Foto do grupo">
@@ -531,6 +571,34 @@ export function PaginaGrupos() {
                 </button>
               </div>
             </form>
+
+            {modalConfirmacaoSaidaAberto && (
+              <div className="grupos-edicao-confirmacao-backdrop" role="presentation">
+                <section className="grupos-edicao-confirmacao" role="dialog" aria-modal="true">
+                  <div className="grupos-edicao-confirmacao-topo">
+                    <h3>Deseja sair sem salvar?</h3>
+                    <p>As alterações não salvas serão perdidas.</p>
+                  </div>
+
+                  <div className="grupos-edicao-confirmacao-acoes">
+                    <button
+                      type="button"
+                      className="botao-secundario"
+                      onClick={() => setModalConfirmacaoSaidaAberto(false)}
+                    >
+                      Continuar editando
+                    </button>
+                    <button
+                      type="button"
+                      className="botao-perigo"
+                      onClick={limparFormularioSemConfirmacao}
+                    >
+                      Sair
+                    </button>
+                  </div>
+                </section>
+              </div>
+            )}
           </article>
         </div>
       )}
