@@ -85,6 +85,20 @@ function normalizarNome(nome) {
   return String(nome || '').trim().replace(/\s+/g, ' ');
 }
 
+function campoEditavel(elemento) {
+  return elemento instanceof HTMLInputElement ||
+    elemento instanceof HTMLTextAreaElement ||
+    elemento instanceof HTMLSelectElement;
+}
+
+function aguardarRecalculoViewport() {
+  return new Promise((resolve) => {
+    window.requestAnimationFrame(() => {
+      window.setTimeout(resolve, 90);
+    });
+  });
+}
+
 function CardTotal({ rotulo, valor }) {
   return (
     <article className="grupos-dashboard-total">
@@ -214,12 +228,10 @@ export function PaginaGrupos() {
 
       window.cancelAnimationFrame(rafId);
       rafId = window.requestAnimationFrame(() => {
-        const altura = viewport?.height || window.innerHeight;
         const offset = viewport
           ? Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop)
           : 0;
-        const tecladoAberto = offset > 90 || (document.activeElement instanceof HTMLElement && window.innerHeight - altura > 120);
-        modal.style.setProperty('--grupos-edicao-viewport-height', `${Math.round(altura)}px`);
+        const tecladoAberto = offset > 90;
         modal.dataset.tecladoAberto = tecladoAberto ? 'true' : 'false';
       });
     }
@@ -271,6 +283,20 @@ export function PaginaGrupos() {
 
   function atualizarCampo(campo, valor) {
     setFormulario((anterior) => ({ ...anterior, [campo]: valor }));
+  }
+
+  function rolarCampoParaVisivel(evento) {
+    window.setTimeout(() => {
+      evento.currentTarget.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'smooth' });
+    }, 120);
+  }
+
+  async function fecharTecladoEdicaoAntesDaAcao() {
+    const ativo = document.activeElement;
+    if (campoEditavel(ativo) && modalEdicaoRef.current?.contains(ativo)) {
+      ativo.blur();
+      await aguardarRecalculoViewport();
+    }
   }
 
   function alternarDiaSemana(dia) {
@@ -428,6 +454,7 @@ export function PaginaGrupos() {
 
   async function aoSubmeter(evento) {
     evento.preventDefault();
+    await fecharTecladoEdicaoAntesDaAcao();
     setSalvando(true);
 
     try {
@@ -629,6 +656,7 @@ export function PaginaGrupos() {
                 <input
                   value={formulario.nome}
                   onChange={(evento) => atualizarCampo('nome', evento.target.value)}
+                  onFocus={rolarCampoParaVisivel}
                   required
                   autoFocus
                 />
@@ -662,6 +690,7 @@ export function PaginaGrupos() {
                   value={formulario.localPrincipal}
                   onChange={(evento) => atualizarCampo('localPrincipal', evento.target.value)}
                   onBlur={(evento) => atualizarCampo('localPrincipal', normalizarNome(evento.target.value))}
+                  onFocus={rolarCampoParaVisivel}
                   placeholder="Ex.: Praia do Forte"
                   maxLength="200"
                 />
@@ -694,7 +723,18 @@ export function PaginaGrupos() {
               <button type="button" className="botao-secundario" onClick={limparFormulario} disabled={salvando}>
                 Cancelar
               </button>
-              <button type="submit" form="grupos-edicao-formulario" className="botao-primario" disabled={salvando}>
+              <button
+                type="submit"
+                form="grupos-edicao-formulario"
+                className="botao-primario"
+                disabled={salvando}
+                onPointerDown={() => {
+                  const ativo = document.activeElement;
+                  if (campoEditavel(ativo) && modalEdicaoRef.current?.contains(ativo)) {
+                    ativo.blur();
+                  }
+                }}
+              >
                 {salvando ? 'Salvando...' : 'Salvar alterações'}
               </button>
             </footer>

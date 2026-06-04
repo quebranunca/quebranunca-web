@@ -48,6 +48,20 @@ function obterSimilares(verificacao) {
   return verificacao?.similares || verificacao?.grupos || [];
 }
 
+function campoEditavel(elemento) {
+  return elemento instanceof HTMLInputElement ||
+    elemento instanceof HTMLTextAreaElement ||
+    elemento instanceof HTMLSelectElement;
+}
+
+function aguardarRecalculoViewport() {
+  return new Promise((resolve) => {
+    window.requestAnimationFrame(() => {
+      window.setTimeout(resolve, 90);
+    });
+  });
+}
+
 export function CriarGrupoFluxoModal({
   aberto,
   onFechar,
@@ -113,12 +127,10 @@ export function CriarGrupoFluxoModal({
 
       window.cancelAnimationFrame(rafId);
       rafId = window.requestAnimationFrame(() => {
-        const altura = viewport?.height || window.innerHeight;
         const offset = viewport
           ? Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop)
           : 0;
-        const tecladoAberto = offset > 90 || (document.activeElement instanceof HTMLElement && window.innerHeight - altura > 120);
-        modal.style.setProperty('--criar-grupo-viewport-height', `${Math.round(altura)}px`);
+        const tecladoAberto = offset > 90;
         modal.dataset.tecladoAberto = tecladoAberto ? 'true' : 'false';
       });
     }
@@ -163,6 +175,20 @@ export function CriarGrupoFluxoModal({
   function atualizarCampo(campo, valor) {
     setErro('');
     setFormulario((anterior) => ({ ...anterior, [campo]: valor }));
+  }
+
+  function rolarCampoParaVisivel(evento) {
+    window.setTimeout(() => {
+      evento.currentTarget.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'smooth' });
+    }, 120);
+  }
+
+  async function fecharTecladoAntesDaAcao() {
+    const ativo = document.activeElement;
+    if (campoEditavel(ativo) && modalRef.current?.contains(ativo)) {
+      ativo.blur();
+      await aguardarRecalculoViewport();
+    }
   }
 
   function alternarDiaSemana(dia) {
@@ -292,6 +318,8 @@ export function CriarGrupoFluxoModal({
   }
 
   async function criarGrupo(ignorarSimilares = false) {
+    await fecharTecladoAntesDaAcao();
+
     if (!ignorarSimilares) {
       const podeCriar = await verificarNomeAntesDeCriar();
       if (!podeCriar) {
@@ -445,6 +473,7 @@ export function CriarGrupoFluxoModal({
             value={formulario.nome}
             onChange={(evento) => atualizarCampo('nome', evento.target.value)}
             onBlur={(evento) => atualizarCampo('nome', normalizarNome(evento.target.value))}
+            onFocus={rolarCampoParaVisivel}
             placeholder="Ex.: Fechado de Quinta"
             autoFocus
             required
@@ -461,6 +490,7 @@ export function CriarGrupoFluxoModal({
             value={formulario.localPrincipal}
             onChange={(evento) => atualizarCampo('localPrincipal', evento.target.value)}
             onBlur={(evento) => atualizarCampo('localPrincipal', normalizarNome(evento.target.value))}
+            onFocus={rolarCampoParaVisivel}
             placeholder="Ex.: Praia do Forte"
             maxLength="200"
           />
@@ -541,6 +571,12 @@ export function CriarGrupoFluxoModal({
               type="button"
               className="botao-primario"
               onClick={() => criarGrupo()}
+              onPointerDown={() => {
+                const ativo = document.activeElement;
+                if (campoEditavel(ativo) && modalRef.current?.contains(ativo)) {
+                  ativo.blur();
+                }
+              }}
               disabled={verificando || salvando || !nomeNormalizado}
             >
               {verificando || salvando ? 'Criando...' : 'Criar grupo'}
