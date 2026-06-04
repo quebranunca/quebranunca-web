@@ -43,37 +43,40 @@ import { RedirecionamentoPartidas } from './pages/RedirecionamentoPartidas';
 import { FeedPartidasPage } from './pages/FeedPartidasPage';
 import { PERFIS_USUARIO } from './utils/perfis';
 import { ESTADOS_ACESSO } from './utils/acesso';
+import { AtualizacaoAplicativoModal } from './components/AtualizacaoAplicativoModal';
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/cadastro/convite" element={<PaginaCadastroConvite />} />
-      <Route path="/cadastro/convite/:identificadorPublico" element={<PaginaCadastroConvite />} />
-      <Route element={<LayoutPrincipal />}>
-        <Route path="/" element={<PaginaHome />} />
-        <Route path="/login" element={<PaginaLogin />} />        
-        <Route path="/privacidade" element={<PaginaPrivacidade />} />
-        <Route path="/ranking" element={<PaginaRanking />} />
-        <Route path="/ranking/liga" element={<RankingLiga />} />
-        <Route path="/competicoes" element={<PaginaCompeticoes />} />
-        <Route path="/arenas" element={<PaginaArenas />} />
-        <Route path="/arenas/admin/:arenaId" element={<ArenaAdminDashboardPage />} />
-        <Route path="/arenas/:slug" element={<PaginaArenaPublica />} />
-        <Route path="/inscricoes" element={<PaginaInscricoesCampeonato />} />
-        <Route path="/atletas" element={<PaginaAtletas />} />
-        <Route path="/atletas/:atletaId" element={<PaginaAtletaDashboard />} />
-        <Route path="/atletas/:atletaId/dashboard" element={<PaginaAtletaDashboard />} />
-        <Route path="/duplas/:atleta1Id/:atleta2Id" element={<PaginaDuplaDashboard />} />
-        <Route path="/grupos" element={<PaginaGrupos />} />
-        <Route path="/grupos/:grupoId" element={<PaginaGrupoDashboard />} />
-        <Route path="/grupos/:grupoId/atletas" element={<PaginaGrupoAtletas />} />
-        <Route path="/partidas" element={<RedirecionamentoPartidas />} />
-        <Route path="/feed" element={<FeedPartidasPage />} />
-        <Route path="/partidas/consulta" element={<PaginaConsultaPartidas />} />
-        <Route path="/partidas/campeonato" element={<PaginaPartidasCampeonato />} />
-      </Route>
+    <>
+      <AtualizacaoAplicativoModal />
+      <Routes>
+        <Route path="/cadastro/convite" element={<PaginaCadastroConvite />} />
+        <Route path="/cadastro/convite/:identificadorPublico" element={<PaginaCadastroConvite />} />
+        <Route element={<LayoutPrincipal />}>
+          <Route path="/" element={<PaginaHome />} />
+          <Route path="/login" element={<PaginaLogin />} />        
+          <Route path="/privacidade" element={<PaginaPrivacidade />} />
+          <Route path="/ranking" element={<PaginaRanking />} />
+          <Route path="/ranking/liga" element={<RankingLiga />} />
+          <Route path="/competicoes" element={<PaginaCompeticoes />} />
+          <Route path="/arenas" element={<PaginaArenas />} />
+          <Route path="/arenas/admin/:arenaId" element={<ArenaAdminDashboardPage />} />
+          <Route path="/arenas/:slug" element={<PaginaArenaPublica />} />
+          <Route path="/inscricoes" element={<PaginaInscricoesCampeonato />} />
+          <Route path="/atletas" element={<PaginaAtletas />} />
+          <Route path="/atletas/:atletaId" element={<PaginaAtletaDashboard />} />
+          <Route path="/atletas/:atletaId/dashboard" element={<PaginaAtletaDashboard />} />
+          <Route path="/duplas/:atleta1Id/:atleta2Id" element={<PaginaDuplaDashboard />} />
+          <Route path="/grupos" element={<PaginaGrupos />} />
+          <Route path="/grupos/:grupoId" element={<PaginaGrupoDashboard />} />
+          <Route path="/grupos/:grupoId/atletas" element={<PaginaGrupoAtletas />} />
+          <Route path="/partidas" element={<RedirecionamentoPartidas />} />
+          <Route path="/feed" element={<FeedPartidasPage />} />
+          <Route path="/partidas/consulta" element={<PaginaConsultaPartidas />} />
+          <Route path="/partidas/campeonato" element={<PaginaPartidasCampeonato />} />
+        </Route>
 
-      <Route
+        <Route
         element={
           <RotaProtegida>
             <LayoutPrincipal />
@@ -425,6 +428,7 @@ export default function App() {
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+      </Routes>
+    </>
   );
 }

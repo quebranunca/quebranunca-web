@@ -7144,6 +7144,19 @@ code {
   font-size: 0.86rem;
 }
 
+.atualizacao-app-sobreposicao {
+  z-index: 1300;
+}
+
+.atualizacao-app-modal {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.atualizacao-app-modal .botao-primario {
+  width: 100%;
+}
+
 .modal-placar {
   display: flex;
   flex-direction: column;
@@ -9709,6 +9722,46 @@ a.botao-terciario:active {
   gap: 0.75rem;
   padding: 0.88rem;
   border-radius: 16px;
+}
+
+.perfil-ferramentas-lista {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.perfil-ferramenta-botao {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  min-height: 3rem;
+  padding: 0.72rem 0.78rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.045);
+  color: var(--cor-texto);
+  font-weight: 800;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+}
+
+.perfil-ferramenta-botao:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 209, 102, 0.28);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.perfil-ferramenta-botao svg {
+  flex: 0 0 auto;
+  color: var(--color-primary);
+}
+
+.perfil-ferramenta-botao span {
+  color: var(--cor-texto);
+  font-size: 0.92rem;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .perfil-privacidade-lista {

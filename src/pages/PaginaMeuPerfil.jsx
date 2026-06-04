@@ -11,6 +11,7 @@ import {
   FaSave,
   FaShieldAlt,
   FaSignOutAlt,
+  FaSyncAlt,
   FaTrashAlt,
   FaTrophy,
   FaUserEdit
@@ -609,7 +610,11 @@ export function PaginaMeuPerfil() {
 
   function sairDoPerfil() {
     sair();
-    navigate('/', { replace: true });
+    navigate('/login', { replace: true });
+  }
+
+  function atualizarAplicativo() {
+    window.location.reload();
   }
 
   function atualizarFotoPerfilLocal(fotoPerfilUrlAtualizada) {
@@ -1215,8 +1220,8 @@ export function PaginaMeuPerfil() {
             <article className="perfil-config-card">
               <div>
                 <span>Perfil</span>
-                <h2>Edição e sessão</h2>
-                <p>Atualize seus dados quando necessário ou encerre a sessão neste dispositivo.</p>
+                <h2>Edição</h2>
+                <p>Atualize seus dados quando necessário.</p>
               </div>
 
               <div className="perfil-config-acoes">
@@ -1232,9 +1237,24 @@ export function PaginaMeuPerfil() {
                   </button>
                 )}
 
-                <button type="button" className="botao-secundario" onClick={sairDoPerfil}>
+              </div>
+            </article>
+
+            <article className="perfil-config-card">
+              <div>
+                <span>Ferramentas</span>
+                <h2>Aplicativo e sessão</h2>
+                <p>Atualize a plataforma ou encerre sua sessão neste dispositivo.</p>
+              </div>
+
+              <div className="perfil-ferramentas-lista">
+                <button type="button" className="perfil-ferramenta-botao" onClick={atualizarAplicativo}>
+                  <FaSyncAlt aria-hidden="true" />
+                  <span>Atualizar aplicativo</span>
+                </button>
+                <button type="button" className="perfil-ferramenta-botao" onClick={sairDoPerfil}>
                   <FaSignOutAlt aria-hidden="true" />
-                  Sair
+                  <span>Sair da conta</span>
                 </button>
               </div>
             </article>

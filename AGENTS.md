@@ -27,6 +27,7 @@ Seguir o `AGENTS.md` da raiz. Neste diretório, além disso:
 - `Inscrições` aceita dupla existente ou criação no fluxo a partir de `Jogador 1` e `Jogador 2`
 - `Meu Perfil` existe para qualquer usuário e concentra vínculo `Usuario` ↔ `Atleta`
 - `Meu Perfil` também concentra preferências de privacidade; e-mail público, localização e imagem/foto devem respeitar as preferências retornadas pela API
+- `Meu Perfil` deve manter acessíveis as ações globais de atualizar o aplicativo e sair da conta.
 - Usuário comum (`Atleta`) não vincula atleta existente; cria apenas o próprio atleta com o mesmo nome e e-mail do usuário
 - `Competições` para atleta funciona como vitrine de campeonatos com inscrições abertas; para gestor continua sendo tela de gestão
 - `Inscrições` para atleta permite escolher campeonato/categoria e se inscrever com dupla própria ou parceiro ainda pendente

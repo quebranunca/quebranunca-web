@@ -36,6 +36,10 @@ export const http = axios.create({
   }
 });
 
+export function obterApiBaseUrl() {
+  return http.defaults.baseURL || '/api';
+}
+
 export function resolverUrlRecurso(url) {
   const valor = typeof url === 'string' ? url.trim() : '';
   if (!valor) {
