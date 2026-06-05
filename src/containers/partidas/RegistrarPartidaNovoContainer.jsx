@@ -790,16 +790,16 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
   async function salvarPartida(payload) {
     try {
       setSalvando(true);
-      const partidaCriada = await partidasServico.criar(payload);
-      setSucesso({
-        partida: partidaCriada,
-        resumo: {
-          ...resumo,
-          salvoEm: new Date()
-        }
+      await partidasServico.criar(payload);
+      showNotification({
+        type: 'success',
+        title: 'Partida registrada',
+        message: 'Resultado salvo no histórico QuebraNunca.'
       });
       setPayloadPendente(null);
       setDuplicidade(null);
+      onFechar?.();
+      navegar('/app', { replace: true });
     } catch (falha) {
       if (!payload?.confirmarDuplicidade && ehConfirmacaoDuplicidadePartida(falha)) {
         setDuplicidade(extrairConfirmacaoDuplicidadePartida(falha));
