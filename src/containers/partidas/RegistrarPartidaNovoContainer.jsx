@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { Component, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { obterImagemGrupoAvatar } from '../../components/grupos/AvatarGrupo';
 import { PartidaMidiaUploadModal } from '../../components/partidas/PartidaMidiaUploadModal';
@@ -352,6 +352,62 @@ function normalizarGrupoContexto(grupo, quantidadeAtletas) {
     privacidade: grupo.privacidade || grupo.tipoPrivacidade || 'Privado',
     imagemUrl: obterImagemGrupoAvatar(grupo)
   };
+}
+
+class ErroRegistroPartidaBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { temErro: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { temErro: true };
+  }
+
+  componentDidCatch(erro, info) {
+    console.error('Erro ao renderizar o fluxo de registro de partida.', erro, info);
+  }
+
+  render() {
+    if (this.state.temErro) {
+      return this.props.fallback;
+    }
+
+    return this.props.children;
+  }
+}
+
+function FallbackErroRegistroPartida({ onFechar }) {
+  return (
+    <div className="modal-sobreposicao registrar-partida-novo-sobreposicao" role="presentation">
+      <section
+        className="modal-conteudo registrar-partida-novo-modal"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="registrar-partida-novo-fallback-titulo"
+      >
+        <header className="registrar-partida-novo-header">
+          <div className="registrar-partida-novo-header-centro">
+            <strong id="registrar-partida-novo-fallback-titulo">Registrar partida</strong>
+            <span>Falha ao abrir o formulário</span>
+          </div>
+        </header>
+
+        <div className="registrar-partida-novo-fallback">
+          <p className="texto-erro registrar-partida-novo-erro">
+            Encontramos um problema inesperado ao abrir o registro de partida.
+            Feche esta janela e tente novamente.
+          </p>
+
+          <div className="registrar-partida-novo-acoes">
+            <button type="button" className="botao-secundario" onClick={onFechar}>
+              Fechar
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
 }
 
 export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }) {
@@ -770,10 +826,6 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
     setIndiceEtapa((atual) => Math.max(0, atual - 1));
   }
 
-  function revisar() {
-    registrarPartida();
-  }
-
   async function salvarPartida(payload) {
     try {
       setSalvando(true);
@@ -989,7 +1041,7 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
   }
 
   return (
-    <>
+    <ErroRegistroPartidaBoundary fallback={<FallbackErroRegistroPartida onFechar={onFechar} />}>
       <RegistrarPartidaNovoModal
         aberto
         etapas={etapas}
@@ -1004,7 +1056,6 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
         campoBuscando={campoBuscando}
         erro={erro}
         salvando={carregando}
-        revisando={revisando}
         duplicidade={duplicidade}
         regraPartida={regraPartida}
         carregandoRegraPartida={carregandoRegraPartida}
@@ -1024,7 +1075,6 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
         onSelecionarAtleta={selecionarAtleta}
         onConfirmarEtapa={confirmarEtapa}
         onVoltar={voltar}
-        onRevisar={revisar}
         onCancelarDuplicidade={cancelarDuplicidade}
         onConfirmarDuplicidade={confirmarDuplicidade}
         onFechar={onFechar}
@@ -1042,6 +1092,6 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
         onFechar={() => setUploadMidiaAberto(false)}
         onConcluido={concluirUploadMidia}
       />
-    </>
+    </ErroRegistroPartidaBoundary>
   );
 }

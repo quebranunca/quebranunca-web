@@ -1424,7 +1424,8 @@ export function RegistrarPartidaNovoModal({
   onAdicionarMidia,
   onVerPartida,
   onRegistrarRevanche,
-  onRegistrarNovaPartida
+  onRegistrarNovaPartida,
+  fluxoSimplificado = false
 }) {
   const campoRef = useRef(null);
   const dupla1Atleta2Ref = useRef(null);
