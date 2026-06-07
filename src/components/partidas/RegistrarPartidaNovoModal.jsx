@@ -184,16 +184,16 @@ function Progresso({ etapas, indiceEtapa }) {
 }
 
 function HeaderModal({ etapas, indiceEtapa, etapaAtual, salvando, onVoltar, onFechar, sucesso, fluxoSimplificado = false }) {
-  const podeVoltar = !fluxoSimplificado && indiceEtapa > 0 && !salvando && !sucesso;
+  const podeVoltar = fluxoSimplificado ? !salvando : indiceEtapa > 0 && !salvando && !sucesso;
 
   return (
     <header className="registrar-partida-novo-header">
       <button
         type="button"
         className="registrar-partida-novo-icone-botao"
-        onClick={onVoltar}
+        onClick={fluxoSimplificado ? onFechar : onVoltar}
         disabled={!podeVoltar}
-        aria-label="Voltar para editar"
+        aria-label={fluxoSimplificado ? 'Fechar registro de partida' : 'Voltar para editar'}
       >
         <FaChevronLeft aria-hidden="true" />
       </button>
@@ -304,35 +304,6 @@ function obterNomeInputAtleta(campo) {
   return nomes[campo] || 'atletaPartida';
 }
 
-function obterContextoEdicaoCampo(campo) {
-  const contextos = {
-    'dupla1.atletaDireita': { dupla: 'Dupla 1', atleta: 'Atleta 1' },
-    'dupla1.atletaEsquerda': { dupla: 'Dupla 1', atleta: 'Atleta 2' },
-    'dupla2.atletaDireita': { dupla: 'Dupla 2', atleta: 'Atleta 1' },
-    'dupla2.atletaEsquerda': { dupla: 'Dupla 2', atleta: 'Atleta 2' },
-    'dupla1.pontos': { dupla: 'Dupla 1', atleta: 'Placar' },
-    'dupla2.pontos': { dupla: 'Dupla 2', atleta: 'Placar' }
-  };
-
-  return contextos[campo] || null;
-}
-
-function CabecalhoEdicaoAtiva({ campoAtivo }) {
-  const contexto = obterContextoEdicaoCampo(campoAtivo);
-
-  if (!contexto) {
-    return null;
-  }
-
-  return (
-    <div className="registrar-partida-novo-edicao-ativa" aria-live="polite">
-      <span>Editando</span>
-      <strong>{contexto.dupla}</strong>
-      <strong>{contexto.atleta}</strong>
-    </div>
-  );
-}
-
 function AutocompleteAtleta({
   campo,
   rotulo,
@@ -354,35 +325,39 @@ function AutocompleteAtleta({
   const idsResultados = new Set(sugestoesCampo.map(obterChaveAtletaSugestao).filter(Boolean));
   const sugestoesRapidasCampo = (sugestoesRapidas?.atletas || [])
     .filter((atleta) => !idsResultados.has(obterChaveAtletaSugestao(atleta)));
-  const exibirSugestoesRapidas = sugestoesRapidasCampo.length > 0;
-  const exibirListaResultados = buscaAtiva || sugestoesCampo.length > 0 || buscando;
+  const temSelecao = Boolean(selecao?.id);
+  const exibirSugestoesRapidas = !temSelecao && sugestoesRapidasCampo.length > 0;
+  const exibirListaResultados = !temSelecao && (buscaAtiva || sugestoesCampo.length > 0 || buscando);
 
   return (
     <label className={`registrar-partida-novo-campo ${campoAtivo === campo ? 'ativo' : ''}`}>
       <span>{rotulo}</span>
-      <input
-        ref={inputRef}
-        data-campo-registro-partida={campo}
-        type="text"
-        inputMode="text"
-        name={obterNomeInputAtleta(campo)}
-        autoComplete="off"
-        autoCorrect="off"
-        autoCapitalize="none"
-        spellCheck={false}
-        enterKeyHint="done"
-        value={valor}
-        onChange={(evento) => onAlterarCampo(campo, evento.target.value)}
-        onFocus={scrollFocusedInputIntoView}
-        onKeyDown={(evento) => {
-          if (evento.key === 'Enter') {
-            evento.preventDefault();
-          }
-        }}
-        placeholder={placeholder}
-      />
 
-      {selecao?.id && (
+      {!temSelecao && (
+        <input
+          ref={inputRef}
+          data-campo-registro-partida={campo}
+          type="text"
+          inputMode="text"
+          name={obterNomeInputAtleta(campo)}
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="none"
+          spellCheck={false}
+          enterKeyHint="done"
+          value={valor}
+          onChange={(evento) => onAlterarCampo(campo, evento.target.value)}
+          onFocus={scrollFocusedInputIntoView}
+          onKeyDown={(evento) => {
+            if (evento.key === 'Enter') {
+              evento.preventDefault();
+            }
+          }}
+          placeholder={placeholder}
+        />
+      )}
+
+      {temSelecao && (
         <div className="registrar-partida-novo-chip-selecao">
           <AvatarUsuario
             nome={selecao.apelido || selecao.nome}
@@ -405,12 +380,6 @@ function AutocompleteAtleta({
             <FaTimes aria-hidden="true" />
           </button>
         </div>
-      )}
-
-      {selecao?.id && (
-        <small className="registrar-partida-novo-selecionado">
-          Selecionado: {selecao.apelido || selecao.nome}
-        </small>
       )}
 
       {exibirListaResultados && (
@@ -504,7 +473,6 @@ function DuplaRegistro({
   campoAtivo,
   onAlterarCampo,
   onSelecionarAtleta,
-  onConcluir,
   onLimparSelecao
 }) {
   const prefixo = numero === 1 ? 'dupla1' : 'dupla2';
@@ -528,7 +496,6 @@ function DuplaRegistro({
           buscando={campoBuscando === `${prefixo}.atletaDireita`}
           inputRef={inputRef}
           campoAtivo={campoAtivo}
-          onConcluirCampo={onConcluir}
           onAlterarCampo={onAlterarCampo}
           onSelecionarAtleta={onSelecionarAtleta}
           onLimparSelecao={onLimparSelecao}
@@ -544,31 +511,11 @@ function DuplaRegistro({
           buscando={campoBuscando === `${prefixo}.atletaEsquerda`}
           inputRef={inputRef2}
           campoAtivo={campoAtivo}
-          onConcluirCampo={onConcluir}
           onAlterarCampo={onAlterarCampo}
           onSelecionarAtleta={onSelecionarAtleta}
           onLimparSelecao={onLimparSelecao}
         />
       </div>
-      <button
-        type="button"
-        className="botao-secundario registrar-partida-novo-adicionar-atleta"
-        onClick={() => {
-          if (!inputRef.current?.value) {
-            focusCampoSemPular(inputRef);
-            return;
-          }
-
-          if (!inputRef2.current?.value) {
-            focusCampoSemPular(inputRef2);
-            return;
-          }
-
-          focusCampoSemPular(inputRef2);
-        }}
-      >
-        + Adicionar atleta
-      </button>
     </section>
   );
 }
@@ -741,8 +688,7 @@ function EtapaGrupo({
   return (
     <section className="registrar-partida-novo-etapa registrar-partida-novo-etapa-grupo">
       <div className="registrar-partida-novo-intro">
-        <h3>Grupo da partida</h3>
-        <p>Escolha um grupo ou continue sem vincular.</p>
+        <h3>Grupo</h3>
       </div>
 
       <div className="registrar-partida-novo-grupo-escolha">
@@ -750,37 +696,30 @@ function EtapaGrupo({
           <button
             type="button"
             className="registrar-partida-novo-grupo-opcao selecionada"
-            onClick={onRemoverGrupo}
+            onClick={onSelecionarGrupo}
             aria-pressed="true"
           >
             <GrupoOpcaoAvatar semGrupo />
             <span>
               <strong>Nenhum grupo</strong>
-              <small>Registrar como partida avulsa.</small>
             </span>
-            <FaCheck aria-hidden="true" />
+            <FaEllipsisH aria-hidden="true" />
           </button>
         )}
 
         {grupoSelecionadoId && (
           <div className="registrar-partida-novo-grupo-selecionado">
-            <span>Grupo selecionado</span>
             <button
               type="button"
               className="registrar-partida-novo-grupo-opcao selecionada"
-              onClick={onRemoverGrupo}
+              onClick={onSelecionarGrupo}
               aria-pressed="true"
             >
               <GrupoOpcaoAvatar grupo={grupo} />
               <span>
                 <strong>{carregandoGrupo ? 'Carregando grupo...' : grupo?.nome || 'Grupo selecionado'}</strong>
-                <small>
-                  {carregandoGrupo
-                    ? 'Buscando contexto da partida.'
-                    : `${formatarQuantidadeAtletasGrupo(grupo?.quantidadeAtletas)} • ${grupo?.privacidade || 'Privado'}`}
-                </small>
               </span>
-              <FaCheck aria-hidden="true" />
+              <FaEllipsisH aria-hidden="true" />
             </button>
           </div>
         )}
@@ -878,7 +817,6 @@ function EtapaPlacar(props) {
     <section className="registrar-partida-novo-etapa registrar-partida-novo-etapa-placar">
       <div className="registrar-partida-novo-intro">
         <h3>Resultado</h3>
-        <p>{apenasResultado ? 'Não lembra o placar? Sem problema. Informe apenas quem venceu.' : 'Digite os pontos e revise as validações automáticas.'}</p>
       </div>
 
       <div className="registrar-partida-novo-modo-resultado" role="group" aria-label="Como registrar o resultado">
@@ -903,8 +841,7 @@ function EtapaPlacar(props) {
       {apenasResultado ? (
         <section className="registrar-partida-novo-apenas-resultado" aria-label="Escolha da dupla vencedora">
           <div className="registrar-partida-novo-apenas-resultado-intro">
-            <strong>Selecione a dupla vencedora</strong>
-            <span>Você pode registrar a partida mesmo sem lembrar o placar.</span>
+            <strong>Quem venceu?</strong>
           </div>
 
           <div className="registrar-partida-novo-vencedora-lista">
@@ -928,7 +865,6 @@ function EtapaPlacar(props) {
             </span>
           )}
 
-          <span className="registrar-partida-novo-badge-sem-placar">Resultado sem placar</span>
         </section>
       ) : (
         <PlacarCentral
@@ -1179,12 +1115,11 @@ function TelaSucesso({ sucesso, grupo, onCompartilhar, onVerRanking, onRegistrar
         <FaTrophy aria-hidden="true" />
       </div>
 
-      <span className="registrar-partida-novo-kicker">Partida registrada</span>
       <h3>🏆 Partida registrada</h3>
 
       <div className="registrar-partida-novo-sucesso-card">
         <div className="registrar-partida-novo-sucesso-dupla vencedora">
-          <span>Dupla vencedora</span>
+          <span>Venceram</span>
           {vencedora.map((nome, indice) => (
             <strong key={`vencedora-${indice}`}>{nome}</strong>
           ))}
@@ -1203,7 +1138,7 @@ function TelaSucesso({ sucesso, grupo, onCompartilhar, onVerRanking, onRegistrar
         </div>
 
         <div className="registrar-partida-novo-sucesso-dupla">
-          <span>Outra dupla</span>
+          <span>Contra</span>
           {perdedora.map((nome, indice) => (
             <strong key={`perdedora-${indice}`}>{nome}</strong>
           ))}
@@ -1448,7 +1383,7 @@ export function RegistrarPartidaNovoModal({
   const [campoAtivo, setCampoAtivo] = useState('');
   const [tecladoAberto, setTecladoAberto] = useState(false);
   const [modoMobile, setModoMobile] = useState(false);
-  const revisaoInvalida = false;
+  const revisaoInvalida = revisaoPossuiInconsistencia(dados, regraPartida);
   const acaoPrincipalDesabilitada = salvando || Boolean(duplicidade) || revisaoInvalida;
 
   useEffect(() => {
@@ -1649,7 +1584,6 @@ export function RegistrarPartidaNovoModal({
         autoComplete="off"
       >
         <main ref={corpoRef} className="registrar-partida-novo-corpo registrar-partida-novo-corpo-simples">
-          <CabecalhoEdicaoAtiva campoAtivo={campoAtivo} />
           {erro && <p className="texto-erro registrar-partida-novo-erro">{erro}</p>}
 
           <EtapaGrupo
@@ -1678,7 +1612,6 @@ export function RegistrarPartidaNovoModal({
               campoAtivo={campoAtivo}
               onAlterarCampo={onAlterarCampo}
               onSelecionarAtleta={onSelecionarAtleta}
-              onConcluir={onConfirmarEtapa}
               onLimparSelecao={(campo) => onAlterarCampo(campo, '')}
             />
 
@@ -1695,7 +1628,6 @@ export function RegistrarPartidaNovoModal({
               campoAtivo={campoAtivo}
               onAlterarCampo={onAlterarCampo}
               onSelecionarAtleta={onSelecionarAtleta}
-              onConcluir={onConfirmarEtapa}
               onLimparSelecao={(campo) => onAlterarCampo(campo, '')}
             />
           </section>
@@ -1805,7 +1737,6 @@ export function RegistrarPartidaNovoModal({
             <Stepper etapas={etapas} indiceEtapa={indiceEtapa} />
 
             <main ref={corpoRef} className="registrar-partida-novo-corpo">
-              <CabecalhoEdicaoAtiva campoAtivo={campoAtivo} />
               {erro && <p className="texto-erro registrar-partida-novo-erro">{erro}</p>}
               <ConteudoEtapa
                 etapaAtual={etapaAtual}
