@@ -1,6 +1,6 @@
 import { MinhaPartidaRegistradaCard } from './MinhaPartidaRegistradaCard';
 
-export function MinhasPartidasRegistradasLista({ partidas, onEditar, onExcluir, partidaExcluindoId }) {
+export function MinhasPartidasRegistradasLista({ partidas, onEditar, onExcluir, partidaExcluindoId, podeExcluir = false }) {
   return (
     <div className="lista-cartoes minhas-partidas-registradas-lista scroll-discreto scroll-fade">
       {partidas.map((partida) => (
@@ -9,6 +9,7 @@ export function MinhasPartidasRegistradasLista({ partidas, onEditar, onExcluir, 
           partida={partida}
           onEditar={onEditar}
           onExcluir={onExcluir}
+          podeExcluir={podeExcluir}
           excluindo={partidaExcluindoId === partida.id}
         />
       ))}

@@ -217,6 +217,22 @@ const ITENS_NAVEGACAO = [
   }
 ];
 
+const CAMINHOS_MENU_ADMIN = [
+  '/app',
+  '/admin/partidas',
+  '/admin/grupos',
+  '/admin/atletas',
+  '/ranking',
+  '/admin/competicoes',
+  '/arenas',
+  '/admin'
+];
+
+const NOMES_MENU_ADMIN = {
+  '/app': 'Início',
+  '/admin': 'Administração'
+};
+
 export const TIPOS_TELA = {
   raiz: 'raiz',
   acao: 'acao',
@@ -288,9 +304,21 @@ export function obterItensNavegacao(usuario, estadoAcesso, opcoes = {}) {
     estadoAtivo: estadoAcesso === ESTADOS_ACESSO.ativo
   };
 
-  return ITENS_NAVEGACAO
+  const itensVisiveis = ITENS_NAVEGACAO
     .filter((item) => item.visivel(contexto))
     .filter((item) => incluirDashboard || item.mostrarNoDashboard !== false);
+
+  if (!contexto.administrador || !contexto.estadoAtivo) {
+    return itensVisiveis;
+  }
+
+  return CAMINHOS_MENU_ADMIN
+    .map((caminho) => itensVisiveis.find((item) => item.caminho === caminho))
+    .filter(Boolean)
+    .map((item) => ({
+      ...item,
+      nome: NOMES_MENU_ADMIN[item.caminho] || item.nome
+    }));
 }
 
 export function obterItensNavegacaoPublica() {

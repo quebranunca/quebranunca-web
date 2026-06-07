@@ -3,13 +3,17 @@ import { Link } from 'react-router-dom';
 import { EditarPartidaRegistradaModal } from '../components/partidas/EditarPartidaRegistradaModal';
 import { MinhasPartidasRegistradasLista } from '../components/partidas/MinhasPartidasRegistradasLista';
 import { useNotification } from '../contexts/NotificationContext';
+import { useAutenticacao } from '../hooks/useAutenticacao';
 import { partidasServico } from '../services/partidasServico';
 import { extrairMensagemErro } from '../utils/erros';
 import { ordenarPartidasRecentes } from '../utils/partidas';
+import { ehAdministrador } from '../utils/perfis';
 import '../components/partidas/minhas-partidas-registradas.css';
 
 export function MinhasPartidasRegistradasPagina() {
+  const { usuario } = useAutenticacao();
   const { showNotification } = useNotification();
+  const administradorLogado = ehAdministrador(usuario);
   const [partidas, setPartidas] = useState([]);
   const [partidaEmEdicao, setPartidaEmEdicao] = useState(null);
   const [carregando, setCarregando] = useState(true);
@@ -82,6 +86,10 @@ export function MinhasPartidasRegistradasPagina() {
   }
 
   function abrirExclusao(partida) {
+    if (!administradorLogado) {
+      return;
+    }
+
     setPartidaParaExcluir(partida);
   }
 
@@ -151,6 +159,7 @@ export function MinhasPartidasRegistradasPagina() {
           onEditar={abrirEdicao}
           onExcluir={abrirExclusao}
           partidaExcluindoId={partidaExcluindoId}
+          podeExcluir={administradorLogado}
         />
       )}
 
@@ -175,7 +184,7 @@ export function MinhasPartidasRegistradasPagina() {
             <div className="modal-cabecalho">
               <div>
                 <h3 id="excluir-partida-registrada-titulo">Deletar partida</h3>
-                <p>Essa ação remove a partida registrada e não pode ser desfeita.</p>
+                <p>Tem certeza que deseja apagar esta partida? Essa ação pode impactar rankings e estatísticas.</p>
               </div>
             </div>
 

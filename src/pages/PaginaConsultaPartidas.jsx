@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { FaEdit } from 'react-icons/fa';
+import { FaEdit, FaTrash } from 'react-icons/fa';
 import { gruposServico } from '../services/gruposServico';
 import { partidasServico } from '../services/partidasServico';
 import { useAutenticacao } from '../hooks/useAutenticacao';
@@ -83,7 +83,7 @@ export function PaginaConsultaPartidas() {
       return;
     }
 
-    if (!window.confirm('Deseja remover esta partida?')) {
+    if (!window.confirm('Tem certeza que deseja apagar esta partida? Essa ação pode impactar rankings e estatísticas.')) {
       return;
     }
 
@@ -93,8 +93,19 @@ export function PaginaConsultaPartidas() {
     try {
       await partidasServico.remover(partida.id);
       await carregarPartidasPorGrupo(grupoId);
+      showNotification({
+        type: 'success',
+        title: 'Partida apagada',
+        message: 'A partida foi apagada com sucesso.'
+      });
     } catch (error) {
-      setErro(extrairMensagemErro(error));
+      const mensagem = extrairMensagemErro(error);
+      setErro(mensagem);
+      showNotification({
+        type: 'error',
+        title: 'Erro ao apagar partida',
+        message: mensagem
+      });
     } finally {
       setExcluindoPartidaIds((ids) => {
         const proximosIds = { ...ids };
@@ -105,9 +116,7 @@ export function PaginaConsultaPartidas() {
   }
 
   function podeRemoverPartida(partida) {
-    return Boolean(partida?.id && usuario && (
-      administradorLogado || partida.criadoPorUsuarioId === usuario.id
-    ));
+    return Boolean(partida?.id && administradorLogado);
   }
 
   function abrirEdicao(partida) {
@@ -251,6 +260,7 @@ export function PaginaConsultaPartidas() {
                         onClick={() => removerPartida(partida)}
                         disabled={excluindoPartida}
                       >
+                        <FaTrash aria-hidden="true" />
                         {excluindoPartida ? 'Excluindo...' : 'Excluir'}
                       </button>
                     )}

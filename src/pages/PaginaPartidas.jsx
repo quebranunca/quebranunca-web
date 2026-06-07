@@ -1621,7 +1621,11 @@ export function PaginaPartidas({ modo = 'consulta' }) {
   }
 
   async function removerPartida(id) {
-    if (!window.confirm('Deseja remover esta partida?')) {
+    if (!administradorLogado) {
+      return;
+    }
+
+    if (!window.confirm('Tem certeza que deseja apagar esta partida? Essa ação pode impactar rankings e estatísticas.')) {
       return;
     }
 
@@ -1926,7 +1930,7 @@ export function PaginaPartidas({ modo = 'consulta' }) {
               <button type="button" className="botao-secundario botao-editar botao-compacto" onClick={() => iniciarEdicao(partida)}>
                 <ConteudoBotao icone="editar" texto={tabelaJogosAprovada || grupoSelecionado ? 'Editar' : 'Ajustar'} />
               </button>
-              {grupoSelecionado && (
+              {grupoSelecionado && administradorLogado && (
                 <button type="button" className="botao-perigo botao-compacto" onClick={() => removerPartida(partida.id)}>
                   <ConteudoBotao icone="excluir" texto="Excluir" />
                 </button>
@@ -2382,7 +2386,7 @@ export function PaginaPartidas({ modo = 'consulta' }) {
                   <button type="button" className="botao-secundario botao-editar botao-compacto" onClick={() => iniciarEdicao(partida)}>
                     <ConteudoBotao icone="editar" texto={tabelaJogosAprovada || grupoSelecionado ? 'Editar' : 'Ajustar'} />
                   </button>
-                  {grupoSelecionado && (
+                  {grupoSelecionado && administradorLogado && (
                     <button type="button" className="botao-perigo botao-compacto" onClick={() => removerPartida(partida.id)}>
                       <ConteudoBotao icone="excluir" texto="Excluir" />
                     </button>

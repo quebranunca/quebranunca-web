@@ -12,7 +12,7 @@ function formatarAtleta(nome, lado) {
   return nome || `${lado} a definir`;
 }
 
-export function MinhaPartidaRegistradaCard({ partida, onEditar, onExcluir, excluindo }) {
+export function MinhaPartidaRegistradaCard({ partida, onEditar, onExcluir, excluindo, podeExcluir = false }) {
   const dataExibicao = partida.dataPartida || partida.dataCriacao;
 
   return (
@@ -64,14 +64,16 @@ export function MinhaPartidaRegistradaCard({ partida, onEditar, onExcluir, exclu
         <button type="button" className="botao-secundario" onClick={() => onEditar(partida)}>
           Editar
         </button>
-        <button
-          type="button"
-          className="botao-perigo"
-          onClick={() => onExcluir(partida)}
-          disabled={excluindo}
-        >
-          {excluindo ? 'Excluindo...' : 'Deletar partida'}
-        </button>
+        {podeExcluir && (
+          <button
+            type="button"
+            className="botao-perigo"
+            onClick={() => onExcluir(partida)}
+            disabled={excluindo}
+          >
+            {excluindo ? 'Excluindo...' : 'Deletar partida'}
+          </button>
+        )}
       </div>
     </article>
   );

@@ -6,6 +6,7 @@ import { categoriasServico } from '../services/categoriasServico';
 import { partidasServico } from '../services/partidasServico';
 import { DuplaLink } from '../components/duplas/DuplaLink';
 import { useAutenticacao } from '../hooks/useAutenticacao';
+import { useNotification } from '../contexts/NotificationContext';
 import { extrairMensagemErro } from '../utils/erros';
 import { formatarDataHora } from '../utils/formatacao';
 import { obterNomeExibicaoAtletaCampos, obterNomeExibicaoDupla } from '../utils/atletaUtils';
@@ -295,6 +296,7 @@ function compararPartidasChave(a, b) {
 
 export function PaginaConsultaPartidas() {
   const { usuario } = useAutenticacao();
+  const { showNotification } = useNotification();
   const administradorLogado = ehAdministrador(usuario);
   const [params, setParams] = useSearchParams();
   const consultaMinhasPartidas = params.get('minhas') === 'true';
@@ -958,7 +960,7 @@ export function PaginaConsultaPartidas() {
       return;
     }
 
-    if (!window.confirm('Deseja remover esta partida?')) {
+    if (!window.confirm('Tem certeza que deseja apagar esta partida? Essa ação pode impactar rankings e estatísticas.')) {
       return;
     }
 
@@ -975,8 +977,19 @@ export function PaginaConsultaPartidas() {
       } else {
         setPartidas((lista) => lista.filter((item) => item.id !== partida.id));
       }
+      showNotification({
+        type: 'success',
+        title: 'Partida apagada',
+        message: 'A partida foi apagada com sucesso.'
+      });
     } catch (error) {
-      setErro(extrairMensagemErro(error));
+      const mensagem = extrairMensagemErro(error);
+      setErro(mensagem);
+      showNotification({
+        type: 'error',
+        title: 'Erro ao apagar partida',
+        message: mensagem
+      });
     } finally {
       setExcluindoPartidaIds((ids) => {
         const proximosIds = { ...ids };
