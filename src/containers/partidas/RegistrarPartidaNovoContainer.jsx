@@ -90,15 +90,37 @@ function limparTexto(valor) {
   return String(valor || '').trim().replace(/\s+/g, ' ');
 }
 
+function obterAtletaSelecaoId(atleta) {
+  return atleta?.id || atleta?.atletaId || atleta?.usuarioAtletaId || null;
+}
+
+function obterAtletaSelecaoNome(atleta) {
+  return limparTexto(
+    atleta?.nome ||
+    atleta?.nomeAtleta ||
+    atleta?.atletaNome ||
+    atleta?.nomeCompleto ||
+    atleta?.apelido ||
+    atleta?.apelidoAtleta
+  );
+}
+
 function criarAtletaSelecao(atleta) {
   if (!atleta) {
     return null;
   }
 
+  const id = obterAtletaSelecaoId(atleta);
+  const nome = obterAtletaSelecaoNome(atleta);
+
+  if (!id || !nome) {
+    return null;
+  }
+
   return {
-    id: atleta.id,
-    nome: atleta.nome,
-    apelido: atleta.apelido,
+    id,
+    nome,
+    apelido: atleta.apelido || atleta.apelidoAtleta,
     categoria: atleta.categoria,
     nomeCategoria: atleta.nomeCategoria,
     grupo: atleta.grupo,
@@ -308,27 +330,31 @@ function normalizarRegraPartida(competicao) {
 }
 
 function limitarSugestoes(atletas) {
-  return (atletas || []).slice(0, 5).map(criarAtletaSelecao);
+  return (atletas || []).map(criarAtletaSelecao).filter(Boolean).slice(0, 5);
 }
 
 function limitarSugestoesGrupo(atletas, grupo) {
-  return (atletas || []).slice(0, 5).map((atleta) => criarAtletaSelecao({
-    id: atleta.id,
-    nome: atleta.nome,
-    apelido: atleta.apelido,
-    nomeGrupo: grupo?.nome || 'Grupo',
-    origemSugestao: 'grupo'
-  }));
+  return (atletas || [])
+    .map((atleta) => criarAtletaSelecao({
+      ...atleta,
+      id: obterAtletaSelecaoId(atleta),
+      nome: obterAtletaSelecaoNome(atleta),
+      apelido: atleta.apelido || atleta.apelidoAtleta,
+      nomeGrupo: atleta.nomeGrupo || grupo?.nome || 'Grupo',
+      origemSugestao: 'grupo'
+    }))
+    .filter(Boolean)
+    .slice(0, 5);
 }
 
 function limitarSugestoesExternas(atletas, idsIgnorados) {
   return (atletas || [])
-    .filter((atleta) => atleta?.id && !idsIgnorados.has(atleta.id))
-    .slice(0, 5)
-    .map((atleta) => ({
-      ...criarAtletaSelecao(atleta),
+    .map((atleta) => criarAtletaSelecao({
+      ...atleta,
       origemSugestao: 'externo'
-    }));
+    }))
+    .filter((atleta) => atleta?.id && !idsIgnorados.has(atleta.id))
+    .slice(0, 5);
 }
 
 function obterGrupoId(grupo) {
@@ -499,7 +525,8 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
           quantidadeJogos: atleta.totalPartidas,
           totalPartidas: atleta.totalPartidas,
           origemSugestao: 'frequente'
-        }));
+        }))
+        .filter(Boolean);
     }
 
     const campoParceiro = campoAtletaUsuario === 'dupla1.atletaDireita'
@@ -806,11 +833,18 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
   }
 
   function selecionarAtleta(campo, atleta) {
+    const atletaSelecionado = criarAtletaSelecao(atleta);
+
+    if (!atletaSelecionado) {
+      setErro('Não foi possível selecionar este atleta. Tente buscar pelo nome novamente.');
+      return;
+    }
+
     setErro('');
     setDuplicidade(null);
     setPayloadPendente(null);
-    setDados((anterior) => atualizarValorCampo(anterior, campo, atleta.nome));
-    setSelecoes((anterior) => ({ ...anterior, [campo]: atleta }));
+    setDados((anterior) => atualizarValorCampo(anterior, campo, atletaSelecionado.nome));
+    setSelecoes((anterior) => ({ ...anterior, [campo]: atletaSelecionado }));
     setSugestoes((anterior) => ({ ...anterior, [campo]: [] }));
     avancarAposSelecao(campo);
   }

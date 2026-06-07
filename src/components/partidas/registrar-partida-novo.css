@@ -2470,12 +2470,14 @@
 @media (max-width: 720px), (pointer: coarse) {
   .registrar-partida-novo-sobreposicao {
     align-items: stretch;
+    justify-content: flex-start;
     padding: 0;
   }
 
   .registrar-partida-novo-modal {
     height: var(--registrar-partida-viewport-height, 100dvh);
     max-height: var(--registrar-partida-viewport-height, 100dvh);
+    margin: 0;
     border-radius: 0;
     border-right: 0;
     border-left: 0;
