@@ -950,6 +950,12 @@
   font-weight: 650;
 }
 
+.registrar-partida-novo-sugestao-status.vazio {
+  display: block;
+  grid-template-columns: none;
+  padding: 0.62rem 0.7rem;
+}
+
 .registrar-partida-novo-avatar {
   width: 2.35rem;
   height: 2.35rem;

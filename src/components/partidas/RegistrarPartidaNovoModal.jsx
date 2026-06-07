@@ -27,6 +27,14 @@ function obterValorCampo(dados, campo) {
   return campo.split('.').reduce((valor, parte) => valor?.[parte], dados) ?? '';
 }
 
+function limparTermoBuscaAtleta(valor) {
+  return String(valor || '').trim();
+}
+
+function obterChaveAtletaSugestao(atleta) {
+  return atleta?.id || limparTermoBuscaAtleta(atleta?.nome).toLowerCase();
+}
+
 function formatarData(data) {
   return new Intl.DateTimeFormat('pt-BR', {
     day: '2-digit',
@@ -343,7 +351,12 @@ function AutocompleteAtleta({
 }) {
   const valor = obterValorCampo(dados, campo);
   const sugestoesCampo = sugestoes[campo] || [];
-  const sugestoesRapidasCampo = sugestoesRapidas?.atletas || [];
+  const buscaAtiva = limparTermoBuscaAtleta(valor).length >= 2;
+  const idsResultados = new Set(sugestoesCampo.map(obterChaveAtletaSugestao).filter(Boolean));
+  const sugestoesRapidasCampo = (sugestoesRapidas?.atletas || [])
+    .filter((atleta) => !idsResultados.has(obterChaveAtletaSugestao(atleta)));
+  const exibirSugestoesRapidas = sugestoesRapidasCampo.length > 0;
+  const exibirListaResultados = buscaAtiva || sugestoesCampo.length > 0 || buscando;
   const possuiProximoCampo = Boolean(proximoRef);
 
   function avancarCampo() {
@@ -382,43 +395,21 @@ function AutocompleteAtleta({
         </small>
       )}
 
-      {sugestoesRapidasCampo.length > 0 && (
-        <div className="registrar-partida-novo-sugestoes-rapidas">
-          <span>{sugestoesRapidas.titulo}</span>
-          <div>
-            {sugestoesRapidasCampo.map((atleta) => (
-              <button
-                type="button"
-                key={`${campo}-rapida-${atleta.id}`}
-                className="registrar-partida-novo-sugestao-rapida"
-                onMouseDown={(evento) => evento.preventDefault()}
-                onClick={() => {
-                  onSelecionarAtleta(campo, atleta);
-                  if (possuiProximoCampo) {
-                    focusNextField(proximoRef);
-                  }
-                }}
-              >
-                <AvatarUsuario
-                  nome={atleta.nome}
-                  fotoPerfilUrl={obterFotoPerfilAvatar(atleta)}
-                  tamanho="sm"
-                  className="registrar-partida-novo-sugestao-rapida-avatar"
-                />
-                <span>{atleta.nome}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {(sugestoesCampo.length > 0 || buscando) && (
+      {exibirListaResultados && (
         <div className="registrar-partida-novo-sugestoes" role="listbox">
+          {buscaAtiva && (
+            <span className="registrar-partida-novo-sugestao-secao">
+              Resultados encontrados
+            </span>
+          )}
           {buscando && <span className="registrar-partida-novo-sugestao-status carregando">Buscando atletas...</span>}
+          {buscaAtiva && !buscando && sugestoesCampo.length === 0 && (
+            <span className="registrar-partida-novo-sugestao-status vazio">Nenhum atleta encontrado</span>
+          )}
           {sugestoesCampo.map((atleta, indice) => {
             const secaoAtual = obterSecaoSugestaoAtleta(atleta);
             const secaoAnterior = obterSecaoSugestaoAtleta(sugestoesCampo[indice - 1]);
-            const exibirSecao = secaoAtual && secaoAtual !== secaoAnterior;
+            const exibirSecao = !buscaAtiva && secaoAtual && secaoAtual !== secaoAnterior;
 
             return (
               <Fragment key={`${campo}-${atleta.id}`}>
@@ -452,6 +443,36 @@ function AutocompleteAtleta({
               </Fragment>
             );
           })}
+        </div>
+      )}
+
+      {exibirSugestoesRapidas && (
+        <div className="registrar-partida-novo-sugestoes-rapidas">
+          <span>{sugestoesRapidas.titulo}</span>
+          <div>
+            {sugestoesRapidasCampo.map((atleta) => (
+              <button
+                type="button"
+                key={`${campo}-rapida-${atleta.id}`}
+                className="registrar-partida-novo-sugestao-rapida"
+                onMouseDown={(evento) => evento.preventDefault()}
+                onClick={() => {
+                  onSelecionarAtleta(campo, atleta);
+                  if (possuiProximoCampo) {
+                    focusNextField(proximoRef);
+                  }
+                }}
+              >
+                <AvatarUsuario
+                  nome={atleta.nome}
+                  fotoPerfilUrl={obterFotoPerfilAvatar(atleta)}
+                  tamanho="sm"
+                  className="registrar-partida-novo-sugestao-rapida-avatar"
+                />
+                <span>{atleta.nome}</span>
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </label>
