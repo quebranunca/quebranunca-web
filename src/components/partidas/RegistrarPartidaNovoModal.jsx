@@ -1579,7 +1579,7 @@ export function RegistrarPartidaNovoModal({
     return (
       <form
         ref={formRef}
-        className="registrar-partida-novo-formulario"
+        className="registrar-partida-novo-formulario registrar-partida-novo-formulario-simples"
         onSubmit={onConfirmarEtapa}
         autoComplete="off"
       >

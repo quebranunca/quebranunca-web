@@ -145,6 +145,11 @@
   flex-direction: column;
 }
 
+.registrar-partida-novo-formulario-simples {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+}
+
 .registrar-partida-novo-corpo {
   flex: 1;
   min-height: 0;
@@ -2248,15 +2253,36 @@
 }
 
 .registrar-partida-novo-corpo-simples {
-  display: flex;
-  flex-direction: column;
-  gap: 0.7rem;
-  padding: 0.65rem 0.85rem calc(1rem + var(--registrar-partida-cta-height, 0px));
-  scroll-padding-block: 0.8rem calc(1rem + var(--registrar-partida-cta-height, 0px));
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: 0.85rem;
+  overflow-y: auto;
+  padding: 0.65rem 0.85rem calc(var(--registrar-partida-cta-height, 0px) + env(safe-area-inset-bottom, 0px) + 0.85rem);
+  scroll-padding-block: 0.8rem calc(var(--registrar-partida-cta-height, 0px) + env(safe-area-inset-bottom, 0px) + 0.85rem);
+}
+
+.registrar-partida-novo-corpo-simples > * {
+  position: static;
+  transform: none;
+}
+
+.registrar-partida-novo-corpo-simples .registrar-partida-novo-etapa,
+.registrar-partida-novo-corpo-simples .registrar-partida-novo-duplas-unicas,
+.registrar-partida-novo-corpo-simples .registrar-partida-novo-etapa-placar,
+.registrar-partida-novo-corpo-simples .registrar-partida-novo-alerta-duplicidade {
+  width: min(760px, 100%);
+  margin: 0 auto;
+}
+
+.registrar-partida-novo-corpo-simples .registrar-partida-novo-etapa-grupo {
+  width: min(760px, 100%);
 }
 
 .registrar-partida-novo-corpo-simples .registrar-partida-novo-etapa,
 .registrar-partida-novo-corpo-simples .registrar-partida-novo-etapa-placar {
+  min-height: auto;
   justify-content: flex-start;
   gap: 0.55rem;
 }
@@ -2298,11 +2324,10 @@
 }
 
 .registrar-partida-novo-duplas-unicas {
-  width: min(760px, 100%);
-  margin: 0 auto;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.7rem;
+  align-items: start;
+  gap: 0.85rem;
 }
 
 .registrar-partida-novo-corpo-simples .registrar-partida-novo-dupla-card {
@@ -2430,6 +2455,18 @@
   min-height: 2.9rem;
 }
 
+.registrar-partida-novo-formulario-simples > .registrar-partida-novo-cta-sticky {
+  position: relative;
+  right: auto;
+  bottom: auto;
+  left: auto;
+  z-index: 4;
+  margin: 0;
+  transform: none;
+  will-change: auto;
+  box-shadow: 0 -14px 28px rgba(0, 0, 0, 0.28);
+}
+
 @media (max-width: 720px), (pointer: coarse) {
   .registrar-partida-novo-sobreposicao {
     align-items: stretch;
@@ -2450,20 +2487,14 @@
   }
 
   .registrar-partida-novo-corpo-simples {
-    gap: 0.58rem;
-    padding: 0.55rem 0.62rem max(
-      calc(0.85rem + var(--registrar-partida-cta-height, 0px)),
-      calc(96px + env(safe-area-inset-bottom, 0px))
-    );
-    scroll-padding-bottom: max(
-      calc(0.85rem + var(--registrar-partida-cta-height, 0px)),
-      calc(96px + env(safe-area-inset-bottom, 0px))
-    );
+    gap: 0.72rem;
+    padding: 0.62rem 0.62rem calc(var(--registrar-partida-cta-height, 0px) + env(safe-area-inset-bottom, 0px) + 0.9rem);
+    scroll-padding-bottom: calc(var(--registrar-partida-cta-height, 0px) + env(safe-area-inset-bottom, 0px) + 0.9rem);
   }
 
   .registrar-partida-novo-duplas-unicas {
     grid-template-columns: 1fr;
-    gap: 0.58rem;
+    gap: 0.72rem;
   }
 
   .registrar-partida-novo-corpo-simples .registrar-partida-novo-dupla-card {
@@ -2488,9 +2519,10 @@
     font-size: 2.75rem;
   }
 
-  .registrar-partida-novo-acoes {
-    position: sticky;
+  .registrar-partida-novo-formulario-simples > .registrar-partida-novo-cta-sticky {
+    position: relative;
     margin-bottom: 0;
+    transform: none;
     box-shadow: 0 -14px 28px rgba(0, 0, 0, 0.3);
   }
 
