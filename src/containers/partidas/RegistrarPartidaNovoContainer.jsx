@@ -38,7 +38,7 @@ const estadoInicial = {
     pontos: ''
   },
   resultado: {
-    modo: 'PlacarDetalhado',
+    modo: 'ApenasResultado',
     duplaVencedora: ''
   }
 };
@@ -51,11 +51,7 @@ const estadoInicialSelecoes = {
 };
 
 const etapas = [
-  { id: 'grupo', titulo: 'Grupo', icone: 'group' },
-  { id: 'dupla1', titulo: 'Dupla 1', icone: 'users' },
-  { id: 'dupla2', titulo: 'Dupla 2', icone: 'users' },
-  { id: 'placar', titulo: 'Placar', icone: 'score' },
-  { id: 'revisao', titulo: 'Revisão', icone: 'summary' }
+  { id: 'registro', titulo: 'Registro', icone: 'group' }
 ];
 
 function obterCampoAtletaUsuario(lado) {
@@ -395,7 +391,6 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
 
   const atletaUsuarioNome = obterAtletaUsuarioNome(usuario, atletaUsuario);
   const etapaAtual = etapas[indiceEtapa];
-  const revisando = etapaAtual.id === 'revisao';
   const fixarAtletaUsuario = deveFixarAtletaUsuario(usuario, contextoPartida);
   const carregando = salvando || (fixarAtletaUsuario && carregandoAtletaUsuario);
   const atletaUsuarioId = obterAtletaUsuarioId(usuario, atletaUsuario);
@@ -776,30 +771,27 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
   }
 
   function revisar() {
-    const erroValidacao = validarAtletas(dados) || validarPlacar(dados, regraPartida);
-
-    if (erroValidacao) {
-      setErro(erroValidacao);
-      return;
-    }
-
-    setErro('');
-    setIndiceEtapa(etapas.findIndex((etapa) => etapa.id === 'revisao'));
+    registrarPartida();
   }
 
   async function salvarPartida(payload) {
     try {
       setSalvando(true);
-      await partidasServico.criar(payload);
+      const partida = await partidasServico.criar(payload);
       showNotification({
         type: 'success',
         title: 'Partida registrada',
         message: 'Resultado salvo no histórico QuebraNunca.'
       });
+      setSucesso({
+        partida,
+        resumo: {
+          ...resumo,
+          salvoEm: new Date().toISOString()
+        }
+      });
       setPayloadPendente(null);
       setDuplicidade(null);
-      onFechar?.();
-      navegar('/app', { replace: true });
     } catch (falha) {
       if (!payload?.confirmarDuplicidade && ehConfirmacaoDuplicidadePartida(falha)) {
         setDuplicidade(extrairConfirmacaoDuplicidadePartida(falha));
@@ -849,21 +841,7 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
 
   function confirmarEtapa(evento) {
     evento.preventDefault();
-
-    if (revisando) {
-      registrarPartida();
-      return;
-    }
-
-    const erroValidacao = validarEtapaAtual(etapaAtual.id, dados, regraPartida);
-
-    if (erroValidacao) {
-      setErro(erroValidacao);
-      return;
-    }
-
-    setErro('');
-    setIndiceEtapa((atual) => Math.min(etapas.length - 1, atual + 1));
+    registrarPartida();
   }
 
   function cancelarDuplicidade() {
@@ -975,9 +953,14 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
     setIndiceEtapa(0);
   }
 
-  function verPartida() {
+  function verRanking() {
+    const grupoIdRanking = grupoContexto?.id || contextoPartida?.grupoId;
+    const destino = grupoIdRanking
+      ? `/ranking?tipo=grupos&grupoId=${encodeURIComponent(grupoIdRanking)}`
+      : '/ranking';
+
     onFechar?.();
-    navegar('/minhas-partidas-registradas');
+    navegar(destino, { replace: true });
   }
 
   function abrirGrupo() {
@@ -1046,10 +1029,11 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
         onConfirmarDuplicidade={confirmarDuplicidade}
         onFechar={onFechar}
         onAdicionarMidia={() => setUploadMidiaAberto(true)}
-        onVerPartida={verPartida}
+        onVerRanking={verRanking}
         onAbrirGrupo={abrirGrupo}
         onRegistrarRevanche={registrarRevanche}
         onRegistrarNovaPartida={registrarNovaPartida}
+        fluxoSimplificado
       />
 
       <PartidaMidiaUploadModal

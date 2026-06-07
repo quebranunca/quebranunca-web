@@ -18,7 +18,14 @@ function obterUrlPartida(partidaId, url) {
   return obterUrlAbsoluta(`${window.location.pathname}${window.location.search || ''}`);
 }
 
-export function CompartilharPartidaBotao({ partidaId, url }) {
+export function CompartilharPartidaBotao({
+  partidaId,
+  url,
+  className = 'botao-compartilhar-partida botao-compacto',
+  texto = 'Compartilhar',
+  ariaLabel = 'Compartilhar partida',
+  title = 'Compartilhar partida'
+}) {
   const { showNotification } = useNotification();
   const arteRef = useRef(null);
   const [dados, setDados] = useState(null);
@@ -76,14 +83,14 @@ export function CompartilharPartidaBotao({ partidaId, url }) {
     <>
       <button
         type="button"
-        className="botao-compartilhar-partida botao-compacto"
+        className={className}
         onClick={compartilhar}
         disabled={carregando}
-        aria-label="Compartilhar partida"
-        title="Compartilhar partida"
+        aria-label={ariaLabel}
+        title={title}
       >
         <IoShareSocialSharp aria-hidden="true" />
-        {carregando ? 'Gerando...' : 'Compartilhar'}
+        {carregando ? 'Gerando...' : texto}
       </button>
 
       {erro && <span className="compartilhar-partida-erro" role="alert">{erro}</span>}
