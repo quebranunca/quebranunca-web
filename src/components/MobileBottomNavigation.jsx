@@ -1,16 +1,62 @@
 import { useState } from 'react';
 import { NavLink, matchPath, useLocation } from 'react-router-dom';
-import { FaHome, FaPlus, FaTrophy, FaUser, FaUsers } from 'react-icons/fa';
+import { FaClipboardList, FaHome, FaPlus, FaShieldAlt, FaTrophy, FaUser, FaUsers } from 'react-icons/fa';
 import { RegistrarPartidaNovoContainer } from '../containers/partidas/RegistrarPartidaNovoContainer';
+import { obterItensNavegacao } from '../pages/navagacao';
+import { ehAdministrador } from '../utils/perfis';
 import './partidas/registrar-partida-novo.css';
 
 function itemAtivo(pathname, caminhos) {
   return caminhos.some((caminho) => matchPath({ path: caminho, end: caminho === '/app' }, pathname));
 }
 
-export function MobileBottomNavigation({ usuario }) {
+function obterIconeAdmin(caminho) {
+  if (caminho === '/admin/partidas') {
+    return <FaClipboardList aria-hidden="true" />;
+  }
+
+  if (caminho === '/admin/grupos') {
+    return <FaUsers aria-hidden="true" />;
+  }
+
+  if (caminho === '/admin/atletas') {
+    return <FaUser aria-hidden="true" />;
+  }
+
+  if (caminho === '/ranking') {
+    return <FaTrophy aria-hidden="true" />;
+  }
+
+  if (caminho === '/admin') {
+    return <FaShieldAlt aria-hidden="true" />;
+  }
+
+  return <FaHome aria-hidden="true" />;
+}
+
+export function MobileBottomNavigation({ usuario, estadoAcesso }) {
   const location = useLocation();
   const [registrarAberto, setRegistrarAberto] = useState(false);
+
+  if (ehAdministrador(usuario)) {
+    const itensAdmin = obterItensNavegacao(usuario, estadoAcesso).slice(0, 5);
+
+    return (
+      <nav className="mobile-bottom-navigation" aria-label="Navegação principal">
+        {itensAdmin.map((item) => (
+          <NavLink
+            key={item.caminho}
+            to={item.caminho}
+            end={item.caminho === '/app'}
+            className={() => `mobile-bottom-item ${itemAtivo(location.pathname, [item.caminho, `${item.caminho}/*`]) ? 'ativo' : ''}`}
+          >
+            {obterIconeAdmin(item.caminho)}
+            <span>{item.nome}</span>
+          </NavLink>
+        ))}
+      </nav>
+    );
+  }
 
   return (
     <>

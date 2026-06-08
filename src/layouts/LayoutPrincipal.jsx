@@ -102,7 +102,7 @@ export function LayoutPrincipal() {
         <Outlet />
       </main>
 
-      {mostrarBottomNavMobile && <MobileBottomNavigation usuario={usuario} />}
+      {mostrarBottomNavMobile && <MobileBottomNavigation usuario={usuario} estadoAcesso={estadoAcesso} />}
     </div>
   );
 }

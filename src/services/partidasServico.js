@@ -2,11 +2,15 @@ import { http } from './http';
 import { localizacaoServico } from './localizacaoServico';
 
 export const partidasServico = {
-  async listar({ competicaoId, grupoId, categoriaId }) {
+  async listar({ competicaoId, grupoId, categoriaId, administracao } = {}) {
     const resposta = await http.get('/partidas', {
-      params: categoriaId ? { categoriaId } : grupoId ? { grupoId } : { competicaoId }
+      params: administracao ? { administracao: true } : categoriaId ? { categoriaId } : grupoId ? { grupoId } : { competicaoId }
     });
     return resposta.data;
+  },
+
+  async listarAdministracao() {
+    return this.listar({ administracao: true });
   },
 
   async listarPorCategoria(categoriaId) {

@@ -51,6 +51,8 @@ export function PaginaConsultaPartidas() {
       if (grupoIdUrl) {
         setGrupoId(grupoIdUrl);
         await carregarPartidasPorGrupo(grupoIdUrl);
+      } else if (administradorLogado) {
+        await carregarPartidasAdministracao();
       }
     } catch (error) {
       setErro(extrairMensagemErro(error));
@@ -62,6 +64,11 @@ export function PaginaConsultaPartidas() {
 
   async function carregarPartidasPorGrupo(idGrupo) {
     if (!idGrupo) {
+      if (administradorLogado) {
+        await carregarPartidasAdministracao();
+        return;
+      }
+
       setPartidas([]);
       setParams({});
       return;
@@ -72,6 +79,18 @@ export function PaginaConsultaPartidas() {
       const lista = await partidasServico.listarPorGrupo(idGrupo);
       setPartidas(lista);
       setParams({ grupoId: idGrupo });
+    } catch (error) {
+      setErro(extrairMensagemErro(error));
+      setPartidas([]);
+    }
+  }
+
+  async function carregarPartidasAdministracao() {
+    try {
+      setErro('');
+      const lista = await partidasServico.listarAdministracao();
+      setPartidas(lista);
+      setParams({});
     } catch (error) {
       setErro(extrairMensagemErro(error));
       setPartidas([]);
@@ -175,7 +194,7 @@ export function PaginaConsultaPartidas() {
               carregarPartidasPorGrupo(novoGrupoId);
             }}
           >
-            <option value="">Selecione</option>
+            <option value="">{administradorLogado ? 'Todos os grupos' : 'Selecione'}</option>
             {grupos.map((grupo) => (
               <option key={grupo.id} value={grupo.id}>
                 {grupo.nome}
@@ -273,7 +292,9 @@ export function PaginaConsultaPartidas() {
               <p>
                 {grupoId
                   ? 'Nenhuma partida cadastrada para este grupo.'
-                  : 'Selecione um grupo para consultar as partidas.'}
+                  : administradorLogado
+                    ? 'Nenhuma partida cadastrada na plataforma.'
+                    : 'Selecione um grupo para consultar as partidas.'}
               </p>
             )}
           </div>
