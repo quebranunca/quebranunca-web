@@ -35,7 +35,7 @@ Seguir o `AGENTS.md` da raiz. Neste diretório, além disso:
 - `Inscrições` para atleta permite escolher campeonato/categoria e se inscrever com dupla própria ou parceiro ainda pendente
 - `Usuários` existe apenas para administrador; esconder rota e menu fora desse perfil
 - `Partidas` deve exibir a tabela de jogos da categoria; administrador e organizador podem gerar/alterar jogos, respeitando ownership da competição
-- `Partidas` em grupo deve permitir fluxo único: frontend coleta nomes completos ou seleção de atletas existentes, e a API reaproveita ou cria atleta e dupla no próprio registro da partida. Grupo privado exige atletas já membros; grupo público permite salvar e a API adiciona automaticamente atletas ausentes.
+- `Partidas` em grupo deve permitir fluxo único: frontend coleta nomes completos ou seleção de atletas existentes, e a API reaproveita ou cria atleta, dupla e vínculo ao grupo no próprio registro da partida. O usuário autenticado que registra precisa pertencer ao grupo; atletas informados não precisam estar previamente no grupo e a API vincula automaticamente os ausentes ao salvar.
 - Registro de partida deve usar uma tela única, rápida e sem wizard por etapas, com modo padrão "Apenas vencedor", placar completo como opção avançada e compartilhamento como próxima ação após salvar.
 - Edição básica de partida deve aparecer apenas para criador ou administrador, permitir alterar somente atletas e placares, e usar fluxo visual consistente com o registro de partida
 - Registro de partida deve consultar a validação de possível duplicidade do backend antes de salvar e exibir confirmação visual; não usar `window.confirm` para esse aviso quando houver modal visual no fluxo
