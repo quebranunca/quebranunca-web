@@ -11,7 +11,13 @@ import { grupoAtletasServico } from '../../services/grupoAtletasServico';
 import { gruposServico } from '../../services/gruposServico';
 import { partidasServico } from '../../services/partidasServico';
 import { obterNomeExibicaoAtleta } from '../../utils/atletaUtils';
-import { ehConfirmacaoDuplicidadePartida, extrairConfirmacaoDuplicidadePartida, extrairMensagemErro } from '../../utils/erros';
+import {
+  ehConfirmacaoDuplicidadePartida,
+  ehResultadoConfirmacaoDuplicidadePartida,
+  extrairConfirmacaoDuplicidadePartida,
+  extrairConfirmacaoDuplicidadePartidaResultado,
+  extrairMensagemErro
+} from '../../utils/erros';
 import { ehAdministrador, ehOrganizador } from '../../utils/perfis';
 
 const LADOS_ATLETA = {
@@ -134,6 +140,10 @@ function criarAtletaSelecao(atleta) {
     fotoPerfilUrl: atleta.fotoPerfilUrl,
     origemSugestao: atleta.origemSugestao
   };
+}
+
+function obterTextoExibicaoSelecaoAtleta(atleta) {
+  return obterNomeExibicaoAtleta(atleta) || atleta?.apelido || atleta?.nome || '';
 }
 
 function criarSelecaoAtletaUsuario(usuario, atletaUsuario) {
@@ -843,7 +853,11 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
     setErro('');
     setDuplicidade(null);
     setPayloadPendente(null);
-    setDados((anterior) => atualizarValorCampo(anterior, campo, atletaSelecionado.nome));
+    setDados((anterior) => atualizarValorCampo(
+      anterior,
+      campo,
+      obterTextoExibicaoSelecaoAtleta(atletaSelecionado)
+    ));
     setSelecoes((anterior) => ({ ...anterior, [campo]: atletaSelecionado }));
     setSugestoes((anterior) => ({ ...anterior, [campo]: [] }));
     avancarAposSelecao(campo);
@@ -863,7 +877,16 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
   async function salvarPartida(payload) {
     try {
       setSalvando(true);
-      const partida = await partidasServico.criar(payload);
+      const resultado = await partidasServico.criar(payload);
+
+      if (!payload?.confirmarDuplicidade && ehResultadoConfirmacaoDuplicidadePartida(resultado)) {
+        setDuplicidade(extrairConfirmacaoDuplicidadePartidaResultado(resultado));
+        setPayloadPendente(payload);
+        setErro('');
+        return;
+      }
+
+      const partida = resultado?.partida || resultado;
       showNotification({
         type: 'success',
         title: 'Partida registrada',

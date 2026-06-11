@@ -11,7 +11,13 @@ import { gruposServico } from '../services/gruposServico';
 import { inscricoesCampeonatoServico } from '../services/inscricoesCampeonatoServico';
 import { partidasServico } from '../services/partidasServico';
 import { useAutenticacao } from '../hooks/useAutenticacao';
-import { ehConfirmacaoDuplicidadePartida, extrairConfirmacaoDuplicidadePartida, extrairMensagemErro } from '../utils/erros';
+import {
+  ehConfirmacaoDuplicidadePartida,
+  ehResultadoConfirmacaoDuplicidadePartida,
+  extrairConfirmacaoDuplicidadePartida,
+  extrairConfirmacaoDuplicidadePartidaResultado,
+  extrairMensagemErro
+} from '../utils/erros';
 import {
   ajustarDataHoraInputParaIntervalo,
   formatarDataHora,
@@ -1358,7 +1364,16 @@ export function PaginaPartidas({ modo = 'consulta' }) {
       if (partidaEdicaoId) {
         partidaSalva = await partidasServico.atualizar(partidaEdicaoId, dados);
       } else {
-        partidaSalva = await partidasServico.criar(dados);
+        const resultado = await partidasServico.criar(dados);
+
+        if (!dados?.confirmarDuplicidade && ehResultadoConfirmacaoDuplicidadePartida(resultado)) {
+          setDuplicidadePartida(extrairConfirmacaoDuplicidadePartidaResultado(resultado));
+          setPayloadDuplicidadePendente(dados);
+          setErro('');
+          return;
+        }
+
+        partidaSalva = resultado?.partida || resultado;
       }
 
       const pendenciasSemContato = (partidaSalva?.atletasPendentes || []).filter((item) => !item.temEmail);
@@ -1474,8 +1489,12 @@ export function PaginaPartidas({ modo = 'consulta' }) {
       try {
         const verificacao = await partidasServico.verificarDuplicidade(criarPayloadVerificacaoDuplicidadeFormulario(dados));
 
-        if (verificacao?.existeDuplicidade) {
-          setDuplicidadePartida(verificacao);
+        if (verificacao?.existeDuplicidade || ehResultadoConfirmacaoDuplicidadePartida(verificacao)) {
+          setDuplicidadePartida(
+            ehResultadoConfirmacaoDuplicidadePartida(verificacao)
+              ? extrairConfirmacaoDuplicidadePartidaResultado(verificacao)
+              : verificacao
+          );
           setPayloadDuplicidadePendente(dados);
           setSalvando(false);
           return;
@@ -2423,7 +2442,7 @@ export function PaginaPartidas({ modo = 'consulta' }) {
 
       {duplicidadePartida && (
         <ConfirmarDuplicidadePartidaModal
-          mensagem="Já existe uma partida registrada hoje com os mesmos atletas e o mesmo placar. Isso pode ser uma partida repetida. Deseja registrar mesmo assim?"
+          mensagem={duplicidadePartida.mensagem || 'Já existe uma partida registrada hoje com os mesmos atletas e o mesmo placar. Isso pode ser uma partida repetida. Deseja registrar mesmo assim?'}
           salvando={salvando}
           onCancelar={cancelarDuplicidadePartida}
           onConfirmar={confirmarDuplicidadePartida}

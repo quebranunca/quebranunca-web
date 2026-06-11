@@ -1,3 +1,5 @@
+const CODIGO_DUPLICIDADE_PARTIDA_CONFIRMAR = 'PARTIDA_DUPLICADA_CONFIRMAR';
+
 export function extrairMensagemErro(erro) {
   if (erro?.response?.data?.erro) {
     return erro.response.data.erro;
@@ -16,15 +18,38 @@ export function extrairMensagemErro(erro) {
 
 export function ehConfirmacaoDuplicidadePartida(erro) {
   return erro?.response?.status === 409 &&
-    erro?.response?.data?.codigo === 'PARTIDA_DUPLICADA_CONFIRMAR';
+    erro?.response?.data?.codigo === CODIGO_DUPLICIDADE_PARTIDA_CONFIRMAR;
 }
 
 export function extrairConfirmacaoDuplicidadePartida(erro) {
   const dados = erro?.response?.data || {};
 
   return {
-    codigo: dados.codigo || 'PARTIDA_DUPLICADA_CONFIRMAR',
+    codigo: dados.codigo || CODIGO_DUPLICIDADE_PARTIDA_CONFIRMAR,
     mensagem: dados.mensagem || dados.erro || 'Já existe uma partida registrada hoje com os mesmos atletas e o mesmo placar.',
     correlationId: dados.correlationId
+  };
+}
+
+export function ehResultadoConfirmacaoDuplicidadePartida(resultado) {
+  const duplicidade = resultado?.duplicidade || {};
+
+  return resultado?.status === 'RequerConfirmacaoDuplicidade' ||
+    resultado?.codigo === CODIGO_DUPLICIDADE_PARTIDA_CONFIRMAR ||
+    duplicidade.codigo === CODIGO_DUPLICIDADE_PARTIDA_CONFIRMAR ||
+    duplicidade.requerConfirmacao === true;
+}
+
+export function extrairConfirmacaoDuplicidadePartidaResultado(resultado) {
+  const duplicidade = resultado?.duplicidade || {};
+
+  return {
+    codigo: duplicidade.codigo || resultado?.codigo || CODIGO_DUPLICIDADE_PARTIDA_CONFIRMAR,
+    mensagem: duplicidade.mensagem ||
+      resultado?.mensagem ||
+      duplicidade.erro ||
+      resultado?.erro ||
+      'Já existe uma partida registrada hoje com os mesmos atletas e o mesmo placar.',
+    correlationId: duplicidade.correlationId || resultado?.correlationId
   };
 }

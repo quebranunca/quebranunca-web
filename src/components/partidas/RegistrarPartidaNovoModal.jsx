@@ -35,6 +35,10 @@ function obterChaveAtletaSugestao(atleta) {
   return atleta?.id || limparTermoBuscaAtleta(atleta?.nome).toLowerCase();
 }
 
+function obterNomeExibicaoAtleta(atleta) {
+  return limparTermoBuscaAtleta(atleta?.apelido || atleta?.apelidoAtleta || atleta?.nome || atleta?.nomeAtleta);
+}
+
 function formatarData(data) {
   return new Intl.DateTimeFormat('pt-BR', {
     day: '2-digit',
@@ -326,8 +330,14 @@ function AutocompleteAtleta({
   const sugestoesRapidasCampo = (sugestoesRapidas?.atletas || [])
     .filter((atleta) => !idsResultados.has(obterChaveAtletaSugestao(atleta)));
   const temSelecao = Boolean(selecao?.id);
-  const exibirSugestoesRapidas = !temSelecao && sugestoesRapidasCampo.length > 0;
+  const nomeSelecao = obterNomeExibicaoAtleta(selecao);
+  const exibirSugestoesRapidas = !temSelecao && !buscaAtiva && sugestoesRapidasCampo.length > 0;
   const exibirListaResultados = !temSelecao && (buscaAtiva || sugestoesCampo.length > 0 || buscando);
+
+  function selecionarComPonteiro(evento, atleta) {
+    evento.preventDefault();
+    onSelecionarAtleta(campo, atleta);
+  }
 
   return (
     <label className={`registrar-partida-novo-campo ${campoAtivo === campo ? 'ativo' : ''}`}>
@@ -360,13 +370,13 @@ function AutocompleteAtleta({
       {temSelecao && (
         <div className="registrar-partida-novo-chip-selecao">
           <AvatarUsuario
-            nome={selecao.apelido || selecao.nome}
+            nome={nomeSelecao}
             fotoPerfilUrl={obterFotoPerfilAvatar(selecao)}
             tamanho="sm"
             className="registrar-partida-novo-avatar"
           />
           <span>
-            <strong>{selecao.apelido || selecao.nome}</strong>
+            <strong>{nomeSelecao}</strong>
             <small>{montarDetalhesAtleta(selecao)}</small>
           </span>
           <button
@@ -374,7 +384,7 @@ function AutocompleteAtleta({
             className="registrar-partida-novo-chip-remover"
             onMouseDown={(evento) => evento.preventDefault()}
             onClick={() => onLimparSelecao?.(campo)}
-            aria-label={`Remover ${selecao.apelido || selecao.nome}`}
+            aria-label={`Remover ${nomeSelecao}`}
             title="Remover atleta"
           >
             <FaTimes aria-hidden="true" />
@@ -408,19 +418,17 @@ function AutocompleteAtleta({
                 <button
                   type="button"
                   className="registrar-partida-novo-sugestao"
-                  onMouseDown={(evento) => evento.preventDefault()}
-                  onClick={() => {
-                    onSelecionarAtleta(campo, atleta);
-                  }}
+                  onPointerDown={(evento) => selecionarComPonteiro(evento, atleta)}
+                  onClick={() => onSelecionarAtleta(campo, atleta)}
                 >
                   <AvatarUsuario
-                    nome={atleta.apelido || atleta.nome}
+                    nome={obterNomeExibicaoAtleta(atleta)}
                     fotoPerfilUrl={obterFotoPerfilAvatar(atleta)}
                     tamanho="sm"
                     className="registrar-partida-novo-avatar"
                   />
                   <span>
-                    <strong>{atleta.nome}</strong>
+                    <strong>{obterNomeExibicaoAtleta(atleta)}</strong>
                     <small>{montarDetalhesAtleta(atleta)}</small>
                   </span>
                 </button>
@@ -439,18 +447,16 @@ function AutocompleteAtleta({
                 type="button"
                 key={`${campo}-rapida-${atleta.id}`}
                 className="registrar-partida-novo-sugestao-rapida"
-                onMouseDown={(evento) => evento.preventDefault()}
-                onClick={() => {
-                  onSelecionarAtleta(campo, atleta);
-                }}
+                onPointerDown={(evento) => selecionarComPonteiro(evento, atleta)}
+                onClick={() => onSelecionarAtleta(campo, atleta)}
               >
                 <AvatarUsuario
-                  nome={atleta.nome}
+                  nome={obterNomeExibicaoAtleta(atleta)}
                   fotoPerfilUrl={obterFotoPerfilAvatar(atleta)}
                   tamanho="sm"
                   className="registrar-partida-novo-sugestao-rapida-avatar"
                 />
-                <span>{atleta.nome}</span>
+                <span>{obterNomeExibicaoAtleta(atleta)}</span>
               </button>
             ))}
           </div>
@@ -1068,8 +1074,8 @@ function RevisaoRapida({
           <div className="registrar-partida-novo-alerta-duplicidade" role="alert">
             <strong>Possível partida duplicada</strong>
             <p>
-              Já existe uma partida registrada hoje com os mesmos atletas e o mesmo placar.
-              Isso pode ser uma partida repetida. Deseja registrar mesmo assim?
+              {duplicidade.mensagem ||
+                'Já existe uma partida registrada hoje com os mesmos atletas e o mesmo placar. Isso pode ser uma partida repetida. Deseja registrar mesmo assim?'}
             </p>
             <div className="registrar-partida-novo-acoes registrar-partida-novo-acoes-duplicidade">
               <button type="button" className="botao-secundario" onClick={onCancelarDuplicidade} disabled={salvando}>
@@ -1511,8 +1517,9 @@ export function RegistrarPartidaNovoModal({
     }
 
     const container = corpoRef.current;
+    let rafCampoAtivo = 0;
 
-    function centralizarCampoAtivo(alvo) {
+    function alinharCampoAtivo(alvo) {
       if (!(alvo instanceof HTMLElement)) {
         return;
       }
@@ -1522,18 +1529,18 @@ export function RegistrarPartidaNovoModal({
         return;
       }
 
-      window.setTimeout(() => {
+      window.cancelAnimationFrame(rafCampoAtivo);
+      rafCampoAtivo = window.requestAnimationFrame(() => {
         const areaUtil = container.getBoundingClientRect();
         const campo = elemento.getBoundingClientRect();
-        const centroCampo = campo.top + campo.height / 2;
-        const centroAreaUtil = areaUtil.top + areaUtil.height / 2;
-        const deslocamento = centroCampo - centroAreaUtil;
+        const safeTop = modoMobile ? 16 : 24;
+        const destino = container.scrollTop + campo.top - areaUtil.top - safeTop;
 
-        container.scrollBy({
-          top: deslocamento,
+        container.scrollTo({
+          top: Math.max(0, destino),
           behavior: 'smooth'
         });
-      }, 140);
+      });
     }
 
     function aoFocar(evento) {
@@ -1548,7 +1555,7 @@ export function RegistrarPartidaNovoModal({
 
       setInputEmFoco(true);
       setCampoAtivo(elementoFoco.dataset.campoRegistroPartida || '');
-      centralizarCampoAtivo(elementoFoco);
+      alinharCampoAtivo(elementoFoco);
     }
 
     function aoPerderFoco() {
@@ -1568,8 +1575,9 @@ export function RegistrarPartidaNovoModal({
     return () => {
       container.removeEventListener('focusin', aoFocar);
       container.removeEventListener('focusout', aoPerderFoco);
+      window.cancelAnimationFrame(rafCampoAtivo);
     };
-  }, [aberto]);
+  }, [aberto, modoMobile]);
 
   if (!aberto) {
     return null;
@@ -1648,8 +1656,8 @@ export function RegistrarPartidaNovoModal({
             <div className="registrar-partida-novo-alerta-duplicidade" role="alert">
               <strong>Possível partida duplicada</strong>
               <p>
-                Já existe uma partida registrada hoje com os mesmos atletas e o mesmo placar.
-                Isso pode ser uma partida repetida. Deseja registrar mesmo assim?
+                {duplicidade.mensagem ||
+                  'Já existe uma partida registrada hoje com os mesmos atletas e o mesmo placar. Isso pode ser uma partida repetida. Deseja registrar mesmo assim?'}
               </p>
               <div className="registrar-partida-novo-acoes registrar-partida-novo-acoes-duplicidade">
                 <button type="button" className="botao-secundario" onClick={onCancelarDuplicidade} disabled={salvando}>
