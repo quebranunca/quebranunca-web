@@ -66,3 +66,8 @@ Seguir o `AGENTS.md` da raiz. Neste diretório, além disso:
 - Organizador e administrador não devem ser forçados a criar atleta para concluir o acesso
 - Preservar as rotas existentes sempre que possível; preferir aliases e redirecionamentos pontuais a uma quebra ampla de URLs
 - No mobile autenticado, priorizar layout mobile first com header simples e bottom navigation fixa; evitar sidebar, rodapé tradicional e menu hambúrguer como navegação principal.
+
+## Testes E2E
+- Testes E2E do Web usam Playwright e ficam em `e2e`.
+- Priorizar seletores resilientes: `getByRole`, `getByLabel` e `getByPlaceholder`.
+- Usar `data-testid` apenas quando nomes acessíveis repetidos tornarem o seletor ambíguo.

@@ -24,6 +24,8 @@ lerna-debug.log*
 coverage/
 .cache/
 .eslintcache
+playwright-report/
+test-results/
 
 # IDE
 .vscode/*

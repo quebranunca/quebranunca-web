@@ -40,12 +40,22 @@ function obterNomeExibicaoAtleta(atleta) {
 }
 
 function formatarData(data) {
+  if (!data) {
+    return '';
+  }
+
+  const dataFormatada = data instanceof Date ? data : new Date(data);
+
+  if (Number.isNaN(dataFormatada.getTime())) {
+    return '';
+  }
+
   return new Intl.DateTimeFormat('pt-BR', {
     day: '2-digit',
     month: '2-digit',
     hour: '2-digit',
     minute: '2-digit'
-  }).format(data);
+  }).format(dataFormatada);
 }
 
 function formatarIdPartida(partida) {
@@ -340,7 +350,10 @@ function AutocompleteAtleta({
   }
 
   return (
-    <label className={`registrar-partida-novo-campo ${campoAtivo === campo ? 'ativo' : ''}`}>
+    <label
+      className={`registrar-partida-novo-campo ${campoAtivo === campo ? 'ativo' : ''}`}
+      data-testid={`campo-${obterNomeInputAtleta(campo)}`}
+    >
       <span>{rotulo}</span>
 
       {!temSelecao && (
@@ -485,7 +498,10 @@ function DuplaRegistro({
   const ganhou = vencedora === prefixo;
 
   return (
-    <section className={`registrar-partida-novo-dupla-card ${ganhou ? 'vencedora' : ''}`}>
+    <section
+      className={`registrar-partida-novo-dupla-card ${ganhou ? 'vencedora' : ''}`}
+      aria-label={`Dupla ${numero}`}
+    >
       <div className="registrar-partida-novo-dupla-topo">
         <span>Dupla {numero}</span>
         {ganhou && <strong><FaTrophy aria-hidden="true" /> Vencendo</strong>}
@@ -1175,7 +1191,7 @@ function TelaSucesso({ sucesso, grupo, onCompartilhar, onVerRanking, onRegistrar
           <button type="button" className="botao-secundario" onClick={onRegistrarOutraPartida}>
             Registrar outra partida
           </button>
-          <button type="button" className="botao-secundario" onClick={onVerRanking}>
+          <button type="button" className="botao-secundario" onClick={() => onVerRanking?.()}>
             Ver ranking
           </button>
           <button type="button" className="botao-secundario" onClick={onFechar}>
@@ -1364,6 +1380,7 @@ export function RegistrarPartidaNovoModal({
   onFechar,
   onAdicionarMidia,
   onVerPartida,
+  onVerRanking,
   onRegistrarRevanche,
   onRegistrarNovaPartida,
   fluxoSimplificado = false
@@ -1591,7 +1608,11 @@ export function RegistrarPartidaNovoModal({
         onSubmit={onConfirmarEtapa}
         autoComplete="off"
       >
-        <main ref={corpoRef} className="registrar-partida-novo-corpo registrar-partida-novo-corpo-simples">
+        <main
+          ref={corpoRef}
+          className="registrar-partida-novo-corpo registrar-partida-novo-corpo-simples"
+          data-testid="registrar-partida-corpo"
+        >
           {erro && <p className="texto-erro registrar-partida-novo-erro">{erro}</p>}
 
           <EtapaGrupo
@@ -1678,7 +1699,7 @@ export function RegistrarPartidaNovoModal({
           aria-busy={salvando}
         >
           <button type="button" className="botao-secundario" onClick={onFechar} disabled={salvando}>
-            Fechar
+            Cancelar
           </button>
           <button type="submit" className="botao-primario" disabled={acaoPrincipalDesabilitada} aria-busy={salvando}>
             Registrar partida
