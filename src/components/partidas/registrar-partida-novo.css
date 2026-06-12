@@ -146,8 +146,10 @@
 }
 
 .registrar-partida-novo-formulario-simples {
+  min-height: 0;
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto;
+  overflow: hidden;
 }
 
 .registrar-partida-novo-corpo {
@@ -2452,14 +2454,14 @@
 }
 
 .registrar-partida-novo-formulario-simples > .registrar-partida-novo-cta-sticky {
-  position: relative;
+  position: sticky;
   right: auto;
-  bottom: auto;
+  bottom: 0;
   left: auto;
-  z-index: 4;
+  z-index: 6;
   margin: 0;
-  transform: none;
-  will-change: auto;
+  transform: translateY(calc(var(--registrar-partida-teclado-offset, 0px) * -1));
+  will-change: transform;
   box-shadow: 0 -14px 28px rgba(0, 0, 0, 0.28);
 }
 
@@ -2518,9 +2520,10 @@
   }
 
   .registrar-partida-novo-formulario-simples > .registrar-partida-novo-cta-sticky {
-    position: relative;
+    position: sticky;
+    bottom: 0;
     margin-bottom: 0;
-    transform: none;
+    transform: translateY(calc(var(--registrar-partida-teclado-offset, 0px) * -1));
     box-shadow: 0 -14px 28px rgba(0, 0, 0, 0.3);
   }
 }
