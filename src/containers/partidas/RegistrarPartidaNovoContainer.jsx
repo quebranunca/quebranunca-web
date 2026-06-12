@@ -189,8 +189,8 @@ function obterAtletaId(selecoes, campo, campoAtletaUsuario, atletaUsuarioId) {
   return selecoes[campo]?.id || null;
 }
 
-function deveFixarAtletaUsuario(usuario, contextoInicial) {
-  return !contextoInicial?.grupoId && !ehAdministrador(usuario) && !ehOrganizador(usuario);
+function deveFixarAtletaUsuario(usuario, contextoInicial, modo = 'criacao') {
+  return modo !== 'edicao' && !contextoInicial?.grupoId && !ehAdministrador(usuario) && !ehOrganizador(usuario);
 }
 
 function obterAtletaIdPayload(selecoes, campo, campoAtletaUsuario, atletaUsuarioId, fixarAtletaUsuario) {
@@ -234,6 +234,110 @@ function criarPayload(dados, selecoes, usuario, atletaUsuario, contextoInicial) 
       : 'PlacarDetalhado',
     dataPartida: new Date().toISOString(),
     observacoes: null
+  };
+}
+
+function obterDuplaVencedoraPartida(partida, dados) {
+  const duplaVencedora = Number(partida?.duplaVencedora);
+
+  if (duplaVencedora === 1 || duplaVencedora === 2) {
+    return String(duplaVencedora);
+  }
+
+  const placarA = Number(dados?.dupla1?.pontos);
+  const placarB = Number(dados?.dupla2?.pontos);
+
+  if (Number.isFinite(placarA) && Number.isFinite(placarB) && placarA !== placarB) {
+    return placarA > placarB ? '1' : '2';
+  }
+
+  return '';
+}
+
+function criarEstadoEdicaoPartida(partida) {
+  if (!partida) {
+    return estadoInicial;
+  }
+
+  const dados = {
+    dupla1: {
+      atletaDireita: partida.nomeDuplaAAtleta1 || '',
+      atletaEsquerda: partida.nomeDuplaAAtleta2 || '',
+      pontos: String(partida.placarDuplaA ?? '')
+    },
+    dupla2: {
+      atletaDireita: partida.nomeDuplaBAtleta1 || '',
+      atletaEsquerda: partida.nomeDuplaBAtleta2 || '',
+      pontos: String(partida.placarDuplaB ?? '')
+    },
+    resultado: {
+      modo: partida.tipoRegistroResultado === 'ApenasResultado' || partida.placarDuplaA == null || partida.placarDuplaB == null
+        ? 'ApenasResultado'
+        : 'PlacarDetalhado',
+      duplaVencedora: ''
+    }
+  };
+
+  dados.resultado.duplaVencedora = obterDuplaVencedoraPartida(partida, dados);
+
+  return dados;
+}
+
+function criarSelecoesEdicaoPartida(partida) {
+  if (!partida) {
+    return estadoInicialSelecoes;
+  }
+
+  return {
+    'dupla1.atletaDireita': criarAtletaSelecao({ id: partida.duplaAAtleta1Id, nome: partida.nomeDuplaAAtleta1 }),
+    'dupla1.atletaEsquerda': criarAtletaSelecao({ id: partida.duplaAAtleta2Id, nome: partida.nomeDuplaAAtleta2 }),
+    'dupla2.atletaDireita': criarAtletaSelecao({ id: partida.duplaBAtleta1Id, nome: partida.nomeDuplaBAtleta1 }),
+    'dupla2.atletaEsquerda': criarAtletaSelecao({ id: partida.duplaBAtleta2Id, nome: partida.nomeDuplaBAtleta2 })
+  };
+}
+
+function criarContextoEdicaoPartida(partida, contextoInicial = {}) {
+  return {
+    ...contextoInicial,
+    grupoId: partida?.grupoId || null,
+    competicaoId: partida?.competicaoId || contextoInicial?.competicaoId || null,
+    categoriaId: partida?.categoriaCompeticaoId || contextoInicial?.categoriaId || null
+  };
+}
+
+function criarGrupoContextoEdicao(partida) {
+  if (!partida?.grupoId) {
+    return null;
+  }
+
+  return normalizarGrupoContexto({
+    id: partida.grupoId,
+    nome: partida.nomeGrupo || 'Grupo atual',
+    quantidadeAtletas: partida.quantidadeAtletasGrupo,
+    privacidade: partida.privacidadeGrupo,
+    imagemUrl: partida.imagemUrlGrupo
+  });
+}
+
+function criarPayloadEdicao(partida, dados, selecoes, contextoPartida) {
+  const apenasResultado = dados.resultado?.modo === 'ApenasResultado';
+
+  return {
+    grupoId: contextoPartida?.grupoId || null,
+    duplaAAtleta1Id: selecoes['dupla1.atletaDireita']?.id || null,
+    duplaAAtleta1Nome: limparTexto(dados.dupla1.atletaDireita),
+    duplaAAtleta2Id: selecoes['dupla1.atletaEsquerda']?.id || null,
+    duplaAAtleta2Nome: limparTexto(dados.dupla1.atletaEsquerda),
+    duplaBAtleta1Id: selecoes['dupla2.atletaDireita']?.id || null,
+    duplaBAtleta1Nome: limparTexto(dados.dupla2.atletaDireita),
+    duplaBAtleta2Id: selecoes['dupla2.atletaEsquerda']?.id || null,
+    duplaBAtleta2Nome: limparTexto(dados.dupla2.atletaEsquerda),
+    placarDuplaA: apenasResultado ? null : Number(dados.dupla1.pontos),
+    placarDuplaB: apenasResultado ? null : Number(dados.dupla2.pontos),
+    duplaVencedora: apenasResultado
+      ? Number(dados.resultado.duplaVencedora)
+      : null,
+    tipoRegistroResultado: apenasResultado ? 'ApenasResultado' : 'PlacarDetalhado'
   };
 }
 
@@ -446,12 +550,21 @@ function FallbackErroRegistroPartida({ onFechar }) {
   );
 }
 
-export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }) {
+export function RegistrarPartidaNovoContainer({
+  onFechar,
+  contextoInicial = {},
+  modo = 'criacao',
+  partidaInicial = null,
+  onSalvarEdicao = null,
+  salvandoExterno = false,
+  erroExterno = ''
+}) {
   const { usuario } = useAutenticacao();
   const navegar = useNavigate();
   const { showNotification } = useNotification();
-  const [dados, setDados] = useState(estadoInicial);
-  const [selecoes, setSelecoes] = useState(estadoInicialSelecoes);
+  const ehEdicao = modo === 'edicao';
+  const [dados, setDados] = useState(() => (ehEdicao ? criarEstadoEdicaoPartida(partidaInicial) : estadoInicial));
+  const [selecoes, setSelecoes] = useState(() => (ehEdicao ? criarSelecoesEdicaoPartida(partidaInicial) : estadoInicialSelecoes));
   const [indiceEtapa, setIndiceEtapa] = useState(0);
   const [erro, setErro] = useState('');
   const [salvando, setSalvando] = useState(false);
@@ -467,8 +580,10 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
   const [campoBuscando, setCampoBuscando] = useState('');
   const [sucesso, setSucesso] = useState(null);
   const [uploadMidiaAberto, setUploadMidiaAberto] = useState(false);
-  const [contextoPartida, setContextoPartida] = useState(contextoInicial);
-  const [grupoContexto, setGrupoContexto] = useState(null);
+  const [contextoPartida, setContextoPartida] = useState(() => (
+    ehEdicao ? criarContextoEdicaoPartida(partidaInicial, contextoInicial) : contextoInicial
+  ));
+  const [grupoContexto, setGrupoContexto] = useState(() => (ehEdicao ? criarGrupoContextoEdicao(partidaInicial) : null));
   const [carregandoGrupo, setCarregandoGrupo] = useState(false);
   const [gruposDisponiveis, setGruposDisponiveis] = useState([]);
   const [carregandoGruposDisponiveis, setCarregandoGruposDisponiveis] = useState(false);
@@ -483,8 +598,8 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
 
   const atletaUsuarioNome = obterAtletaUsuarioNome(usuario, atletaUsuario);
   const etapaAtual = etapas[indiceEtapa];
-  const fixarAtletaUsuario = deveFixarAtletaUsuario(usuario, contextoPartida);
-  const carregando = salvando || (fixarAtletaUsuario && carregandoAtletaUsuario);
+  const fixarAtletaUsuario = deveFixarAtletaUsuario(usuario, contextoPartida, modo);
+  const carregando = salvando || salvandoExterno || (fixarAtletaUsuario && carregandoAtletaUsuario);
   const atletaUsuarioId = obterAtletaUsuarioId(usuario, atletaUsuario);
   const campoAtletaUsuario = obterCampoAtletaUsuario(obterAtletaUsuarioLado(usuario, atletaUsuario));
 
@@ -570,8 +685,20 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
   }, [dados, selecoes, sugestoesPartida, fixarAtletaUsuario, campoAtletaUsuario, atletaUsuarioId]);
 
   useEffect(() => {
+    if (ehEdicao) {
+      setDados(criarEstadoEdicaoPartida(partidaInicial));
+      setSelecoes(criarSelecoesEdicaoPartida(partidaInicial));
+      setContextoPartida(criarContextoEdicaoPartida(partidaInicial, contextoInicial));
+      setGrupoContexto(criarGrupoContextoEdicao(partidaInicial));
+      setSucesso(null);
+      setErro('');
+      setDuplicidade(null);
+      setPayloadPendente(null);
+      return;
+    }
+
     setContextoPartida(contextoInicial);
-  }, [contextoInicial?.competicaoId, contextoInicial?.grupoId, contextoInicial?.categoriaId]);
+  }, [ehEdicao, partidaInicial?.id, contextoInicial?.competicaoId, contextoInicial?.grupoId, contextoInicial?.categoriaId]);
 
   useEffect(() => {
     let cancelado = false;
@@ -738,7 +865,7 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
   }, [usuario?.atletaId, usuario?.atleta]);
 
   useEffect(() => {
-    if (!deveFixarAtletaUsuario(usuario, contextoPartida)) {
+    if (!deveFixarAtletaUsuario(usuario, contextoPartida, modo)) {
       return;
     }
 
@@ -877,9 +1004,11 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
   async function salvarPartida(payload) {
     try {
       setSalvando(true);
-      const resultado = await partidasServico.criar(payload);
+      const resultado = ehEdicao && onSalvarEdicao
+        ? await onSalvarEdicao(payload)
+        : await partidasServico.criar(payload);
 
-      if (!payload?.confirmarDuplicidade && ehResultadoConfirmacaoDuplicidadePartida(resultado)) {
+      if (!ehEdicao && !payload?.confirmarDuplicidade && ehResultadoConfirmacaoDuplicidadePartida(resultado)) {
         setDuplicidade(extrairConfirmacaoDuplicidadePartidaResultado(resultado));
         setPayloadPendente(payload);
         setErro('');
@@ -887,11 +1016,13 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
       }
 
       const partida = resultado?.partida || resultado;
-      showNotification({
-        type: 'success',
-        title: 'Partida registrada',
-        message: 'Resultado salvo no histórico QuebraNunca.'
-      });
+      if (!ehEdicao) {
+        showNotification({
+          type: 'success',
+          title: 'Partida registrada',
+          message: 'Resultado salvo no histórico QuebraNunca.'
+        });
+      }
       setSucesso({
         partida,
         resumo: {
@@ -902,7 +1033,7 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
       setPayloadPendente(null);
       setDuplicidade(null);
     } catch (falha) {
-      if (!payload?.confirmarDuplicidade && ehConfirmacaoDuplicidadePartida(falha)) {
+      if (!ehEdicao && !payload?.confirmarDuplicidade && ehConfirmacaoDuplicidadePartida(falha)) {
         setDuplicidade(extrairConfirmacaoDuplicidadePartida(falha));
         setPayloadPendente(payload);
         setErro('');
@@ -916,7 +1047,7 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
   }
 
   async function registrarPartida({ confirmarDuplicidade = false } = {}) {
-    const fixarAtletaUsuario = deveFixarAtletaUsuario(usuario, contextoPartida);
+    const fixarAtletaUsuario = deveFixarAtletaUsuario(usuario, contextoPartida, modo);
 
     if (fixarAtletaUsuario && carregandoAtletaUsuario) {
       setErro('Aguarde a identificação do atleta logado para salvar a partida.');
@@ -940,10 +1071,12 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
       return;
     }
 
-    const payload = {
-      ...criarPayload(dados, selecoes, usuario, atletaUsuario, contextoPartida),
-      confirmarDuplicidade
-    };
+    const payload = ehEdicao
+      ? criarPayloadEdicao(partidaInicial, dados, selecoes, contextoPartida)
+      : {
+          ...criarPayload(dados, selecoes, usuario, atletaUsuario, contextoPartida),
+          confirmarDuplicidade
+        };
 
     await salvarPartida(payload);
   }
@@ -1049,7 +1182,7 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
   }
 
   function registrarNovaPartida() {
-    if (deveFixarAtletaUsuario(usuario, contextoPartida)) {
+    if (deveFixarAtletaUsuario(usuario, contextoPartida, modo)) {
       setDados(criarDadosComAtletaUsuario(estadoInicial, usuario, atletaUsuario));
       setSelecoes(criarSelecoesComAtletaUsuario(usuario, atletaUsuario));
     } else {
@@ -1111,7 +1244,7 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
         sugestoes={sugestoes}
         sugestoesRapidas={sugestoesRapidas}
         campoBuscando={campoBuscando}
-        erro={erro}
+        erro={erro || erroExterno}
         salvando={carregando}
         duplicidade={duplicidade}
         regraPartida={regraPartida}
@@ -1141,6 +1274,12 @@ export function RegistrarPartidaNovoContainer({ onFechar, contextoInicial = {} }
         onRegistrarRevanche={registrarRevanche}
         onRegistrarNovaPartida={registrarNovaPartida}
         fluxoSimplificado
+        titulo={ehEdicao ? 'Editar partida' : 'Registrar partida'}
+        ariaFechar={ehEdicao ? 'Fechar edição de partida' : 'Fechar registro de partida'}
+        rotuloAcaoPrincipal={ehEdicao ? 'Salvar alterações' : 'Registrar partida'}
+        rotuloAcaoPrincipalSalvando={ehEdicao ? 'Salvando...' : 'Registrando...'}
+        permitirRemoverGrupo={!ehEdicao}
+        sucessoEdicao={ehEdicao}
       />
 
       <PartidaMidiaUploadModal

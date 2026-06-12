@@ -197,7 +197,18 @@ function Progresso({ etapas, indiceEtapa }) {
   );
 }
 
-function HeaderModal({ etapas, indiceEtapa, etapaAtual, salvando, onVoltar, onFechar, sucesso, fluxoSimplificado = false }) {
+function HeaderModal({
+  etapas,
+  indiceEtapa,
+  etapaAtual,
+  salvando,
+  onVoltar,
+  onFechar,
+  sucesso,
+  fluxoSimplificado = false,
+  titulo = 'Registrar partida',
+  ariaFechar = 'Fechar registro de partida'
+}) {
   const podeVoltar = fluxoSimplificado ? !salvando : indiceEtapa > 0 && !salvando && !sucesso;
 
   return (
@@ -207,13 +218,13 @@ function HeaderModal({ etapas, indiceEtapa, etapaAtual, salvando, onVoltar, onFe
         className="registrar-partida-novo-icone-botao"
         onClick={fluxoSimplificado ? onFechar : onVoltar}
         disabled={!podeVoltar}
-        aria-label={fluxoSimplificado ? 'Fechar registro de partida' : 'Voltar para editar'}
+        aria-label={fluxoSimplificado ? ariaFechar : 'Voltar para editar'}
       >
         <FaChevronLeft aria-hidden="true" />
       </button>
 
       <div className="registrar-partida-novo-header-centro">
-        <strong id="registrar-partida-novo-titulo">Registrar partida</strong>
+        <strong id="registrar-partida-novo-titulo">{titulo}</strong>
         {!sucesso && !fluxoSimplificado && (
           <>
             <span>{etapaAtual.titulo}</span>
@@ -227,7 +238,7 @@ function HeaderModal({ etapas, indiceEtapa, etapaAtual, salvando, onVoltar, onFe
         className="registrar-partida-novo-icone-botao"
         onClick={onFechar}
         disabled={salvando}
-        aria-label="Fechar registro de partida"
+        aria-label={ariaFechar}
       >
         <FaTimes aria-hidden="true" />
       </button>
@@ -689,6 +700,7 @@ function EtapaGrupo({
   gruposDisponiveis,
   carregandoGruposDisponiveis,
   erroGruposDisponiveis,
+  permitirRemoverGrupo = true,
   onCarregarGrupos,
   onSelecionarGrupo,
   onEscolherGrupo,
@@ -775,7 +787,7 @@ function EtapaGrupo({
                 type="button"
                 key={grupoOpcao.id}
                 className={`registrar-partida-novo-grupo-opcao ${selecionada ? 'selecionada' : ''}`}
-                onClick={() => (selecionada ? onRemoverGrupo?.() : onEscolherGrupo?.(grupoOpcao))}
+                onClick={() => (selecionada && permitirRemoverGrupo ? onRemoverGrupo?.() : onEscolherGrupo?.(grupoOpcao))}
                 aria-pressed={selecionada}
               >
                 <GrupoOpcaoAvatar grupo={grupoOpcao} />
@@ -1203,6 +1215,30 @@ function TelaSucesso({ sucesso, grupo, onCompartilhar, onVerRanking, onRegistrar
   );
 }
 
+function TelaSucessoEdicao({ sucesso, onFechar }) {
+  const partida = sucesso?.partida || {};
+  const resumo = sucesso?.resumo || {};
+
+  return (
+    <section className="registrar-partida-novo-sucesso">
+      <div className="registrar-partida-novo-check">
+        <FaCheck aria-hidden="true" />
+      </div>
+
+      <h3>Partida atualizada</h3>
+      <p>As alterações foram salvas no histórico QuebraNunca.</p>
+
+      <ResultadoSucessoPremium resumo={resumo} partida={partida} />
+
+      <div className="registrar-partida-novo-acoes registrar-partida-novo-acoes-sucesso">
+        <button type="button" className="botao-primario" onClick={onFechar}>
+          Concluir
+        </button>
+      </div>
+    </section>
+  );
+}
+
 function Stepper({ etapas, indiceEtapa }) {
   return (
     <nav className="registrar-partida-novo-stepper" aria-label="Momentos do registro">
@@ -1305,6 +1341,7 @@ function ConteudoEtapa({
         gruposDisponiveis={gruposDisponiveis}
         carregandoGruposDisponiveis={carregandoGruposDisponiveis}
         erroGruposDisponiveis={erroGruposDisponiveis}
+        permitirRemoverGrupo
         onCarregarGrupos={onCarregarGrupos}
         onSelecionarGrupo={onSelecionarGrupo}
         onEscolherGrupo={onEscolherGrupo}
@@ -1383,7 +1420,13 @@ export function RegistrarPartidaNovoModal({
   onVerRanking,
   onRegistrarRevanche,
   onRegistrarNovaPartida,
-  fluxoSimplificado = false
+  fluxoSimplificado = false,
+  titulo = 'Registrar partida',
+  ariaFechar = 'Fechar registro de partida',
+  rotuloAcaoPrincipal = 'Registrar partida',
+  rotuloAcaoPrincipalSalvando = 'Registrando...',
+  permitirRemoverGrupo = true,
+  sucessoEdicao = false
 }) {
   const campoRef = useRef(null);
   const dupla1Atleta2Ref = useRef(null);
@@ -1621,6 +1664,7 @@ export function RegistrarPartidaNovoModal({
             gruposDisponiveis={gruposDisponiveis}
             carregandoGruposDisponiveis={carregandoGruposDisponiveis}
             erroGruposDisponiveis={erroGruposDisponiveis}
+            permitirRemoverGrupo={permitirRemoverGrupo}
             onCarregarGrupos={onCarregarGrupos}
             onSelecionarGrupo={onSelecionarGrupo}
             onEscolherGrupo={onEscolherGrupo}
@@ -1685,7 +1729,7 @@ export function RegistrarPartidaNovoModal({
                   Não, revisar
                 </button>
                 <button type="button" className="botao-primario" onClick={onConfirmarDuplicidade} disabled={salvando}>
-                  {salvando ? 'Salvando...' : 'Sim, registrar'}
+                  {salvando ? 'Salvando...' : `Sim, ${rotuloAcaoPrincipal.toLowerCase()}`}
                 </button>
               </div>
             </div>
@@ -1702,7 +1746,7 @@ export function RegistrarPartidaNovoModal({
             Cancelar
           </button>
           <button type="submit" className="botao-primario" disabled={acaoPrincipalDesabilitada} aria-busy={salvando}>
-            Registrar partida
+            {salvando ? rotuloAcaoPrincipalSalvando : rotuloAcaoPrincipal}
           </button>
         </footer>
 
@@ -1712,6 +1756,7 @@ export function RegistrarPartidaNovoModal({
           grupoSelecionado={grupo}
           carregando={carregandoGruposDisponiveis}
           erro={erroGruposDisponiveis}
+          permitirRemoverGrupo={permitirRemoverGrupo}
           onSelecionarGrupo={onEscolherGrupo}
           onRemoverGrupo={onRemoverGrupo}
           onFechar={onFecharSeletorGrupo}
@@ -1743,9 +1788,13 @@ export function RegistrarPartidaNovoModal({
           onFechar={onFechar}
           sucesso={sucesso}
           fluxoSimplificado={fluxoSimplificado}
+          titulo={titulo}
+          ariaFechar={ariaFechar}
         />
 
-        {sucesso ? (
+        {sucesso && sucessoEdicao ? (
+          <TelaSucessoEdicao sucesso={sucesso} onFechar={onFechar} />
+        ) : sucesso ? (
           <TelaSucesso
             sucesso={sucesso}
             grupo={grupo}
@@ -1784,6 +1833,7 @@ export function RegistrarPartidaNovoModal({
                 gruposDisponiveis={gruposDisponiveis}
                 carregandoGruposDisponiveis={carregandoGruposDisponiveis}
                 erroGruposDisponiveis={erroGruposDisponiveis}
+                permitirRemoverGrupo={permitirRemoverGrupo}
                 salvando={salvando}
                 atletaRefs={atletaRefs}
                 placar1Ref={placar1Ref}
@@ -1824,6 +1874,7 @@ export function RegistrarPartidaNovoModal({
               grupoSelecionado={grupo}
               carregando={carregandoGruposDisponiveis}
               erro={erroGruposDisponiveis}
+              permitirRemoverGrupo={permitirRemoverGrupo}
               onSelecionarGrupo={onEscolherGrupo}
               onRemoverGrupo={onRemoverGrupo}
               onFechar={onFecharSeletorGrupo}
