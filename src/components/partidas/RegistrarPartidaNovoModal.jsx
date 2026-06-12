@@ -39,6 +39,23 @@ function obterNomeExibicaoAtleta(atleta) {
   return limparTermoBuscaAtleta(atleta?.apelido || atleta?.apelidoAtleta || atleta?.nome || atleta?.nomeAtleta);
 }
 
+function campoInterativoEstaFocado() {
+  const ativo = document.activeElement;
+
+  if (!(ativo instanceof HTMLElement)) {
+    return false;
+  }
+
+  const tag = ativo.tagName?.toLowerCase();
+
+  return (
+    ativo.isContentEditable ||
+    tag === 'input' ||
+    tag === 'textarea' ||
+    tag === 'select'
+  );
+}
+
 function formatarData(data) {
   if (!data) {
     return '';
@@ -1496,7 +1513,7 @@ export function RegistrarPartidaNovoModal({
           ? Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop)
           : 0;
         const reducaoViewport = Math.max(0, alturaViewportBaseRef.current - alturaVisual);
-        const tecladoAbertoDetectado = offset > 90 || (document.activeElement instanceof HTMLElement && reducaoViewport > 120);
+        const tecladoAbertoDetectado = campoInterativoEstaFocado() && (offset > 90 || reducaoViewport > 120);
         const alturaViewport = viewport?.height || window.innerHeight;
 
         modal.style.setProperty('--registrar-partida-viewport-height', `${Math.round(alturaViewport)}px`);

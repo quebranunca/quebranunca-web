@@ -1585,10 +1585,6 @@
     rgba(12, 13, 15, 0.92);
 }
 
-.registrar-partida-novo-modal[data-teclado-aberto="true"] .registrar-partida-novo-cta-sticky {
-  display: none;
-}
-
 .registrar-partida-novo-cta-sticky[data-estado="loading"] {
   cursor: progress;
 }
@@ -2526,10 +2522,6 @@
     margin-bottom: 0;
     transform: none;
     box-shadow: 0 -14px 28px rgba(0, 0, 0, 0.3);
-  }
-
-  .registrar-partida-novo-modal[data-teclado-aberto="true"] .registrar-partida-novo-cta-sticky {
-    display: none;
   }
 }
 
