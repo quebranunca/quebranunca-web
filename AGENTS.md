@@ -37,7 +37,7 @@ Seguir o `AGENTS.md` da raiz. Neste diretório, além disso:
 - `Partidas` deve exibir a tabela de jogos da categoria; administrador e organizador podem gerar/alterar jogos, respeitando ownership da competição
 - `Partidas` em grupo deve permitir fluxo único: frontend coleta nomes completos ou seleção de atletas existentes, e a API reaproveita ou cria atleta, dupla e vínculo ao grupo no próprio registro da partida. O usuário autenticado que registra precisa pertencer ao grupo; atletas informados não precisam estar previamente no grupo e a API vincula automaticamente os ausentes ao salvar.
 - Registro de partida deve usar uma tela única, rápida e sem wizard por etapas, com modo padrão "Apenas vencedor", placar completo como opção avançada e compartilhamento como próxima ação após salvar.
-- Edição básica de partida deve aparecer apenas para criador ou administrador, permitir alterar somente atletas e placares, e usar fluxo visual consistente com o registro de partida
+- Edição básica de partida deve aparecer apenas para criador ou administrador, permitir alterar atletas, placares e grupo quando aplicável, e usar fluxo visual consistente com o registro de partida
 - Registro de partida deve consultar a validação de possível duplicidade do backend antes de salvar e exibir confirmação visual; não usar `window.confirm` para esse aviso quando houver modal visual no fluxo
 - `Minhas partidas registradas` deve listar partidas cadastradas pelo usuário logado e não deve ser misturada com `Meus Jogos`, que lista partidas em que o atleta vinculado participou
 - Em dupla eliminação, `Partidas` deve deixar claro se o jogo pertence à chave vencedora, perdedora, final ou final reset

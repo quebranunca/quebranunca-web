@@ -21,6 +21,7 @@ export function SeletorGrupoPartida({
   grupoSelecionado,
   carregando,
   erro,
+  permitirRemoverGrupo = true,
   onSelecionarGrupo,
   onRemoverGrupo,
   onFechar
@@ -49,20 +50,22 @@ export function SeletorGrupoPartida({
         </header>
 
         <div className="seletor-grupo-partida-lista">
-          <button
-            type="button"
-            className={`seletor-grupo-partida-item ${!grupoSelecionado?.id ? 'ativo' : ''}`}
-            onClick={onRemoverGrupo}
-          >
-            <span className="seletor-grupo-partida-avatar">
-              <FaTimes aria-hidden="true" />
-            </span>
-            <span>
-              <strong>Registrar sem grupo</strong>
-              <small>A partida será registrada como avulsa.</small>
-            </span>
-            <FaChevronRight aria-hidden="true" />
-          </button>
+          {permitirRemoverGrupo && (
+            <button
+              type="button"
+              className={`seletor-grupo-partida-item ${!grupoSelecionado?.id ? 'ativo' : ''}`}
+              onClick={onRemoverGrupo}
+            >
+              <span className="seletor-grupo-partida-avatar">
+                <FaTimes aria-hidden="true" />
+              </span>
+              <span>
+                <strong>Registrar sem grupo</strong>
+                <small>A partida será registrada como avulsa.</small>
+              </span>
+              <FaChevronRight aria-hidden="true" />
+            </button>
+          )}
 
           {carregando && (
             <span className="seletor-grupo-partida-estado">Carregando grupos...</span>

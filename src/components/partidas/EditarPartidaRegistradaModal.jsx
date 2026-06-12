@@ -7,7 +7,9 @@ import {
   FaTrophy,
   FaUserFriends
 } from 'react-icons/fa';
+import { useGruposSelecao } from '../../hooks/useGruposSelecao';
 import { AvatarUsuario } from '../AvatarUsuario';
+import { SeletorGrupoPartida } from './SeletorGrupoPartida';
 import './registrar-partida-novo.css';
 import './minhas-partidas-registradas.css';
 
@@ -23,6 +25,7 @@ const ETAPAS = [
 
 function criarFormulario(partida) {
   return {
+    grupoId: partida?.grupoId || '',
     dupla1: {
       atletaDireita: partida?.nomeDuplaAAtleta1 || '',
       atletaEsquerda: partida?.nomeDuplaAAtleta2 || '',
@@ -110,6 +113,7 @@ function criarPayload(partida, formulario) {
   const duplaBAtleta2 = atletaPayload(partida.duplaBAtleta2Id, partida.nomeDuplaBAtleta2, formulario.dupla2.atletaEsquerda);
 
   return {
+    grupoId: formulario.grupoId || null,
     duplaAAtleta1Id: duplaAAtleta1.atletaId,
     duplaAAtleta1Nome: duplaAAtleta1.nome,
     duplaAAtleta2Id: duplaAAtleta2.atletaId,
@@ -164,7 +168,11 @@ function montarResumo(formulario, partida) {
       dupla2: formulario.dupla2.pontos
     },
     data: partida?.dataPartida || partida?.dataCriacao,
-    contexto: partida?.nomeCategoria || partida?.nomeGrupo || 'Contexto preservado'
+    contexto: partida?.nomeCategoria || partida?.nomeGrupo || 'Contexto preservado',
+    grupo: partida?.nomeCategoria ? null : {
+      id: formulario.grupoId || partida?.grupoId || null,
+      nome: partida?.nomeGrupo || 'Grupo atual'
+    }
   };
 }
 
@@ -260,13 +268,54 @@ function ResumoCard({ resumo }) {
   );
 }
 
-function EtapaIntroducao({ resumo }) {
+function criarGrupoAtualPartida(partida) {
+  if (!partida?.grupoId) {
+    return null;
+  }
+
+  return {
+    id: partida.grupoId,
+    nome: partida.nomeGrupo || 'Grupo atual',
+    quantidadeAtletas: partida.quantidadeAtletasGrupo,
+    privacidade: partida.privacidadeGrupo
+  };
+}
+
+function GrupoEdicaoCard({
+  grupoSelecionado,
+  habilitado,
+  carregando,
+  erro,
+  onAbrirSeletor
+}) {
+  if (!habilitado) {
+    return null;
+  }
+
+  return (
+    <div className="registrar-partida-novo-meta editar-partida-grupo-card">
+      <span>Grupo</span>
+      <strong>{grupoSelecionado?.nome || 'Sem grupo selecionado'}</strong>
+      <button
+        type="button"
+        className="botao-secundario"
+        onClick={onAbrirSeletor}
+        disabled={carregando}
+      >
+        {carregando ? 'Carregando grupos...' : 'Trocar grupo'}
+      </button>
+      {erro && <small>{erro}</small>}
+    </div>
+  );
+}
+
+function EtapaIntroducao({ resumo, grupoSelecionado, podeEditarGrupo, carregandoGrupos, erroGrupos, onAbrirSeletorGrupo }) {
   return (
     <section className="registrar-partida-novo-etapa">
       <div className="registrar-partida-novo-intro">
         <span className="registrar-partida-novo-kicker">Partida existente</span>
         <h3>Revise antes de alterar</h3>
-        <p>Você pode ajustar apenas atletas e placar. Grupo, competição, categoria, data, status e aprovação serão preservados.</p>
+        <p>Você pode ajustar atletas, placar e grupo quando a partida estiver em contexto de grupo.</p>
       </div>
 
       <ResumoCard resumo={resumo} />
@@ -279,6 +328,13 @@ function EtapaIntroducao({ resumo }) {
         <span>Contexto</span>
         <strong>{resumo.contexto}</strong>
       </div>
+      <GrupoEdicaoCard
+        grupoSelecionado={grupoSelecionado}
+        habilitado={podeEditarGrupo}
+        carregando={carregandoGrupos}
+        erro={erroGrupos}
+        onAbrirSeletor={onAbrirSeletorGrupo}
+      />
     </section>
   );
 }
@@ -361,7 +417,7 @@ function EtapaPlacar({ formulario, inputRef, onAlterarCampo }) {
   );
 }
 
-function EtapaRevisao({ resumo }) {
+function EtapaRevisao({ resumo, grupoSelecionado, podeEditarGrupo, carregandoGrupos, erroGrupos, onAbrirSeletorGrupo }) {
   return (
     <section className="registrar-partida-novo-etapa">
       <div className="registrar-partida-novo-intro">
@@ -372,9 +428,17 @@ function EtapaRevisao({ resumo }) {
 
       <ResumoCard resumo={resumo} />
 
+      <GrupoEdicaoCard
+        grupoSelecionado={grupoSelecionado}
+        habilitado={podeEditarGrupo}
+        carregando={carregandoGrupos}
+        erro={erroGrupos}
+        onAbrirSeletor={onAbrirSeletorGrupo}
+      />
+
       <div className="registrar-partida-novo-meta">
         <span>Campos preservados</span>
-        <strong>Grupo, categoria, data e status</strong>
+        <strong>Categoria, data, status e aprovação</strong>
       </div>
     </section>
   );
@@ -431,13 +495,18 @@ export function EditarPartidaRegistradaModal({ partida, salvando, erro, onSalvar
   const [erroValidacao, setErroValidacao] = useState('');
   const [indiceEtapa, setIndiceEtapa] = useState(0);
   const [sucesso, setSucesso] = useState(false);
+  const [seletorGrupoAberto, setSeletorGrupoAberto] = useState(false);
   const campoRef = useRef(null);
+  const grupoAtualPartida = useMemo(() => criarGrupoAtualPartida(partida), [partida]);
+  const podeEditarGrupo = !partida?.categoriaCompeticaoId && !partida?.nomeCategoria;
+  const { grupos: gruposDisponiveis, carregando: carregandoGrupos, erro: erroGrupos } = useGruposSelecao(grupoAtualPartida, podeEditarGrupo);
 
   useEffect(() => {
     setFormulario(criarFormulario(partida));
     setErroValidacao('');
     setIndiceEtapa(0);
     setSucesso(false);
+    setSeletorGrupoAberto(false);
   }, [partida]);
 
   useEffect(() => {
@@ -450,10 +519,26 @@ export function EditarPartidaRegistradaModal({ partida, salvando, erro, onSalvar
   const etapaAtual = ETAPAS[indiceEtapa];
   const etapaFinal = etapaAtual.id === 'revisao';
   const resumo = useMemo(() => montarResumo(formulario, partida), [formulario, partida]);
+  const grupoSelecionado = useMemo(() => {
+    if (!formulario.grupoId) {
+      return null;
+    }
+
+    return gruposDisponiveis.find((grupo) => grupo.id === formulario.grupoId) || grupoAtualPartida;
+  }, [formulario.grupoId, grupoAtualPartida, gruposDisponiveis]);
 
   function alterarCampo(campo, valor) {
     setErroValidacao('');
     setFormulario((anterior) => atualizarValorCampo(anterior, campo, valor));
+  }
+
+  function selecionarGrupo(grupo) {
+    setErroValidacao('');
+    setFormulario((anterior) => ({
+      ...anterior,
+      grupoId: grupo?.id || ''
+    }));
+    setSeletorGrupoAberto(false);
   }
 
   function voltarEtapa() {
@@ -489,7 +574,16 @@ export function EditarPartidaRegistradaModal({ partida, salvando, erro, onSalvar
 
   function renderizarEtapa() {
     if (etapaAtual.id === 'introducao') {
-      return <EtapaIntroducao resumo={resumo} />;
+      return (
+        <EtapaIntroducao
+          resumo={resumo}
+          grupoSelecionado={grupoSelecionado}
+          podeEditarGrupo={podeEditarGrupo}
+          carregandoGrupos={carregandoGrupos}
+          erroGrupos={erroGrupos}
+          onAbrirSeletorGrupo={() => setSeletorGrupoAberto(true)}
+        />
+      );
     }
 
     if (etapaAtual.id === 'dupla1Atleta1') {
@@ -552,7 +646,16 @@ export function EditarPartidaRegistradaModal({ partida, salvando, erro, onSalvar
       return <EtapaPlacar formulario={formulario} inputRef={campoRef} onAlterarCampo={alterarCampo} />;
     }
 
-    return <EtapaRevisao resumo={resumo} />;
+    return (
+      <EtapaRevisao
+        resumo={resumo}
+        grupoSelecionado={grupoSelecionado}
+        podeEditarGrupo={podeEditarGrupo}
+        carregandoGrupos={carregandoGrupos}
+        erroGrupos={erroGrupos}
+        onAbrirSeletorGrupo={() => setSeletorGrupoAberto(true)}
+      />
+    );
   }
 
   return (
@@ -593,6 +696,16 @@ export function EditarPartidaRegistradaModal({ partida, salvando, erro, onSalvar
             <Stepper indiceEtapa={indiceEtapa} />
           </form>
         )}
+        <SeletorGrupoPartida
+          aberto={seletorGrupoAberto}
+          grupos={gruposDisponiveis}
+          grupoSelecionado={grupoSelecionado}
+          carregando={carregandoGrupos}
+          erro={erroGrupos}
+          permitirRemoverGrupo={false}
+          onSelecionarGrupo={selecionarGrupo}
+          onFechar={() => setSeletorGrupoAberto(false)}
+        />
       </section>
     </div>
   );
