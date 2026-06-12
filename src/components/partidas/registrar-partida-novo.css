@@ -1,3 +1,18 @@
+body.registrar-partida-modal-aberto {
+  width: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+body.registrar-partida-modal-aberto .mobile-bottom-navigation {
+  display: none;
+  pointer-events: none;
+}
+
+body.registrar-partida-modal-aberto .layout-com-bottom-nav {
+  padding-bottom: 0;
+}
+
 .registrar-partida-novo-sobreposicao {
   align-items: center;
   justify-content: center;
@@ -2454,11 +2469,11 @@
 }
 
 .registrar-partida-novo-formulario-simples > .registrar-partida-novo-cta-sticky {
-  position: sticky;
-  right: auto;
+  position: absolute;
+  right: 0;
   bottom: 0;
-  left: auto;
-  z-index: 6;
+  left: 0;
+  z-index: 8;
   margin: 0;
   transform: translateY(calc(var(--registrar-partida-teclado-offset, 0px) * -1));
   will-change: transform;
@@ -2520,7 +2535,7 @@
   }
 
   .registrar-partida-novo-formulario-simples > .registrar-partida-novo-cta-sticky {
-    position: sticky;
+    position: absolute;
     bottom: 0;
     margin-bottom: 0;
     transform: translateY(calc(var(--registrar-partida-teclado-offset, 0px) * -1));

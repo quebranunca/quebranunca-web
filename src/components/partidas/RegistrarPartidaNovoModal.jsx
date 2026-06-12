@@ -1296,6 +1296,35 @@ function obterRotuloAcao(etapaAtual, salvando) {
   return 'Registrar partida';
 }
 
+function RodapeAcoesPartida({
+  ctaRef,
+  salvando,
+  desabilitado,
+  textoBotaoPrincipal,
+  textoBotaoPrincipalSalvando,
+  textoBotaoSecundario = 'Cancelar',
+  onAcaoSecundaria,
+  exibirSecundario = true
+}) {
+  return (
+    <footer
+      ref={ctaRef}
+      className="registrar-partida-novo-acoes registrar-partida-novo-cta-sticky"
+      data-estado={salvando ? 'loading' : desabilitado ? 'disabled' : 'enabled'}
+      aria-busy={salvando}
+    >
+      {exibirSecundario && (
+        <button type="button" className="botao-secundario" onClick={onAcaoSecundaria} disabled={salvando}>
+          {textoBotaoSecundario}
+        </button>
+      )}
+      <button type="submit" className="botao-primario" disabled={desabilitado} aria-busy={salvando}>
+        {salvando ? textoBotaoPrincipalSalvando : textoBotaoPrincipal}
+      </button>
+    </footer>
+  );
+}
+
 function ConteudoEtapa({
   etapaAtual,
   dados,
@@ -1468,6 +1497,18 @@ export function RegistrarPartidaNovoModal({
   const [modoMobile, setModoMobile] = useState(false);
   const revisaoInvalida = revisaoPossuiInconsistencia(dados, regraPartida);
   const acaoPrincipalDesabilitada = salvando || Boolean(duplicidade) || revisaoInvalida;
+
+  useEffect(() => {
+    if (!aberto) {
+      return undefined;
+    }
+
+    document.body.classList.add('registrar-partida-modal-aberto');
+
+    return () => {
+      document.body.classList.remove('registrar-partida-modal-aberto');
+    };
+  }, [aberto]);
 
   useEffect(() => {
     if (!aberto || sucesso) {
@@ -1753,19 +1794,15 @@ export function RegistrarPartidaNovoModal({
           )}
         </main>
 
-        <footer
-          ref={ctaRef}
-          className="registrar-partida-novo-acoes registrar-partida-novo-cta-sticky"
-          data-estado={salvando ? 'loading' : acaoPrincipalDesabilitada ? 'disabled' : 'enabled'}
-          aria-busy={salvando}
-        >
-          <button type="button" className="botao-secundario" onClick={onFechar} disabled={salvando}>
-            Cancelar
-          </button>
-          <button type="submit" className="botao-primario" disabled={acaoPrincipalDesabilitada} aria-busy={salvando}>
-            {salvando ? rotuloAcaoPrincipalSalvando : rotuloAcaoPrincipal}
-          </button>
-        </footer>
+        <RodapeAcoesPartida
+          ctaRef={ctaRef}
+          salvando={salvando}
+          desabilitado={acaoPrincipalDesabilitada}
+          textoBotaoPrincipal={rotuloAcaoPrincipal}
+          textoBotaoPrincipalSalvando={rotuloAcaoPrincipalSalvando}
+          textoBotaoSecundario="Cancelar"
+          onAcaoSecundaria={onFechar}
+        />
 
         <SeletorGrupoPartida
           aberto={seletorGrupoAberto}
@@ -1869,21 +1906,16 @@ export function RegistrarPartidaNovoModal({
               />
             </main>
 
-            <footer
-              ref={ctaRef}
-              className="registrar-partida-novo-acoes registrar-partida-novo-cta-sticky"
-              data-estado={salvando ? 'loading' : acaoPrincipalDesabilitada ? 'disabled' : 'enabled'}
-              aria-busy={salvando}
-            >
-              {indiceEtapa > 0 && !duplicidade && (
-                <button type="button" className="botao-secundario" onClick={onVoltar} disabled={salvando}>
-                  Voltar
-                </button>
-              )}
-              <button type="submit" className="botao-primario" disabled={acaoPrincipalDesabilitada} aria-busy={salvando}>
-                {obterRotuloAcao(etapaAtual, salvando)}
-              </button>
-            </footer>
+            <RodapeAcoesPartida
+              ctaRef={ctaRef}
+              salvando={salvando}
+              desabilitado={acaoPrincipalDesabilitada}
+              textoBotaoPrincipal={obterRotuloAcao(etapaAtual, false)}
+              textoBotaoPrincipalSalvando={obterRotuloAcao(etapaAtual, true)}
+              textoBotaoSecundario="Voltar"
+              onAcaoSecundaria={onVoltar}
+              exibirSecundario={indiceEtapa > 0 && !duplicidade}
+            />
 
             <SeletorGrupoPartida
               aberto={seletorGrupoAberto}
