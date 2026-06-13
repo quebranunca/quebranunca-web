@@ -29,8 +29,9 @@ export const pendenciasServico = {
     return resposta.data;
   },
 
-  async completarContato(id, email) {
-    const resposta = await http.put(`/pendencias/${id}/contato`, { email });
+  async completarContato(id, dados) {
+    const payload = typeof dados === 'string' ? { email: dados } : dados;
+    const resposta = await http.put(`/pendencias/${id}/contato`, payload);
     if (!resposta.data?.usuarioJaCadastrado) {
       notificarAtualizacao();
     }

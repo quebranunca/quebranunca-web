@@ -3740,6 +3740,20 @@ code {
   gap: 0.48rem;
 }
 
+.pendencias-aguardando-cadastro {
+  display: grid;
+  gap: 0.48rem;
+  margin-top: 0.35rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.pendencias-aguardando-cadastro h3 {
+  margin: 0;
+  color: var(--cor-texto);
+  font-size: 0.9rem;
+}
+
 .pendencia-card {
   display: grid;
   gap: 0.48rem;
@@ -3940,6 +3954,50 @@ code {
   font-size: 0.75rem;
   font-weight: 600;
   line-height: 1.35;
+}
+
+.pendencia-bloco-vinculo,
+.pendencia-resultados-atletas {
+  display: grid;
+  gap: 0.42rem;
+}
+
+.pendencia-bloco-vinculo > strong {
+  color: var(--cor-texto);
+  font-size: 0.82rem;
+}
+
+.pendencia-atleta-selecionado,
+.pendencia-atleta-opcao {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.55rem;
+  min-width: 0;
+  padding: 0.5rem 0.58rem;
+  border: 1px solid rgba(255, 179, 0, 0.18);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.pendencia-atleta-opcao {
+  width: 100%;
+  color: var(--cor-texto);
+  text-align: left;
+}
+
+.pendencia-atleta-opcao strong,
+.pendencia-atleta-selecionado span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pendencia-atleta-opcao span,
+.pendencia-resultados-atletas small {
+  color: var(--cor-texto-secundario);
+  font-size: 0.75rem;
 }
 
 .pendencia-card-atalho {

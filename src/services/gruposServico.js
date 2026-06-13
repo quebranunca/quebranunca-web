@@ -16,6 +16,13 @@ export const gruposServico = {
     return resposta.data;
   },
 
+  async buscarAtletas(grupoId, termo) {
+    const resposta = await http.get(`/grupos/${grupoId}/atletas/busca`, {
+      params: { termo }
+    });
+    return resposta.data;
+  },
+
   async obterResumoUsuario() {
     const resposta = await http.get('/grupos/resumo-usuario');
     return resposta.data;

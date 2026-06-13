@@ -4,6 +4,7 @@ import { FaCheck, FaChevronDown, FaClock, FaGamepad } from 'react-icons/fa';
 import { EmailDomainSuggestions } from '../components/formularios/EmailDomainSuggestions';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { atletasServico } from '../services/atletasServico';
+import { gruposServico } from '../services/gruposServico';
 import { pendenciasServico } from '../services/pendenciasServico';
 import { extrairMensagemErro } from '../utils/erros';
 import { formatarDataHora } from '../utils/formatacao';
@@ -26,7 +27,8 @@ const STATUS_APROVACAO = {
 };
 
 const STATUS_PENDENCIA = {
-  pendente: 1
+  pendente: 1,
+  aguardandoCadastro: 4
 };
 
 const PRIORIDADES = {
@@ -44,15 +46,20 @@ const FILTROS = [
 ];
 
 function pendenciaAindaVisivel(item) {
-  if (!item || item.status !== STATUS_PENDENCIA.pendente) {
+  if (!item) {
     return false;
   }
 
   if (item.tipo !== TIPOS_PENDENCIA.completarContato) {
+    return item.status === STATUS_PENDENCIA.pendente;
+  }
+
+  if (item.status === STATUS_PENDENCIA.aguardandoCadastro) {
     return true;
   }
 
-  return !item.emailAtleta && !item.atletaPossuiUsuarioVinculado;
+  return item.status === STATUS_PENDENCIA.pendente &&
+    !item.atletaPossuiUsuarioVinculado;
 }
 
 function criarEstadoEmails(lista) {
@@ -63,6 +70,14 @@ function criarEstadoEmails(lista) {
     }
   });
   return proximo;
+}
+
+function pendenciaExigeAcao(item) {
+  return item?.status === STATUS_PENDENCIA.pendente;
+}
+
+function pendenciaAguardandoCadastro(item) {
+  return item?.status === STATUS_PENDENCIA.aguardandoCadastro;
 }
 
 function obterRotuloStatusAprovacao(status) {
@@ -312,6 +327,61 @@ function PendenciaVinculoCard({ item, expandida, onExpandir, email, onEmailChang
   const prioridade = obterApresentacaoPrioridade(item);
   const emailRef = useRef(null);
   const detalhesId = `pendencia-detalhes-${item.id}`;
+  const aguardandoCadastro = pendenciaAguardandoCadastro(item);
+  const [buscaAtleta, setBuscaAtleta] = useState('');
+  const [atletasEncontrados, setAtletasEncontrados] = useState([]);
+  const [buscandoAtletas, setBuscandoAtletas] = useState(false);
+  const [atletaSelecionado, setAtletaSelecionado] = useState(null);
+
+  useEffect(() => {
+    let cancelado = false;
+    async function buscar() {
+      const termo = buscaAtleta.trim();
+      if (!expandida || !item.grupoId || termo.length < 3) {
+        setAtletasEncontrados([]);
+        return;
+      }
+
+      setBuscandoAtletas(true);
+      try {
+        const resultado = await gruposServico.buscarAtletas(item.grupoId, termo);
+        if (!cancelado) {
+          setAtletasEncontrados(resultado || []);
+        }
+      } catch {
+        if (!cancelado) {
+          setAtletasEncontrados([]);
+        }
+      } finally {
+        if (!cancelado) {
+          setBuscandoAtletas(false);
+        }
+      }
+    }
+
+    buscar();
+    return () => {
+      cancelado = true;
+    };
+  }, [buscaAtleta, expandida, item.grupoId]);
+
+  function selecionarAtleta(atleta) {
+    setAtletaSelecionado(atleta);
+    onEmailChange(item.id, '');
+  }
+
+  function limparAtletaSelecionado() {
+    setAtletaSelecionado(null);
+  }
+
+  function salvar() {
+    if (atletaSelecionado?.id) {
+      onSalvar(item.id, { atletaId: atletaSelecionado.id });
+      return;
+    }
+
+    onSalvar(item.id, { email: email || '' });
+  }
 
   return (
     <article className={`pendencia-card pendencia-vinculo-card prioridade-${prioridade.classe}${expandida ? ' expandida' : ''}`}>
@@ -322,7 +392,9 @@ function PendenciaVinculoCard({ item, expandida, onExpandir, email, onEmailChang
           <p>{nomeAtleta} apareceu em uma partida registrada.</p>
           <small>{formatarDataHora(item.dataPartida || item.dataCriacao)}</small>
         </div>
-        <PendenciaStatusBadge>Sem contato</PendenciaStatusBadge>
+        <PendenciaStatusBadge tipo={aguardandoCadastro ? 'neutro' : 'alerta'}>
+          {aguardandoCadastro ? 'Aguardando cadastro' : 'Pendente de vínculo'}
+        </PendenciaStatusBadge>
       </div>
 
       <div className="pendencia-card-atalho">
@@ -350,8 +422,51 @@ function PendenciaVinculoCard({ item, expandida, onExpandir, email, onEmailChang
             </div>
           )}
 
+          <div className="pendencia-bloco-vinculo">
+            <strong>Selecionar atleta cadastrado no grupo</strong>
+            <label className="pendencia-campo-email">
+              Buscar atleta
+              <input
+                type="search"
+                value={buscaAtleta}
+                onChange={(evento) => setBuscaAtleta(evento.target.value)}
+                onFocus={scrollFocusedInputIntoView}
+                placeholder="Digite nome ou apelido"
+                disabled={processando || !item.grupoId}
+              />
+            </label>
+
+            {atletaSelecionado && (
+              <div className="pendencia-atleta-selecionado">
+                <span>{atletaSelecionado.textoExibicao || atletaSelecionado.nome}</span>
+                <button type="button" className="botao-terciario" onClick={limparAtletaSelecionado} disabled={processando}>
+                  Limpar
+                </button>
+              </div>
+            )}
+
+            {!atletaSelecionado && buscaAtleta.trim().length >= 3 && (
+              <div className="pendencia-resultados-atletas">
+                {buscandoAtletas && <small>Buscando atletas...</small>}
+                {!buscandoAtletas && atletasEncontrados.length === 0 && <small>Nenhum atleta ativo encontrado.</small>}
+                {!buscandoAtletas && atletasEncontrados.map((atleta) => (
+                  <button
+                    key={atleta.id}
+                    type="button"
+                    className="pendencia-atleta-opcao"
+                    onClick={() => selecionarAtleta(atleta)}
+                    disabled={processando}
+                  >
+                    <strong>{atleta.textoExibicao || atleta.nome}</strong>
+                    {atleta.apelido && <span>{atleta.nome}</span>}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           <label className="pendencia-campo-email">
-            E-mail do atleta
+            Ou informar e-mail
             <input
               ref={emailRef}
               type="email"
@@ -362,6 +477,7 @@ function PendenciaVinculoCard({ item, expandida, onExpandir, email, onEmailChang
               onChange={(evento) => onEmailChange(item.id, evento.target.value)}
               onFocus={scrollFocusedInputIntoView}
               placeholder="atleta@exemplo.com"
+              disabled={processando || Boolean(atletaSelecionado)}
             />
             <EmailDomainSuggestions
               valor={email}
@@ -369,7 +485,7 @@ function PendenciaVinculoCard({ item, expandida, onExpandir, email, onEmailChang
               inputRef={emailRef}
             />
             <small>
-              Se este e-mail já for de um atleta cadastrado, esta partida será vinculada ao perfil dele e a pendência será encerrada.
+              Se não houver cadastro ativo para este e-mail, a pendência ficará aguardando cadastro.
             </small>
           </label>
 
@@ -377,8 +493,8 @@ function PendenciaVinculoCard({ item, expandida, onExpandir, email, onEmailChang
             <button
               type="button"
               className="botao-primario"
-              onClick={() => onSalvar(item.id)}
-              disabled={processando}
+              onClick={salvar}
+              disabled={processando || (!atletaSelecionado && !email?.trim())}
             >
               {processando ? 'Salvando...' : 'Confirmar vínculo'}
             </button>
@@ -462,16 +578,18 @@ export function PaginaPendenciasAtletas() {
   );
 
   const metricas = useMemo(() => {
-    const validacoes = pendencias.filter((item) => item.tipo === TIPOS_PENDENCIA.aprovarPartida).length;
-    const vinculos = pendencias.filter((item) => item.tipo === TIPOS_PENDENCIA.completarContato).length;
-    const importantes = pendencias.filter((item) => obterPrioridade(item) === PRIORIDADES.alta).length;
+    const pendenciasAcionaveis = pendencias.filter(pendenciaExigeAcao);
+    const validacoes = pendenciasAcionaveis.filter((item) => item.tipo === TIPOS_PENDENCIA.aprovarPartida).length;
+    const vinculos = pendenciasAcionaveis.filter((item) => item.tipo === TIPOS_PENDENCIA.completarContato).length;
+    const importantes = pendenciasAcionaveis.filter((item) => obterPrioridade(item) === PRIORIDADES.alta).length;
 
     return {
-      abertas: pendencias.length,
+      abertas: pendenciasAcionaveis.length,
       validacoes,
       vinculos,
       perfil: pendenciasPerfil.length,
       importantes,
+      aguardandoCadastro: pendencias.filter(pendenciaAguardandoCadastro).length,
       resolvidas: pendenciasResolvidas.length
     };
   }, [pendencias, pendenciasPerfil.length, pendenciasResolvidas.length]);
@@ -479,7 +597,7 @@ export function PaginaPendenciasAtletas() {
   const totaisFiltros = useMemo(() => ({
     todas: metricas.abertas,
     partidas: metricas.validacoes,
-    vinculos: metricas.vinculos,
+    vinculos: metricas.vinculos + metricas.aguardandoCadastro,
     perfil: metricas.perfil,
     resolvidas: metricas.resolvidas
   }), [metricas]);
@@ -562,32 +680,43 @@ export function PaginaPendenciasAtletas() {
     setPendenciaExpandidaId((idAtual) => idAtual === pendenciaId ? null : pendenciaId);
   }
 
-  async function salvarEmail(pendenciaId) {
+  async function salvarEmail(pendenciaId, dadosResolucao = null) {
     setProcessandoId(pendenciaId);
 
     try {
-      const resultado = await pendenciasServico.completarContato(pendenciaId, emails[pendenciaId] || '');
+      const resultado = await pendenciasServico.completarContato(
+        pendenciaId,
+        dadosResolucao || { email: emails[pendenciaId] || '' }
+      );
       if (resultado?.usuarioJaCadastrado && resultado?.usuarioEncontrado) {
         mostrarConfirmacaoVinculoAtleta(pendenciaId, resultado.usuarioEncontrado);
         return;
       }
 
       const pendenciaAtualizada = resultado?.pendencia || resultado;
-      setPendencias((listaAtual) => listaAtual.filter((item) =>
-        item.id !== pendenciaId &&
-        (
-          item.tipo !== TIPOS_PENDENCIA.completarContato ||
-          !pendenciaAtualizada?.atletaId ||
-          item.atletaId !== pendenciaAtualizada.atletaId
-        )
-      ));
-      registrarResolvida('Vínculo regularizado', 'O contato do atleta foi atualizado.');
+      if (pendenciaAtualizada?.status === STATUS_PENDENCIA.aguardandoCadastro) {
+        setPendencias((listaAtual) => listaAtual.map((item) =>
+          item.id === pendenciaId ? { ...item, ...pendenciaAtualizada } : item
+        ));
+      } else {
+        setPendencias((listaAtual) => listaAtual.filter((item) =>
+          item.id !== pendenciaId &&
+          (
+            item.tipo !== TIPOS_PENDENCIA.completarContato ||
+            !pendenciaAtualizada?.atletaId ||
+            item.atletaId !== pendenciaAtualizada.atletaId
+          )
+        ));
+        registrarResolvida('Atleta vinculado', 'A participação foi vinculada ao atleta cadastrado.');
+      }
       setPendenciaExpandidaId(null);
 
       showNotification({
         type: 'success',
-        title: 'Pendência resolvida',
-        message: 'Contato atualizado com sucesso.'
+        title: pendenciaAtualizada?.status === STATUS_PENDENCIA.aguardandoCadastro ? 'E-mail registrado' : 'Pendência resolvida',
+        message: pendenciaAtualizada?.status === STATUS_PENDENCIA.aguardandoCadastro
+          ? 'A pendência ficou aguardando cadastro ativo do atleta.'
+          : 'A participação foi vinculada ao atleta cadastrado.'
       });
 
       rolarParaTopo();
@@ -704,6 +833,8 @@ export function PaginaPendenciasAtletas() {
   }
 
   const mostrarPerfil = filtroAtivo === 'perfil';
+  const pendenciasFiltradasAcionaveis = pendenciasFiltradas.filter(pendenciaExigeAcao);
+  const pendenciasFiltradasAguardando = pendenciasFiltradas.filter(pendenciaAguardandoCadastro);
   const listaVazia =
     !carregando &&
     !erroCarregamento &&
@@ -741,29 +872,49 @@ export function PaginaPendenciasAtletas() {
               <PendenciaResolvidaCard key={item.id} item={item} />
             ))
           ) : (
-            pendenciasFiltradas.map((item) => (
-              item.tipo === TIPOS_PENDENCIA.completarContato ? (
-                <PendenciaVinculoCard
-                  key={item.id}
-                  item={item}
-                  expandida={pendenciaExpandidaId === item.id}
-                  onExpandir={alternarExpansao}
-                  email={emails[item.id]}
-                  onEmailChange={atualizarEmail}
-                  onSalvar={salvarEmail}
-                  processando={processandoId === item.id}
-                />
-              ) : (
-                <PendenciaPartidaCard
-                  key={item.id}
-                  item={item}
-                  expandida={pendenciaExpandidaId === item.id}
-                  onExpandir={alternarExpansao}
-                  processando={processandoId === item.id}
-                  onResponder={responderPartida}
-                />
-              )
-            ))
+            <>
+              {pendenciasFiltradasAcionaveis.map((item) => (
+                item.tipo === TIPOS_PENDENCIA.completarContato ? (
+                  <PendenciaVinculoCard
+                    key={item.id}
+                    item={item}
+                    expandida={pendenciaExpandidaId === item.id}
+                    onExpandir={alternarExpansao}
+                    email={emails[item.id]}
+                    onEmailChange={atualizarEmail}
+                    onSalvar={salvarEmail}
+                    processando={processandoId === item.id}
+                  />
+                ) : (
+                  <PendenciaPartidaCard
+                    key={item.id}
+                    item={item}
+                    expandida={pendenciaExpandidaId === item.id}
+                    onExpandir={alternarExpansao}
+                    processando={processandoId === item.id}
+                    onResponder={responderPartida}
+                  />
+                )
+              ))}
+
+              {pendenciasFiltradasAguardando.length > 0 && (
+                <section className="pendencias-aguardando-cadastro" aria-label="Pendências aguardando cadastro">
+                  <h3>Aguardando cadastro</h3>
+                  {pendenciasFiltradasAguardando.map((item) => (
+                    <PendenciaVinculoCard
+                      key={item.id}
+                      item={item}
+                      expandida={pendenciaExpandidaId === item.id}
+                      onExpandir={alternarExpansao}
+                      email={emails[item.id]}
+                      onEmailChange={atualizarEmail}
+                      onSalvar={salvarEmail}
+                      processando={processandoId === item.id}
+                    />
+                  ))}
+                </section>
+              )}
+            </>
           )}
 
           {filtroAtivo !== 'resolvidas' && mostrarPerfil && pendenciasPerfil.map((item) => (
