@@ -8021,6 +8021,39 @@ body.grupos-edicao-modal-aberto .layout-com-bottom-nav {
   box-shadow: none;
 }
 
+.login-metodo-toggle {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.28rem;
+  padding: 0.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.95rem;
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.login-metodo-toggle button {
+  min-height: 2.35rem;
+  padding: 0.35rem 0.55rem;
+  border: 0;
+  border-radius: 0.72rem;
+  background: transparent;
+  color: var(--cor-texto-suave);
+  font-size: 0.86rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.login-metodo-toggle button.ativo {
+  background: rgba(255, 179, 0, 0.18);
+  color: var(--cor-primaria);
+  box-shadow: inset 0 0 0 1px rgba(255, 179, 0, 0.32);
+}
+
+.login-metodo-toggle button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
 .login-acoes-codigo {
   margin-top: -0.22rem;
 }
@@ -8029,6 +8062,12 @@ body.grupos-edicao-modal-aberto .layout-com-bottom-nav {
   width: 100%;
   border-color: rgba(255, 179, 0, 0.42);
   color: var(--cor-primaria);
+}
+
+.login-recuperacao-link {
+  justify-self: center;
+  color: var(--cor-primaria);
+  text-align: center;
 }
 
 .solicitacao-acesso-card {

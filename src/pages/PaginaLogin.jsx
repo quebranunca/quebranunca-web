@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { FaEnvelope, FaKey } from 'react-icons/fa';
+import { FaEnvelope, FaKey, FaLock } from 'react-icons/fa';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { EmailDomainSuggestions } from '../components/formularios/EmailDomainSuggestions';
 import { SolicitacaoAcessoAccordion } from '../components/login/SolicitacaoAcessoAccordion';
@@ -19,8 +19,10 @@ const EMAIL_LOGIN_DESENVOLVIMENTO = USUARIOS_TESTE_DESENVOLVIMENTO[0]?.email || 
 
 export function PaginaLogin() {
   const [modo, setModo] = useState('login');
+  const [metodoLogin, setMetodoLogin] = useState('codigo');
   const [email, setEmail] = useState(EMAIL_LOGIN_DESENVOLVIMENTO);
   const [codigoLogin, setCodigoLogin] = useState('');
+  const [senha, setSenha] = useState('');
   const [codigoRedefinicao, setCodigoRedefinicao] = useState('');
   const [novaSenha, setNovaSenha] = useState('');
   const [erro, setErro] = useState('');
@@ -29,11 +31,12 @@ export function PaginaLogin() {
   const [carregandoCodigo, setCarregandoCodigo] = useState(false);
   const [codigoLoginEnviado, setCodigoLoginEnviado] = useState(false);
 
-  const { solicitarCodigoLogin, entrarComCodigo, token, rotaInicial } = useAutenticacao();
+  const { solicitarCodigoLogin, entrarComCodigo, entrarComSenha, token, rotaInicial } = useAutenticacao();
   const navegar = useNavigate();
   const location = useLocation();
   const emailRef = useRef(null);
   const codigoLoginRef = useRef(null);
+  const senhaRef = useRef(null);
   const codigoRedefinicaoRef = useRef(null);
   const novaSenhaRef = useRef(null);
 
@@ -44,12 +47,14 @@ export function PaginaLogin() {
   }, [token, rotaInicial, navegar]);
 
   const emModoRecuperacao = modo === 'recuperacao';
+  const loginComSenha = !emModoRecuperacao && metodoLogin === 'senha';
 
   function alterarModo(novoModo) {
     setModo(novoModo);
     setErro('');
     setMensagem('');
     setCodigoLogin('');
+    setSenha('');
     setCodigoLoginEnviado(false);
     setCodigoRedefinicao('');
     setNovaSenha('');
@@ -60,9 +65,19 @@ export function PaginaLogin() {
     setErro('');
     setMensagem('');
     setCodigoLogin('');
+    setSenha('');
     setCodigoLoginEnviado(false);
     setCodigoRedefinicao('');
     setNovaSenha('');
+  }
+
+  function alterarMetodoLogin(proximoMetodoLogin) {
+    setMetodoLogin(proximoMetodoLogin);
+    setErro('');
+    setMensagem('');
+    setCodigoLogin('');
+    setSenha('');
+    setCodigoLoginEnviado(false);
   }
 
   async function aoSubmeter(evento) {
@@ -79,8 +94,11 @@ export function PaginaLogin() {
         });
         setMensagem('Senha redefinida com sucesso. Faça login com a nova senha.');
         setModo('login');
+        setMetodoLogin('senha');
         setCodigoRedefinicao('');
         setNovaSenha('');
+      } else if (loginComSenha) {
+        await entrarComSenha(email, senha);
       } else {
         await entrarComCodigo(email, codigoLogin);
       }
@@ -128,7 +146,7 @@ export function PaginaLogin() {
         <div className="login-card-cabecalho">
           <span>QuebraNunca Futevôlei</span>
           <h1>Entrar na plataforma</h1>
-          <p>Digite seu e-mail para receber o código de acesso.</p>
+          <p>{emModoRecuperacao ? 'Redefina sua senha com o código recebido por e-mail.' : 'Entre com código por e-mail ou com sua senha cadastrada.'}</p>
         </div>
 
         {location.state?.mensagem && (
@@ -154,6 +172,27 @@ export function PaginaLogin() {
         )}
 
         <form onSubmit={aoSubmeter} className="formulario-grid unico">
+          {!emModoRecuperacao && (
+            <div className="login-metodo-toggle" role="group" aria-label="Método de login">
+              <button
+                type="button"
+                className={metodoLogin === 'codigo' ? 'ativo' : ''}
+                onClick={() => alterarMetodoLogin('codigo')}
+                disabled={carregando || carregandoCodigo}
+              >
+                Código por e-mail
+              </button>
+              <button
+                type="button"
+                className={metodoLogin === 'senha' ? 'ativo' : ''}
+                onClick={() => alterarMetodoLogin('senha')}
+                disabled={carregando || carregandoCodigo}
+              >
+                Senha
+              </button>
+            </div>
+          )}
+
           <label className="campo-login-icone">
             E-mail
             <span>
@@ -173,6 +212,11 @@ export function PaginaLogin() {
                     return;
                   }
 
+                  if (loginComSenha) {
+                    focusNextField(senhaRef);
+                    return;
+                  }
+
                   if (codigoLoginEnviado) {
                     focusNextField(codigoLoginRef);
                     return;
@@ -188,11 +232,11 @@ export function PaginaLogin() {
               valor={email}
               onChange={setEmail}
               inputRef={emailRef}
-              proximoRef={emModoRecuperacao ? codigoRedefinicaoRef : codigoLoginRef}
+              proximoRef={emModoRecuperacao ? codigoRedefinicaoRef : (loginComSenha ? senhaRef : codigoLoginRef)}
             />
           </label>
 
-          {!emModoRecuperacao && (
+          {!emModoRecuperacao && metodoLogin === 'codigo' && (
             <>
               <div className="acoes-formulario login-acoes-codigo">
                 <button
@@ -227,6 +271,26 @@ export function PaginaLogin() {
                 </span>
               </label>
             </>
+          )}
+
+          {loginComSenha && (
+            <label className="campo-login-icone">
+              Senha
+              <span>
+                <FaLock aria-hidden="true" />
+                <input
+                  ref={senhaRef}
+                  type="password"
+                  autoComplete="current-password"
+                  enterKeyHint="done"
+                  value={senha}
+                  onChange={(evento) => setSenha(evento.target.value)}
+                  onFocus={scrollFocusedInputIntoView}
+                  placeholder="Digite sua senha"
+                  required
+                />
+              </span>
+            </label>
           )}
 
           {emModoRecuperacao && (
@@ -287,6 +351,15 @@ export function PaginaLogin() {
             {carregando
               ? (emModoRecuperacao ? 'Redefinindo...' : 'Entrando...')
               : (emModoRecuperacao ? 'Redefinir senha' : 'Entrar')}
+          </button>
+
+          <button
+            type="button"
+            className="botao-link login-recuperacao-link"
+            onClick={() => alterarModo(emModoRecuperacao ? 'login' : 'recuperacao')}
+            disabled={carregando || carregandoCodigo}
+          >
+            {emModoRecuperacao ? 'Voltar ao login' : 'Esqueci minha senha'}
           </button>
         </form>
 

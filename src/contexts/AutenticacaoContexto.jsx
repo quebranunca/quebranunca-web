@@ -266,6 +266,12 @@ export function ProvedorAutenticacao({ children }) {
     return resposta;
   }, [salvarAutenticacao]);
 
+  const entrarComSenha = useCallback(async (email, senha) => {
+    const resposta = await autenticacaoServico.login({ email, senha });
+    salvarAutenticacao(resposta);
+    return resposta;
+  }, [salvarAutenticacao]);
+
   const registrarPorConvite = useCallback(async ({
     conviteIdPublico,
     codigoConvite,
@@ -330,6 +336,7 @@ export function ProvedorAutenticacao({ children }) {
       carregando,
       solicitarCodigoLogin,
       entrarComCodigo,
+      entrarComSenha,
       registrarPorConvite,
       sair,
       recarregarUsuario,
@@ -345,6 +352,7 @@ export function ProvedorAutenticacao({ children }) {
       carregando,
       solicitarCodigoLogin,
       entrarComCodigo,
+      entrarComSenha,
       registrarPorConvite,
       sair,
       recarregarUsuario,
