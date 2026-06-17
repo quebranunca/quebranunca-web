@@ -1,6 +1,6 @@
 # Contexto local do frontend
 
-Seguir o `AGENTS.md` da raiz. Neste diretório, além disso:
+Este é um projeto existente; não tratar como app novo. Reutilizar padrões atuais e preservar rotas/fluxos sempre que possível.
 
 ## Diretrizes
 - Manter React + Vite em JavaScript, seguindo a organização atual por `pages`, `services`, `contexts`, `hooks`, `layouts` e `utils`
@@ -9,9 +9,22 @@ Seguir o `AGENTS.md` da raiz. Neste diretório, além disso:
 - Não introduzir TypeScript, estado global, biblioteca de UI ou biblioteca de formulário sem necessidade real
 - Não duplicar regra de negócio do backend no cliente; o frontend deve refletir dados, estados e mensagens vindos da API
 - Tratar loading, erro, vazio e sucesso de forma explícita
-- Priorizar fluxo simples, responsivo e legível
+- Priorizar UX mobile-first, fluxo simples, responsivo, legível e de baixo atrito operacional
 - Não versionar `.env` local nem embutir URL de API de ambiente real direto no código; usar `.env.example` e variáveis de build quando necessário
+- Para execução local sem Docker, apontar o frontend para a API local via `.env.local`, preferencialmente com `VITE_API_BASE_URL=http://localhost:5000`
 - Antes de ajustar integração, conferir primeiro `src/services/http.js`, `vite.config.js` e os arquivos `.env*` para não mascarar problema de ambiente com mudança de código
+- Toda feature criada ou alterada deve avaliar se `AGENTS.md`, `AGENTS.override.md` ou `.ai` precisam registrar uma decisão recorrente
+
+## Fase atual do produto
+
+- A fase atual é partida/grupo/ranking/scout-first, não campeonato-first
+- Registro rápido de partida é fluxo crítico; baixo atrito é prioridade
+- Não exigir campeonato, categoria ou liga no registro comum de grupo
+- Ranking individual, ranking de duplas, scout individual e scout de duplas são visões principais
+- Campeonatos, categorias, eventos e ligas devem ser tratados como fluxos específicos/futuros quando solicitados, sem antecipar complexidade no registro comum
+- Frontend pode antecipar validações simples, mas backend é a fonte final das regras de domínio
+- Não duplicar regra complexa de domínio no frontend
+- Rodar build quando possível e validar manualmente o fluxo alterado quando não houver teste automatizado
 
 ## Home logada
 - A Home logada deve manter a ordem de módulos controlada por `src/components/home/homeSectionsConfig.js`
@@ -20,7 +33,7 @@ Seguir o `AGENTS.md` da raiz. Neste diretório, além disso:
 - Não duplicar chamadas de dados em módulos filhos quando a Home ou o container já entregar os dados por props
 
 ## Fluxos já adotados
-- `Competições` já concentra atalhos para categorias e inscrições; preservar esse papel antes de criar navegação paralela
+- `Competições` concentra fluxos específicos de campeonato; não misturar com o registro comum de grupo
 - `Arena` é o cadastro principal de local esportivo; `Competições` e `Grupos` podem referenciar a Arena escolhida
 - A interface não deve introduzir cadastros principais paralelos de `Local`, `Quadra` ou `Rede`; espaços internos pertencem à Arena
 - Partidas e treinos podem indicar Arena, mantendo válido o registro de partida avulsa sem Arena
@@ -34,14 +47,18 @@ Seguir o `AGENTS.md` da raiz. Neste diretório, além disso:
 - `Competições` para atleta funciona como vitrine de campeonatos com inscrições abertas; para gestor continua sendo tela de gestão
 - `Inscrições` para atleta permite escolher campeonato/categoria e se inscrever com dupla própria ou parceiro ainda pendente
 - `Usuários` existe apenas para administrador; esconder rota e menu fora desse perfil
-- `Partidas` deve exibir a tabela de jogos da categoria; administrador e organizador podem gerar/alterar jogos, respeitando ownership da competição
+- `Partidas` de competição deve exibir tabela de jogos da categoria; partida comum de grupo não depende de campeonato/categoria/liga
 - `Partidas` em grupo deve permitir fluxo único: frontend coleta nomes completos ou seleção de atletas existentes, e a API reaproveita ou cria atleta, dupla e vínculo ao grupo no próprio registro da partida. O usuário autenticado que registra precisa pertencer ao grupo; atletas informados não precisam estar previamente no grupo e a API vincula automaticamente os ausentes ao salvar.
 - Registro de partida deve usar uma tela única, rápida e sem wizard por etapas, com modo padrão "Apenas vencedor", placar completo como opção avançada e compartilhamento como próxima ação após salvar.
+- Autocomplete de atleta deve preencher o campo visível ao selecionar; sugestões e busca devem manter estado consistente
+- Foco em campo no mobile deve preservar boa visualização, sem teclado cobrir ação principal ou opções relevantes
+- Compartilhamento de resultado deve funcionar com placar completo ou apenas vencedor e não depender de dados de campeonato
 - Edição básica de partida deve aparecer apenas para criador ou administrador, permitir alterar atletas, placares e grupo quando aplicável, e usar fluxo visual consistente com o registro de partida
 - Registro de partida deve consultar a validação de possível duplicidade do backend antes de salvar e exibir confirmação visual; não usar `window.confirm` para esse aviso quando houver modal visual no fluxo
 - `Minhas partidas registradas` deve listar partidas cadastradas pelo usuário logado e não deve ser misturada com `Meus Jogos`, que lista partidas em que o atleta vinculado participou
 - Em dupla eliminação, `Partidas` deve deixar claro se o jogo pertence à chave vencedora, perdedora, final ou final reset
 - `Ranking` já possui modos de liga e competição; o da liga é consolidado e o da competição segue separado por categoria
+- Rankings por grupo são prioridade atual; ranking individual e ranking de duplas devem ser fáceis de acessar e comparar
 - `Ranking` deve exibir atletas sem usuário como pendentes no mesmo ranking, sem tela ou cálculo paralelo de pontos
 - Rankings de grupo devem considerar todos os atletas membros do grupo e/ou participantes de partidas do grupo, mesmo sem pontuação. Não filtrar atletas apenas por pontos, vitórias ou partidas vencidas.
 - `Pendências` centraliza aprovar/contestar partidas e completar contato de atleta pendente; o frontend só reflete as pendências e ações retornadas pela API
