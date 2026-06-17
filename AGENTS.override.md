@@ -14,6 +14,7 @@
 - Ações de compartilhamento devem ser públicas para quem consegue visualizar o recurso, sem liberar edição, exclusão ou administração, e devem reaproveitar o padrão existente da plataforma.
 - Quando um endpoint existir no repositório, mas a tela receber `404` ou falha de conexão, verificar primeiro a instância local da API, o `baseURL` em `src/services/http.js`, o proxy do Vite e o `.env` antes de alterar código
 - Em problema de integração local, preferir reiniciar ou atualizar o backend e alinhar a porta usada pelo frontend com a porta realmente disponível da API
+- Na execução local sem Docker, a API padrão deve ser `http://localhost:5080` e o frontend deve usar `VITE_API_BASE_URL=http://localhost:5080`
 - Não deixar `.env` local, export de build ou configuração temporária de porta/API entrar na branch `master`
 - Na tela de inscrições, manter o fluxo simples: primeiro tentar dupla existente; se não houver, permitir informar os dois jogadores e deixar a API criar/reaproveitar atleta e dupla
 - Na tela de atletas, trabalhar com nome completo; não reintroduzir edição manual livre de apelido sem necessidade real

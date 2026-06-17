@@ -11,7 +11,8 @@ Este é um projeto existente; não tratar como app novo. Reutilizar padrões atu
 - Tratar loading, erro, vazio e sucesso de forma explícita
 - Priorizar UX mobile-first, fluxo simples, responsivo, legível e de baixo atrito operacional
 - Não versionar `.env` local nem embutir URL de API de ambiente real direto no código; usar `.env.example` e variáveis de build quando necessário
-- Para execução local sem Docker, apontar o frontend para a API local via `.env.local`, preferencialmente com `VITE_API_BASE_URL=http://localhost:5000`
+- Para execução local sem Docker, apontar o frontend para a API local via `.env.local` com `VITE_API_BASE_URL=http://localhost:5080`
+- Não versionar `.env.local`; não commitar URLs temporárias de API local ou configuração sensível
 - Antes de ajustar integração, conferir primeiro `src/services/http.js`, `vite.config.js` e os arquivos `.env*` para não mascarar problema de ambiente com mudança de código
 - Toda feature criada ou alterada deve avaliar se `AGENTS.md`, `AGENTS.override.md` ou `.ai` precisam registrar uma decisão recorrente
 
