@@ -11,6 +11,7 @@ import {
   FaMedal,
   FaPlus,
   FaShieldAlt,
+  FaStar,
   FaTrophy,
   FaUserFriends
 } from 'react-icons/fa';
@@ -37,7 +38,9 @@ const HOME_NAVIGATION = Object.freeze({
   ranking: '/ranking',
   feed: '/feed',
   meusJogos: '/app/meus-jogos',
-  registrarPartida: '/partidas/registrar'
+  registrarPartida: '/partidas/registrar',
+  pontosQN: '/app/pontos-qn',
+  pontosQNBeneficios: '/app/pontos-qn?aba=beneficios'
   // TODO: adicionar destino de insights quando existir tela de análise completa.
 });
 
@@ -61,6 +64,12 @@ const skeletonsHomePorSecao = Object.freeze({
     eyebrow: 'Pendências',
     titulo: 'Ações abertas',
     variante: 'pending'
+  },
+  [HomeSectionType.PontosQN]: {
+    eyebrow: 'Pontos QN',
+    titulo: 'Carregando seus pontos',
+    variante: 'pontosqn',
+    linhas: 1
   },
   [HomeSectionType.Stats]: {
     eyebrow: 'Resumo',
@@ -231,6 +240,27 @@ function obterBadgeMomento(resumo, perfil, totalJogosPeriodo) {
   return perfil?.textoSequencia || 'Pronto para o próximo jogo';
 }
 
+function formatarPontosQN(valor) {
+  return Number(valor || 0).toLocaleString('pt-BR');
+}
+
+function formatarFaixaQN(nome) {
+  const valor = nome || 'Bronze';
+  return valor.toLowerCase().includes('lenda') ? valor : `Faixa ${valor}`;
+}
+
+function obterTextoProgressoQN(nivel) {
+  if (!nivel) {
+    return 'Jogue para evoluir sua faixa.';
+  }
+
+  if (!nivel.pontosProximaFaixa) {
+    return 'Você chegou à faixa Lenda QN.';
+  }
+
+  return `Faltam ${formatarPontosQN(nivel.pontosRestantes)} pontos para a próxima faixa.`;
+}
+
 function HomeEstado({ titulo, mensagem }) {
   return (
     <section className="pagina home-dashboard">
@@ -324,6 +354,7 @@ export function HomeDashboard({ modulos, dashboard, carregando, erro, onAtualiza
   const perfilModulo = obterEstadoModulo(modulos, 'perfil', dashboard?.perfil || null);
   const pendenciasModulo = obterEstadoModulo(modulos, 'pendencias', null);
   const resumoModulo = obterEstadoModulo(modulos, 'resumo', dashboard?.resumo || null);
+  const gamificacaoModulo = obterEstadoModulo(modulos, 'gamificacao', null);
   const insightsModulo = obterEstadoModulo(modulos, 'insights', dashboard?.insights || []);
   const ultimasPartidasModulo = obterEstadoModulo(modulos, 'ultimasPartidas', dashboard?.ultimasPartidas || []);
   const conexoesModulo = obterEstadoModulo(modulos, 'conexoes', {
@@ -336,6 +367,7 @@ export function HomeDashboard({ modulos, dashboard, carregando, erro, onAtualiza
   const perfil = obterDadosModulo(perfilModulo, {});
   const resumoPendencias = obterDadosModulo(pendenciasModulo, null);
   const resumo = obterDadosModulo(resumoModulo, {});
+  const gamificacaoResumo = obterDadosModulo(gamificacaoModulo, null);
   const heatmap = obterDadosModulo(frequenciaModulo, []);
   const ultimasPartidas = (obterDadosModulo(ultimasPartidasModulo, []) || []).slice(0, 3);
   const conexoes = obterDadosModulo(conexoesModulo, {}) || {};
@@ -433,6 +465,13 @@ export function HomeDashboard({ modulos, dashboard, carregando, erro, onAtualiza
       <HomePendenciasOperacionaisSection
         resumo={resumoPendencias}
         erro={pendenciasModulo.erro}
+      />
+    ),
+    [HomeSectionType.PontosQN]: () => (
+      <HomePontosQnResumo
+        resumo={gamificacaoResumo}
+        carregando={gamificacaoModulo.carregando}
+        erro={gamificacaoModulo.erro}
       />
     ),
     [HomeSectionType.Stats]: () => moduloCarregandoSemDados(resumoModulo) ? (
@@ -762,7 +801,14 @@ function HomeModuloErro({ mensagem = 'Não foi possível carregar este módulo a
   return <p className="home-dashboard-vazio home-dashboard-modulo-erro">{mensagem}</p>;
 }
 
-function HomeHeroSection({ nomePrincipal, fotoPerfilUrl, perfil, badgeMomento, perfilDestino, erro }) {
+function HomeHeroSection({
+  nomePrincipal,
+  fotoPerfilUrl,
+  perfil,
+  badgeMomento,
+  perfilDestino,
+  erro
+}) {
   const identidade = (
     <>
       <AvatarUsuario
@@ -816,6 +862,101 @@ function HomeHeroSection({ nomePrincipal, fotoPerfilUrl, perfil, badgeMomento, p
         </Link>
       </div>
     </header>
+  );
+}
+
+function HomePontosQnResumo({ resumo, carregando, erro }) {
+  const pontuacao = resumo?.pontuacao;
+  const nivel = resumo?.nivel;
+  const saldo = pontuacao?.saldoAtual ?? 0;
+  const temAtletaVinculado = pontuacao?.temAtletaVinculado !== false;
+  const proximoBeneficio = resumo?.proximosBeneficios?.[0];
+  const progresso = nivel?.progressoPercentual ?? 0;
+
+  if (carregando && !resumo) {
+    return (
+      <section className="home-dashboard-pontosqn-card" aria-busy="true" aria-label="Pontos QN">
+        <div className="home-dashboard-pontosqn-cabecalho">
+          <span><FaStar aria-hidden="true" /> Pontos QN</span>
+          <small>Carregando</small>
+        </div>
+        <p className="home-dashboard-pontosqn-texto">Buscando seus pontos e benefícios.</p>
+      </section>
+    );
+  }
+
+  if (!temAtletaVinculado) {
+    return (
+      <section className="home-dashboard-pontosqn-card" aria-label="Pontos QN">
+        <div className="home-dashboard-pontosqn-cabecalho">
+          <span><FaStar aria-hidden="true" /> Pontos QN</span>
+        </div>
+        <p className="home-dashboard-pontosqn-texto">Vincule seu atleta para começar a somar pontos.</p>
+        <Link to="/app/perfil" className="home-dashboard-pontosqn-cta">
+          Vincular atleta
+          <FaChevronRight aria-hidden="true" />
+        </Link>
+      </section>
+    );
+  }
+
+  if (erro && !resumo) {
+    return (
+      <section className="home-dashboard-pontosqn-card" aria-label="Pontos QN">
+        <div className="home-dashboard-pontosqn-cabecalho">
+          <span><FaStar aria-hidden="true" /> Pontos QN</span>
+        </div>
+        <div className="home-dashboard-pontosqn-saldo">
+          <strong>Seus pontos aparecem aqui</strong>
+        </div>
+        <p className="home-dashboard-pontosqn-texto">Jogue, registre e compartilhe para começar a somar.</p>
+        <Link to={HOME_NAVIGATION.pontosQN} className="home-dashboard-pontosqn-cta">
+          Abrir Pontos QN
+          <FaChevronRight aria-hidden="true" />
+        </Link>
+      </section>
+    );
+  }
+
+  return (
+    <section className="home-dashboard-pontosqn-card" aria-label="Pontos QN">
+      <div className="home-dashboard-pontosqn-cabecalho">
+        <span><FaStar aria-hidden="true" /> Pontos QN</span>
+        <small>{formatarFaixaQN(nivel?.nome)}</small>
+      </div>
+
+      <div className="home-dashboard-pontosqn-saldo">
+        <strong>{formatarPontosQN(saldo)} pontos</strong>
+      </div>
+
+      {nivel && (
+        <div className="home-dashboard-pontosqn-progresso" aria-hidden="true">
+          <span style={{ width: `${Math.max(0, Math.min(100, Number(progresso || 0)))}%` }} />
+        </div>
+      )}
+
+      <p className="home-dashboard-pontosqn-texto">
+        {saldo === 0
+          ? 'Jogue, registre e compartilhe para começar a somar pontos.'
+          : obterTextoProgressoQN(nivel)}
+      </p>
+
+      <p className="home-dashboard-pontosqn-beneficio">
+        {proximoBeneficio
+          ? `Próximo benefício: ${proximoBeneficio.titulo}`
+          : 'Jogue, registre e compartilhe para trocar por benefícios.'}
+      </p>
+
+      <div className="home-dashboard-pontosqn-acoes">
+        <Link to={HOME_NAVIGATION.pontosQN} className="home-dashboard-pontosqn-cta">
+          Ver meus pontos
+          <FaChevronRight aria-hidden="true" />
+        </Link>
+        <Link to={HOME_NAVIGATION.pontosQNBeneficios} className="home-dashboard-pontosqn-link">
+          Trocar benefícios
+        </Link>
+      </div>
+    </section>
   );
 }
 

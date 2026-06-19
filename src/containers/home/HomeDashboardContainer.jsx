@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { dashboardServico } from '../../services/dashboardServico';
+import { gamificacaoServico } from '../../services/gamificacaoServico';
 import { EVENTO_PENDENCIAS_ATUALIZADAS, pendenciasServico } from '../../services/pendenciasServico';
 import { HomeDashboard } from '../../components/home/HomeDashboard';
 import { extrairMensagemErro } from '../../utils/erros';
@@ -16,6 +17,7 @@ function criarEstadoInicialModulos() {
     perfil: { ...estadoInicialModulo },
     pendencias: { ...estadoInicialModulo },
     resumo: { ...estadoInicialModulo },
+    gamificacao: { ...estadoInicialModulo },
     insights: { ...estadoInicialModulo },
     ultimasPartidas: { ...estadoInicialModulo },
     conexoes: { ...estadoInicialModulo },
@@ -63,6 +65,7 @@ export function HomeDashboardContainer() {
       carregarModulo('perfil', dashboardServico.obterPerfilAtleta, estaAtivo),
       carregarModulo('pendencias', pendenciasServico.obterResumo, estaAtivo),
       carregarModulo('resumo', dashboardServico.obterResumoAtleta, estaAtivo),
+      carregarModulo('gamificacao', gamificacaoServico.obterResumo, estaAtivo),
       carregarModulo('insights', dashboardServico.obterInsightsAtleta, estaAtivo),
       carregarModulo('ultimasPartidas', dashboardServico.listarUltimasPartidasAtleta, estaAtivo),
       carregarModulo('conexoes', dashboardServico.obterConexoesAtleta, estaAtivo),

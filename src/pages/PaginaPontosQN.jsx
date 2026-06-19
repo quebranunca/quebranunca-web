@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import {
   FaAward,
   FaCheckCircle,
@@ -39,6 +39,13 @@ const filtrosHistorico = [
   { id: 'ganhos', rotulo: 'Ganhos' },
   { id: 'resgates', rotulo: 'Resgates' }
 ];
+
+const abasDisponiveis = new Set(ABAS.map((item) => item.id));
+
+function obterAbaQuery(searchParams) {
+  const aba = searchParams.get('aba');
+  return abasDisponiveis.has(aba) ? aba : 'resumo';
+}
 
 function formatarPontos(valor) {
   return Number(valor || 0).toLocaleString('pt-BR');
@@ -191,7 +198,8 @@ function ConquistaCard({ conquista }) {
 export function PaginaPontosQN() {
   const { usuario } = useAutenticacao();
   const { showNotification } = useNotification();
-  const [aba, setAba] = useState('resumo');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [aba, setAba] = useState(() => obterAbaQuery(searchParams));
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState('');
   const [resumo, setResumo] = useState(null);
@@ -234,6 +242,11 @@ export function PaginaPontosQN() {
     carregar();
   }, []);
 
+  useEffect(() => {
+    const abaUrl = obterAbaQuery(searchParams);
+    setAba((abaAtual) => (abaAtual === abaUrl ? abaAtual : abaUrl));
+  }, [searchParams]);
+
   const saldo = resumo?.pontuacao?.saldoAtual || 0;
   const nivel = resumo?.nivel;
   const atividade = resumo?.atividade;
@@ -266,7 +279,7 @@ export function PaginaPontosQN() {
         message: 'Resgate solicitado. Aguarde aprovação.'
       });
       await carregar();
-      setAba('beneficios');
+      selecionarAba('beneficios');
     } catch (error) {
       showNotification({
         type: 'error',
@@ -276,6 +289,11 @@ export function PaginaPontosQN() {
     } finally {
       setResgatandoId('');
     }
+  }
+
+  function selecionarAba(id) {
+    setAba(id);
+    setSearchParams(id === 'resumo' ? {} : { aba: id });
   }
 
   if (carregando) {
@@ -326,7 +344,7 @@ export function PaginaPontosQN() {
             key={item.id}
             type="button"
             className={aba === item.id ? 'ativo' : ''}
-            onClick={() => setAba(item.id)}
+            onClick={() => selecionarAba(item.id)}
           >
             {item.rotulo}
           </button>
@@ -362,7 +380,7 @@ export function PaginaPontosQN() {
               <h2>Benefícios disponíveis</h2>
               <div className="pontosqn-lista-compacta">
                 {beneficios.slice(0, 3).map((beneficio) => (
-                  <button key={beneficio.id} type="button" onClick={() => setAba('beneficios')}>
+                  <button key={beneficio.id} type="button" onClick={() => selecionarAba('beneficios')}>
                     <span>{beneficio.titulo}</span>
                     <strong>{formatarPontos(beneficio.pontosNecessarios)} pts</strong>
                   </button>
@@ -373,9 +391,9 @@ export function PaginaPontosQN() {
             <div className="cartao">
               <h2>Atalhos</h2>
               <div className="pontosqn-lista-compacta">
-                <button type="button" onClick={() => setAba('historico')}><span>Histórico de Pontos</span><FaHistory aria-hidden="true" /></button>
-                <button type="button" onClick={() => setAba('beneficios')}><span>Benefícios</span><FaGift aria-hidden="true" /></button>
-                <button type="button" onClick={() => setAba('conquistas')}><span>Conquistas</span><FaAward aria-hidden="true" /></button>
+                <button type="button" onClick={() => selecionarAba('historico')}><span>Histórico de Pontos</span><FaHistory aria-hidden="true" /></button>
+                <button type="button" onClick={() => selecionarAba('beneficios')}><span>Benefícios</span><FaGift aria-hidden="true" /></button>
+                <button type="button" onClick={() => selecionarAba('conquistas')}><span>Conquistas</span><FaAward aria-hidden="true" /></button>
               </div>
             </div>
           </section>
