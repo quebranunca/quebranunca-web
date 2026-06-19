@@ -12,8 +12,8 @@ export const HomeSectionType = Object.freeze({
 
 export const homeSectionsConfig = [
   { type: HomeSectionType.Hero, enabled: true },
-  { type: HomeSectionType.PendingActions, enabled: true },
   { type: HomeSectionType.PontosQN, enabled: true },
+  { type: HomeSectionType.PendingActions, enabled: true },
   { type: HomeSectionType.Stats, enabled: true },
   { type: HomeSectionType.Insights, enabled: true },
   { type: HomeSectionType.RecentMatches, enabled: true },

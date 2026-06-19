@@ -7,7 +7,7 @@
   --home-card-sombra-secundaria: 0 10px 26px rgba(0, 0, 0, 0.16);
   gap: 0.72rem;
   padding-top: 0;
-  padding-bottom: calc(var(--altura-bottom-nav, 4.45rem) + 1.1rem);
+  padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
   animation: home-dashboard-entrada 360ms ease both;
 }
 

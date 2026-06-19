@@ -909,7 +909,7 @@ function HomePontosQnResumo({ resumo, carregando, erro }) {
         <div className="home-dashboard-pontosqn-saldo">
           <strong>Seus pontos aparecem aqui</strong>
         </div>
-        <p className="home-dashboard-pontosqn-texto">Jogue, registre e compartilhe para começar a somar.</p>
+        <p className="home-dashboard-pontosqn-texto">Jogue, registre e compartilhe para evoluir.</p>
         <Link to={HOME_NAVIGATION.pontosQN} className="home-dashboard-pontosqn-cta">
           Abrir Pontos QN
           <FaChevronRight aria-hidden="true" />
@@ -937,7 +937,7 @@ function HomePontosQnResumo({ resumo, carregando, erro }) {
 
       <p className="home-dashboard-pontosqn-texto">
         {saldo === 0
-          ? 'Jogue, registre e compartilhe para começar a somar pontos.'
+          ? 'Jogue, registre e compartilhe para evoluir.'
           : obterTextoProgressoQN(nivel)}
       </p>
 
@@ -949,7 +949,7 @@ function HomePontosQnResumo({ resumo, carregando, erro }) {
 
       <div className="home-dashboard-pontosqn-acoes">
         <Link to={HOME_NAVIGATION.pontosQN} className="home-dashboard-pontosqn-cta">
-          Ver meus pontos
+          Ver pontos
           <FaChevronRight aria-hidden="true" />
         </Link>
         <Link to={HOME_NAVIGATION.pontosQNBeneficios} className="home-dashboard-pontosqn-link">
