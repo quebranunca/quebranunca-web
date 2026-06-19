@@ -823,6 +823,10 @@ function HomeHeroSection({
           {perfil.categoriaPrincipal}
           {perfil.posicaoRanking ? ` • #${perfil.posicaoRanking} no ranking` : ''}
         </p>
+        <div className="home-dashboard-momento-badge">
+          <FaFire aria-hidden="true" />
+          <span>{badgeMomento}</span>
+        </div>
       </div>
     </>
   );
@@ -845,10 +849,6 @@ function HomeHeroSection({
           </div>
         )}
 
-        <div className="home-dashboard-momento-badge">
-          <FaFire aria-hidden="true" />
-          <span>{badgeMomento}</span>
-        </div>
       </div>
 
       <div className="home-dashboard-hero-divisor" aria-hidden="true" />
@@ -967,12 +967,15 @@ function HomePontosQnResumo({ resumo, carregando, erro }) {
       <div className="home-dashboard-card-subsecao-conteudo">
         <div className="home-dashboard-pontosqn-cabecalho">
           <span>Pontos QN</span>
-          <small>{formatarFaixaQN(nivel?.nome)}</small>
         </div>
 
         <div className="home-dashboard-pontosqn-saldo">
           <strong>{formatarPontosQN(saldo)} pontos</strong>
         </div>
+
+        <span className="home-dashboard-pontosqn-faixa">
+          {formatarFaixaQN(nivel?.nome)}
+        </span>
 
         {nivel && (
           <div className="home-dashboard-pontosqn-progresso" aria-hidden="true">
@@ -1249,7 +1252,7 @@ function HomePendenciasOperacionaisSection({ resumo, carregando, erro }) {
         <div className="home-dashboard-pendencias-texto">
           <span>Pendências</span>
           <strong>Conferindo ações</strong>
-          <p>Buscando confirmações e vínculos que precisam da sua atenção.</p>
+          <p>Verificando o que precisa da sua atenção.</p>
         </div>
       </section>
     );
@@ -1266,7 +1269,7 @@ function HomePendenciasOperacionaisSection({ resumo, carregando, erro }) {
         <div className="home-dashboard-pendencias-texto">
           <span>Pendências</span>
           <strong>Não foi possível conferir agora</strong>
-          <p>Você pode abrir suas pendências para revisar as ações manualmente.</p>
+          <p>Abra suas pendências para revisar manualmente.</p>
         </div>
         <Link to="/app/pendencias" className="home-dashboard-pendencias-cta">
           Resolver agora
@@ -1291,11 +1294,6 @@ function HomePendenciasOperacionaisSection({ resumo, carregando, erro }) {
     );
   }
 
-  const altaPrioridade = Number(resumo?.altaPrioridade || 0);
-  const descricao = altaPrioridade > 0
-    ? `${altaPrioridade} ${altaPrioridade === 1 ? 'ação prioritária aguarda' : 'ações prioritárias aguardam'} sua confirmação.`
-    : 'Ações rápidas ajudam a manter o histórico das partidas confiável.';
-
   return (
     <section className="home-dashboard-card-subsecao home-dashboard-pendencias" aria-label="Pendências abertas">
       <HomeSubsecaoIcone variante="pendencias">
@@ -1304,7 +1302,7 @@ function HomePendenciasOperacionaisSection({ resumo, carregando, erro }) {
       <div className="home-dashboard-pendencias-texto">
         <span>Pendências</span>
         <strong>{total === 1 ? '1 ação aguardando' : `${total} ações aguardando`}</strong>
-        <p>{descricao}</p>
+        <p>Ajude a manter seu histórico confiável.</p>
       </div>
       <Link to="/app/pendencias" className="home-dashboard-pendencias-cta">
         Resolver agora
