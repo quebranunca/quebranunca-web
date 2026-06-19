@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { IoShareSocialSharp } from 'react-icons/io5';
 import { useNotification } from '../../contexts/NotificationContext';
+import { gamificacaoServico } from '../../services/gamificacaoServico';
 import { compartilharImagem } from '../../utils/compartilhamento';
 import { extrairMensagemErro } from '../../utils/erros';
 import { DuplaDashboardCompartilhavelCard } from './DuplaDashboardCompartilhavelCard';
@@ -12,6 +13,18 @@ function normalizarNomeArquivo(valor) {
     .replace(/[^a-z0-9]+/gi, '-')
     .replace(/^-+|-+$/g, '')
     .toLowerCase();
+}
+
+async function registrarPontuacaoCompartilhamento(duplaId) {
+  try {
+    await gamificacaoServico.registrarCompartilhamento({
+      tipo: 4,
+      duplaId,
+      origem: 'web'
+    });
+  } catch {
+    // Compartilhar não depende da pontuação de gamificação.
+  }
 }
 
 export function CompartilharDuplaDashboardBotao({ dashboard, url }) {
@@ -37,6 +50,7 @@ export function CompartilharDuplaDashboardBotao({ dashboard, url }) {
         texto: `Confira o dashboard da dupla ${nome} no QuebraNunca Futevôlei`,
         url
       });
+      await registrarPontuacaoCompartilhamento(dashboard?.dupla?.id);
 
       if (resultado === 'baixado') {
         showNotification({

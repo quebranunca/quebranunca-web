@@ -1,10 +1,23 @@
 import { useRef, useState } from 'react';
 import { IoShareSocialSharp } from 'react-icons/io5';
 import { useNotification } from '../../contexts/NotificationContext';
+import { gamificacaoServico } from '../../services/gamificacaoServico';
 import { compartilharImagem } from '../../utils/compartilhamento';
 import { extrairMensagemErro } from '../../utils/erros';
 import { obterNomeExibicaoAtleta } from '../../utils/atletaUtils';
 import { AtletaDashboardCompartilhavelCard } from './AtletaDashboardCompartilhavelCard';
+
+async function registrarPontuacaoCompartilhamento(atletaId) {
+  try {
+    await gamificacaoServico.registrarCompartilhamento({
+      tipo: 3,
+      atletaId,
+      origem: 'web'
+    });
+  } catch {
+    // Compartilhar não depende da pontuação de gamificação.
+  }
+}
 
 export function CompartilharAtletaDashboardBotao({
   atleta,
@@ -35,6 +48,7 @@ export function CompartilharAtletaDashboardBotao({
         texto: `Confira o dashboard de ${nome} no QuebraNunca Futevôlei`,
         url
       });
+      await registrarPontuacaoCompartilhamento(atleta.id || atleta.atletaId);
 
       if (resultado === 'baixado') {
         showNotification({

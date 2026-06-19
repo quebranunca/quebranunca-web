@@ -2496,6 +2496,403 @@ code {
   color: var(--color-text-primary);
 }
 
+.pontosqn-pagina {
+  display: grid;
+  gap: var(--espaco-md);
+  padding-bottom: calc(5.6rem + env(safe-area-inset-bottom, 0px));
+}
+
+.pontosqn-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(260px, 0.65fr);
+  gap: var(--espaco-md);
+  align-items: stretch;
+  padding: clamp(1rem, 2vw, 1.35rem);
+  border: 1px solid rgba(255, 179, 0, 0.18);
+  border-radius: var(--raio-lg);
+  background:
+    linear-gradient(135deg, rgba(255, 179, 0, 0.16), rgba(255, 255, 255, 0.035) 42%, rgba(20, 22, 28, 0.96)),
+    var(--cor-superficie);
+  box-shadow: var(--sombra-suave);
+}
+
+.pontosqn-hero h1 {
+  margin-top: 0.55rem;
+  max-width: 680px;
+  font-size: clamp(2rem, 4vw, 3.4rem);
+  line-height: 0.98;
+}
+
+.pontosqn-hero p {
+  max-width: 720px;
+  margin: 0.75rem 0 0;
+  color: var(--cor-texto-suave);
+  font-size: 1rem;
+}
+
+.pontosqn-selo,
+.pontosqn-beneficio-topo,
+.pontosqn-beneficio-banner span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: #ffd56a;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.pontosqn-saldo-card {
+  display: grid;
+  gap: 0.45rem;
+  align-content: center;
+  min-height: 190px;
+  padding: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--raio-md);
+  background: rgba(8, 9, 11, 0.64);
+}
+
+.pontosqn-saldo-card span,
+.pontosqn-saldo-card small,
+.pontosqn-saldo-card em {
+  color: var(--cor-texto-suave);
+  font-style: normal;
+}
+
+.pontosqn-saldo-card strong {
+  color: #fff;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 2.8rem;
+  line-height: 1;
+}
+
+.pontosqn-progresso {
+  width: 100%;
+  height: 0.55rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.pontosqn-progresso span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #ffb300, #ffe08a);
+}
+
+.pontosqn-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  padding: 0.15rem 0 0.35rem;
+  background: linear-gradient(180deg, rgba(8, 9, 11, 0.98), rgba(8, 9, 11, 0.78));
+}
+
+.pontosqn-secao {
+  display: grid;
+  gap: var(--espaco-md);
+}
+
+.pontosqn-secao-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-sm);
+}
+
+.pontosqn-secao-topo h2,
+.pontosqn-secao h3,
+.pontosqn-como-ganhar h2,
+.pontosqn-duas-colunas h2 {
+  font-size: 1.22rem;
+}
+
+.pontosqn-secao-topo span {
+  color: #ffd56a;
+  font-weight: 800;
+}
+
+.pontosqn-metricas {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--espaco-sm);
+}
+
+.pontosqn-metricas article {
+  display: grid;
+  gap: 0.3rem;
+  min-height: 112px;
+  padding: 0.9rem;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-md);
+  background: var(--cor-superficie);
+}
+
+.pontosqn-metricas svg {
+  color: #ffcf5b;
+}
+
+.pontosqn-metricas span,
+.pontosqn-metricas small {
+  color: var(--cor-texto-suave);
+}
+
+.pontosqn-metricas strong {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.65rem;
+}
+
+.pontosqn-como-ganhar {
+  display: grid;
+}
+
+.pontosqn-acoes-grid,
+.pontosqn-duas-colunas,
+.pontosqn-beneficios-grid,
+.pontosqn-missoes-grid,
+.pontosqn-conquistas-grid {
+  display: grid;
+  gap: var(--espaco-sm);
+}
+
+.pontosqn-acoes-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.pontosqn-acoes-grid a,
+.pontosqn-lista-compacta button {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.65rem;
+  min-height: 3.2rem;
+  padding: 0.8rem;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-sm);
+  background: var(--cor-superficie-suave);
+  color: var(--cor-texto);
+  text-align: left;
+  font-weight: 700;
+}
+
+.pontosqn-acoes-grid svg,
+.pontosqn-lista-compacta svg,
+.pontosqn-icone {
+  color: #ffcf5b;
+}
+
+.pontosqn-duas-colunas {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.pontosqn-lista-compacta {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.pontosqn-beneficio-banner {
+  display: grid;
+  gap: 0.45rem;
+  padding: 1rem;
+  border: 1px solid rgba(255, 179, 0, 0.24);
+  border-radius: var(--raio-md);
+  background: rgba(255, 179, 0, 0.08);
+}
+
+.pontosqn-beneficio-banner strong {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.25rem;
+}
+
+.pontosqn-beneficio-banner p,
+.pontosqn-beneficio-card p,
+.pontosqn-missao-card p,
+.pontosqn-conquista-card p,
+.pontosqn-estado p {
+  margin: 0;
+  color: var(--cor-texto-suave);
+}
+
+.pontosqn-beneficios-grid {
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+}
+
+.pontosqn-beneficio-card {
+  display: grid;
+  gap: 0.65rem;
+  min-height: 222px;
+  padding: 1rem;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-md);
+  background: var(--cor-superficie);
+}
+
+.pontosqn-beneficio-card.destaque {
+  border-color: rgba(255, 179, 0, 0.38);
+}
+
+.pontosqn-beneficio-card h3 {
+  font-size: 1.15rem;
+}
+
+.pontosqn-beneficio-rodape {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: auto;
+}
+
+.pontosqn-beneficio-rodape strong,
+.pontosqn-historico-item b.positivo {
+  color: #ffd56a;
+}
+
+.pontosqn-historico-lista {
+  display: grid;
+  gap: 0.65rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.pontosqn-historico-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 4.25rem;
+  padding: 0.75rem;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-md);
+  background: var(--cor-superficie);
+}
+
+.pontosqn-historico-item small {
+  display: block;
+  margin-top: 0.15rem;
+  color: var(--cor-texto-suave);
+}
+
+.pontosqn-historico-icone,
+.pontosqn-icone {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+  background: rgba(255, 179, 0, 0.12);
+}
+
+.pontosqn-historico-icone.negativo,
+.pontosqn-historico-item b.negativo {
+  color: #ff8f9c;
+}
+
+.pontosqn-missoes-grid,
+.pontosqn-conquistas-grid {
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+}
+
+.pontosqn-missao-card,
+.pontosqn-conquista-card,
+.pontosqn-estado {
+  display: grid;
+  gap: 0.65rem;
+  padding: 1rem;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-md);
+  background: var(--cor-superficie);
+}
+
+.pontosqn-missao-card.concluida,
+.pontosqn-conquista-card.desbloqueada {
+  border-color: rgba(57, 217, 138, 0.42);
+}
+
+.pontosqn-missao-card > span {
+  justify-self: start;
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffd56a;
+  font-weight: 800;
+}
+
+.pontosqn-missao-card small,
+.pontosqn-conquista-card small {
+  color: var(--cor-texto-suave);
+}
+
+.pontosqn-conquista-card {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+}
+
+.pontosqn-conquista-card.bloqueada {
+  opacity: 0.78;
+}
+
+.pontosqn-estado {
+  justify-items: start;
+}
+
+.pontosqn-estado svg {
+  color: #ffcf5b;
+  font-size: 1.25rem;
+}
+
+.pontosqn-estado-erro {
+  border-color: rgba(255, 107, 122, 0.38);
+}
+
+.pontosqn-estado-erro svg {
+  color: var(--cor-erro);
+}
+
+@media (max-width: 860px) {
+  .pontosqn-hero,
+  .pontosqn-duas-colunas,
+  .pontosqn-acoes-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pontosqn-metricas {
+    grid-template-columns: repeat(3, minmax(96px, 1fr));
+    overflow-x: auto;
+  }
+
+  .pontosqn-metricas article {
+    min-width: 96px;
+  }
+}
+
+@media (max-width: 560px) {
+  .pontosqn-hero h1 {
+    font-size: 2rem;
+  }
+
+  .pontosqn-saldo-card strong {
+    font-size: 2.35rem;
+  }
+
+  .pontosqn-beneficio-rodape,
+  .pontosqn-secao-topo {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .pontosqn-historico-item {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .pontosqn-historico-item b {
+    grid-column: 2;
+  }
+}
+
 .ranking-filtros-shell {
   display: grid;
   gap: 0.55rem;

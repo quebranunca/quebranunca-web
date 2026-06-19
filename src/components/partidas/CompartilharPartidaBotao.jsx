@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { useNotification } from '../../contexts/NotificationContext';
+import { gamificacaoServico } from '../../services/gamificacaoServico';
 import { partidasServico } from '../../services/partidasServico';
 import { compartilharImagem, obterUrlAbsoluta } from '../../utils/compartilhamento';
 import { extrairMensagemErro } from '../../utils/erros';
@@ -16,6 +17,18 @@ function obterUrlPartida(partidaId, url) {
   }
 
   return obterUrlAbsoluta(`${window.location.pathname}${window.location.search || ''}`);
+}
+
+async function registrarPontuacaoCompartilhamento(partidaId) {
+  try {
+    await gamificacaoServico.registrarCompartilhamento({
+      tipo: 1,
+      partidaId,
+      origem: 'web'
+    });
+  } catch {
+    // Compartilhar não depende da pontuação de gamificação.
+  }
 }
 
 export function CompartilharPartidaBotao({
@@ -52,6 +65,7 @@ export function CompartilharPartidaBotao({
         texto: 'Partida registrada no QuebraNunca Futevôlei',
         url: obterUrlPartida(partidaId, url)
       });
+      await registrarPontuacaoCompartilhamento(partidaId);
 
       if (resultado === 'baixado') {
         showNotification({

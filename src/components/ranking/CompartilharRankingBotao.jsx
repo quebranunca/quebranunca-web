@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { IoShareSocialSharp } from 'react-icons/io5';
 import { useNotification } from '../../contexts/NotificationContext';
+import { gamificacaoServico } from '../../services/gamificacaoServico';
 import { compartilharImagem } from '../../utils/compartilhamento';
 import { extrairMensagemErro } from '../../utils/erros';
 import { RankingCompartilhavelCard } from './RankingCompartilhavelCard';
@@ -9,6 +10,17 @@ function montarTexto(contexto) {
   return contexto
     ? `Confira o ranking de ${contexto} no QuebraNunca Futevôlei`
     : 'Confira o ranking do QuebraNunca Futevôlei';
+}
+
+async function registrarPontuacaoCompartilhamento() {
+  try {
+    await gamificacaoServico.registrarCompartilhamento({
+      tipo: 2,
+      origem: 'web'
+    });
+  } catch {
+    // Compartilhar não depende da pontuação de gamificação.
+  }
 }
 
 export function CompartilharRankingBotao({
@@ -38,6 +50,7 @@ export function CompartilharRankingBotao({
         texto: montarTexto(contexto),
         url
       });
+      await registrarPontuacaoCompartilhamento();
 
       if (resultado === 'baixado') {
         showNotification({
