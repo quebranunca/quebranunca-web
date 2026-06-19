@@ -832,7 +832,7 @@ function HomeHeroSection({
   );
 
   return (
-    <header className="home-dashboard-hero">
+    <header className="home-dashboard-hero" role="region" aria-label="Card principal da Home">
       {erro && <HomeModuloErro mensagem="Não foi possível carregar seu resumo agora." />}
       <div className="home-dashboard-hero-cabecalho">
         {perfilDestino ? (

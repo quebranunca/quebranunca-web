@@ -43,6 +43,25 @@
   --altura-controle-compacto: 2.1rem;
   --sombra: 0 18px 44px rgba(0, 0, 0, 0.42);
   --sombra-suave: 0 12px 30px rgba(0, 0, 0, 0.28);
+  --qn-bg-page: var(--color-bg);
+  --qn-bg-card: rgba(15, 18, 23, 0.94);
+  --qn-bg-card-soft: rgba(255, 255, 255, 0.045);
+  --qn-bg-card-glow: linear-gradient(145deg, rgba(255, 179, 0, 0.1), transparent 34%);
+  --qn-border-soft: rgba(255, 255, 255, 0.08);
+  --qn-border-gold: rgba(255, 179, 0, 0.18);
+  --qn-text-primary: var(--cor-texto);
+  --qn-text-secondary: var(--cor-texto-suave);
+  --qn-text-muted: rgba(225, 227, 230, 0.62);
+  --qn-gold: var(--cor-primaria);
+  --qn-gold-strong: #ffc247;
+  --qn-gold-soft: rgba(255, 179, 0, 0.12);
+  --qn-success-soft: rgba(57, 217, 138, 0.12);
+  --qn-danger-soft: rgba(255, 107, 122, 0.12);
+  --qn-radius-card: 18px;
+  --qn-radius-card-lg: 22px;
+  --qn-radius-pill: 999px;
+  --qn-card-shadow: 0 16px 38px rgba(0, 0, 0, 0.28);
+  --qn-card-shadow-soft: 0 10px 26px rgba(0, 0, 0, 0.2);
 }
 
 * {
@@ -8976,6 +8995,265 @@ a.botao-terciario:active {
 .texto-alerta,
 .texto-aviso {
   color: var(--color-primary);
+}
+
+/* Padronizacao visual compartilhada: Home como referencia de produto autenticado. */
+.layout-autenticado .pagina:not(.home-dashboard) {
+  gap: clamp(0.78rem, 2vw, 1rem);
+}
+
+.layout-autenticado .cabecalho-pagina {
+  display: grid;
+  gap: 0.28rem;
+  padding: 0.12rem 0.05rem 0.2rem;
+}
+
+.layout-autenticado .cabecalho-pagina h2 {
+  color: var(--qn-text-primary);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(1.34rem, 5.4vw, 1.92rem);
+  font-weight: 700;
+  line-height: 1.06;
+  letter-spacing: 0;
+}
+
+.layout-autenticado .cabecalho-pagina p {
+  margin: 0;
+  color: var(--qn-text-secondary);
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.layout-autenticado .cartao,
+.layout-autenticado .cartao-lista,
+.layout-autenticado .formulario-grid,
+.layout-autenticado .secao-formulario,
+.layout-autenticado .ranking-estado,
+.layout-autenticado .meus-jogos-estado,
+.layout-autenticado .pontosqn-estado,
+.layout-autenticado .pendencias-estado,
+.layout-autenticado .grupos-dashboard-vazio,
+.layout-autenticado .grupos-dashboard-estado,
+.layout-autenticado .admin-estado {
+  border-color: var(--qn-border-gold);
+  border-radius: var(--qn-radius-card);
+  background:
+    var(--qn-bg-card-glow),
+    var(--qn-bg-card);
+  color: var(--qn-text-primary);
+  box-shadow: var(--qn-card-shadow);
+}
+
+.layout-autenticado .cartao,
+.layout-autenticado .cartao-lista {
+  margin-bottom: 0;
+}
+
+.layout-autenticado .cartao p,
+.layout-autenticado .cartao-lista p,
+.layout-autenticado .ranking-estado,
+.layout-autenticado .meus-jogos-estado,
+.layout-autenticado .pontosqn-estado,
+.layout-autenticado .pendencias-estado,
+.layout-autenticado .grupos-dashboard-vazio,
+.layout-autenticado .grupos-dashboard-estado,
+.layout-autenticado .admin-estado {
+  color: var(--qn-text-secondary);
+  line-height: 1.36;
+}
+
+.layout-autenticado .ranking-estado,
+.layout-autenticado .meus-jogos-estado,
+.layout-autenticado .pontosqn-estado,
+.layout-autenticado .pendencias-estado,
+.layout-autenticado .grupos-dashboard-vazio,
+.layout-autenticado .grupos-dashboard-estado,
+.layout-autenticado .admin-estado {
+  min-height: 4.25rem;
+  padding: 0.9rem;
+}
+
+.layout-autenticado .perfil-vazio {
+  border-color: rgba(255, 179, 0, 0.22);
+  background: var(--qn-bg-card-soft);
+  color: var(--qn-text-secondary);
+}
+
+.layout-autenticado .pontosqn-beneficio-card,
+.layout-autenticado .pontosqn-missao-card,
+.layout-autenticado .pontosqn-conquista-card,
+.layout-autenticado .pontosqn-historico-item,
+.layout-autenticado .pontosqn-metricas article,
+.layout-autenticado .perfil-info-item,
+.layout-autenticado .perfil-partida-item,
+.layout-autenticado .perfil-ferramenta-botao,
+.layout-autenticado .pendencia-card,
+.layout-autenticado .meus-jogos-card-premium,
+.layout-autenticado .grupos-dashboard-card {
+  border-color: var(--qn-border-soft);
+  background:
+    linear-gradient(145deg, rgba(255, 179, 0, 0.045), transparent 42%),
+    var(--qn-bg-card-soft);
+}
+
+.layout-autenticado .botao-primario,
+.layout-autenticado a.botao-primario,
+.layout-autenticado .botao-secundario,
+.layout-autenticado a.botao-secundario,
+.layout-autenticado .botao-terciario,
+.layout-autenticado a.botao-terciario,
+.layout-autenticado .botao-perigo,
+.layout-autenticado a.botao-perigo {
+  min-height: 2.46rem;
+  border-radius: var(--qn-radius-pill);
+  font-weight: 900;
+  letter-spacing: 0;
+  text-align: center;
+  white-space: normal;
+}
+
+.layout-autenticado .botao-primario,
+.layout-autenticado a.botao-primario {
+  border-color: rgba(255, 179, 0, 0.22);
+  background: linear-gradient(180deg, #ffc247 0%, #f29a12 100%);
+  color: #090909;
+  box-shadow: 0 7px 18px rgba(255, 179, 0, 0.13);
+}
+
+.layout-autenticado .botao-primario:hover:not(:disabled),
+.layout-autenticado a.botao-primario:hover {
+  background: linear-gradient(180deg, #ffcd64 0%, #ff9f17 100%);
+  box-shadow: 0 10px 24px rgba(255, 179, 0, 0.18);
+}
+
+.layout-autenticado .botao-secundario,
+.layout-autenticado a.botao-secundario {
+  border-color: var(--qn-border-gold);
+  background: rgba(255, 179, 0, 0.1);
+  color: var(--qn-gold);
+}
+
+.layout-autenticado .botao-secundario:hover:not(:disabled),
+.layout-autenticado a.botao-secundario:hover {
+  border-color: rgba(255, 179, 0, 0.34);
+  background: rgba(255, 179, 0, 0.16);
+  color: var(--qn-gold-strong);
+}
+
+.layout-autenticado .botao-terciario,
+.layout-autenticado a.botao-terciario {
+  border-color: var(--qn-border-soft);
+  background: rgba(255, 255, 255, 0.055);
+  color: var(--qn-text-primary);
+}
+
+.layout-autenticado .botao-terciario:hover:not(:disabled),
+.layout-autenticado a.botao-terciario:hover {
+  border-color: var(--qn-border-gold);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.layout-autenticado .botao-perigo,
+.layout-autenticado a.botao-perigo {
+  border-color: rgba(255, 107, 122, 0.36);
+  background: rgba(255, 107, 122, 0.12);
+  color: #ff9aa4;
+}
+
+.layout-autenticado .botao-link {
+  color: var(--qn-gold);
+  font-weight: 900;
+}
+
+.layout-autenticado p.texto-erro,
+.layout-autenticado p.mensagem-erro {
+  padding: 0.68rem 0.78rem;
+  border: 1px solid rgba(255, 107, 122, 0.3);
+  border-radius: 14px;
+  background: rgba(255, 107, 122, 0.1);
+  color: #ff9aa4;
+  line-height: 1.35;
+}
+
+.layout-autenticado .tag-status-sucesso,
+.layout-autenticado .tag-status-alerta,
+.layout-autenticado .tag-status-erro,
+.layout-autenticado .pendencia-status,
+.layout-autenticado .meus-jogos-badge,
+.layout-autenticado .perfil-status,
+.layout-autenticado .badge-liga {
+  border-radius: var(--qn-radius-pill);
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+
+.layout-autenticado .ranking-tabs,
+.layout-autenticado .perfil-tabs,
+.layout-autenticado .meus-jogos-filtros,
+.layout-autenticado .pendencias-filtros {
+  scrollbar-width: none;
+}
+
+.layout-autenticado .ranking-tabs::-webkit-scrollbar,
+.layout-autenticado .perfil-tabs::-webkit-scrollbar,
+.layout-autenticado .meus-jogos-filtros::-webkit-scrollbar,
+.layout-autenticado .pendencias-filtros::-webkit-scrollbar {
+  display: none;
+}
+
+.layout-autenticado .ranking-tabs button,
+.layout-autenticado .perfil-tabs button,
+.layout-autenticado .meus-jogos-filtros button,
+.layout-autenticado .pendencias-filtros button {
+  border-color: var(--qn-border-soft);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--qn-text-secondary);
+}
+
+.layout-autenticado .ranking-tabs button.ativo,
+.layout-autenticado .perfil-tabs button.ativo,
+.layout-autenticado .meus-jogos-filtros button.ativo,
+.layout-autenticado .pendencias-filtros button.ativo {
+  border-color: rgba(255, 179, 0, 0.58);
+  background: var(--qn-gold-soft);
+  color: var(--qn-gold);
+  box-shadow: 0 0 20px rgba(255, 179, 0, 0.1);
+}
+
+@media (max-width: 720px) {
+  .layout-autenticado .pagina:not(.home-dashboard):not(.pontosqn-pagina):not(.perfil-premium):not(.pendencias-pagina):not(.meus-jogos-pagina) {
+    padding-bottom: calc(var(--altura-bottom-nav, 4.7rem) + 1rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .layout-autenticado .cabecalho-pagina h2 {
+    font-size: clamp(1.25rem, 6vw, 1.62rem);
+  }
+
+  .layout-autenticado .cabecalho-pagina p {
+    font-size: 0.84rem;
+  }
+
+  .layout-autenticado .cartao,
+  .layout-autenticado .cartao-lista,
+  .layout-autenticado .formulario-grid,
+  .layout-autenticado .secao-formulario {
+    padding: 0.88rem;
+    border-radius: 18px;
+  }
+
+  .layout-autenticado .botao-primario,
+  .layout-autenticado a.botao-primario,
+  .layout-autenticado .botao-secundario,
+  .layout-autenticado a.botao-secundario,
+  .layout-autenticado .botao-terciario,
+  .layout-autenticado a.botao-terciario,
+  .layout-autenticado .botao-perigo,
+  .layout-autenticado a.botao-perigo {
+    min-height: 2.42rem;
+    padding: 0.58rem 0.78rem;
+    font-size: 0.88rem;
+  }
 }
 
 .ranking-liga-lista {

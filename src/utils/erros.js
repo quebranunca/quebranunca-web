@@ -1,4 +1,5 @@
 const CODIGO_DUPLICIDADE_PARTIDA_CONFIRMAR = 'PARTIDA_DUPLICADA_CONFIRMAR';
+const MENSAGEM_SERVICO_INDISPONIVEL = 'Não foi possível carregar agora. Tente novamente em instantes.';
 
 export function extrairMensagemErro(erro) {
   if (erro?.response?.data?.erro) {
@@ -7,6 +8,14 @@ export function extrairMensagemErro(erro) {
 
   if (erro?.response?.data?.message) {
     return erro.response.data.message;
+  }
+
+  if (erro?.code === 'ERR_NETWORK' || erro?.message === 'Network Error') {
+    return MENSAGEM_SERVICO_INDISPONIVEL;
+  }
+
+  if (erro?.code === 'ECONNABORTED' || erro?.message?.toLowerCase().includes('timeout')) {
+    return MENSAGEM_SERVICO_INDISPONIVEL;
   }
 
   if (erro?.message) {
