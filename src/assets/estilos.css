@@ -2517,16 +2517,16 @@ code {
 
 .pontosqn-pagina {
   display: grid;
-  gap: var(--espaco-md);
+  gap: 0.9rem;
   padding-bottom: calc(5.6rem + env(safe-area-inset-bottom, 0px));
 }
 
 .pontosqn-hero {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(260px, 0.65fr);
-  gap: var(--espaco-md);
-  align-items: stretch;
-  padding: clamp(1rem, 2vw, 1.35rem);
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 0.42fr);
+  gap: 0.8rem;
+  align-items: center;
+  padding: 1rem;
   border: 1px solid rgba(255, 179, 0, 0.18);
   border-radius: var(--raio-lg);
   background:
@@ -2536,17 +2536,17 @@ code {
 }
 
 .pontosqn-hero h1 {
-  margin-top: 0.55rem;
-  max-width: 680px;
-  font-size: clamp(2rem, 4vw, 3.4rem);
-  line-height: 0.98;
+  margin-top: 0.45rem;
+  max-width: 620px;
+  font-size: 2.2rem;
+  line-height: 1.02;
 }
 
 .pontosqn-hero p {
-  max-width: 720px;
-  margin: 0.75rem 0 0;
+  max-width: 620px;
+  margin: 0.55rem 0 0;
   color: var(--cor-texto-suave);
-  font-size: 1rem;
+  font-size: 0.96rem;
 }
 
 .pontosqn-selo,
@@ -2562,13 +2562,20 @@ code {
 
 .pontosqn-saldo-card {
   display: grid;
-  gap: 0.45rem;
+  gap: 0.5rem;
   align-content: center;
-  min-height: 190px;
-  padding: 1rem;
+  min-height: 148px;
+  padding: 0.85rem;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: var(--raio-md);
   background: rgba(8, 9, 11, 0.64);
+}
+
+.pontosqn-saldo-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
 }
 
 .pontosqn-saldo-card span,
@@ -2578,10 +2585,19 @@ code {
   font-style: normal;
 }
 
+.pontosqn-saldo-card small {
+  padding: 0.22rem 0.55rem;
+  border: 1px solid rgba(255, 179, 0, 0.25);
+  border-radius: 999px;
+  background: rgba(255, 179, 0, 0.1);
+  color: #ffd56a;
+  font-weight: 800;
+}
+
 .pontosqn-saldo-card strong {
   color: #fff;
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 2.8rem;
+  font-size: 2.45rem;
   line-height: 1;
 }
 
@@ -2604,8 +2620,29 @@ code {
   position: sticky;
   top: 0;
   z-index: 3;
-  padding: 0.15rem 0 0.35rem;
-  background: linear-gradient(180deg, rgba(8, 9, 11, 0.98), rgba(8, 9, 11, 0.78));
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.45rem;
+  overflow: visible;
+  padding: 0.42rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--raio-md);
+  background: rgba(8, 9, 11, 0.92);
+  backdrop-filter: blur(12px);
+}
+
+.pontosqn-tabs button {
+  width: 100%;
+  min-width: 0;
+  min-height: 2.5rem;
+  padding: 0.48rem 0.35rem;
+  white-space: normal;
+  line-height: 1.1;
+}
+
+.pontosqn-filtros {
+  padding: 0.08rem 0 0.2rem;
+  background: transparent;
 }
 
 .pontosqn-secao {
@@ -2725,6 +2762,49 @@ code {
   background: rgba(255, 179, 0, 0.08);
 }
 
+.pontosqn-vitrine-topo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.85rem;
+  align-items: center;
+  padding: 1rem;
+  border: 1px solid rgba(255, 179, 0, 0.18);
+  border-radius: var(--raio-md);
+  background:
+    linear-gradient(135deg, rgba(255, 179, 0, 0.1), rgba(255, 255, 255, 0.035)),
+    var(--cor-superficie);
+}
+
+.pontosqn-vitrine-topo h2 {
+  margin: 0.35rem 0 0;
+}
+
+.pontosqn-vitrine-topo p {
+  max-width: 620px;
+  margin: 0.35rem 0 0;
+  color: var(--cor-texto-suave);
+}
+
+.pontosqn-vitrine-saldo {
+  display: grid;
+  gap: 0.18rem;
+  min-width: 9.4rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: var(--raio-sm);
+  background: rgba(8, 9, 11, 0.54);
+}
+
+.pontosqn-vitrine-saldo span {
+  color: var(--cor-texto-suave);
+}
+
+.pontosqn-vitrine-saldo strong {
+  color: #ffd56a;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.25rem;
+}
+
 .pontosqn-beneficio-banner strong {
   font-family: 'Space Grotesk', sans-serif;
   font-size: 1.25rem;
@@ -2740,24 +2820,29 @@ code {
 }
 
 .pontosqn-beneficios-grid {
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(248px, 1fr));
 }
 
 .pontosqn-beneficio-card {
   display: grid;
-  gap: 0.65rem;
-  min-height: 222px;
+  gap: 0.62rem;
+  min-height: 236px;
   padding: 1rem;
   border: 1px solid var(--cor-borda);
   border-radius: var(--raio-md);
   background: var(--cor-superficie);
 }
 
+.pontosqn-beneficio-card.com-imagem {
+  grid-template-rows: auto auto auto minmax(2.6rem, 1fr) auto;
+}
+
 .pontosqn-beneficio-imagem {
   display: flex;
   align-items: center;
   justify-content: center;
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 16 / 9;
+  max-height: 138px;
   overflow: hidden;
   margin: -0.15rem -0.15rem 0.1rem;
   border: 1px solid rgba(255, 179, 0, 0.14);
@@ -2776,6 +2861,34 @@ code {
 
 .pontosqn-beneficio-card.destaque {
   border-color: rgba(255, 179, 0, 0.38);
+}
+
+.pontosqn-beneficio-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+}
+
+.pontosqn-beneficio-topo {
+  font-size: 0.86rem;
+}
+
+.pontosqn-status {
+  flex: 0 0 auto;
+  padding: 0.24rem 0.52rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.055);
+  color: var(--cor-texto-suave);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.pontosqn-status.disponivel {
+  border-color: rgba(57, 217, 138, 0.34);
+  background: rgba(57, 217, 138, 0.1);
+  color: #79e7ad;
 }
 
 .pontosqn-beneficio-card h3 {
@@ -2985,6 +3098,22 @@ code {
   justify-items: start;
 }
 
+.pontosqn-estado-dicas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.pontosqn-estado-dicas span {
+  padding: 0.32rem 0.58rem;
+  border: 1px solid rgba(255, 179, 0, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 179, 0, 0.08);
+  color: #ffd56a;
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
 .pontosqn-estado svg {
   color: #ffcf5b;
   font-size: 1.25rem;
@@ -3000,6 +3129,7 @@ code {
 
 @media (max-width: 860px) {
   .pontosqn-hero,
+  .pontosqn-vitrine-topo,
   .pontosqn-duas-colunas,
   .pontosqn-acoes-grid,
   .pontosqn-regras-grid {
@@ -3017,12 +3147,24 @@ code {
 }
 
 @media (max-width: 560px) {
+  .pontosqn-hero {
+    padding: 0.85rem;
+  }
+
   .pontosqn-hero h1 {
-    font-size: 2rem;
+    font-size: 1.72rem;
   }
 
   .pontosqn-saldo-card strong {
-    font-size: 2.35rem;
+    font-size: 2.15rem;
+  }
+
+  .pontosqn-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pontosqn-tabs button {
+    min-height: 2.45rem;
   }
 
   .pontosqn-beneficio-rodape,
@@ -3047,6 +3189,11 @@ code {
   .pontosqn-regras-ganhos span,
   .pontosqn-regras-beneficios span {
     justify-self: start;
+  }
+
+  .pontosqn-beneficio-meta {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
 

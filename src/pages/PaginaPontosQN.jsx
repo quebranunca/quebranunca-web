@@ -26,9 +26,7 @@ const ABAS = [
   { id: 'resumo', rotulo: 'Pontos QN' },
   { id: 'beneficios', rotulo: 'Benefícios' },
   { id: 'como-ganhar', rotulo: 'Como ganhar' },
-  { id: 'historico', rotulo: 'Histórico' },
-  { id: 'missoes', rotulo: 'Missões' },
-  { id: 'conquistas', rotulo: 'Conquistas' }
+  { id: 'historico', rotulo: 'Histórico' }
 ];
 
 const filtrosBeneficios = [
@@ -144,13 +142,14 @@ function BarraProgresso({ valor }) {
   );
 }
 
-function EstadoPainel({ tipo = 'vazio', titulo, texto }) {
+function EstadoPainel({ tipo = 'vazio', titulo, texto, children }) {
   const Icone = tipo === 'erro' ? FaLock : FaStar;
   return (
     <div className={`pontosqn-estado pontosqn-estado-${tipo}`}>
       <Icone aria-hidden="true" />
       <strong>{titulo}</strong>
       <p>{texto}</p>
+      {children}
     </div>
   );
 }
@@ -158,24 +157,28 @@ function EstadoPainel({ tipo = 'vazio', titulo, texto }) {
 function BeneficioCard({ beneficio, resgateSolicitado, resgatando, onResgatar }) {
   const saldoSuficiente = Boolean(beneficio.saldoSuficiente);
   const imagemBeneficio = obterImagemBeneficio(beneficio);
-  const textoBotao = resgateSolicitado
+  const textoStatus = resgateSolicitado
     ? 'Solicitado'
     : saldoSuficiente
-      ? 'Trocar'
+      ? 'Disponível'
       : `Faltam ${formatarPontos(beneficio.pontosFaltantes)} pts`;
+  const textoBotao = resgateSolicitado ? 'Solicitado' : saldoSuficiente ? 'Resgatar' : textoStatus;
 
   return (
-    <article className={`pontosqn-beneficio-card ${beneficio.destaque ? 'destaque' : ''}`}>
+    <article className={`pontosqn-beneficio-card ${beneficio.destaque ? 'destaque' : ''} ${imagemBeneficio ? 'com-imagem' : ''}`}>
       {imagemBeneficio && (
         <div className="pontosqn-beneficio-imagem">
           <img src={imagemBeneficio} alt={beneficio.titulo} loading="lazy" />
         </div>
       )}
-      <div className="pontosqn-beneficio-topo">
-        <span className="pontosqn-icone">
+      <div className="pontosqn-beneficio-meta">
+        <span className="pontosqn-beneficio-topo">
           <FaGift aria-hidden="true" />
+          {beneficio.tipoNome}
         </span>
-        <span>{beneficio.tipoNome}</span>
+        <span className={saldoSuficiente ? 'pontosqn-status disponivel' : 'pontosqn-status'}>
+          {textoStatus}
+        </span>
       </div>
       <h3>{beneficio.titulo}</h3>
       <p>{beneficio.descricao}</p>
@@ -445,17 +448,23 @@ export function PaginaPontosQN() {
   return (
     <main className="pagina pontosqn-pagina">
       <section className="pontosqn-hero">
-        <div>
+        <div className="pontosqn-hero-texto">
           <span className="pontosqn-selo"><FaTrophy aria-hidden="true" /> Pontos QN</span>
           <h1>Bora jogar e somar pontos!</h1>
           <p>Oi, {obterPrimeiroNome(usuario)}. Pontos QN medem participação, qualidade dos dados e ações úteis para a comunidade.</p>
         </div>
         <div className="pontosqn-saldo-card">
-          <span>Saldo atual</span>
+          <div className="pontosqn-saldo-topo">
+            <span>Saldo atual</span>
+            <small>{nivel?.nome || 'Bronze'}</small>
+          </div>
           <strong>{formatarPontos(saldo)}</strong>
-          <small>{nivel?.nome || 'Bronze'}</small>
           <BarraProgresso valor={nivel?.progressoPercentual || 0} />
-          <em>Faltam {formatarPontos(nivel?.pontosRestantes || 0)} pontos para {nivel?.pontosProximaFaixa ? 'a próxima faixa' : 'manter Lenda QN'}</em>
+          <em>
+            {nivel?.pontosProximaFaixa
+              ? `Faltam ${formatarPontos(nivel?.pontosRestantes || 0)} pontos para a próxima faixa`
+              : 'Faixa máxima alcançada'}
+          </em>
         </div>
       </section>
 
@@ -485,8 +494,15 @@ export function PaginaPontosQN() {
           {saldo === 0 && (
             <EstadoPainel
               titulo="Você ainda não tem pontos"
-              texto="Registre ou participe de uma partida para começar."
-            />
+              texto="Comece por uma ação simples e os Pontos QN aparecem no histórico assim que forem validados."
+            >
+              <div className="pontosqn-estado-dicas" aria-label="Próximos passos para ganhar Pontos QN">
+                <span>Registrar uma partida</span>
+                <span>Participar de jogos</span>
+                <span>Completar o perfil</span>
+                <span>Resolver pendências</span>
+              </div>
+            </EstadoPainel>
           )}
 
           <div className="pontosqn-metricas">
@@ -522,7 +538,7 @@ export function PaginaPontosQN() {
               <div className="pontosqn-lista-compacta">
                 <button type="button" onClick={() => selecionarAba('historico')}><span>Histórico de Pontos</span><FaHistory aria-hidden="true" /></button>
                 <button type="button" onClick={() => selecionarAba('beneficios')}><span>Benefícios</span><FaGift aria-hidden="true" /></button>
-                <button type="button" onClick={() => selecionarAba('conquistas')}><span>Conquistas</span><FaAward aria-hidden="true" /></button>
+                <button type="button" onClick={() => selecionarAba('como-ganhar')}><span>Como ganhar</span><FaAward aria-hidden="true" /></button>
               </div>
             </div>
           </section>
@@ -531,13 +547,17 @@ export function PaginaPontosQN() {
 
       {aba === 'beneficios' && (
         <section className="pontosqn-secao">
-          <div className="pontosqn-secao-topo">
-            <h2>Benefícios</h2>
-            <span>{formatarPontos(saldo)} Pontos QN</span>
+          <div className="pontosqn-vitrine-topo">
+            <div>
+              <span className="pontosqn-selo"><FaShoppingBag aria-hidden="true" /> Vitrine de recompensas</span>
+              <h2>Benefícios</h2>
+              <p>Troque seus Pontos QN por descontos e produtos exclusivos da QuebraNunca.</p>
+            </div>
+            <div className="pontosqn-vitrine-saldo">
+              <span>Seu saldo</span>
+              <strong>{formatarPontos(saldo)} QN</strong>
+            </div>
           </div>
-          <p className="pontosqn-secao-descricao">
-            Troque seus Pontos QN por descontos e produtos exclusivos da QuebraNunca.
-          </p>
 
           <div className="ranking-tabs pontosqn-filtros">
             {filtrosBeneficios.map((item) => (
@@ -556,7 +576,7 @@ export function PaginaPontosQN() {
           )}
 
           {beneficiosFiltrados.length === 0 ? (
-            <EstadoPainel titulo="Sem benefícios disponíveis" texto="Novos benefícios aparecerão aqui quando forem ativados." />
+            <EstadoPainel titulo="Sem benefícios nesta categoria" texto="Troque o filtro ou volte em breve para ver novas campanhas QuebraNunca." />
           ) : (
             <div className="pontosqn-beneficios-grid">
               {beneficiosFiltrados.map((beneficio) => (
@@ -593,7 +613,10 @@ export function PaginaPontosQN() {
             ))}
           </div>
           {historicoFiltrado.length === 0 ? (
-            <EstadoPainel titulo="Sem movimentações" texto="Suas entradas e resgates aparecerão aqui." />
+            <EstadoPainel
+              titulo="Seu histórico ainda está vazio"
+              texto="Os pontos aparecem aqui conforme você joga, registra partidas, completa o perfil e ajuda a comunidade."
+            />
           ) : (
             <ul className="pontosqn-historico-lista">
               {historicoFiltrado.map((item) => <HistoricoItem key={item.id} item={item} />)}

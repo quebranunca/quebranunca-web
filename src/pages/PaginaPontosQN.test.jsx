@@ -209,7 +209,8 @@ describe('PaginaPontosQN - regras oficiais', () => {
     renderizarPagina('/app/pontos-qn');
 
     await screen.findByText(/Bora jogar e somar pontos/i);
-    await usuario.click(screen.getByRole('button', { name: /Como ganhar/i }));
+    const tabs = screen.getByRole('navigation', { name: /Seções de Pontos QN/i });
+    await usuario.click(within(tabs).getByRole('button', { name: /Como ganhar/i }));
 
     expect(await screen.findByRole('heading', { name: /Como ganhar Pontos QN/i })).toBeInTheDocument();
   });
