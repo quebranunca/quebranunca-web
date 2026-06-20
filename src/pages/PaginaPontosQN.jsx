@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
   FaAward,
-  FaCheckCircle,
   FaChevronRight,
   FaClipboardList,
   FaGift,
@@ -72,6 +71,7 @@ const beneficiosReferenciaPontosQN = [
 ];
 
 const abasDisponiveis = new Set(ABAS.map((item) => item.id));
+const ordemProdutosDestaque = ['chaveiro', 'boné', 'bone'];
 
 function obterAbaQuery(searchParams) {
   const aba = searchParams.get('aba');
@@ -120,6 +120,20 @@ function filtrarBeneficios(beneficios, filtro) {
   return beneficios.filter((beneficio) => Number(beneficio.tipo) === tipo);
 }
 
+function ehProdutoFisicoDestaque(beneficio) {
+  const texto = `${beneficio?.titulo || ''} ${beneficio?.imagemUrl || ''}`.toLowerCase();
+  return Number(beneficio?.tipo) === 4 ||
+    texto.includes('chaveiro') ||
+    texto.includes('boné') ||
+    texto.includes('bone');
+}
+
+function ordenarProdutosDestaque(a, b) {
+  const indiceA = ordemProdutosDestaque.findIndex((item) => `${a.titulo} ${a.imagemUrl || ''}`.toLowerCase().includes(item));
+  const indiceB = ordemProdutosDestaque.findIndex((item) => `${b.titulo} ${b.imagemUrl || ''}`.toLowerCase().includes(item));
+  return (indiceA === -1 ? 99 : indiceA) - (indiceB === -1 ? 99 : indiceB);
+}
+
 function obterImagemBeneficio(beneficio) {
   if (!beneficio?.imagemUrl) {
     return '';
@@ -157,15 +171,15 @@ function EstadoPainel({ tipo = 'vazio', titulo, texto, children }) {
 function BeneficioCard({ beneficio, resgateSolicitado, resgatando, onResgatar }) {
   const saldoSuficiente = Boolean(beneficio.saldoSuficiente);
   const imagemBeneficio = obterImagemBeneficio(beneficio);
-  const textoStatus = resgateSolicitado
+  const produtoFisico = ehProdutoFisicoDestaque(beneficio);
+  const estado = resgateSolicitado
     ? 'Solicitado'
     : saldoSuficiente
       ? 'Disponível'
-      : `Faltam ${formatarPontos(beneficio.pontosFaltantes)} pts`;
-  const textoBotao = resgateSolicitado ? 'Solicitado' : saldoSuficiente ? 'Resgatar' : textoStatus;
+      : 'Saldo insuficiente';
 
   return (
-    <article className={`pontosqn-beneficio-card ${beneficio.destaque ? 'destaque' : ''} ${imagemBeneficio ? 'com-imagem' : ''}`}>
+    <article className={`pontosqn-beneficio-card ${produtoFisico ? 'produto-fisico' : ''} ${beneficio.destaque ? 'destaque' : ''} ${imagemBeneficio ? 'com-imagem' : ''}`}>
       {imagemBeneficio && (
         <div className="pontosqn-beneficio-imagem">
           <img src={imagemBeneficio} alt={beneficio.titulo} loading="lazy" />
@@ -174,24 +188,30 @@ function BeneficioCard({ beneficio, resgateSolicitado, resgatando, onResgatar })
       <div className="pontosqn-beneficio-meta">
         <span className="pontosqn-beneficio-topo">
           <FaGift aria-hidden="true" />
-          {beneficio.tipoNome}
-        </span>
-        <span className={saldoSuficiente ? 'pontosqn-status disponivel' : 'pontosqn-status'}>
-          {textoStatus}
+          {produtoFisico ? 'Produto físico' : beneficio.tipoNome}
         </span>
       </div>
       <h3>{beneficio.titulo}</h3>
       <p>{beneficio.descricao}</p>
       <div className="pontosqn-beneficio-rodape">
-        <strong>{formatarPontos(beneficio.pontosNecessarios)} pts</strong>
-        <button
-          type="button"
-          className={saldoSuficiente && !resgateSolicitado ? 'botao-primario' : 'botao-secundario'}
-          disabled={!saldoSuficiente || Boolean(resgateSolicitado) || resgatando}
-          onClick={() => onResgatar(beneficio)}
-        >
-          {resgatando ? 'Solicitando...' : textoBotao}
-        </button>
+        <div className="pontosqn-beneficio-custo">
+          <span>Custo</span>
+          <strong>{formatarPontos(beneficio.pontosNecessarios)} QN</strong>
+        </div>
+        {saldoSuficiente && !resgateSolicitado ? (
+          <button
+            type="button"
+            className="botao-primario"
+            disabled={resgatando}
+            onClick={() => onResgatar(beneficio)}
+          >
+            {resgatando ? 'Solicitando...' : 'Resgatar'}
+          </button>
+        ) : (
+          <span className={saldoSuficiente ? 'pontosqn-status disponivel' : 'pontosqn-status'}>
+            {estado}
+          </span>
+        )}
       </div>
     </article>
   );
@@ -213,44 +233,11 @@ function HistoricoItem({ item }) {
   );
 }
 
-function MissaoCard({ missao }) {
-  const progresso = missao.meta > 0 ? (missao.progressoAtual / missao.meta) * 100 : 0;
-  return (
-    <article className={`pontosqn-missao-card ${missao.concluida ? 'concluida' : ''}`}>
-      <div>
-        <strong>{missao.titulo}</strong>
-        <p>{missao.descricao}</p>
-      </div>
-      <span>{missao.progressoAtual}/{missao.meta}</span>
-      <BarraProgresso valor={progresso} />
-      <small>{formatarPontos(missao.pontosRecompensa)} pts · até {new Date(missao.terminaEm).toLocaleDateString('pt-BR')}</small>
-    </article>
-  );
-}
-
-function ConquistaCard({ conquista }) {
-  const progresso = conquista.meta > 0 ? (conquista.progressoAtual / conquista.meta) * 100 : 0;
-  return (
-    <article className={`pontosqn-conquista-card ${conquista.desbloqueada ? 'desbloqueada' : 'bloqueada'}`}>
-      <span className="pontosqn-icone">
-        {conquista.desbloqueada ? <FaAward aria-hidden="true" /> : <FaLock aria-hidden="true" />}
-      </span>
-      <div>
-        <strong>{conquista.titulo}</strong>
-        <p>{conquista.descricao}</p>
-        <BarraProgresso valor={progresso} />
-        <small>{conquista.progressoAtual}/{conquista.meta}</small>
-      </div>
-    </article>
-  );
-}
-
 function ComoGanharPontosQN() {
   return (
     <section className="pontosqn-secao pontosqn-regras">
       <div className="pontosqn-secao-topo">
         <h2>Como ganhar Pontos QN</h2>
-        <span>100 QN = R$ 1</span>
       </div>
 
       <section className="cartao pontosqn-regras-card pontosqn-regras-intro">
@@ -338,8 +325,6 @@ export function PaginaPontosQN() {
   const [beneficios, setBeneficios] = useState([]);
   const [extrato, setExtrato] = useState([]);
   const [resgates, setResgates] = useState([]);
-  const [missoes, setMissoes] = useState([]);
-  const [conquistas, setConquistas] = useState([]);
   const [filtroBeneficio, setFiltroBeneficio] = useState('todos');
   const [filtroHistorico, setFiltroHistorico] = useState('todos');
   const [resgatandoId, setResgatandoId] = useState('');
@@ -348,21 +333,17 @@ export function PaginaPontosQN() {
     setCarregando(true);
     setErro('');
     try {
-      const [resumoApi, beneficiosApi, extratoApi, resgatesApi, missoesApi, conquistasApi] = await Promise.all([
+      const [resumoApi, beneficiosApi, extratoApi, resgatesApi] = await Promise.all([
         gamificacaoServico.obterResumo(),
         gamificacaoServico.listarBeneficios(),
         gamificacaoServico.listarExtrato({ pagina: 1, quantidadePorPagina: 30 }),
-        gamificacaoServico.listarResgates(),
-        gamificacaoServico.listarMissoes(),
-        gamificacaoServico.listarConquistas()
+        gamificacaoServico.listarResgates()
       ]);
 
       setResumo(resumoApi);
       setBeneficios(beneficiosApi || []);
       setExtrato(extratoApi?.itens || []);
       setResgates(resgatesApi || []);
-      setMissoes(missoesApi || []);
-      setConquistas(conquistasApi || []);
     } catch (error) {
       setErro(extrairMensagemErro(error));
     } finally {
@@ -381,11 +362,25 @@ export function PaginaPontosQN() {
 
   const saldo = resumo?.pontuacao?.saldoAtual || 0;
   const nivel = resumo?.nivel;
-  const atividade = resumo?.atividade;
   const temAtletaVinculado = resumo?.pontuacao?.temAtletaVinculado !== false;
+  const produtosDestaque = useMemo(
+    () => beneficios.filter(ehProdutoFisicoDestaque).sort(ordenarProdutosDestaque).slice(0, 2),
+    [beneficios]
+  );
+  const idsProdutosDestaque = useMemo(
+    () => new Set(produtosDestaque.map((item) => item.id)),
+    [produtosDestaque]
+  );
   const beneficiosFiltrados = useMemo(
     () => filtrarBeneficios(beneficios, filtroBeneficio),
     [beneficios, filtroBeneficio]
+  );
+  const mostrarProdutosDestaque = filtroBeneficio === 'todos' && produtosDestaque.length > 0;
+  const beneficiosDaLista = useMemo(
+    () => (mostrarProdutosDestaque
+      ? beneficiosFiltrados.filter((item) => !idsProdutosDestaque.has(item.id))
+      : beneficiosFiltrados),
+    [beneficiosFiltrados, idsProdutosDestaque, mostrarProdutosDestaque]
   );
   const historicoFiltrado = useMemo(
     () => filtrarHistorico(extrato, filtroHistorico),
@@ -393,9 +388,6 @@ export function PaginaPontosQN() {
   );
   const pontosSemana = useMemo(() => calcularPontosSemana(extrato), [extrato]);
   const mediaSemanal = Math.round((resumo?.pontuacao?.totalAcumulado || 0) / 4);
-  const conquistasDesbloqueadas = conquistas.filter((item) => item.desbloqueada);
-  const conquistasBloqueadas = conquistas.filter((item) => !item.desbloqueada);
-  const beneficioDestaque = beneficios.find((item) => item.destaque) || beneficios[0];
 
   async function solicitarResgate(beneficio) {
     if (!beneficio?.id || !window.confirm(`Solicitar resgate de ${beneficio.titulo} por ${beneficio.pontosNecessarios} Pontos QN?`)) {
@@ -505,12 +497,6 @@ export function PaginaPontosQN() {
             </EstadoPainel>
           )}
 
-          <div className="pontosqn-metricas">
-            <article><FaUserFriends aria-hidden="true" /><span>Partidas no mês</span><strong>{atividade?.partidasNoMes || 0}</strong></article>
-            <article><FaCheckCircle aria-hidden="true" /><span>Sequência</span><strong>{atividade?.sequenciaSemanal || 0}</strong></article>
-            <article><FaTrophy aria-hidden="true" /><span>Ranking</span><strong>{atividade?.posicaoRanking ? `${atividade.posicaoRanking}º` : '-'}</strong></article>
-          </div>
-
           <section className="cartao pontosqn-como-ganhar">
             <h2>Como ganhar mais pontos</h2>
             <div className="pontosqn-acoes-grid">
@@ -522,15 +508,12 @@ export function PaginaPontosQN() {
 
           <section className="pontosqn-duas-colunas">
             <div className="cartao">
-              <h2>Benefícios disponíveis</h2>
-              <div className="pontosqn-lista-compacta">
-                {beneficios.slice(0, 3).map((beneficio) => (
-                  <button key={beneficio.id} type="button" onClick={() => selecionarAba('beneficios')}>
-                    <span>{beneficio.titulo}</span>
-                    <strong>{formatarPontos(beneficio.pontosNecessarios)} pts</strong>
-                  </button>
-                ))}
-              </div>
+              <h2>Resumo do programa</h2>
+              <ul className="pontosqn-resumo-lista">
+                <li>Pontos QN medem participação e ações úteis para a comunidade.</li>
+                <li>QN é promocional: não saca, não transfere e só vale em campanhas QuebraNunca.</li>
+                <li>Benefícios e brindes aparecem na vitrine conforme estoque e regras da campanha.</li>
+              </ul>
             </div>
 
             <div className="cartao">
@@ -551,13 +534,31 @@ export function PaginaPontosQN() {
             <div>
               <span className="pontosqn-selo"><FaShoppingBag aria-hidden="true" /> Vitrine de recompensas</span>
               <h2>Benefícios</h2>
-              <p>Troque seus Pontos QN por descontos e produtos exclusivos da QuebraNunca.</p>
-            </div>
-            <div className="pontosqn-vitrine-saldo">
-              <span>Seu saldo</span>
-              <strong>{formatarPontos(saldo)} QN</strong>
+              <p>Produtos físicos primeiro, descontos depois. Custo e estado aparecem uma vez em cada card.</p>
             </div>
           </div>
+
+          {mostrarProdutosDestaque && (
+            <section className="pontosqn-produtos-destaque" aria-labelledby="produtos-destaque-titulo">
+              <div className="pontosqn-secao-topo">
+                <div>
+                  <span className="pontosqn-selo"><FaGift aria-hidden="true" /> Brindes em destaque</span>
+                  <h3 id="produtos-destaque-titulo">Boné e Chaveiro QuebraNunca</h3>
+                </div>
+              </div>
+              <div className="pontosqn-produtos-grid">
+                {produtosDestaque.map((beneficio) => (
+                  <BeneficioCard
+                    key={beneficio.id}
+                    beneficio={beneficio}
+                    resgateSolicitado={obterStatusResgate(resgates, beneficio.id)}
+                    resgatando={resgatandoId === beneficio.id}
+                    onResgatar={solicitarResgate}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
 
           <div className="ranking-tabs pontosqn-filtros">
             {filtrosBeneficios.map((item) => (
@@ -567,19 +568,11 @@ export function PaginaPontosQN() {
             ))}
           </div>
 
-          {beneficioDestaque && (
-            <article className="pontosqn-beneficio-banner">
-              <span><FaShoppingBag aria-hidden="true" /> Destaque</span>
-              <strong>{beneficioDestaque.titulo}</strong>
-              <p>{beneficioDestaque.descricao}</p>
-            </article>
-          )}
-
-          {beneficiosFiltrados.length === 0 ? (
+          {beneficiosDaLista.length === 0 ? (
             <EstadoPainel titulo="Sem benefícios nesta categoria" texto="Troque o filtro ou volte em breve para ver novas campanhas QuebraNunca." />
           ) : (
             <div className="pontosqn-beneficios-grid">
-              {beneficiosFiltrados.map((beneficio) => (
+              {beneficiosDaLista.map((beneficio) => (
                 <BeneficioCard
                   key={beneficio.id}
                   beneficio={beneficio}
@@ -599,7 +592,6 @@ export function PaginaPontosQN() {
         <section className="pontosqn-secao">
           <div className="pontosqn-secao-topo">
             <h2>Histórico de Pontos</h2>
-            <span>{formatarPontos(saldo)} pts</span>
           </div>
           <div className="pontosqn-metricas">
             <article><FaStar aria-hidden="true" /><span>Ganhos na semana</span><strong>{formatarPontos(pontosSemana)}</strong></article>
@@ -625,36 +617,6 @@ export function PaginaPontosQN() {
         </section>
       )}
 
-      {aba === 'missoes' && (
-        <section className="pontosqn-secao">
-          <div className="pontosqn-secao-topo">
-            <h2>Missões da semana</h2>
-            <span>{missoes.filter((item) => item.concluida).length}/{missoes.length}</span>
-          </div>
-          <div className="pontosqn-missoes-grid">
-            {missoes.map((missao) => <MissaoCard key={missao.codigo} missao={missao} />)}
-          </div>
-        </section>
-      )}
-
-      {aba === 'conquistas' && (
-        <section className="pontosqn-secao">
-          <div className="pontosqn-secao-topo">
-            <h2>Conquistas</h2>
-            <span>{nivel?.nome || 'Bronze'} · {formatarPontos(saldo)} pts</span>
-          </div>
-          <h3>Desbloqueadas</h3>
-          <div className="pontosqn-conquistas-grid">
-            {conquistasDesbloqueadas.length > 0
-              ? conquistasDesbloqueadas.map((conquista) => <ConquistaCard key={conquista.codigo} conquista={conquista} />)
-              : <EstadoPainel titulo="Nenhuma conquista ainda" texto="A primeira vem quando você participa de uma partida válida." />}
-          </div>
-          <h3>Bloqueadas</h3>
-          <div className="pontosqn-conquistas-grid">
-            {conquistasBloqueadas.map((conquista) => <ConquistaCard key={conquista.codigo} conquista={conquista} />)}
-          </div>
-        </section>
-      )}
     </main>
   );
 }

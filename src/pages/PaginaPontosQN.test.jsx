@@ -45,11 +45,6 @@ function configurarApisComSucesso({ beneficios = criarBeneficios() } = {}) {
       progressoPercentual: 0,
       pontosRestantes: 500,
       pontosProximaFaixa: 500
-    },
-    atividade: {
-      partidasNoMes: 0,
-      sequenciaSemanal: 0,
-      posicaoRanking: null
     }
   });
   gamificacaoServico.listarBeneficios.mockResolvedValue(beneficios);
@@ -173,15 +168,54 @@ describe('PaginaPontosQN - regras oficiais', () => {
     renderizarPagina('/app/pontos-qn?aba=beneficios');
 
     await screen.findByRole('heading', { name: /Benefícios/i });
+    const destaque = screen.getByRole('heading', { name: /Boné e Chaveiro QuebraNunca/i }).closest('section');
+    expect(destaque).not.toBeNull();
 
-    expect(screen.getByText('Chaveiro QuebraNunca')).toBeInTheDocument();
-    expect(screen.getByText('Boné QuebraNunca')).toBeInTheDocument();
-    expect(screen.getAllByText('2.000 pts').length).toBeGreaterThan(0);
-    expect(screen.getByText('8.000 pts')).toBeInTheDocument();
-    expect(screen.getByRole('img', { name: 'Chaveiro QuebraNunca' })).toBeInTheDocument();
-    expect(screen.getByRole('img', { name: 'Boné QuebraNunca' })).toBeInTheDocument();
+    expect(within(destaque).getByText('Chaveiro QuebraNunca')).toBeInTheDocument();
+    expect(within(destaque).getByText('Boné QuebraNunca')).toBeInTheDocument();
+    expect(within(destaque).getByRole('img', { name: 'Chaveiro QuebraNunca' })).toBeInTheDocument();
+    expect(within(destaque).getByRole('img', { name: 'Boné QuebraNunca' })).toBeInTheDocument();
+
+    const chaveiroCard = within(destaque).getByText('Chaveiro QuebraNunca').closest('article');
+    const boneCard = within(destaque).getByText('Boné QuebraNunca').closest('article');
+    expect(within(chaveiroCard).getAllByText('2.000 QN')).toHaveLength(1);
+    expect(within(boneCard).getAllByText('8.000 QN')).toHaveLength(1);
+    expect(within(chaveiroCard).getAllByText('Saldo insuficiente')).toHaveLength(1);
+    expect(within(boneCard).getAllByText('Saldo insuficiente')).toHaveLength(1);
+
     expect(screen.getAllByText('R$ 5 off na loja').length).toBeGreaterThan(0);
     expect(screen.getByText('R$ 50 off na loja')).toBeInTheDocument();
+    expect(screen.queryByText(/Seu saldo/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Faltam 2\.000/i)).not.toBeInTheDocument();
+  });
+
+  it('remove métricas esportivas da aba Pontos QN', async () => {
+    configurarApisComSucesso();
+    renderizarPagina('/app/pontos-qn');
+
+    await screen.findByText(/Bora jogar e somar pontos/i);
+
+    expect(screen.queryByText('Partidas no mês')).not.toBeInTheDocument();
+    expect(screen.queryByText('Sequência')).not.toBeInTheDocument();
+    expect(screen.queryByText('Ranking')).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Resumo do programa/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Como ganhar mais pontos/i })).toBeInTheDocument();
+  });
+
+  it('mantém o filtro Produtos funcionando sem repetir custo no card', async () => {
+    configurarApisComSucesso();
+    const usuario = userEvent.setup();
+    renderizarPagina('/app/pontos-qn?aba=beneficios');
+
+    await screen.findByRole('heading', { name: /Benefícios/i });
+    await usuario.click(screen.getByRole('button', { name: 'Produtos' }));
+
+    const chaveiroCard = screen.getByText('Chaveiro QuebraNunca').closest('article');
+    const boneCard = screen.getByText('Boné QuebraNunca').closest('article');
+
+    expect(screen.queryByText('R$ 5 off na loja')).not.toBeInTheDocument();
+    expect(within(chaveiroCard).getAllByText('2.000 QN')).toHaveLength(1);
+    expect(within(boneCard).getAllByText('8.000 QN')).toHaveLength(1);
   });
 
   it('mostra regras importantes e proteção contra conversão em dinheiro', async () => {
