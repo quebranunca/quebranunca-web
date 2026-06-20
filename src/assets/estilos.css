@@ -2854,6 +2854,99 @@ code {
   opacity: 0.78;
 }
 
+.pontosqn-regras-card {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.pontosqn-regras-card p {
+  margin: 0;
+  color: var(--cor-texto-suave);
+}
+
+.pontosqn-regras-intro {
+  border-color: rgba(255, 179, 0, 0.24);
+  background:
+    linear-gradient(135deg, rgba(255, 179, 0, 0.09), transparent 62%),
+    var(--cor-superficie);
+}
+
+.pontosqn-regras-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--espaco-sm);
+}
+
+.pontosqn-economia-destaque {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.85rem;
+  border: 1px solid rgba(255, 179, 0, 0.18);
+  border-radius: var(--raio-sm);
+  background: rgba(255, 179, 0, 0.08);
+}
+
+.pontosqn-economia-destaque strong {
+  color: #ffd56a;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.35rem;
+}
+
+.pontosqn-economia-destaque span {
+  color: var(--cor-texto-suave);
+}
+
+.pontosqn-regras-ganhos,
+.pontosqn-regras-beneficios,
+.pontosqn-regras-lista {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.pontosqn-regras-ganhos article,
+.pontosqn-regras-beneficios article {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.8rem;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-sm);
+  background: var(--cor-superficie-suave);
+}
+
+.pontosqn-regras-ganhos article.em-breve {
+  opacity: 0.74;
+}
+
+.pontosqn-regras-ganhos strong,
+.pontosqn-regras-beneficios strong {
+  color: var(--cor-texto);
+}
+
+.pontosqn-regras-ganhos p {
+  margin: 0.2rem 0 0;
+  color: var(--cor-texto-suave);
+  font-size: 0.92rem;
+}
+
+.pontosqn-regras-ganhos span,
+.pontosqn-regras-beneficios span {
+  justify-self: end;
+  padding: 0.28rem 0.58rem;
+  border-radius: 999px;
+  background: rgba(255, 179, 0, 0.12);
+  color: #ffd56a;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.pontosqn-regras-lista {
+  margin: 0;
+  padding-left: 1.05rem;
+  color: var(--cor-texto-suave);
+}
+
 .pontosqn-estado {
   justify-items: start;
 }
@@ -2874,7 +2967,8 @@ code {
 @media (max-width: 860px) {
   .pontosqn-hero,
   .pontosqn-duas-colunas,
-  .pontosqn-acoes-grid {
+  .pontosqn-acoes-grid,
+  .pontosqn-regras-grid {
     grid-template-columns: 1fr;
   }
 
@@ -2909,6 +3003,16 @@ code {
 
   .pontosqn-historico-item b {
     grid-column: 2;
+  }
+
+  .pontosqn-regras-ganhos article,
+  .pontosqn-regras-beneficios article {
+    grid-template-columns: 1fr;
+  }
+
+  .pontosqn-regras-ganhos span,
+  .pontosqn-regras-beneficios span {
+    justify-self: start;
   }
 }
 

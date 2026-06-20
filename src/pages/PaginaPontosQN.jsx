@@ -7,6 +7,7 @@ import {
   FaClipboardList,
   FaGift,
   FaHistory,
+  FaInfoCircle,
   FaLock,
   FaShareAlt,
   FaShoppingBag,
@@ -22,6 +23,7 @@ import { extrairMensagemErro } from '../utils/erros';
 const ABAS = [
   { id: 'resumo', rotulo: 'Pontos QN' },
   { id: 'beneficios', rotulo: 'Benefícios' },
+  { id: 'como-ganhar', rotulo: 'Como ganhar' },
   { id: 'historico', rotulo: 'Histórico' },
   { id: 'missoes', rotulo: 'Missões' },
   { id: 'conquistas', rotulo: 'Conquistas' }
@@ -38,6 +40,27 @@ const filtrosHistorico = [
   { id: 'todos', rotulo: 'Todos' },
   { id: 'ganhos', rotulo: 'Ganhos' },
   { id: 'resgates', rotulo: 'Resgates' }
+];
+
+const regrasGanhoPontosQN = [
+  { titulo: 'Participar de partida válida', pontos: 10, status: 'Ativo', descricao: 'Vale para atletas da partida depois que ela for considerada válida.' },
+  { titulo: 'Registrar uma partida', pontos: 5, status: 'Ativo', descricao: 'Bônus para o atleta vinculado ao usuário que registrou a partida.' },
+  { titulo: 'Partida com placar completo', pontos: 5, status: 'Ativo', descricao: 'Bônus de qualidade dos dados quando o placar é informado.' },
+  { titulo: 'Vitória', pontos: 3, status: 'Ativo', descricao: 'Bônus leve para atletas da dupla vencedora, sem interferir no ranking.' },
+  { titulo: 'Confirmar/aprovar partida', pontos: 2, status: 'Ativo', descricao: 'Para quem ajuda a validar uma partida pendente.' },
+  { titulo: 'Resolver pendência de vínculo', pontos: 10, status: 'Ativo', descricao: 'Quando o vínculo é resolvido corretamente no fluxo atual.' },
+  { titulo: 'Completar perfil', pontos: 50, status: 'Ativo', descricao: 'Uma única vez, quando o perfil de atleta estiver completo.' },
+  { titulo: 'Compartilhar resultado', pontos: 5, status: 'Ativo', descricao: 'Limitado por partida/dia para evitar abuso.' },
+  { titulo: 'Entrar em grupo', pontos: 20, status: 'Em breve', descricao: 'Regra prevista para pontuação automática por grupo.' },
+  { titulo: 'Convidar atleta', pontos: 100, status: 'Em breve', descricao: 'Somente quando houver rastreabilidade confiável do convite.' }
+];
+
+const beneficiosReferenciaPontosQN = [
+  { pontos: 500, desconto: 'R$ 5 off' },
+  { pontos: 1000, desconto: 'R$ 10 off' },
+  { pontos: 2000, desconto: 'R$ 20 off' },
+  { pontos: 3000, desconto: 'R$ 30 off' },
+  { pontos: 5000, desconto: 'R$ 50 off' }
 ];
 
 const abasDisponiveis = new Set(ABAS.map((item) => item.id));
@@ -195,6 +218,87 @@ function ConquistaCard({ conquista }) {
   );
 }
 
+function ComoGanharPontosQN() {
+  return (
+    <section className="pontosqn-secao pontosqn-regras">
+      <div className="pontosqn-secao-topo">
+        <h2>Como ganhar Pontos QN</h2>
+        <span>100 QN = R$ 1</span>
+      </div>
+
+      <section className="cartao pontosqn-regras-card pontosqn-regras-intro">
+        <span className="pontosqn-selo"><FaInfoCircle aria-hidden="true" /> O que são Pontos QN?</span>
+        <p>
+          Pontos QN são pontos promocionais da QuebraNunca. Você ganha participando da comunidade,
+          registrando partidas, jogando, compartilhando resultados e participando de campanhas.
+        </p>
+        <p>
+          Eles não são dinheiro, não podem ser sacados, não podem ser transferidos e só podem ser usados
+          em benefícios da QuebraNunca.
+        </p>
+      </section>
+
+      <section className="pontosqn-regras-grid">
+        <article className="cartao pontosqn-regras-card">
+          <h3>Quanto vale?</h3>
+          <div className="pontosqn-economia-destaque">
+            <strong>100 QN = R$ 1</strong>
+            <span>1000 QN = R$ 10 de referência em benefícios</span>
+          </div>
+          <p>Cada benefício pode ter regra, validade, limite e disponibilidade própria.</p>
+        </article>
+
+        <article className="cartao pontosqn-regras-card">
+          <h3>Proteções do MVP</h3>
+          <ul className="pontosqn-regras-lista">
+            <li>Cupom com QN cobre até 30% do pedido.</li>
+            <li>Frete não entra no desconto, salvo campanha específica.</li>
+            <li>Produto grátis é campanha limitada, não regra padrão.</li>
+          </ul>
+        </article>
+      </section>
+
+      <section className="cartao pontosqn-regras-card">
+        <h3>Como ganhar?</h3>
+        <div className="pontosqn-regras-ganhos">
+          {regrasGanhoPontosQN.map((regra) => (
+            <article key={regra.titulo} className={regra.status === 'Ativo' ? '' : 'em-breve'}>
+              <div>
+                <strong>{regra.titulo}</strong>
+                <p>{regra.descricao}</p>
+              </div>
+              <span>{regra.status === 'Ativo' ? `+${regra.pontos} QN` : 'Em breve'}</span>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="cartao pontosqn-regras-card">
+        <h3>Benefícios de referência</h3>
+        <div className="pontosqn-regras-beneficios">
+          {beneficiosReferenciaPontosQN.map((beneficio) => (
+            <article key={beneficio.pontos}>
+              <strong>{formatarPontos(beneficio.pontos)} QN</strong>
+              <span>{beneficio.desconto}</span>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="cartao pontosqn-regras-card">
+        <h3>Regras importantes</h3>
+        <ul className="pontosqn-regras-lista">
+          <li>Pontos podem ser estornados se uma partida for cancelada, removida ou invalidada.</li>
+          <li>Partidas duplicadas ou inválidas não geram pontos.</li>
+          <li>Compartilhamentos têm limite para evitar acúmulo artificial.</li>
+          <li>Benefícios podem ter validade, estoque limitado e aprovação manual.</li>
+          <li>QN não pode ser convertido em dinheiro.</li>
+        </ul>
+      </section>
+    </section>
+  );
+}
+
 export function PaginaPontosQN() {
   const { usuario } = useAutenticacao();
   const { showNotification } = useNotification();
@@ -296,7 +400,7 @@ export function PaginaPontosQN() {
     setSearchParams(id === 'resumo' ? {} : { aba: id });
   }
 
-  if (carregando) {
+  if (carregando && aba !== 'como-ganhar') {
     return (
       <main className="pagina pontosqn-pagina">
         <EstadoPainel titulo="Carregando Pontos QN" texto="Buscando saldo, benefícios e missões." />
@@ -304,7 +408,7 @@ export function PaginaPontosQN() {
     );
   }
 
-  if (erro) {
+  if (erro && aba !== 'como-ganhar') {
     return (
       <main className="pagina pontosqn-pagina">
         <EstadoPainel tipo="erro" titulo="Não foi possível carregar" texto={erro} />
@@ -440,6 +544,8 @@ export function PaginaPontosQN() {
           )}
         </section>
       )}
+
+      {aba === 'como-ganhar' && <ComoGanharPontosQN />}
 
       {aba === 'historico' && (
         <section className="pontosqn-secao">
