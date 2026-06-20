@@ -170,6 +170,9 @@ describe('PaginaPontosQN - regras oficiais', () => {
     await screen.findByRole('heading', { name: /Benefícios/i });
     const destaque = screen.getByRole('heading', { name: /Boné e Chaveiro QuebraNunca/i }).closest('section');
     expect(destaque).not.toBeNull();
+    const gridDestaque = destaque.querySelector('.pontosqn-produtos-grid');
+    expect(gridDestaque).not.toBeNull();
+    expect(gridDestaque.querySelectorAll('.pontosqn-beneficio-card')).toHaveLength(2);
 
     expect(within(destaque).getByText('Chaveiro QuebraNunca')).toBeInTheDocument();
     expect(within(destaque).getByText('Boné QuebraNunca')).toBeInTheDocument();
@@ -185,6 +188,8 @@ describe('PaginaPontosQN - regras oficiais', () => {
 
     expect(screen.getAllByText('R$ 5 off na loja').length).toBeGreaterThan(0);
     expect(screen.getByText('R$ 50 off na loja')).toBeInTheDocument();
+    const listaBeneficios = document.querySelector('.pontosqn-beneficios-grid');
+    expect(listaBeneficios.querySelectorAll('.pontosqn-beneficio-card')).toHaveLength(5);
     expect(screen.queryByText(/Seu saldo/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/Faltam 2\.000/i)).not.toBeInTheDocument();
   });
