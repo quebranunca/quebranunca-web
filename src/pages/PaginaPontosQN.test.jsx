@@ -73,21 +73,32 @@ function criarBeneficios() {
   return [
     criarBeneficio('beneficio-500', 'R$ 5 off na loja', 500),
     criarBeneficio('beneficio-1000', 'R$ 10 off na loja', 1000),
+    criarBeneficio('beneficio-chaveiro', 'Chaveiro QuebraNunca', 2000, {
+      tipo: 4,
+      tipoNome: 'Produto',
+      imagemUrl: 'pontos-qn/beneficio-chaveiro-qn.png'
+    }),
     criarBeneficio('beneficio-2000', 'R$ 20 off na loja', 2000),
     criarBeneficio('beneficio-3000', 'R$ 30 off na loja', 3000),
-    criarBeneficio('beneficio-5000', 'R$ 50 off na loja', 5000)
+    criarBeneficio('beneficio-5000', 'R$ 50 off na loja', 5000),
+    criarBeneficio('beneficio-bone', 'Boné QuebraNunca', 8000, {
+      tipo: 4,
+      tipoNome: 'Produto',
+      imagemUrl: 'pontos-qn/beneficio-bone-qn.png'
+    })
   ];
 }
 
-function criarBeneficio(id, titulo, pontosNecessarios) {
+function criarBeneficio(id, titulo, pontosNecessarios, sobrescritas = {}) {
   return {
     id,
     titulo,
     descricao: `${titulo} para campanhas QuebraNunca.`,
-    tipo: 1,
-    tipoNome: 'Desconto na loja',
+    tipo: sobrescritas.tipo ?? 1,
+    tipoNome: sobrescritas.tipoNome ?? 'Desconto na loja',
     pontosNecessarios,
     ativo: true,
+    imagemUrl: sobrescritas.imagemUrl ?? null,
     destaque: pontosNecessarios === 500,
     saldoSuficiente: false,
     pontosFaltantes: pontosNecessarios
@@ -149,8 +160,28 @@ describe('PaginaPontosQN - regras oficiais', () => {
     expect(within(beneficios).getByText('R$ 5 off')).toBeInTheDocument();
     expect(within(beneficios).getByText('1.000 QN')).toBeInTheDocument();
     expect(within(beneficios).getByText('R$ 10 off')).toBeInTheDocument();
+    expect(within(beneficios).getAllByText('2.000 QN').length).toBeGreaterThan(0);
+    expect(within(beneficios).getByText('Chaveiro QuebraNunca')).toBeInTheDocument();
     expect(within(beneficios).getByText('5.000 QN')).toBeInTheDocument();
     expect(within(beneficios).getByText('R$ 50 off')).toBeInTheDocument();
+    expect(within(beneficios).getByText('8.000 QN')).toBeInTheDocument();
+    expect(within(beneficios).getByText('Boné QuebraNunca')).toBeInTheDocument();
+  });
+
+  it('mostra produtos físicos com imagem e custo na aba de benefícios', async () => {
+    configurarApisComSucesso();
+    renderizarPagina('/app/pontos-qn?aba=beneficios');
+
+    await screen.findByRole('heading', { name: /Benefícios/i });
+
+    expect(screen.getByText('Chaveiro QuebraNunca')).toBeInTheDocument();
+    expect(screen.getByText('Boné QuebraNunca')).toBeInTheDocument();
+    expect(screen.getAllByText('2.000 pts').length).toBeGreaterThan(0);
+    expect(screen.getByText('8.000 pts')).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Chaveiro QuebraNunca' })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Boné QuebraNunca' })).toBeInTheDocument();
+    expect(screen.getAllByText('R$ 5 off na loja').length).toBeGreaterThan(0);
+    expect(screen.getByText('R$ 50 off na loja')).toBeInTheDocument();
   });
 
   it('mostra regras importantes e proteção contra conversão em dinheiro', async () => {

@@ -19,6 +19,8 @@ import { useAutenticacao } from '../hooks/useAutenticacao';
 import { useNotification } from '../contexts/NotificationContext';
 import { gamificacaoServico } from '../services/gamificacaoServico';
 import { extrairMensagemErro } from '../utils/erros';
+import beneficioBoneQN from '../assets/pontos-qn/beneficio-bone-qn.png';
+import beneficioChaveiroQN from '../assets/pontos-qn/beneficio-chaveiro-qn.png';
 
 const ABAS = [
   { id: 'resumo', rotulo: 'Pontos QN' },
@@ -33,8 +35,14 @@ const filtrosBeneficios = [
   { id: 'todos', rotulo: 'Todos', tipo: null },
   { id: 'descontos', rotulo: 'Descontos', tipo: 1 },
   { id: 'brindes', rotulo: 'Brindes', tipo: 2 },
-  { id: 'experiencias', rotulo: 'Experiências', tipo: 3 }
+  { id: 'experiencias', rotulo: 'Experiências', tipo: 3 },
+  { id: 'produtos', rotulo: 'Produtos', tipo: 4 }
 ];
+
+const imagensBeneficiosPontosQN = {
+  'pontos-qn/beneficio-bone-qn.png': beneficioBoneQN,
+  'pontos-qn/beneficio-chaveiro-qn.png': beneficioChaveiroQN
+};
 
 const filtrosHistorico = [
   { id: 'todos', rotulo: 'Todos' },
@@ -56,11 +64,13 @@ const regrasGanhoPontosQN = [
 ];
 
 const beneficiosReferenciaPontosQN = [
-  { pontos: 500, desconto: 'R$ 5 off' },
-  { pontos: 1000, desconto: 'R$ 10 off' },
-  { pontos: 2000, desconto: 'R$ 20 off' },
-  { pontos: 3000, desconto: 'R$ 30 off' },
-  { pontos: 5000, desconto: 'R$ 50 off' }
+  { pontos: 500, beneficio: 'R$ 5 off', tipo: 'Desconto' },
+  { pontos: 1000, beneficio: 'R$ 10 off', tipo: 'Desconto' },
+  { pontos: 2000, beneficio: 'Chaveiro QuebraNunca', tipo: 'Produto' },
+  { pontos: 2000, beneficio: 'R$ 20 off', tipo: 'Desconto' },
+  { pontos: 3000, beneficio: 'R$ 30 off', tipo: 'Desconto' },
+  { pontos: 5000, beneficio: 'R$ 50 off', tipo: 'Desconto' },
+  { pontos: 8000, beneficio: 'Boné QuebraNunca', tipo: 'Produto' }
 ];
 
 const abasDisponiveis = new Set(ABAS.map((item) => item.id));
@@ -112,6 +122,14 @@ function filtrarBeneficios(beneficios, filtro) {
   return beneficios.filter((beneficio) => Number(beneficio.tipo) === tipo);
 }
 
+function obterImagemBeneficio(beneficio) {
+  if (!beneficio?.imagemUrl) {
+    return '';
+  }
+
+  return imagensBeneficiosPontosQN[beneficio.imagemUrl] || beneficio.imagemUrl;
+}
+
 function obterStatusResgate(resgates, beneficioId) {
   return resgates.find((resgate) =>
     resgate.beneficioId === beneficioId &&
@@ -139,6 +157,7 @@ function EstadoPainel({ tipo = 'vazio', titulo, texto }) {
 
 function BeneficioCard({ beneficio, resgateSolicitado, resgatando, onResgatar }) {
   const saldoSuficiente = Boolean(beneficio.saldoSuficiente);
+  const imagemBeneficio = obterImagemBeneficio(beneficio);
   const textoBotao = resgateSolicitado
     ? 'Solicitado'
     : saldoSuficiente
@@ -147,6 +166,11 @@ function BeneficioCard({ beneficio, resgateSolicitado, resgatando, onResgatar })
 
   return (
     <article className={`pontosqn-beneficio-card ${beneficio.destaque ? 'destaque' : ''}`}>
+      {imagemBeneficio && (
+        <div className="pontosqn-beneficio-imagem">
+          <img src={imagemBeneficio} alt={beneficio.titulo} loading="lazy" />
+        </div>
+      )}
       <div className="pontosqn-beneficio-topo">
         <span className="pontosqn-icone">
           <FaGift aria-hidden="true" />
@@ -277,9 +301,10 @@ function ComoGanharPontosQN() {
         <h3>Benefícios de referência</h3>
         <div className="pontosqn-regras-beneficios">
           {beneficiosReferenciaPontosQN.map((beneficio) => (
-            <article key={beneficio.pontos}>
+            <article key={`${beneficio.tipo}-${beneficio.pontos}-${beneficio.beneficio}`}>
               <strong>{formatarPontos(beneficio.pontos)} QN</strong>
-              <span>{beneficio.desconto}</span>
+              <span>{beneficio.beneficio}</span>
+              <small>{beneficio.tipo}</small>
             </article>
           ))}
         </div>
@@ -510,6 +535,9 @@ export function PaginaPontosQN() {
             <h2>Benefícios</h2>
             <span>{formatarPontos(saldo)} Pontos QN</span>
           </div>
+          <p className="pontosqn-secao-descricao">
+            Troque seus Pontos QN por descontos e produtos exclusivos da QuebraNunca.
+          </p>
 
           <div className="ranking-tabs pontosqn-filtros">
             {filtrosBeneficios.map((item) => (
