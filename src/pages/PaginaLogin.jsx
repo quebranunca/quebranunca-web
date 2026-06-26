@@ -107,12 +107,6 @@ export function PaginaLogin() {
   }
 
   function mostrarMensagemEnvio(resposta) {
-    if (resposta?.codigoDesenvolvimento) {
-      setCodigo(resposta.codigoDesenvolvimento);
-      setMensagem(`${resposta.mensagem} Código de desenvolvimento: ${resposta.codigoDesenvolvimento}`);
-      return;
-    }
-
     setMensagem(resposta?.mensagem || 'Enviamos um código de acesso para seu e-mail.');
   }
 

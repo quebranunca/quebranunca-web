@@ -111,6 +111,34 @@ describe('PaginaLogin - entrar ou criar conta', () => {
     expect(await screen.findByRole('heading', { name: /Confira seu e-mail/i })).toBeInTheDocument();
   });
 
+  it('valida formato básico de e-mail antes de iniciar acesso', async () => {
+    renderizar();
+
+    const usuario = userEvent.setup();
+    await usuario.type(screen.getByLabelText(/^E-mail$/i), 'email-invalido');
+    fireEvent.submit(screen.getByRole('button', { name: /Continuar/i }).closest('form'));
+
+    expect(await screen.findByText(/Informe um e-mail válido/i)).toBeInTheDocument();
+    expect(mocks.iniciarAcesso).not.toHaveBeenCalled();
+  });
+
+  it('não mostra nem preenche código de desenvolvimento na tela pública', async () => {
+    mocks.iniciarAcesso.mockResolvedValue({
+      status: 'CodigoEnviado',
+      mensagem: 'Se o e-mail estiver correto, enviaremos as instruções de acesso.',
+      podeEntrarComSenha: false,
+      cadastroNovo: true,
+      codigoDesenvolvimento: '123456'
+    });
+
+    renderizar();
+    await preencherEmailEContinuar('novo@example.com');
+
+    const campoCodigo = await screen.findByLabelText(/Código de acesso/i);
+    expect(campoCodigo).toHaveValue('');
+    expect(screen.queryByText(/Código de desenvolvimento/i)).not.toBeInTheDocument();
+  });
+
   it('confirma código pelo endpoint novo', async () => {
     mocks.iniciarAcesso.mockResolvedValue({
       status: 'CodigoEnviado',
@@ -132,6 +160,30 @@ describe('PaginaLogin - entrar ou criar conta', () => {
     await usuario.click(screen.getByRole('button', { name: /Confirmar código/i }));
 
     expect(mocks.confirmarCodigoAcesso).toHaveBeenCalledWith('atleta@example.com', '123456');
+  });
+
+  it('mostra erro amigável quando o código é inválido ou expirado', async () => {
+    mocks.iniciarAcesso.mockResolvedValue({
+      status: 'CodigoEnviado',
+      mensagem: 'Código enviado.',
+      podeEntrarComSenha: false,
+      cadastroNovo: false
+    });
+    mocks.confirmarCodigoAcesso.mockRejectedValue({
+      response: {
+        data: {
+          erro: 'Código de acesso inválido ou expirado.'
+        }
+      }
+    });
+
+    renderizar();
+    const usuario = await preencherEmailEContinuar('atleta@example.com');
+    await screen.findByRole('heading', { name: /Confira seu e-mail/i });
+    await usuario.type(screen.getByLabelText(/Código de acesso/i), '000000');
+    await usuario.click(screen.getByRole('button', { name: /Confirmar código/i }));
+
+    expect(await screen.findByText(/Código de acesso inválido ou expirado/i)).toBeInTheDocument();
   });
 
   it('cadastro novo exige nome, termos, política e declaração 18+', async () => {
@@ -173,6 +225,27 @@ describe('PaginaLogin - entrar ou criar conta', () => {
       aceitouPoliticaPrivacidade: true,
       declarouMaiorDe18: true,
       aceitouMarketing: false
+    }));
+  });
+
+  it('envia consentimento de marketing quando marcado', async () => {
+    mocks.completarCadastroPublico.mockResolvedValue({
+      token: 'token',
+      refreshToken: 'refresh',
+      usuario: { id: 'usuario-1' }
+    });
+
+    renderizar();
+    const usuario = await chegarAoCadastroPublico();
+
+    await usuario.type(screen.getByLabelText(/Como você quer aparecer/i), 'Gustavo');
+    await usuario.click(screen.getByLabelText(/Termos de Uso/i));
+    await usuario.click(screen.getByLabelText(/18 anos ou mais/i));
+    await usuario.click(screen.getByLabelText(/Quero receber novidades/i));
+    await usuario.click(screen.getByRole('button', { name: /Criar conta e entrar/i }));
+
+    expect(mocks.completarCadastroPublico).toHaveBeenCalledWith(expect.objectContaining({
+      aceitouMarketing: true
     }));
   });
 
