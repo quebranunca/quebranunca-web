@@ -260,6 +260,24 @@ export function ProvedorAutenticacao({ children }) {
     return autenticacaoServico.solicitarCodigoLogin({ email });
   }, []);
 
+  const iniciarAcesso = useCallback(async (email) => {
+    return autenticacaoServico.iniciarAcesso({ email });
+  }, []);
+
+  const confirmarCodigoAcesso = useCallback(async (email, codigo) => {
+    const resposta = await autenticacaoServico.confirmarCodigoAcesso({ email, codigo });
+    if (resposta?.status === 'Autenticado' && resposta?.token) {
+      salvarAutenticacao(resposta);
+    }
+    return resposta;
+  }, [salvarAutenticacao]);
+
+  const completarCadastroPublico = useCallback(async (dados) => {
+    const resposta = await autenticacaoServico.completarCadastroPublico(dados);
+    salvarAutenticacao(resposta);
+    return resposta;
+  }, [salvarAutenticacao]);
+
   const entrarComCodigo = useCallback(async (email, codigo) => {
     const resposta = await autenticacaoServico.loginComCodigo({ email, codigo });
     salvarAutenticacao(resposta);
@@ -334,6 +352,9 @@ export function ProvedorAutenticacao({ children }) {
       estadoAcesso,
       rotaInicial,
       carregando,
+      iniciarAcesso,
+      confirmarCodigoAcesso,
+      completarCadastroPublico,
       solicitarCodigoLogin,
       entrarComCodigo,
       entrarComSenha,
@@ -350,6 +371,9 @@ export function ProvedorAutenticacao({ children }) {
       estadoAcesso,
       rotaInicial,
       carregando,
+      iniciarAcesso,
+      confirmarCodigoAcesso,
+      completarCadastroPublico,
       solicitarCodigoLogin,
       entrarComCodigo,
       entrarComSenha,

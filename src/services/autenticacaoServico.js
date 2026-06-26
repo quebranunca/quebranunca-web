@@ -6,6 +6,26 @@ export const autenticacaoServico = {
     return resposta.data;
   },
 
+  async iniciarAcesso(dados) {
+    const resposta = await http.post('/autenticacao/iniciar-acesso', dados);
+    return resposta.data;
+  },
+
+  async confirmarCodigoAcesso(dados) {
+    const resposta = await http.post('/autenticacao/confirmar-codigo', dados);
+    return resposta.data;
+  },
+
+  async completarCadastroPublico(dados) {
+    const resposta = await http.post('/autenticacao/completar-cadastro-publico', dados);
+    return resposta.data;
+  },
+
+  async obterTermosVersaoAtual() {
+    const resposta = await http.get('/termos/versao-atual');
+    return resposta.data;
+  },
+
   async solicitarCodigoLogin(dados) {
     const resposta = await http.post('/autenticacao/login/codigo/solicitar', dados);
     return resposta.data;
