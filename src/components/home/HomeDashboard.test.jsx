@@ -126,7 +126,7 @@ describe('HomeDashboard - Card 1 consolidado', () => {
     expect(within(card).getByText(/Pendências/i)).toBeInTheDocument();
     expect(within(card).getByText('9 ações aguardando')).toBeInTheDocument();
     expect(within(card).getByRole('link', { name: /Ranking/i })).toBeInTheDocument();
-    expect(within(card).getByRole('link', { name: /Registrar/i })).toBeInTheDocument();
+    expect(within(card).getByRole('link', { name: /Registrar Partida/i })).toBeInTheDocument();
   });
 
   it('não renderiza Pontos QN e Pendências como seções duplicadas fora do Card 1', () => {
@@ -190,7 +190,7 @@ describe('HomeDashboard - Card 1 consolidado', () => {
   it.each([
     ['Ver pontos', '/app/pontos-qn'],
     ['Resolver agora', '/app/pendencias'],
-    ['Registrar', '/partidas/registrar'],
+    ['Registrar Partida', '/partidas/registrar'],
     ['Ranking', '/ranking']
   ])('navega pelo CTA %s para %s', async (rotulo, destino) => {
     const usuario = userEvent.setup();

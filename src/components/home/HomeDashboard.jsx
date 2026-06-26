@@ -874,7 +874,7 @@ function HomeHeroSection({
         </Link>
         <Link to={HOME_NAVIGATION.registrarPartida} className="botao-primario home-dashboard-registrar">
           <FaPlus aria-hidden="true" />
-          Registrar
+          Registrar Partida
         </Link>
       </div>
     </header>
