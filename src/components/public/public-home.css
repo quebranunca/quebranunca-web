@@ -397,8 +397,6 @@
   width: 2.35rem;
   height: 2.35rem;
   border-radius: 999px;
-  background: linear-gradient(180deg, var(--cor-primaria), var(--cor-primaria-escura));
-  color: #090909;
   font-weight: 900;
   text-transform: uppercase;
 }

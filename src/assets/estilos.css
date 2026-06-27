@@ -62,6 +62,12 @@
   --qn-radius-pill: 999px;
   --qn-card-shadow: 0 16px 38px rgba(0, 0, 0, 0.28);
   --qn-card-shadow-soft: 0 10px 26px rgba(0, 0, 0, 0.2);
+  --qn-avatar-bg:
+    radial-gradient(circle at 32% 18%, rgba(255, 255, 255, 0.2), transparent 30%),
+    linear-gradient(145deg, rgba(255, 179, 0, 0.94), rgba(154, 111, 11, 0.94));
+  --qn-avatar-color: #11100c;
+  --qn-avatar-border: rgba(255, 179, 0, 0.4);
+  --qn-avatar-shadow: 0 0 0 1px rgba(0, 0, 0, 0.18), 0 8px 18px rgba(0, 0, 0, 0.22);
 }
 
 * {
@@ -292,19 +298,11 @@ textarea {
   width: 4rem;
   height: 4rem;
   border: 2px solid rgba(255, 179, 0, 0.34);
-  background:
-    radial-gradient(circle at 30% 20%, rgba(255, 179, 0, 0.22), transparent 42%),
-    rgba(255, 255, 255, 0.07);
-  color: #fff3cf;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.18);
 }
 
 .grupo-dashboard-hero-avatar .avatar-usuario-iniciais {
   border-radius: inherit;
-  background:
-    linear-gradient(135deg, rgba(255, 179, 0, 0.22), rgba(255, 255, 255, 0.05)),
-    rgba(10, 12, 16, 0.96);
-  color: #fff3cf;
   font-weight: 950;
   letter-spacing: 0;
 }
@@ -693,10 +691,6 @@ textarea {
   height: 2.45rem;
   font-size: 0.78rem;
   border: 2px solid rgba(255, 179, 0, 0.34);
-  background:
-    radial-gradient(circle at 30% 20%, rgba(255, 179, 0, 0.2), transparent 42%),
-    rgba(255, 255, 255, 0.07);
-  color: #fff3cf;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.18);
 }
 
@@ -716,10 +710,6 @@ textarea {
 
 .grupo-dashboard-dupla-avatares .avatar-usuario-iniciais {
   border-radius: inherit;
-  background:
-    linear-gradient(135deg, rgba(255, 179, 0, 0.22), rgba(255, 255, 255, 0.05)),
-    rgba(10, 12, 16, 0.96);
-  color: #fff3cf;
   font-weight: 900;
   letter-spacing: 0;
 }
@@ -1049,32 +1039,37 @@ textarea {
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
+  width: var(--avatar-size, 3rem);
+  height: var(--avatar-size, 3rem);
+  border: 1px solid var(--avatar-border, var(--qn-avatar-border));
   border-radius: 999px;
+  background: var(--avatar-bg, var(--qn-avatar-bg));
+  color: var(--avatar-color, var(--qn-avatar-color));
+  box-shadow: var(--avatar-shadow, var(--qn-avatar-shadow));
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 900;
   overflow: hidden;
   line-height: 1;
+  text-transform: uppercase;
 }
 
 .avatar-usuario-sm {
-  width: 2rem;
-  height: 2rem;
+  --avatar-size: 2rem;
   font-size: 0.72rem;
 }
 
 .avatar-usuario-md {
-  width: 3rem;
-  height: 3rem;
+  --avatar-size: 3rem;
   font-size: 0.9rem;
 }
 
 .avatar-usuario-lg {
-  width: 4rem;
-  height: 4rem;
+  --avatar-size: 4rem;
   font-size: 1.15rem;
 }
 
 .avatar-usuario-xl {
-  width: 4.6rem;
-  height: 4.6rem;
+  --avatar-size: 4.6rem;
   font-size: 1.25rem;
 }
 
@@ -1083,6 +1078,7 @@ textarea {
   height: 100%;
   display: block;
   object-fit: cover;
+  border-radius: inherit;
 }
 
 .avatar-usuario-iniciais {
@@ -1091,6 +1087,14 @@ textarea {
   justify-content: center;
   width: 100%;
   height: 100%;
+  background: var(--avatar-fallback-bg, var(--qn-avatar-bg));
+  color: var(--avatar-fallback-color, var(--qn-avatar-color));
+  letter-spacing: 0;
+}
+
+.avatar-usuario-iniciais svg {
+  width: 52%;
+  height: 52%;
 }
 
 .atleta-lista-identidade {
@@ -1106,9 +1110,7 @@ textarea {
 
 .atleta-lista-avatar,
 .grupo-ranking-avatar {
-  border: 1px solid var(--color-border-highlight);
-  background: linear-gradient(145deg, rgba(255, 179, 0, 0.28), rgba(255, 255, 255, 0.08)), #202226;
-  color: var(--color-text-primary);
+  border-color: var(--qn-avatar-border);
   font-weight: 900;
 }
 
@@ -1342,8 +1344,6 @@ textarea {
 .usuario-avatar {
   width: 1.85rem;
   height: 1.85rem;
-  background: linear-gradient(145deg, #ffd166, #9a6f0b 78%);
-  color: #161000;
   font-size: 0.72rem;
   font-weight: 900;
 }
@@ -3396,11 +3396,7 @@ code {
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  background:
-    linear-gradient(145deg, rgba(255, 179, 0, 0.28), rgba(255, 255, 255, 0.08)),
-    #202226;
-  border: 1px solid var(--color-border-highlight);
-  color: var(--color-text-primary);
+  border: 1px solid var(--qn-avatar-border);
   font-weight: 900;
 }
 
@@ -3708,11 +3704,6 @@ code {
   background: rgba(255, 179, 0, 0.08);
   box-shadow: 0 0 0 0.18rem rgba(255, 179, 0, 0.08);
   outline: none;
-}
-
-.dupla-dashboard-avatar svg {
-  width: 1.6rem;
-  height: 1.6rem;
 }
 
 .dupla-dashboard-resumo {
@@ -4985,10 +4976,6 @@ code {
 .dashboard-hero-avatar,
 .perfil-usuario-avatar {
   border: 1px solid rgba(255, 209, 102, 0.45);
-  background:
-    radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.28), transparent 28%),
-    linear-gradient(145deg, #ffd166, #9a6f0b 78%);
-  color: #161000;
   font-weight: 950;
 }
 
@@ -5731,8 +5718,6 @@ code {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background: linear-gradient(135deg, #ffb300, #ff7a00);
-  color: #08090b;
   font-family: 'Space Grotesk', sans-serif;
   font-size: 34px;
   font-weight: 900;
@@ -5854,8 +5839,6 @@ code {
   width: 56px;
   height: 56px;
   border: 2px solid rgba(255, 179, 0, 0.4);
-  background: rgba(255, 179, 0, 0.16);
-  color: #fff;
   font-weight: 900;
 }
 
@@ -5894,8 +5877,6 @@ code {
   width: 50px;
   height: 50px;
   border: 2px solid rgba(255, 179, 0, 0.4);
-  background: rgba(255, 179, 0, 0.16);
-  color: #fff;
   font-size: 18px;
   font-weight: 900;
 }
@@ -10826,10 +10807,6 @@ a.botao-terciario:active {
   height: 4.6rem;
   border-radius: 50%;
   border: 2px solid rgba(255, 209, 102, 0.62);
-  background:
-    radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.28), transparent 28%),
-    linear-gradient(145deg, #ffd166, #9a6f0b 78%);
-  color: #161000;
   font-size: 1.25rem;
   font-weight: 950;
   box-shadow: 0 0 32px rgba(255, 209, 102, 0.22);

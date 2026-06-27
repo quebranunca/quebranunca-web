@@ -93,13 +93,13 @@ const ITENS_NAVEGACAO = [
     caminho: '/app/meus-jogos',
     nome: 'Meus Jogos',
     descricao: 'Todos os jogos vinculados ao seu atleta, com duplas, lados, placar e validação.',
-    visivel: ({ gestorCompeticao, atleta, estadoAtivo }) => estadoAtivo && (gestorCompeticao || atleta)
+    visivel: ({ atleta, estadoAtivo }) => estadoAtivo && atleta
   },
   {
     caminho: '/minhas-partidas-registradas',
     nome: 'Minhas Partidas Registradas',
     descricao: 'Veja e edite partidas que você cadastrou, mesmo quando não participou do jogo.',
-    visivel: ({ gestorCompeticao, atleta, estadoAtivo }) => estadoAtivo && (gestorCompeticao || atleta)
+    visivel: ({ organizador, estadoAtivo }) => estadoAtivo && organizador
   },
   {
     caminho: '/perfil-usuario',

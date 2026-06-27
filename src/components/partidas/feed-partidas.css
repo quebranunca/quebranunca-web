@@ -172,8 +172,6 @@
   width: 1.6rem;
   height: 1.6rem;
   border: 1px solid rgba(255, 209, 102, 0.28);
-  background: rgba(255, 209, 102, 0.14);
-  color: var(--cor-primaria);
   font-size: 0.62rem;
 }
 

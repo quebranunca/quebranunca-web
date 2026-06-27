@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { FaChartLine, FaGamepad, FaMedal, FaTrophy, FaUsers } from 'react-icons/fa';
+import { FaChartLine, FaGamepad, FaMedal, FaTrophy } from 'react-icons/fa';
 import { CompartilharDuplaDashboardBotao } from '../components/duplas/CompartilharDuplaDashboardBotao';
 import { PlacarDupla } from '../components/partidas/PlacarDupla';
+import { AvatarUsuario } from '../components/AvatarUsuario';
 import { duplasServico } from '../services/duplasServico';
 import { formatarNomeDupla } from '../utils/atletaUtils';
 import { extrairMensagemErro } from '../utils/erros';
@@ -68,9 +69,12 @@ export function PaginaDuplaDashboard() {
   return (
     <section className="pagina atleta-dashboard dupla-dashboard">
       <header className="atleta-dashboard-hero">
-        <div className="atleta-dashboard-avatar dupla-dashboard-avatar">
-          <FaUsers aria-hidden="true" />
-        </div>
+        <AvatarUsuario
+          nome={nomeDupla}
+          tamanho="lg"
+          className="atleta-dashboard-avatar dupla-dashboard-avatar"
+          alt=""
+        />
         <div className="atleta-dashboard-identidade">
           <span>Dashboard da dupla</span>
           <h2>{nomeDupla}</h2>

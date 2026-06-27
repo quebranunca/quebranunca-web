@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { FaUser } from 'react-icons/fa';
 import { resolverUrlRecurso } from '../services/http';
 
 const classesTamanho = {
@@ -12,18 +11,22 @@ const classesTamanho = {
 export function obterIniciaisAvatar(nome) {
   const partes = String(nome || '')
     .trim()
-    .split(/\s+/)
+    .split(/[\s-]+/)
+    .map((parte) => parte.trim())
     .filter(Boolean);
 
   if (!partes.length) {
-    return '?';
+    return 'QN';
   }
 
-  return partes
-    .slice(0, 2)
-    .map((parte) => parte[0])
+  const partesIniciais = partes.length === 1
+    ? [partes[0]]
+    : [partes[0], partes[partes.length - 1]];
+
+  return partesIniciais
+    .map((parte) => Array.from(parte)[0] || '')
     .join('')
-    .toUpperCase();
+    .toLocaleUpperCase('pt-BR');
 }
 
 export function obterFotoPerfilAvatar(item) {
@@ -61,6 +64,7 @@ export function AvatarUsuario({
   const exibirImagem = Boolean(urlImagem) && !imagemComErro;
   const possuiNome = Boolean(String(nome || '').trim());
   const classeTamanho = classesTamanho[tamanho] || classesTamanho.md;
+  const iniciais = obterIniciaisAvatar(nome);
 
   useEffect(() => {
     setImagemComErro(false);
@@ -77,7 +81,7 @@ export function AvatarUsuario({
         />
       ) : (
         <span className="avatar-usuario-iniciais">
-          {possuiNome ? obterIniciaisAvatar(nome) : <FaUser aria-hidden="true" />}
+          {possuiNome ? iniciais : 'QN'}
         </span>
       )}
     </span>

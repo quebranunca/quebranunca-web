@@ -884,8 +884,6 @@ body.registrar-partida-modal-aberto .layout-com-bottom-nav {
 .registrar-partida-novo-sugestao-rapida-avatar {
   width: 1.35rem;
   height: 1.35rem;
-  background: rgba(248, 195, 0, 0.16);
-  color: var(--color-primary);
   font-size: 0.54rem;
   font-weight: 900;
 }
@@ -985,8 +983,6 @@ body.registrar-partida-modal-aberto .layout-com-bottom-nav {
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  background: linear-gradient(135deg, rgba(248, 195, 0, 0.96), rgba(255, 226, 111, 0.82));
-  color: #151515;
   font-size: 0.74rem;
   font-weight: 900;
 }
