@@ -15,6 +15,10 @@ import { AvatarUsuario, obterFotoPerfilAvatar } from '../AvatarUsuario';
 import { PlacarDupla } from '../partidas/PlacarDupla';
 
 const mensagemRegistro = 'Para registrar sua partida, entre ou crie sua conta rapidinho.';
+const estadoRegistroPartida = {
+  mensagem: mensagemRegistro,
+  origem: { pathname: '/partidas/registrar' }
+};
 
 function obterNome(nome, apelido) {
   return apelido || nome || 'Atleta';
@@ -79,12 +83,12 @@ function PublicHero({ dashboard }) {
   return (
     <section className="public-hero">
       <div className="public-hero-copy">
-        <span className="public-kicker">QNF live dashboard</span>
+        <span className="public-kicker">Futevôlei em tempo real</span>
         <h1>Transforme suas partidas em ranking, estatísticas e história.</h1>
-        <p>A plataforma do futevôlei para atletas, grupos e campeonatos.</p>
+        <p>A plataforma do futevôlei para atletas, grupos, rankings e scouts.</p>
 
         <div className="public-hero-actions">
-          <Link to="/login" state={{ mensagem: mensagemRegistro }} className="botao-primario">
+          <Link to="/login" state={estadoRegistroPartida} className="botao-primario">
             Registrar Partida
           </Link>
         </div>
@@ -315,7 +319,7 @@ export function PublicHome({ dashboard, carregando, erro }) {
           <p>Registre partidas, acompanhe evolução, entre nos rankings e leve seu grupo para dentro do QNF.</p>
         </div>
         <div className="public-hero-actions">
-          <Link to="/login" state={{ mensagem: mensagemRegistro }} className="botao-primario">
+          <Link to="/login" state={estadoRegistroPartida} className="botao-primario">
             Registrar partida
           </Link>
           <Link to="/login" className="botao-secundario">

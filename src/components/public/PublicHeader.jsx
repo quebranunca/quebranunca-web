@@ -3,6 +3,10 @@ import { Link, NavLink } from 'react-router-dom';
 import logoLiga from '../../assets/logo-liga.svg';
 
 const mensagemRegistro = 'Para registrar sua partida, entre ou crie sua conta rapidinho.';
+const estadoRegistroPartida = {
+  mensagem: mensagemRegistro,
+  origem: { pathname: '/partidas/registrar' }
+};
 
 export function PublicHeader() {
   const [menuAberto, setMenuAberto] = useState(false);
@@ -41,7 +45,7 @@ export function PublicHeader() {
       <div className="public-header-actions">
         <Link
           to="/login"
-          state={{ mensagem: mensagemRegistro }}
+          state={estadoRegistroPartida}
           className="botao-primario public-header-register"
         >
           Registrar Partida

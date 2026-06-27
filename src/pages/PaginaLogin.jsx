@@ -26,6 +26,18 @@ function emailPareceValido(valor) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(valor || '').trim());
 }
 
+function obterDestinoAposLogin(origem, fallback) {
+  const pathname = typeof origem?.pathname === 'string' ? origem.pathname : '';
+
+  if (!pathname || pathname === '/login' || !pathname.startsWith('/')) {
+    return fallback;
+  }
+
+  const search = typeof origem.search === 'string' ? origem.search : '';
+  const hash = typeof origem.hash === 'string' ? origem.hash : '';
+  return `${pathname}${search}${hash}`;
+}
+
 export function PaginaLogin() {
   const [etapa, setEtapa] = useState(ETAPAS.email);
   const [email, setEmail] = useState('');
@@ -65,12 +77,13 @@ export function PaginaLogin() {
 
   const emRecuperacao = etapa === ETAPAS.recuperacao;
   const podeReenviar = cooldownReenvio <= 0 && !carregandoCodigo && !carregando;
+  const destinoAposLogin = obterDestinoAposLogin(location.state?.origem, rotaInicial);
 
   useEffect(() => {
     if (token) {
-      navegar(rotaInicial, { replace: true });
+      navegar(destinoAposLogin, { replace: true });
     }
-  }, [token, rotaInicial, navegar]);
+  }, [token, destinoAposLogin, navegar]);
 
   useEffect(() => {
     async function carregarTermos() {
@@ -166,7 +179,7 @@ export function PaginaLogin() {
     setCarregando(true);
     try {
       await entrarComSenha(email.trim(), senha);
-      navegar(rotaInicial, { replace: true });
+      navegar(destinoAposLogin, { replace: true });
     } catch (error) {
       setErro(extrairMensagemErro(error));
     } finally {
@@ -187,7 +200,7 @@ export function PaginaLogin() {
     try {
       const resposta = await confirmarCodigoAcesso(email.trim(), codigo.trim());
       if (resposta?.status === 'Autenticado') {
-        navegar(rotaInicial, { replace: true });
+        navegar(destinoAposLogin, { replace: true });
         return;
       }
 
@@ -258,7 +271,7 @@ export function PaginaLogin() {
         declarouMaiorDe18,
         aceitouMarketing
       });
-      navegar('/app', { replace: true });
+      navegar(destinoAposLogin, { replace: true });
     } catch (error) {
       setErro(extrairMensagemErro(error));
     } finally {
