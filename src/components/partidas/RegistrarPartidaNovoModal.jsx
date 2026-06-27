@@ -369,8 +369,9 @@ function AutocompleteAtleta({
     .filter((atleta) => !idsResultados.has(obterChaveAtletaSugestao(atleta)));
   const temSelecao = Boolean(selecao?.id);
   const nomeSelecao = obterNomeExibicaoAtleta(selecao);
-  const exibirSugestoesRapidas = !temSelecao && !buscaAtiva && sugestoesRapidasCampo.length > 0;
-  const exibirListaResultados = !temSelecao && (buscaAtiva || sugestoesCampo.length > 0 || buscando);
+  const campoEstaAtivo = campoAtivo === campo;
+  const exibirSugestoesRapidas = campoEstaAtivo && !temSelecao && !buscaAtiva && sugestoesRapidasCampo.length > 0;
+  const exibirListaResultados = campoEstaAtivo && !temSelecao && (buscaAtiva || sugestoesCampo.length > 0 || buscando);
 
   function selecionarComPonteiro(evento, atleta) {
     evento.preventDefault();
@@ -1515,6 +1516,11 @@ export function RegistrarPartidaNovoModal({
       return;
     }
 
+    const dispositivoMobile = window.matchMedia?.('(max-width: 720px), (pointer: coarse)').matches;
+    if (dispositivoMobile) {
+      return;
+    }
+
     const focosPorEtapa = {
       registro: campoRef,
       dupla1: campoRef,
@@ -1558,7 +1564,6 @@ export function RegistrarPartidaNovoModal({
         const alturaViewport = viewport?.height || window.innerHeight;
 
         modal.style.setProperty('--registrar-partida-viewport-height', `${Math.round(alturaViewport)}px`);
-        modal.style.setProperty('--registrar-partida-teclado-offset', `${Math.round(tecladoAbertoDetectado ? offset : 0)}px`);
         modal.dataset.tecladoAberto = tecladoAbertoDetectado ? 'true' : 'false';
         setTecladoAberto(tecladoAbertoDetectado);
       });
@@ -1591,7 +1596,6 @@ export function RegistrarPartidaNovoModal({
         mediaMobile.removeListener(atualizarModoMobile);
       }
       window.cancelAnimationFrame(rafId);
-      modal?.style.removeProperty('--registrar-partida-teclado-offset');
       modal?.style.removeProperty('--registrar-partida-viewport-height');
       modal?.removeAttribute('data-teclado-aberto');
       setTecladoAberto(false);

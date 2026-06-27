@@ -26,7 +26,6 @@ body.registrar-partida-modal-aberto .layout-com-bottom-nav {
 }
 
 .registrar-partida-novo-modal {
-  --registrar-partida-teclado-offset: 0px;
   --registrar-partida-viewport-height: 100dvh;
   --registrar-partida-cta-height: 0px;
   --registrar-partida-bottom-nav-height: 5.85rem;
@@ -161,6 +160,7 @@ body.registrar-partida-modal-aberto .layout-com-bottom-nav {
 }
 
 .registrar-partida-novo-formulario-simples {
+  height: 100%;
   min-height: 0;
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto;
@@ -1585,9 +1585,7 @@ body.registrar-partida-modal-aberto .layout-com-bottom-nav {
     linear-gradient(180deg, rgba(12, 13, 15, 0.78), rgba(12, 13, 15, 0.98) 32%),
     rgba(12, 13, 15, 0.98);
   box-shadow: 0 -18px 34px rgba(0, 0, 0, 0.32);
-  transform: translateY(calc(var(--registrar-partida-teclado-offset, 0px) * -1));
-  transition: transform 140ms ease-out, opacity 160ms ease;
-  will-change: transform;
+  transition: opacity 160ms ease;
 }
 
 .registrar-partida-novo-modal.keyboard-active .registrar-partida-novo-acoes {
@@ -2262,14 +2260,16 @@ body.registrar-partida-modal-aberto .layout-com-bottom-nav {
 }
 
 .registrar-partida-novo-corpo-simples {
+  height: 100%;
   min-height: 0;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto;
   align-content: start;
   gap: 0.85rem;
   overflow-y: auto;
-  padding: 0.65rem 0.85rem calc(var(--registrar-partida-cta-height, 0px) + env(safe-area-inset-bottom, 0px) + 0.85rem);
-  scroll-padding-block: 0.8rem calc(var(--registrar-partida-cta-height, 0px) + env(safe-area-inset-bottom, 0px) + 0.85rem);
+  padding: 0.65rem 0.85rem calc(0.85rem + env(safe-area-inset-bottom, 0px));
+  scroll-padding-block: 0.8rem calc(0.85rem + env(safe-area-inset-bottom, 0px));
 }
 
 .registrar-partida-novo-corpo-simples > * {
@@ -2465,14 +2465,12 @@ body.registrar-partida-modal-aberto .layout-com-bottom-nav {
 }
 
 .registrar-partida-novo-formulario-simples > .registrar-partida-novo-cta-sticky {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 8;
+  position: relative;
+  right: auto;
+  bottom: auto;
+  left: auto;
+  z-index: 2;
   margin: 0;
-  transform: translateY(calc(var(--registrar-partida-teclado-offset, 0px) * -1));
-  will-change: transform;
   box-shadow: 0 -14px 28px rgba(0, 0, 0, 0.28);
 }
 
@@ -2499,8 +2497,16 @@ body.registrar-partida-modal-aberto .layout-com-bottom-nav {
 
   .registrar-partida-novo-corpo-simples {
     gap: 0.72rem;
-    padding: 0.62rem 0.62rem calc(var(--registrar-partida-cta-height, 0px) + env(safe-area-inset-bottom, 0px) + 0.9rem);
-    scroll-padding-bottom: calc(var(--registrar-partida-cta-height, 0px) + env(safe-area-inset-bottom, 0px) + 0.9rem);
+    padding: 0.62rem 0.62rem calc(0.9rem + env(safe-area-inset-bottom, 0px));
+    scroll-padding-bottom: calc(0.9rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .registrar-partida-novo-modal.teclado-aberto .registrar-partida-novo-corpo-simples,
+  .registrar-partida-novo-modal[data-teclado-aberto="true"] .registrar-partida-novo-corpo-simples {
+    gap: 0.56rem;
+    padding-top: 0.48rem;
+    padding-bottom: calc(0.65rem + env(safe-area-inset-bottom, 0px));
+    scroll-padding-bottom: calc(0.65rem + env(safe-area-inset-bottom, 0px));
   }
 
   .registrar-partida-novo-duplas-unicas {
@@ -2531,10 +2537,9 @@ body.registrar-partida-modal-aberto .layout-com-bottom-nav {
   }
 
   .registrar-partida-novo-formulario-simples > .registrar-partida-novo-cta-sticky {
-    position: absolute;
-    bottom: 0;
+    position: relative;
+    bottom: auto;
     margin-bottom: 0;
-    transform: translateY(calc(var(--registrar-partida-teclado-offset, 0px) * -1));
     box-shadow: 0 -14px 28px rgba(0, 0, 0, 0.3);
   }
 }
