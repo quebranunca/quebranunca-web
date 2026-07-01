@@ -137,6 +137,22 @@ textarea {
   width: min(1200px, 100%);
 }
 
+.layout-login-publico {
+  gap: clamp(0.55rem, 1.2vw, 0.85rem);
+}
+
+.layout-login-publico .conteudo-principal {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: center;
+  align-content: safe center;
+  padding-block: clamp(0.4rem, 2vh, 1rem);
+}
+
+.layout-login-publico .public-footer {
+  margin-top: 0.35rem;
+}
+
 .layout-home-dashboard-app {
   gap: 0;
 }
@@ -8657,6 +8673,11 @@ body.grupos-edicao-modal-aberto .layout-com-bottom-nav {
   gap: 0.85rem;
   place-items: center;
   padding: 0.5rem 0;
+}
+
+.layout-login-publico .pagina-login {
+  min-height: auto;
+  padding: 0;
 }
 
 .painel-login,
