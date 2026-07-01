@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { LuMenu, LuX } from 'react-icons/lu';
 import { Link, NavLink } from 'react-router-dom';
 import logoLiga from '../../assets/logo-liga.svg';
 
@@ -55,39 +56,23 @@ export function PublicHeader() {
         <span>QuebraNunca</span>
       </Link>
 
-      <nav className="public-header-nav" aria-label="Navegação pública">
-        {linksPrincipais.map((link) => (
-          <NavLink key={link.to} to={link.to} onClick={fecharMenu}>
-            {link.label}
-          </NavLink>
-        ))}
-      </nav>
-
       <div className="public-header-actions">
         <Link to="/login" className="public-header-login">
           Entrar
         </Link>
-        <Link
-          to="/login"
-          state={estadoCriarConta}
-          className="public-header-create"
+        <button
+          type="button"
+          className={`public-header-menu ${menuAberto ? 'aberto' : ''}`}
+          onClick={() => setMenuAberto((aberto) => !aberto)}
+          aria-label={menuAberto ? 'Fechar navegação' : 'Abrir navegação'}
+          aria-controls="public-menu-drawer"
+          aria-expanded={menuAberto}
         >
-          Criar conta
-        </Link>
+          {menuAberto
+            ? <LuX aria-hidden="true" strokeWidth={2.1} />
+            : <LuMenu aria-hidden="true" strokeWidth={2.1} />}
+        </button>
       </div>
-
-      <button
-        type="button"
-        className={`public-header-menu ${menuAberto ? 'aberto' : ''}`}
-        onClick={() => setMenuAberto((aberto) => !aberto)}
-        aria-label={menuAberto ? 'Fechar navegação' : 'Abrir navegação'}
-        aria-controls="public-menu-drawer"
-        aria-expanded={menuAberto}
-      >
-        <span />
-        <span />
-        <span />
-      </button>
 
       <button
         type="button"
@@ -115,7 +100,7 @@ export function PublicHeader() {
             onClick={fecharMenu}
             aria-label="Fechar menu"
           >
-            X
+            <LuX aria-hidden="true" strokeWidth={2.1} />
           </button>
         </div>
 
