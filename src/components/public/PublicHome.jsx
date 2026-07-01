@@ -13,16 +13,12 @@ import {
 import { AtletaPerfilLink } from '../AtletaPerfilLink';
 import { AvatarUsuario, obterFotoPerfilAvatar } from '../AvatarUsuario';
 import { PlacarDupla } from '../partidas/PlacarDupla';
+import { obterNomeExibicaoAtletaPerfil } from '../../utils/atletaUtils';
 
-const mensagemRegistro = 'Para registrar sua partida, entre ou crie sua conta rapidinho.';
-const estadoRegistroPartida = {
-  mensagem: mensagemRegistro,
-  origem: { pathname: '/partidas/registrar' }
+const estadoCriarConta = {
+  mensagem: 'Use seu e-mail para entrar ou criar sua conta grátis.',
+  origem: { pathname: '/app' }
 };
-
-function obterNome(nome, apelido) {
-  return apelido || nome || 'Atleta';
-}
 
 function formatarTempo(minutos) {
   if (!Number.isFinite(Number(minutos))) {
@@ -63,6 +59,15 @@ function obterIcone(id) {
   return icones[id] || FaChartLine;
 }
 
+function obterNomePublicoAtleta(atleta) {
+  return obterNomeExibicaoAtletaPerfil(atleta) || 'Atleta';
+}
+
+function obterNumeroSeguro(valor, fallback = 0) {
+  const numero = Number(valor);
+  return Number.isFinite(numero) ? numero : fallback;
+}
+
 function PublicStatCard({ metrica }) {
   const Icone = obterIcone(metrica.id);
 
@@ -76,20 +81,20 @@ function PublicStatCard({ metrica }) {
   );
 }
 
-function PublicHero({ dashboard }) {
-  const partidas = dashboard?.ultimasPartidas || [];
-  const ranking = dashboard?.ranking || [];
-
+function PublicHero() {
   return (
     <section className="public-hero">
       <div className="public-hero-copy">
-        <span className="public-kicker">Futevôlei em tempo real</span>
-        <h1>Transforme suas partidas em ranking, estatísticas e história.</h1>
-        <p>A plataforma do futevôlei para atletas, grupos, rankings e scouts.</p>
+        <span className="public-kicker">FUTEVÔLEI EM TEMPO REAL</span>
+        <h1>Transforme suas partidas em ranking, scouts e história.</h1>
+        <p>Registre partidas, acompanhe sua evolução e veja o desempenho do seu grupo em tempo real.</p>
 
         <div className="public-hero-actions">
-          <Link to="/login" state={estadoRegistroPartida} className="botao-primario">
-            Registrar Partida
+          <Link to="/login" state={estadoCriarConta} className="botao-primario">
+            Criar conta grátis
+          </Link>
+          <Link to="/ranking" className="botao-secundario">
+            Ver rankings
           </Link>
         </div>
       </div>
@@ -97,23 +102,65 @@ function PublicHero({ dashboard }) {
       <div className="public-hero-live" aria-label="Movimento da plataforma">
         <article className="public-floating-card public-floating-card-score">
           <span>Última partida</span>
-          <strong>
-            {partidas[0]
-              ? `${partidas[0].pontosDupla1} x ${partidas[0].pontosDupla2}`
-              : '18 x 16'}
-          </strong>
-          <small>{partidas[0]?.grupo || partidas[0]?.campeonato || 'Grupo Geral'}</small>
+          <strong>18 x 16</strong>
+          <small>Resultado registrado</small>
         </article>
         <article className="public-floating-card public-floating-card-ranking">
-          <span>Ranking ativo</span>
-          <strong>{ranking[0] ? `#1 ${obterNome(ranking[0].nome, ranking[0].apelido)}` : '#1 QNF'}</strong>
-          <small>{ranking[0] ? `${ranking[0].aproveitamento}% aproveitamento` : 'Atletas em evolução'}</small>
+          <span>Ranking</span>
+          <strong>#1 do grupo</strong>
+          <small>Ranking atualizado automaticamente</small>
         </article>
         <article className="public-floating-card public-floating-card-community">
-          <span>Hoje</span>
-          <strong>{dashboard?.resumo?.partidasHoje || 0}</strong>
-          <small>partidas movimentando o ranking</small>
+          <span>Scout</span>
+          <strong>+12%</strong>
+          <small>Evolução acompanhada em tempo real</small>
         </article>
+      </div>
+    </section>
+  );
+}
+
+const passosComoFunciona = [
+  {
+    numero: '1',
+    titulo: 'Registre a partida',
+    texto: 'Lance o resultado do seu jogo em poucos toques.',
+    Icone: FaPlay
+  },
+  {
+    numero: '2',
+    titulo: 'Veja seus scouts',
+    texto: 'Acompanhe aproveitamento, sequência e evolução.',
+    Icone: FaChartLine
+  },
+  {
+    numero: '3',
+    titulo: 'Suba no ranking',
+    texto: 'Compare seu desempenho com atletas e duplas do grupo.',
+    Icone: FaTrophy
+  }
+];
+
+function PublicHowItWorks() {
+  return (
+    <section id="como-funciona" className="public-how-section" aria-labelledby="public-how-title">
+      <div className="public-section-header public-how-header">
+        <span>Como funciona</span>
+        <h2 id="public-how-title">Do jogo ao ranking em três passos</h2>
+      </div>
+
+      <div className="public-how-steps">
+        {passosComoFunciona.map(({ numero, titulo, texto, Icone }, indice) => (
+          <article key={numero} className="public-how-card">
+            <span className="public-how-number">{numero}</span>
+            <span className="public-how-icon"><Icone /></span>
+            <strong>{titulo}</strong>
+            <p>{texto}</p>
+            {indice < passosComoFunciona.length - 1 && (
+              <span className="public-how-connector" aria-hidden="true" />
+            )}
+          </article>
+        ))}
       </div>
     </section>
   );
@@ -167,9 +214,9 @@ function PublicRanking({ ranking }) {
         {(ranking || []).map((atleta) => (
           <article key={atleta.atletaId} className="public-ranking-row">
             <strong className="public-ranking-position">{atleta.posicao}</strong>
-            <AtletaPerfilLink atleta={atleta} ariaLabel={`Abrir perfil de ${obterNome(atleta.nome, atleta.apelido)}`}>
+            <AtletaPerfilLink atleta={atleta} ariaLabel={`Abrir perfil de ${obterNomePublicoAtleta(atleta)}`}>
               <AvatarUsuario
-                nome={obterNome(atleta.nome, atleta.apelido)}
+                nome={obterNomePublicoAtleta(atleta)}
                 fotoPerfilUrl={obterFotoPerfilAvatar(atleta)}
                 tamanho="sm"
                 className="public-avatar"
@@ -177,11 +224,11 @@ function PublicRanking({ ranking }) {
             </AtletaPerfilLink>
             <div>
               <AtletaPerfilLink atleta={atleta} className="atleta-nome-link">
-                <strong>{obterNome(atleta.nome, atleta.apelido)}</strong>
+                <strong>{obterNomePublicoAtleta(atleta)}</strong>
               </AtletaPerfilLink>
-              <span>{atleta.vitorias}V · {atleta.derrotas}D · {atleta.aproveitamento}%</span>
+              <span>{obterNumeroSeguro(atleta.vitorias)}V · {obterNumeroSeguro(atleta.derrotas)}D · {obterNumeroSeguro(atleta.aproveitamento)}%</span>
             </div>
-            <em>{atleta.sequenciaAtual > 0 ? `${atleta.sequenciaAtual}W` : `${atleta.pontos} pts`}</em>
+            <em>{obterNumeroSeguro(atleta.sequenciaAtual) > 0 ? `${obterNumeroSeguro(atleta.sequenciaAtual)}W` : `${obterNumeroSeguro(atleta.pontos)} pts`}</em>
           </article>
         ))}
       </div>
@@ -212,7 +259,8 @@ export function PublicHome({ dashboard, carregando, erro }) {
 
   return (
     <section className="public-home">
-      <PublicHero dashboard={dashboard} />
+      <PublicHero />
+      <PublicHowItWorks />
 
       {erro && <div className="public-alert">{erro}</div>}
       {carregando && <div className="public-alert">Carregando movimento da plataforma...</div>}
@@ -235,16 +283,16 @@ export function PublicHome({ dashboard, carregando, erro }) {
           vazio="Os destaques aparecem conforme a comunidade registra partidas."
           renderItem={(atleta) => (
             <article key={`${atleta.atletaId}-${atleta.destaque}`} className="public-highlight-card">
-              <AtletaPerfilLink atleta={atleta} ariaLabel={`Abrir perfil de ${obterNome(atleta.nome, atleta.apelido)}`}>
+              <AtletaPerfilLink atleta={atleta} ariaLabel={`Abrir perfil de ${obterNomePublicoAtleta(atleta)}`}>
                 <AvatarUsuario
-                  nome={obterNome(atleta.nome, atleta.apelido)}
+                  nome={obterNomePublicoAtleta(atleta)}
                   fotoPerfilUrl={obterFotoPerfilAvatar(atleta)}
                   tamanho="sm"
                   className="public-avatar"
                 />
               </AtletaPerfilLink>
               <AtletaPerfilLink atleta={atleta} className="atleta-nome-link">
-                <strong>{obterNome(atleta.nome, atleta.apelido)}</strong>
+                <strong>{obterNomePublicoAtleta(atleta)}</strong>
               </AtletaPerfilLink>
               <small>{atleta.destaque}</small>
               <em>{atleta.valor} {atleta.complemento}</em>
@@ -319,8 +367,8 @@ export function PublicHome({ dashboard, carregando, erro }) {
           <p>Registre partidas, acompanhe evolução, entre nos rankings e leve seu grupo para dentro do QNF.</p>
         </div>
         <div className="public-hero-actions">
-          <Link to="/login" state={estadoRegistroPartida} className="botao-primario">
-            Registrar partida
+          <Link to="/login" state={estadoCriarConta} className="botao-primario">
+            Criar conta grátis
           </Link>
           <Link to="/login" className="botao-secundario">
             Entrar
