@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { FaLock } from 'react-icons/fa';
 import logoLiga from '../assets/logo-liga.svg';
 import { EmailDomainSuggestions } from '../components/formularios/EmailDomainSuggestions';
 import { useAutenticacao } from '../hooks/useAutenticacao';
@@ -13,6 +14,8 @@ export function PaginaCadastroConvite() {
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [codigoConvite, setCodigoConvite] = useState('');
+  const [senha, setSenha] = useState('');
+  const [confirmacaoSenha, setConfirmacaoSenha] = useState('');
   const [aceitouPoliticaPrivacidade, setAceitouPoliticaPrivacidade] = useState(false);
   const [aceitouTermosUso, setAceitouTermosUso] = useState(false);
   const [aceitouUsoLocalizacao, setAceitouUsoLocalizacao] = useState(false);
@@ -25,6 +28,7 @@ export function PaginaCadastroConvite() {
   const emailRef = useRef(null);
   const nomeRef = useRef(null);
   const codigoRef = useRef(null);
+  const senhaRef = useRef(null);
 
   useEffect(() => {
     if (token) {
@@ -81,6 +85,16 @@ export function PaginaCadastroConvite() {
       return;
     }
 
+    if (!senha.trim()) {
+      setErro('Crie uma senha para continuar.');
+      return;
+    }
+
+    if (senha !== confirmacaoSenha) {
+      setErro('Senha e confirmação devem ser iguais.');
+      return;
+    }
+
     setSalvando(true);
 
     try {
@@ -89,6 +103,8 @@ export function PaginaCadastroConvite() {
         codigoConvite: codigoConvite.trim(),
         nome: nome.trim(),
         email: email.trim(),
+        senha,
+        confirmacaoSenha,
         aceitouPoliticaPrivacidade,
         aceitouTermosUso,
         aceitouUsoLocalizacao,
@@ -163,9 +179,45 @@ export function PaginaCadastroConvite() {
                       value={codigoConvite}
                       onChange={(evento) => setCodigoConvite(evento.target.value)}
                       onFocus={scrollFocusedInputIntoView}
+                      onKeyDown={(evento) => aoPressionarEnterParaProximo(evento, () => focusNextField(senhaRef))}
                       placeholder="Informe o código recebido"
                       required
                     />
+                  </label>
+
+                  <label className="campo-login-icone">
+                    Crie uma senha
+                    <span>
+                      <FaLock aria-hidden="true" />
+                      <input
+                        ref={senhaRef}
+                        type="password"
+                        autoComplete="new-password"
+                        enterKeyHint="next"
+                        value={senha}
+                        onChange={(evento) => setSenha(evento.target.value)}
+                        onFocus={scrollFocusedInputIntoView}
+                        placeholder="Mínimo 6 caracteres"
+                        required
+                      />
+                    </span>
+                  </label>
+
+                  <label className="campo-login-icone">
+                    Confirme sua senha
+                    <span>
+                      <FaLock aria-hidden="true" />
+                      <input
+                        type="password"
+                        autoComplete="new-password"
+                        enterKeyHint="done"
+                        value={confirmacaoSenha}
+                        onChange={(evento) => setConfirmacaoSenha(evento.target.value)}
+                        onFocus={scrollFocusedInputIntoView}
+                        placeholder="Digite a senha novamente"
+                        required
+                      />
+                    </span>
                   </label>
 
                   <label className="campo-checkbox">

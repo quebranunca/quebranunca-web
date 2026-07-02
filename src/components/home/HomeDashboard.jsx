@@ -8,6 +8,7 @@ import {
   FaEdit,
   FaFire,
   FaGamepad,
+  FaLock,
   FaMedal,
   FaPlus,
   FaShieldAlt,
@@ -412,6 +413,12 @@ export function HomeDashboard({ modulos, dashboard, carregando, erro, onAtualiza
   const totalDiasJogados = heatmap.filter((dia) => dia.quantidade > 0).length;
   const totalJogosPeriodo = heatmap.reduce((total, dia) => total + dia.quantidade, 0);
   const badgeMomento = obterBadgeMomento(resumo, perfil, totalJogosPeriodo);
+  const pendenciaCriarSenha = Array.isArray(usuario?.pendenciasConta)
+    ? usuario.pendenciasConta.find((pendencia) => pendencia?.tipo === 'CriarSenha')
+    : null;
+  const deveCriarSenhaConta = Boolean(pendenciaCriarSenha) ||
+    usuario?.possuiSenha === false ||
+    usuario?.senhaCadastrada === false;
   const resumoRapido = [
     {
       id: 'partidas',
@@ -576,6 +583,14 @@ export function HomeDashboard({ modulos, dashboard, carregando, erro, onAtualiza
         saudacao={saudacao}
         resumoPendencias={resumoPendencias}
       />
+
+      {deveCriarSenhaConta && (
+        <Link to="/app/perfil" className="home-dashboard-alerta-senha">
+          <span><FaLock aria-hidden="true" /></span>
+          <strong>Crie sua senha para continuar acessando sua conta com segurança.</strong>
+          <em>Criar senha agora</em>
+        </Link>
+      )}
 
       {homeSectionsConfig
         .filter((secao) => secao.enabled)

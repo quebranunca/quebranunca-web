@@ -264,8 +264,8 @@ export function ProvedorAutenticacao({ children }) {
     return autenticacaoServico.iniciarAcesso({ email });
   }, []);
 
-  const confirmarCodigoAcesso = useCallback(async (email, codigo) => {
-    const resposta = await autenticacaoServico.confirmarCodigoAcesso({ email, codigo });
+  const confirmarCodigoAcesso = useCallback(async (email, codigo, finalidade = null) => {
+    const resposta = await autenticacaoServico.confirmarCodigoAcesso({ email, codigo, finalidade });
     if (resposta?.status === 'Autenticado' && resposta?.token) {
       salvarAutenticacao(resposta);
     }
@@ -274,6 +274,19 @@ export function ProvedorAutenticacao({ children }) {
 
   const completarCadastroPublico = useCallback(async (dados) => {
     const resposta = await autenticacaoServico.completarCadastroPublico(dados);
+    salvarAutenticacao(resposta);
+    return resposta;
+  }, [salvarAutenticacao]);
+
+  const criarSenha = useCallback(async (dados) => {
+    const resposta = await autenticacaoServico.criarSenha(dados);
+    const usuarioAtual = await autenticacaoServico.me();
+    atualizarUsuarioLocal(usuarioAtual);
+    return resposta;
+  }, [atualizarUsuarioLocal]);
+
+  const criarSenhaComToken = useCallback(async (dados) => {
+    const resposta = await autenticacaoServico.criarSenhaComToken(dados);
     salvarAutenticacao(resposta);
     return resposta;
   }, [salvarAutenticacao]);
@@ -295,6 +308,8 @@ export function ProvedorAutenticacao({ children }) {
     codigoConvite,
     nome,
     email,
+    senha,
+    confirmacaoSenha,
     aceitouPoliticaPrivacidade,
     aceitouTermosUso,
     aceitouUsoLocalizacao,
@@ -305,6 +320,8 @@ export function ProvedorAutenticacao({ children }) {
       codigoConvite,
       nome,
       email,
+      senha,
+      confirmacaoSenha,
       aceitouPoliticaPrivacidade,
       aceitouTermosUso,
       aceitouUsoLocalizacao,
@@ -355,6 +372,8 @@ export function ProvedorAutenticacao({ children }) {
       iniciarAcesso,
       confirmarCodigoAcesso,
       completarCadastroPublico,
+      criarSenha,
+      criarSenhaComToken,
       solicitarCodigoLogin,
       entrarComCodigo,
       entrarComSenha,
@@ -374,6 +393,8 @@ export function ProvedorAutenticacao({ children }) {
       iniciarAcesso,
       confirmarCodigoAcesso,
       completarCadastroPublico,
+      criarSenha,
+      criarSenhaComToken,
       solicitarCodigoLogin,
       entrarComCodigo,
       entrarComSenha,

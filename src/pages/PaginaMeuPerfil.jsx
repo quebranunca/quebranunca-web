@@ -5,6 +5,7 @@ import {
   FaEnvelope,
   FaFire,
   FaInstagram,
+  FaLock,
   FaMapMarkerAlt,
   FaPhone,
   FaRegUser,
@@ -313,6 +314,7 @@ export function PaginaMeuPerfil() {
     usuario,
     atualizarUsuarioLocal,
     recarregarUsuario,
+    criarSenha,
     concluirPrimeiroAcesso,
     sair,
     primeiroAcessoPendente,
@@ -333,6 +335,9 @@ export function PaginaMeuPerfil() {
   const [salvandoAtleta, setSalvandoAtleta] = useState(false);
   const [salvandoMedidas, setSalvandoMedidas] = useState(false);
   const [salvandoPrivacidade, setSalvandoPrivacidade] = useState(false);
+  const [salvandoSenhaConta, setSalvandoSenhaConta] = useState(false);
+  const [senhaConta, setSenhaConta] = useState('');
+  const [confirmacaoSenhaConta, setConfirmacaoSenhaConta] = useState('');
   const [excluindoPerfil, setExcluindoPerfil] = useState(false);
   const [preferenciasPrivacidade, setPreferenciasPrivacidade] = useState(preferenciasPrivacidadeIniciais);
   const [cidadesEstado, setCidadesEstado] = useState([]);
@@ -627,6 +632,52 @@ export function PaginaMeuPerfil() {
     concluirPrimeiroAcesso();
     setMensagem('Primeiro acesso concluído com sucesso.');
     setErro('');
+  }
+
+  async function salvarSenhaConta(evento) {
+    evento.preventDefault();
+    setErro('');
+    setMensagem('');
+
+    if (!senhaConta.trim()) {
+      setErro('Informe uma senha.');
+      return;
+    }
+
+    if (senhaConta !== confirmacaoSenhaConta) {
+      setErro('Senha e confirmação devem ser iguais.');
+      return;
+    }
+
+    setSalvandoSenhaConta(true);
+    try {
+      await criarSenha({
+        senha: senhaConta,
+        confirmacaoSenha: confirmacaoSenhaConta
+      });
+      const usuarioAtual = await recarregarUsuario();
+      setUsuarioDetalhe((anterior) => ({
+        ...(anterior || usuarioAtual),
+        ...usuarioAtual,
+        atleta: anterior?.atleta || usuarioAtual.atleta || null
+      }));
+      setSenhaConta('');
+      setConfirmacaoSenhaConta('');
+      showNotification({
+        type: 'success',
+        title: 'Senha criada',
+        message: 'Senha criada com sucesso.'
+      });
+    } catch (error) {
+      showNotification({
+        type: 'error',
+        title: 'Não foi possível criar a senha',
+        message: extrairMensagemErro(error)
+      });
+      setErro(extrairMensagemErro(error));
+    } finally {
+      setSalvandoSenhaConta(false);
+    }
   }
 
   async function salvarAtleta(evento) {
@@ -929,6 +980,12 @@ export function PaginaMeuPerfil() {
   const apelidoPerfil = formularioAtleta.apelido || perfilDashboard.apelido || 'Apelido a definir';
   const aproveitamento = Number(resumoDashboard.aproveitamento ?? perfilDashboard.aproveitamento ?? 0);
   const melhorSequencia = obterMelhorSequencia(dashboardAtleta?.evolucao);
+  const pendenciaCriarSenha = Array.isArray(usuarioDetalhe?.pendenciasConta)
+    ? usuarioDetalhe.pendenciasConta.find((pendencia) => pendencia?.tipo === 'CriarSenha')
+    : null;
+  const deveCriarSenhaConta = Boolean(pendenciaCriarSenha) ||
+    usuarioDetalhe?.possuiSenha === false ||
+    usuarioDetalhe?.senhaCadastrada === false;
 
   const metricasHero = useMemo(() => ([
     { rotulo: 'Ranking', valor: perfilDashboard.posicaoRanking ? `#${perfilDashboard.posicaoRanking}` : '-' },
@@ -970,6 +1027,45 @@ export function PaginaMeuPerfil() {
           <button type="button" className="botao-secundario" onClick={finalizarPrimeiroAcesso}>
             Concluir
           </button>
+        </article>
+      )}
+
+      {deveCriarSenhaConta && (
+        <article className="perfil-alerta perfil-alerta-senha">
+          <div>
+            <strong>Crie sua senha</strong>
+            <p>{pendenciaCriarSenha?.mensagem || 'Crie uma senha para continuar acessando sua conta com segurança.'}</p>
+          </div>
+          <form className="perfil-alerta-senha-form" onSubmit={salvarSenhaConta}>
+            <label>
+              <span>Senha</span>
+              <input
+                type="password"
+                autoComplete="new-password"
+                value={senhaConta}
+                onChange={(evento) => setSenhaConta(evento.target.value)}
+                onFocus={scrollFocusedInputIntoView}
+                placeholder="Mínimo 6 caracteres"
+                required
+              />
+            </label>
+            <label>
+              <span>Confirmação</span>
+              <input
+                type="password"
+                autoComplete="new-password"
+                value={confirmacaoSenhaConta}
+                onChange={(evento) => setConfirmacaoSenhaConta(evento.target.value)}
+                onFocus={scrollFocusedInputIntoView}
+                placeholder="Digite novamente"
+                required
+              />
+            </label>
+            <button type="submit" className="botao-primario" disabled={salvandoSenhaConta}>
+              <FaLock aria-hidden="true" />
+              {salvandoSenhaConta ? 'Criando...' : 'Criar senha agora'}
+            </button>
+          </form>
         </article>
       )}
 

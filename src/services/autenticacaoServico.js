@@ -21,6 +21,16 @@ export const autenticacaoServico = {
     return resposta.data;
   },
 
+  async criarSenha(dados) {
+    const resposta = await http.post('/autenticacao/criar-senha', dados);
+    return resposta.data;
+  },
+
+  async criarSenhaComToken(dados) {
+    const resposta = await http.post('/autenticacao/criar-senha-com-token', dados);
+    return resposta.data;
+  },
+
   async obterTermosVersaoAtual() {
     const resposta = await http.get('/termos/versao-atual');
     return resposta.data;

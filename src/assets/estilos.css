@@ -10783,6 +10783,47 @@ a.botao-terciario:active {
   font-size: 0.86rem;
 }
 
+.perfil-alerta-senha {
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.perfil-alerta-senha-form {
+  display: grid;
+  grid-template-columns: minmax(9rem, 1fr) minmax(9rem, 1fr) auto;
+  align-items: end;
+  gap: 0.65rem;
+  width: min(100%, 42rem);
+}
+
+.perfil-alerta-senha-form label {
+  display: grid;
+  gap: 0.28rem;
+  color: var(--cor-texto-suave);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.perfil-alerta-senha-form input {
+  width: 100%;
+  min-height: 2.45rem;
+}
+
+.perfil-alerta-senha-form button {
+  min-height: 2.45rem;
+  white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+  .perfil-alerta-senha-form {
+    grid-template-columns: 1fr;
+  }
+
+  .perfil-alerta-senha-form button {
+    width: 100%;
+  }
+}
+
 .perfil-hero {
   position: relative;
   overflow: hidden;

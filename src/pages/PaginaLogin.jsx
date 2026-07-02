@@ -12,6 +12,7 @@ const ETAPAS = {
   senha: 'senha',
   codigo: 'codigo',
   cadastro: 'cadastro',
+  criarSenha: 'criarSenha',
   recuperacao: 'recuperacao'
 };
 
@@ -45,9 +46,16 @@ export function PaginaLogin() {
   const [codigo, setCodigo] = useState('');
   const [codigoRedefinicao, setCodigoRedefinicao] = useState('');
   const [novaSenha, setNovaSenha] = useState('');
+  const [confirmacaoNovaSenha, setConfirmacaoNovaSenha] = useState('');
   const [cadastroToken, setCadastroToken] = useState('');
+  const [senhaToken, setSenhaToken] = useState('');
+  const [fluxoCodigo, setFluxoCodigo] = useState('');
   const [nomeExibicao, setNomeExibicao] = useState('');
   const [apelido, setApelido] = useState('');
+  const [senhaCadastro, setSenhaCadastro] = useState('');
+  const [confirmacaoSenhaCadastro, setConfirmacaoSenhaCadastro] = useState('');
+  const [senhaCriacao, setSenhaCriacao] = useState('');
+  const [confirmacaoSenhaCriacao, setConfirmacaoSenhaCriacao] = useState('');
   const [aceitouDocumentos, setAceitouDocumentos] = useState(false);
   const [declarouMaiorDe18, setDeclarouMaiorDe18] = useState(false);
   const [aceitouMarketing, setAceitouMarketing] = useState(false);
@@ -62,6 +70,7 @@ export function PaginaLogin() {
     iniciarAcesso,
     confirmarCodigoAcesso,
     completarCadastroPublico,
+    criarSenhaComToken,
     entrarComSenha,
     token,
     rotaInicial
@@ -73,6 +82,9 @@ export function PaginaLogin() {
   const codigoRef = useRef(null);
   const codigoRedefinicaoRef = useRef(null);
   const novaSenhaRef = useRef(null);
+  const confirmacaoNovaSenhaRef = useRef(null);
+  const senhaCadastroRef = useRef(null);
+  const senhaCriacaoRef = useRef(null);
   const nomeRef = useRef(null);
 
   const emRecuperacao = etapa === ETAPAS.recuperacao;
@@ -129,9 +141,18 @@ export function PaginaLogin() {
     setMensagem('');
     setSenha('');
     setCodigo('');
+    setCodigoRedefinicao('');
+    setNovaSenha('');
+    setConfirmacaoNovaSenha('');
     setCadastroToken('');
+    setSenhaToken('');
+    setFluxoCodigo('');
     setNomeExibicao('');
     setApelido('');
+    setSenhaCadastro('');
+    setConfirmacaoSenhaCadastro('');
+    setSenhaCriacao('');
+    setConfirmacaoSenhaCriacao('');
     setAceitouDocumentos(false);
     setDeclarouMaiorDe18(false);
     setAceitouMarketing(false);
@@ -151,13 +172,19 @@ export function PaginaLogin() {
     try {
       const resposta = await iniciarAcesso(email.trim());
       mostrarMensagemEnvio(resposta);
+
+      if (resposta?.status === 'EntrarComSenha' || resposta?.podeEntrarComSenha) {
+        setEtapa(ETAPAS.senha);
+        setTimeout(() => senhaRef.current?.focus(), 0);
+        return;
+      }
+
+      setFluxoCodigo(resposta?.status === 'CriarSenhaNecessarioCodigoEnviado'
+        ? 'criarSenha'
+        : 'cadastro');
       iniciarCooldownReenvio();
-      setEtapa(resposta?.podeEntrarComSenha ? ETAPAS.senha : ETAPAS.codigo);
+      setEtapa(ETAPAS.codigo);
       setTimeout(() => {
-        if (resposta?.podeEntrarComSenha) {
-          senhaRef.current?.focus();
-          return;
-        }
         codigoRef.current?.focus();
       }, 0);
     } catch (error) {
@@ -198,7 +225,8 @@ export function PaginaLogin() {
 
     setCarregando(true);
     try {
-      const resposta = await confirmarCodigoAcesso(email.trim(), codigo.trim());
+      const finalidade = fluxoCodigo === 'criarSenha' ? 'CriarSenhaPrimeiroAcesso' : 'CadastroPublico';
+      const resposta = await confirmarCodigoAcesso(email.trim(), codigo.trim(), finalidade);
       if (resposta?.status === 'Autenticado') {
         navegar(destinoAposLogin, { replace: true });
         return;
@@ -209,6 +237,14 @@ export function PaginaLogin() {
         setMensagem('');
         setEtapa(ETAPAS.cadastro);
         setTimeout(() => nomeRef.current?.focus(), 0);
+        return;
+      }
+
+      if (resposta?.status === 'CriarSenhaNecessario' && resposta?.senhaToken) {
+        setSenhaToken(resposta.senhaToken);
+        setMensagem('');
+        setEtapa(ETAPAS.criarSenha);
+        setTimeout(() => senhaCriacaoRef.current?.focus(), 0);
         return;
       }
 
@@ -231,6 +267,9 @@ export function PaginaLogin() {
     try {
       const resposta = await iniciarAcesso(email.trim());
       mostrarMensagemEnvio(resposta);
+      setFluxoCodigo(resposta?.status === 'CriarSenhaNecessarioCodigoEnviado'
+        ? 'criarSenha'
+        : 'cadastro');
       iniciarCooldownReenvio();
     } catch (error) {
       setErro(extrairMensagemErro(error));
@@ -245,6 +284,16 @@ export function PaginaLogin() {
 
     if (!nomeExibicao.trim()) {
       setErro('Informe como você quer aparecer no app.');
+      return;
+    }
+
+    if (!senhaCadastro.trim()) {
+      setErro('Crie uma senha para entrar.');
+      return;
+    }
+
+    if (senhaCadastro !== confirmacaoSenhaCadastro) {
+      setErro('Senha e confirmação devem ser iguais.');
       return;
     }
 
@@ -264,6 +313,8 @@ export function PaginaLogin() {
         cadastroToken,
         nomeExibicao: nomeExibicao.trim(),
         apelido: apelido.trim() || null,
+        senha: senhaCadastro,
+        confirmacaoSenha: confirmacaoSenhaCadastro,
         aceitouTermos: aceitouDocumentos,
         versaoTermos: termos.versaoTermos,
         aceitouPoliticaPrivacidade: aceitouDocumentos,
@@ -300,22 +351,68 @@ export function PaginaLogin() {
     }
   }
 
+  async function aoCriarSenhaComToken(evento) {
+    evento.preventDefault();
+    setErro('');
+
+    if (!senhaCriacao.trim()) {
+      setErro('Crie uma senha para entrar.');
+      return;
+    }
+
+    if (senhaCriacao !== confirmacaoSenhaCriacao) {
+      setErro('Senha e confirmação devem ser iguais.');
+      return;
+    }
+
+    setCarregando(true);
+    try {
+      await criarSenhaComToken({
+        senhaToken,
+        senha: senhaCriacao,
+        confirmacaoSenha: confirmacaoSenhaCriacao
+      });
+      navegar(destinoAposLogin, { replace: true });
+    } catch (error) {
+      setErro(extrairMensagemErro(error));
+    } finally {
+      setCarregando(false);
+    }
+  }
+
   async function aoRedefinirSenha(evento) {
     evento.preventDefault();
     setErro('');
 
+    if (!codigoRedefinicao.trim()) {
+      setErro('Informe o código recebido por e-mail.');
+      return;
+    }
+
+    if (!novaSenha.trim()) {
+      setErro('Informe a nova senha.');
+      return;
+    }
+
+    if (novaSenha !== confirmacaoNovaSenha) {
+      setErro('Senha e confirmação devem ser iguais.');
+      return;
+    }
+
     setCarregando(true);
     try {
-      await autenticacaoServico.redefinirSenha({
-        email: email.trim(),
-        codigo: codigoRedefinicao.trim(),
-        novaSenha
+      const confirmacao = await confirmarCodigoAcesso(email.trim(), codigoRedefinicao.trim(), 'RedefinirSenha');
+      if (confirmacao?.status !== 'RedefinirSenha' || !confirmacao?.senhaToken) {
+        setErro('Não foi possível confirmar o código. Solicite um novo código.');
+        return;
+      }
+
+      await criarSenhaComToken({
+        senhaToken: confirmacao.senhaToken,
+        senha: novaSenha,
+        confirmacaoSenha: confirmacaoNovaSenha
       });
-      setMensagem('Senha redefinida com sucesso. Faça login com a nova senha.');
-      setEtapa(ETAPAS.senha);
-      setSenha('');
-      setCodigoRedefinicao('');
-      setNovaSenha('');
+      navegar(destinoAposLogin, { replace: true });
     } catch (error) {
       setErro(extrairMensagemErro(error));
     } finally {
@@ -395,15 +492,6 @@ export function PaginaLogin() {
 
         <button type="submit" className="botao-primario" disabled={carregando}>
           {carregando ? 'Entrando...' : 'Entrar'}
-        </button>
-
-        <button
-          type="button"
-          className="botao-secundario"
-          onClick={() => setEtapa(ETAPAS.codigo)}
-          disabled={carregando}
-        >
-          Entrar com código enviado por e-mail
         </button>
 
         <div className="login-acoes-secundarias">
@@ -514,6 +602,41 @@ export function PaginaLogin() {
           </span>
         </label>
 
+        <label className="campo-login-icone">
+          Crie uma senha
+          <span>
+            <FaLock aria-hidden="true" />
+            <input
+              ref={senhaCadastroRef}
+              type="password"
+              autoComplete="new-password"
+              enterKeyHint="next"
+              value={senhaCadastro}
+              onChange={(evento) => setSenhaCadastro(evento.target.value)}
+              onFocus={scrollFocusedInputIntoView}
+              placeholder="Mínimo 6 caracteres"
+              required
+            />
+          </span>
+        </label>
+
+        <label className="campo-login-icone">
+          Confirme sua senha
+          <span>
+            <FaLock aria-hidden="true" />
+            <input
+              type="password"
+              autoComplete="new-password"
+              enterKeyHint="done"
+              value={confirmacaoSenhaCadastro}
+              onChange={(evento) => setConfirmacaoSenhaCadastro(evento.target.value)}
+              onFocus={scrollFocusedInputIntoView}
+              placeholder="Digite a senha novamente"
+              required
+            />
+          </span>
+        </label>
+
         <label className="campo-checkbox">
           <input
             type="checkbox"
@@ -551,6 +674,54 @@ export function PaginaLogin() {
 
         <button type="submit" className="botao-primario" disabled={carregando}>
           {carregando ? 'Criando conta...' : 'Criar conta e entrar'}
+        </button>
+      </form>
+    );
+  }
+
+  function renderizarFormularioCriarSenha() {
+    return (
+      <form onSubmit={aoCriarSenhaComToken} className="formulario-grid unico">
+        <label className="campo-login-icone">
+          Crie sua senha
+          <span>
+            <FaLock aria-hidden="true" />
+            <input
+              ref={senhaCriacaoRef}
+              type="password"
+              autoComplete="new-password"
+              enterKeyHint="next"
+              value={senhaCriacao}
+              onChange={(evento) => setSenhaCriacao(evento.target.value)}
+              onFocus={scrollFocusedInputIntoView}
+              placeholder="Mínimo 6 caracteres"
+              required
+            />
+          </span>
+        </label>
+
+        <label className="campo-login-icone">
+          Confirme sua senha
+          <span>
+            <FaLock aria-hidden="true" />
+            <input
+              type="password"
+              autoComplete="new-password"
+              enterKeyHint="done"
+              value={confirmacaoSenhaCriacao}
+              onChange={(evento) => setConfirmacaoSenhaCriacao(evento.target.value)}
+              onFocus={scrollFocusedInputIntoView}
+              placeholder="Digite a senha novamente"
+              required
+            />
+          </span>
+        </label>
+
+        {erro && <p className="texto-erro">{erro}</p>}
+        {mensagem && <p className="texto-sucesso">{mensagem}</p>}
+
+        <button type="submit" className="botao-primario" disabled={carregando}>
+          {carregando ? 'Criando senha...' : 'Criar senha e entrar'}
         </button>
       </form>
     );
@@ -620,11 +791,30 @@ export function PaginaLogin() {
               ref={novaSenhaRef}
               type="password"
               autoComplete="new-password"
-              enterKeyHint="done"
+              enterKeyHint="next"
               value={novaSenha}
               onChange={(evento) => setNovaSenha(evento.target.value)}
               onFocus={scrollFocusedInputIntoView}
+              onKeyDown={(evento) => aoPressionarEnterParaProximo(evento, () => focusNextField(confirmacaoNovaSenhaRef))}
               placeholder="Mínimo 6 caracteres"
+              required
+            />
+          </span>
+        </label>
+
+        <label className="campo-login-icone">
+          Confirme sua senha
+          <span>
+            <FaLock aria-hidden="true" />
+            <input
+              ref={confirmacaoNovaSenhaRef}
+              type="password"
+              autoComplete="new-password"
+              enterKeyHint="done"
+              value={confirmacaoNovaSenha}
+              onChange={(evento) => setConfirmacaoNovaSenha(evento.target.value)}
+              onFocus={scrollFocusedInputIntoView}
+              placeholder="Digite a senha novamente"
               required
             />
           </span>
@@ -634,7 +824,7 @@ export function PaginaLogin() {
         {mensagem && <p className="texto-sucesso">{mensagem}</p>}
 
         <button type="submit" className="botao-primario" disabled={carregando}>
-          {carregando ? 'Redefinindo...' : 'Redefinir senha'}
+          {carregando ? 'Redefinindo...' : 'Redefinir senha e entrar'}
         </button>
 
         <button type="button" className="botao-link login-recuperacao-link" onClick={voltarParaEmail} disabled={carregando || carregandoCodigo}>
@@ -645,20 +835,26 @@ export function PaginaLogin() {
   }
 
   const titulo = etapa === ETAPAS.codigo
-    ? 'Confira seu e-mail'
+    ? (fluxoCodigo === 'criarSenha' ? 'Encontramos sua conta' : 'Confira seu e-mail')
     : etapa === ETAPAS.cadastro
       ? 'Complete seu cadastro'
-      : etapa === ETAPAS.recuperacao
-        ? 'Redefinir senha'
-        : 'Entrar no QuebraNunca';
+      : etapa === ETAPAS.criarSenha
+        ? 'Crie sua senha'
+        : etapa === ETAPAS.recuperacao
+          ? 'Redefinir senha'
+          : 'Entrar no QuebraNunca';
 
   const subtitulo = etapa === ETAPAS.codigo
-    ? 'Enviamos um código de acesso para seu e-mail.'
+    ? (fluxoCodigo === 'criarSenha'
+      ? 'Para continuar, confirme seu e-mail e crie uma senha.'
+      : 'Enviamos um código de acesso para seu e-mail.')
     : etapa === ETAPAS.cadastro
       ? 'Só precisamos dessas informações para criar seu perfil no QuebraNunca.'
-      : emRecuperacao
-        ? 'Redefina sua senha com o código recebido por e-mail.'
-        : 'Use seu e-mail para entrar ou criar sua conta.';
+      : etapa === ETAPAS.criarSenha
+        ? 'Você usará essa senha para acessar o QuebraNunca nas próximas vezes.'
+        : emRecuperacao
+          ? 'Redefina sua senha com o código recebido por e-mail.'
+          : 'Use seu e-mail para entrar ou criar sua conta.';
 
   return (
     <section className="pagina-login">
@@ -679,6 +875,7 @@ export function PaginaLogin() {
         {etapa === ETAPAS.senha && renderizarFormularioSenha()}
         {etapa === ETAPAS.codigo && renderizarFormularioCodigo()}
         {etapa === ETAPAS.cadastro && renderizarFormularioCadastro()}
+        {etapa === ETAPAS.criarSenha && renderizarFormularioCriarSenha()}
         {etapa === ETAPAS.recuperacao && renderizarFormularioRecuperacao()}
 
         <p className="login-link-privacidade">
