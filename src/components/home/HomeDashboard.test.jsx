@@ -16,23 +16,25 @@ vi.mock('../../hooks/useAutenticacao', () => ({
   })
 }));
 
-vi.mock('../../contexts/NotificationContext', () => ({
-  useNotification: () => ({
-    showNotification: vi.fn()
-  })
-}));
-
-vi.mock('../../services/partidaFeedServico', () => ({
-  partidaFeedServico: {
-    listar: vi.fn().mockResolvedValue({ itens: [] })
-  }
-}));
-
 function criarModulo(dados, overrides = {}) {
   return {
     dados,
     carregando: false,
     erro: '',
+    ...overrides
+  };
+}
+
+function criarPartida(overrides = {}) {
+  return {
+    id: 'partida-1',
+    resultado: 'W',
+    dataPartida: new Date().toISOString(),
+    grupo: 'Grupo Praia',
+    parceiro: 'Duda',
+    adversarios: 'Rafa e Leo',
+    placarSuaDupla: 21,
+    placarAdversarios: 18,
     ...overrides
   };
 }
@@ -50,36 +52,31 @@ function criarModulos(overrides = {}) {
       vitorias: 7,
       derrotas: 5,
       aproveitamento: 58,
-      sequenciaAtual: 0
+      sequenciaAtual: 2
     }),
     gamificacao: criarModulo({
-      pontuacao: {
-        saldoAtual: 0,
-        temAtletaVinculado: true
-      },
       nivel: {
-        nome: 'Bronze',
-        progressoPercentual: 0,
-        pontosProximaFaixa: 500,
-        pontosRestantes: 500
-      },
-      proximosBeneficios: []
+        nome: 'Bronze'
+      }
     }),
     pendencias: criarModulo({
-      total: 9,
+      total: 0,
       altaPrioridade: 0
     }),
-    insights: criarModulo([]),
-    ultimasPartidas: criarModulo([]),
+    ultimasPartidas: criarModulo([criarPartida()]),
     conexoes: criarModulo({
-      melhoresParceiros: [],
-      rivaisMaisEnfrentados: [],
-      parceirosRecentes: [],
-      rivaisRecentes: []
+      melhoresParceiros: [
+        {
+          atletaId: 'atleta-2',
+          nome: 'Duda',
+          partidas: 6,
+          vitorias: 4,
+          derrotas: 2,
+          aproveitamento: 66
+        }
+      ],
+      parceirosRecentes: []
     }),
-    frequencia: criarModulo([
-      { data: '2026-06-15', quantidade: 8 }
-    ]),
     ...overrides
   };
 }
@@ -101,116 +98,103 @@ function renderizarHome({ modulos = criarModulos(), rota = '/app' } = {}) {
   );
 }
 
-function obterCardPrincipal() {
-  return screen.getByRole('region', { name: /card principal da home/i });
-}
-
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
 });
 
-describe('HomeDashboard - Card 1 consolidado', () => {
-  it('renderiza Seu momento, Pontos QN, Pendências e ações no Card 1', () => {
+describe('HomeDashboard redesenhada', () => {
+  it('renderiza Hero integrado sem saudação antiga', () => {
     renderizarHome();
 
-    const card = obterCardPrincipal();
+    const hero = screen.getByRole('region', { name: /resumo principal da home/i });
 
-    expect(within(card).getByText(/Seu momento/i)).toBeInTheDocument();
-    expect(within(card).getByText('Primo')).toBeInTheDocument();
-    expect(within(card).getByText('Intermediario • #4 no ranking')).toBeInTheDocument();
-    expect(within(card).getByText('8 jogos esta semana')).toBeInTheDocument();
-    expect(within(card).getByText(/Pontos QN/i)).toBeInTheDocument();
-    expect(within(card).getByText('0 pontos')).toBeInTheDocument();
-    expect(within(card).getByText('Faixa Bronze')).toBeInTheDocument();
-    expect(within(card).getByText(/Pendências/i)).toBeInTheDocument();
-    expect(within(card).getByText('9 ações aguardando')).toBeInTheDocument();
-    expect(within(card).getByRole('link', { name: /Ranking/i })).toBeInTheDocument();
-    expect(within(card).getByRole('link', { name: /Registrar Partida/i })).toBeInTheDocument();
+    expect(within(hero).getByText('Primo')).toBeInTheDocument();
+    expect(within(hero).getByText('Grupo Praia')).toBeInTheDocument();
+    expect(within(hero).getByText('Faixa Bronze')).toBeInTheDocument();
+    expect(within(hero).getByRole('link', { name: /editar perfil/i })).toBeInTheDocument();
+    expect(screen.queryByText(/Boa tarde|Bom dia|Boa noite/i)).not.toBeInTheDocument();
   });
 
-  it('não renderiza Pontos QN e Pendências como seções duplicadas fora do Card 1', () => {
+  it('mostra apenas os quatro scouts principais', () => {
     renderizarHome();
 
-    expect(screen.getAllByText(/Pontos QN/i)).toHaveLength(1);
-    expect(screen.getAllByText(/Pendências/i)).toHaveLength(1);
+    const scouts = screen.getByLabelText(/Meus principais scouts/i);
+
+    expect(within(scouts).getByText('Partidas')).toBeInTheDocument();
+    expect(within(scouts).getByText('12')).toBeInTheDocument();
+    expect(within(scouts).getByText('Vitórias')).toBeInTheDocument();
+    expect(within(scouts).getByText('7')).toBeInTheDocument();
+    expect(within(scouts).getByText('Aproveitamento')).toBeInTheDocument();
+    expect(within(scouts).getByText('58%')).toBeInTheDocument();
+    expect(within(scouts).getByText('Sequência')).toBeInTheDocument();
+    expect(within(scouts).getByText('2')).toBeInTheDocument();
   });
 
-  it('mantém fallback de Pontos QN quando a gamificação falha', () => {
-    renderizarHome({
-      modulos: criarModulos({
-        gamificacao: criarModulo(null, {
-          erro: 'Falha ao carregar gamificação.'
-        })
-      })
-    });
-
-    const card = obterCardPrincipal();
-
-    expect(within(card).getByText(/Pontos QN/i)).toBeInTheDocument();
-    expect(within(card).getByText(/Seus pontos aparecem aqui/i)).toBeInTheDocument();
-    expect(within(card).getByText(/começar a somar/i)).toBeInTheDocument();
-    expect(within(card).getByRole('link', { name: /Ver pontos/i })).toBeInTheDocument();
-  });
-
-  it('mostra saldo zero, faixa Bronze e CTA de Pontos QN', () => {
-    renderizarHome();
-
-    const card = obterCardPrincipal();
-
-    expect(within(card).getByText('0 pontos')).toBeInTheDocument();
-    expect(within(card).getByText('Faixa Bronze')).toBeInTheDocument();
-    expect(within(card).getByRole('link', { name: /Ver pontos/i })).toBeInTheDocument();
-  });
-
-  it('mostra pendências com ações e texto reduzido', () => {
-    renderizarHome();
-
-    const card = obterCardPrincipal();
-
-    expect(within(card).getByText('9 ações aguardando')).toBeInTheDocument();
-    expect(within(card).getByText('Ajude a manter seu histórico confiável.')).toBeInTheDocument();
-    expect(within(card).getByRole('link', { name: /Resolver agora/i })).toBeInTheDocument();
-  });
-
-  it('mostra estado positivo quando não há pendências', () => {
-    renderizarHome({
-      modulos: criarModulos({
-        pendencias: criarModulo({ total: 0, altaPrioridade: 0 })
-      })
-    });
-
-    const card = obterCardPrincipal();
-
-    expect(within(card).getByText('Tudo em dia')).toBeInTheDocument();
-    expect(within(card).getByText('Nenhuma ação aguardando no momento.')).toBeInTheDocument();
-    expect(within(card).queryByRole('link', { name: /Resolver agora/i })).not.toBeInTheDocument();
-  });
-
-  it.each([
-    ['Ver pontos', '/app/pontos-qn'],
-    ['Resolver agora', '/app/pendencias'],
-    ['Registrar Partida', '/partidas/registrar'],
-    ['Ranking', '/ranking']
-  ])('navega pelo CTA %s para %s', async (rotulo, destino) => {
+  it('prioriza Registrar Partida e mantém Criar Grupo como ação secundária', async () => {
     const usuario = userEvent.setup();
     renderizarHome();
 
-    await usuario.click(within(obterCardPrincipal()).getByRole('link', { name: new RegExp(rotulo, 'i') }));
+    const registrar = screen.getByRole('link', { name: /Registrar Partida/i });
+    const criarGrupo = screen.getByRole('link', { name: /Criar Grupo/i });
 
-    expect(screen.getByTestId('rota-atual')).toHaveTextContent(destino);
+    expect(registrar).toHaveClass('home-dashboard-cta-principal');
+    expect(criarGrupo).toHaveClass('home-dashboard-cta-secundario');
+
+    await usuario.click(registrar);
+    expect(screen.getByTestId('rota-atual')).toHaveTextContent('/partidas/registrar');
+  });
+
+  it('renderiza os destaques aprovados', () => {
+    renderizarHome();
+
+    expect(screen.getByRole('heading', { name: /Em destaque para você/i })).toBeInTheDocument();
+    expect(screen.getByText('Ranking pessoal')).toBeInTheDocument();
+    expect(screen.getByText('#4')).toBeInTheDocument();
+    expect(screen.getByText('Dupla do momento')).toBeInTheDocument();
+    expect(screen.getByText('Duda')).toBeInTheDocument();
+    expect(screen.getByText('Parceiros frequentes')).toBeInTheDocument();
+    expect(screen.getByText('Últimos jogos')).toBeInTheDocument();
+  });
+
+  it('mostra atividade recente em timeline quando há partidas', () => {
+    renderizarHome();
+
+    const atividade = screen.getByRole('heading', { name: /Atividade recente/i }).closest('section');
+
+    expect(atividade).toBeInTheDocument();
+    expect(within(atividade).getByText('Você registrou uma partida')).toBeInTheDocument();
+    expect(within(atividade).getByText('Hoje')).toBeInTheDocument();
+    expect(within(atividade).getByText('21 x 18')).toBeInTheDocument();
+    expect(within(atividade).getByText('Vitória')).toBeInTheDocument();
+  });
+
+  it('mostra empty state bonito quando não há partidas', () => {
+    renderizarHome({
+      modulos: criarModulos({
+        ultimasPartidas: criarModulo([])
+      })
+    });
+
+    expect(screen.getByText('Sua primeira partida vai aparecer aqui.')).toBeInTheDocument();
+    expect(screen.getByText(/Registre um jogo/i)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Registrar agora/i })).toBeInTheDocument();
   });
 });
 
 describe('homeSectionsConfig', () => {
-  it('não renderiza PontosQN e PendingActions como seções independentes', () => {
+  it('reflete a nova prioridade da Home autenticada', () => {
     const secoesAtivas = homeSectionsConfig
       .filter((secao) => secao.enabled)
       .map((secao) => secao.type);
 
-    expect(secoesAtivas[0]).toBe(HomeSectionType.Hero);
-    expect(secoesAtivas[1]).toBe(HomeSectionType.Stats);
-    expect(secoesAtivas).not.toContain(HomeSectionType.PontosQN);
-    expect(secoesAtivas).not.toContain(HomeSectionType.PendingActions);
+    expect(secoesAtivas).toEqual([
+      HomeSectionType.Hero,
+      HomeSectionType.Stats,
+      HomeSectionType.PrimaryAction,
+      HomeSectionType.SecondaryAction,
+      HomeSectionType.Highlights,
+      HomeSectionType.RecentActivity
+    ]);
   });
 });

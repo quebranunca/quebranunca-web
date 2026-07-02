@@ -1,276 +1,34 @@
-import { Fragment, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   FaBell,
-  FaBolt,
   FaChartLine,
   FaChevronRight,
   FaEdit,
   FaFire,
   FaGamepad,
-  FaLock,
+  FaHistory,
   FaMedal,
   FaPlus,
-  FaShieldAlt,
   FaStar,
   FaTrophy,
-  FaUserFriends
+  FaUserFriends,
+  FaUsers
 } from 'react-icons/fa';
-import logoLiga from '../../assets/logo-liga.svg';
+import heroFutevolei from '../../assets/home-futevolei-hero.jpg';
 import { useAutenticacao } from '../../hooks/useAutenticacao';
-import { useInView } from '../../hooks/useInView';
-import { useNotification } from '../../contexts/NotificationContext';
-import { partidasServico } from '../../services/partidasServico';
-import { partidaFeedServico } from '../../services/partidaFeedServico';
-import { extrairMensagemErro } from '../../utils/erros';
 import { formatarData } from '../../utils/formatacao';
-import { podeEditarPartida } from '../../utils/permissoesPartida';
-import { NotificacoesBotao } from '../NotificacoesBotao';
-import { AvatarUsuario, obterFotoPerfilAvatar } from '../AvatarUsuario';
-import { EditarPartidaRegistradaModal } from '../partidas/EditarPartidaRegistradaModal';
-import { FeedPartidaCard } from '../partidas/FeedPartidaCard';
-import { PartidaCardPremium } from '../partidas/PartidaCardPremium';
-import { HomeSectionType, homeSectionsConfig } from './homeSectionsConfig';
-import { montarUrlDashboardDupla, obterNomeExibicaoAtletaPerfil, obterTituloAtleta } from '../../utils/atletaUtils';
 import { montarRotaPerfilAtleta } from '../../utils/perfilAtleta';
-import '../partidas/feed-partidas.css';
+import { obterNomeExibicaoAtletaPerfil } from '../../utils/atletaUtils';
+import { AvatarUsuario, obterFotoPerfilAvatar } from '../AvatarUsuario';
+import { NotificacoesBotao } from '../NotificacoesBotao';
 
 const HOME_NAVIGATION = Object.freeze({
   ranking: '/ranking',
-  feed: '/feed',
   meusJogos: '/app/meus-jogos',
   registrarPartida: '/partidas/registrar',
-  pontosQN: '/app/pontos-qn'
-  // TODO: adicionar destino de insights quando existir tela de análise completa.
+  grupos: '/grupos',
+  perfil: '/app/perfil'
 });
-
-const feedHomeHabilitado = homeSectionsConfig.some(
-  (secao) => secao.type === HomeSectionType.Feed && secao.enabled
-);
-
-const secoesHomeLazy = new Set([
-  HomeSectionType.Feed,
-  HomeSectionType.Connections,
-  HomeSectionType.Frequency
-]);
-
-const skeletonsHomePorSecao = Object.freeze({
-  [HomeSectionType.Hero]: {
-    eyebrow: 'Seu momento',
-    titulo: 'Preparando seu painel',
-    variante: 'hero'
-  },
-  [HomeSectionType.PendingActions]: {
-    eyebrow: 'Pendências',
-    titulo: 'Ações abertas',
-    variante: 'pending'
-  },
-  [HomeSectionType.PontosQN]: {
-    eyebrow: 'Pontos QN',
-    titulo: 'Carregando seus pontos',
-    variante: 'pontosqn',
-    linhas: 1
-  },
-  [HomeSectionType.Stats]: {
-    eyebrow: 'Resumo',
-    titulo: 'Estatísticas rápidas',
-    variante: 'stats'
-  },
-  [HomeSectionType.Insights]: {
-    eyebrow: 'Insights',
-    titulo: 'Leitura rápida',
-    variante: 'insights',
-    linhas: 3
-  },
-  [HomeSectionType.RecentMatches]: {
-    eyebrow: 'Últimas partidas',
-    titulo: 'Seu ritmo recente',
-    variante: 'matches',
-    linhas: 2
-  },
-  [HomeSectionType.Feed]: {
-    eyebrow: 'Feed',
-    titulo: 'Jogos da comunidade',
-    variante: 'feed',
-    linhas: 3
-  },
-  [HomeSectionType.Connections]: {
-    eyebrow: 'Conexões',
-    titulo: 'Quem joga com você',
-    variante: 'connections',
-    linhas: 2
-  },
-  [HomeSectionType.Frequency]: {
-    eyebrow: 'Frequência',
-    titulo: 'Ritmo da semana',
-    variante: 'frequency',
-    linhas: 1
-  }
-});
-
-function nomeAtleta(item) {
-  return obterNomeExibicaoAtletaPerfil(item) || 'Atleta';
-}
-
-function tituloAtleta(item) {
-  return obterTituloAtleta(item) || nomeAtleta(item);
-}
-
-function formatarPercentual(valor) {
-  const numero = Number(valor ?? 0);
-  return `${Number.isInteger(numero) ? numero : numero.toFixed(1)}%`;
-}
-
-function obterIconeInsight(insight) {
-  const texto = insight.toLowerCase();
-
-  if (texto.includes('sequência') || texto.includes('vitória')) {
-    return <FaFire aria-hidden="true" />;
-  }
-
-  if (texto.includes('ranking') || texto.includes('posição')) {
-    return <FaChartLine aria-hidden="true" />;
-  }
-
-  if (texto.includes('parceiro')) {
-    return <FaUserFriends aria-hidden="true" />;
-  }
-
-  return <FaBolt aria-hidden="true" />;
-}
-
-function obterNivelHeatmap(quantidade) {
-  if (!quantidade) return 0;
-  if (quantidade === 1) return 1;
-  if (quantidade === 2) return 2;
-  return 3;
-}
-
-function obterContextoPartidaHome(partida) {
-  return partida?.grupo || partida?.categoria || partida?.competicao || 'Geral';
-}
-
-function obterResultadoPartidaHome(partida) {
-  if (partida?.resultado === 'W') {
-    return 'Vitória';
-  }
-
-  if (partida?.resultado === 'L') {
-    return 'Derrota';
-  }
-
-  return partida?.resultado || 'Pendente';
-}
-
-function atletaEstaNaDuplaHome(partida, atletaId, lado) {
-  if (!partida || !atletaId) {
-    return false;
-  }
-
-  const prefixo = lado === 'A' ? 'duplaA' : 'duplaB';
-  return partida[`${prefixo}Atleta1Id`] === atletaId || partida[`${prefixo}Atleta2Id`] === atletaId;
-}
-
-function obterIdsDuplasPartidaHome(partida, atletaId) {
-  const usuarioNaDuplaA = atletaEstaNaDuplaHome(partida, atletaId, 'A');
-  const prefixoMinhaDupla = usuarioNaDuplaA ? 'duplaA' : 'duplaB';
-  const prefixoAdversarios = usuarioNaDuplaA ? 'duplaB' : 'duplaA';
-
-  return {
-    minhaDupla: [
-      partida?.[`${prefixoMinhaDupla}Atleta1Id`],
-      partida?.[`${prefixoMinhaDupla}Atleta2Id`]
-    ],
-    adversarios: [
-      partida?.[`${prefixoAdversarios}Atleta1Id`],
-      partida?.[`${prefixoAdversarios}Atleta2Id`]
-    ]
-  };
-}
-
-function obterDestinoResumoRapido(itemId, atletaId, usuario) {
-  if (itemId === 'aproveitamento' && atletaId) {
-    return montarRotaPerfilAtleta(atletaId, usuario);
-  }
-
-  if (['partidas', 'vitorias', 'sequencia'].includes(itemId)) {
-    return HOME_NAVIGATION.meusJogos;
-  }
-
-  return '';
-}
-
-function obterDestinoConexao(item, tipo, atletaId, usuario) {
-  if (tipo === 'parceiro') {
-    return montarUrlDashboardDupla(atletaId, item?.atletaId);
-  }
-
-  if (item?.atletaId) {
-    return montarRotaPerfilAtleta(item.atletaId, usuario);
-  }
-
-  return '';
-}
-
-function obterSaudacao() {
-  const hora = new Date().getHours();
-
-  if (hora < 12) {
-    return 'Bom dia';
-  }
-
-  if (hora < 18) {
-    return 'Boa tarde';
-  }
-
-  return 'Boa noite';
-}
-
-function obterBadgeMomento(resumo, perfil, totalJogosPeriodo) {
-  const sequencia = Number(resumo?.sequenciaAtual ?? 0);
-
-  if (sequencia >= 2) {
-    return `${sequencia} vitórias seguidas`;
-  }
-
-  if (totalJogosPeriodo > 0) {
-    return `${totalJogosPeriodo} jogo${totalJogosPeriodo > 1 ? 's' : ''} esta semana`;
-  }
-
-  return perfil?.textoSequencia || 'Pronto para o próximo jogo';
-}
-
-function formatarPontosQN(valor) {
-  return Number(valor || 0).toLocaleString('pt-BR');
-}
-
-function formatarFaixaQN(nome) {
-  const valor = nome || 'Bronze';
-  return valor.toLowerCase().includes('lenda') ? valor : `Faixa ${valor}`;
-}
-
-function obterTextoProgressoQN(nivel) {
-  if (!nivel) {
-    return 'Jogue para evoluir sua faixa.';
-  }
-
-  if (!nivel.pontosProximaFaixa) {
-    return 'Você chegou à faixa Lenda QN.';
-  }
-
-  return `Faltam ${formatarPontosQN(nivel.pontosRestantes)} pontos para a próxima faixa.`;
-}
-
-function HomeEstado({ titulo, mensagem }) {
-  return (
-    <section className="pagina home-dashboard">
-      <div className="cartao home-dashboard-estado">
-        <strong>{titulo}</strong>
-        {mensagem && <p>{mensagem}</p>}
-      </div>
-    </section>
-  );
-}
 
 function obterEstadoModulo(modulos, chave, dadosPadrao = null) {
   return modulos?.[chave] || {
@@ -284,60 +42,93 @@ function obterDadosModulo(modulo, fallback) {
   return modulo?.dados ?? fallback;
 }
 
-function moduloCarregandoSemDados(modulo) {
-  return Boolean(modulo?.carregando && !modulo?.dados);
+function nomeAtleta(item) {
+  return obterNomeExibicaoAtletaPerfil(item) || 'Atleta';
 }
 
-export function HomeDashboard({ modulos, dashboard, carregando, erro, onAtualizar }) {
+function formatarPercentual(valor) {
+  const numero = Number(valor ?? 0);
+  return `${Number.isInteger(numero) ? numero : numero.toFixed(1)}%`;
+}
+
+function formatarFaixa(nome) {
+  const valor = String(nome || '').trim();
+  return valor ? `Faixa ${valor}` : 'Faixa Bronze';
+}
+
+function obterGrupoAtual(ultimasPartidas) {
+  const grupo = ultimasPartidas.find((partida) => partida?.grupo)?.grupo;
+  return grupo || 'Sem grupo ativo';
+}
+
+function formatarDataAtividade(data) {
+  if (!data) {
+    return 'Data a confirmar';
+  }
+
+  const hoje = new Date();
+  const referencia = new Date(data);
+
+  if (Number.isNaN(referencia.getTime())) {
+    return 'Data a confirmar';
+  }
+
+  const hojeLocal = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate()).getTime();
+  const dataLocal = new Date(referencia.getFullYear(), referencia.getMonth(), referencia.getDate()).getTime();
+  const diferencaDias = Math.round((hojeLocal - dataLocal) / 86400000);
+
+  if (diferencaDias === 0) {
+    return 'Hoje';
+  }
+
+  if (diferencaDias === 1) {
+    return 'Ontem';
+  }
+
+  return formatarData(data);
+}
+
+function obterResultadoPartida(partida) {
+  if (partida?.resultado === 'W') {
+    return 'Vitória';
+  }
+
+  if (partida?.resultado === 'L') {
+    return 'Derrota';
+  }
+
+  return partida?.resultado || 'Pendente';
+}
+
+function obterPlacarPartida(partida) {
+  const placarSuaDupla = partida?.placarSuaDupla;
+  const placarAdversarios = partida?.placarAdversarios;
+
+  if (
+    placarSuaDupla === null ||
+    placarSuaDupla === undefined ||
+    placarAdversarios === null ||
+    placarAdversarios === undefined
+  ) {
+    return 'Placar pendente';
+  }
+
+  return `${placarSuaDupla} x ${placarAdversarios}`;
+}
+
+function HomeEstado({ titulo, mensagem }) {
+  return (
+    <section className="pagina home-dashboard">
+      <div className="home-dashboard-empty-state home-dashboard-estado">
+        <strong>{titulo}</strong>
+        {mensagem && <p>{mensagem}</p>}
+      </div>
+    </section>
+  );
+}
+
+export function HomeDashboard({ modulos, dashboard, carregando, erro }) {
   const { usuario } = useAutenticacao();
-  const { showNotification } = useNotification();
-  const [insightsExpandidos, setInsightsExpandidos] = useState(false);
-  const [partidaEmEdicao, setPartidaEmEdicao] = useState(null);
-  const [salvandoEdicao, setSalvandoEdicao] = useState(false);
-  const [erroEdicao, setErroEdicao] = useState('');
-  const [feedPartidas, setFeedPartidas] = useState([]);
-  const [feedCarregando, setFeedCarregando] = useState(true);
-  const [feedErro, setFeedErro] = useState('');
-  const [feedLiberado, setFeedLiberado] = useState(!feedHomeHabilitado);
-
-  useEffect(() => {
-    let ativo = true;
-
-    async function carregarFeed() {
-      if (!feedHomeHabilitado) {
-        setFeedCarregando(false);
-        return;
-      }
-
-      if (!feedLiberado) {
-        return;
-      }
-
-      setFeedCarregando(true);
-      setFeedErro('');
-
-      try {
-        const resposta = await partidaFeedServico.listar({ page: 1, pageSize: 2 });
-        if (ativo) {
-          setFeedPartidas(resposta.itens || []);
-        }
-      } catch (falha) {
-        if (ativo) {
-          setFeedErro(extrairMensagemErro(falha));
-        }
-      } finally {
-        if (ativo) {
-          setFeedCarregando(false);
-        }
-      }
-    }
-
-    carregarFeed();
-
-    return () => {
-      ativo = false;
-    };
-  }, [feedLiberado]);
 
   if (carregando) {
     return <HomeDashboardSkeleton />;
@@ -352,287 +143,285 @@ export function HomeDashboard({ modulos, dashboard, carregando, erro, onAtualiza
   }
 
   const perfilModulo = obterEstadoModulo(modulos, 'perfil', dashboard?.perfil || null);
-  const pendenciasModulo = obterEstadoModulo(modulos, 'pendencias', null);
   const resumoModulo = obterEstadoModulo(modulos, 'resumo', dashboard?.resumo || null);
   const gamificacaoModulo = obterEstadoModulo(modulos, 'gamificacao', null);
-  const insightsModulo = obterEstadoModulo(modulos, 'insights', dashboard?.insights || []);
+  const pendenciasModulo = obterEstadoModulo(modulos, 'pendencias', null);
   const ultimasPartidasModulo = obterEstadoModulo(modulos, 'ultimasPartidas', dashboard?.ultimasPartidas || []);
   const conexoesModulo = obterEstadoModulo(modulos, 'conexoes', {
     melhoresParceiros: dashboard?.melhoresParceiros || [],
-    rivaisMaisEnfrentados: dashboard?.rivaisMaisEnfrentados || [],
-    parceirosRecentes: dashboard?.parceirosRecentes || [],
-    rivaisRecentes: dashboard?.rivaisRecentes || []
+    parceirosRecentes: dashboard?.parceirosRecentes || []
   });
-  const frequenciaModulo = obterEstadoModulo(modulos, 'frequencia', dashboard?.heatmap || []);
-  const perfil = obterDadosModulo(perfilModulo, {});
-  const resumoPendencias = obterDadosModulo(pendenciasModulo, null);
-  const resumo = obterDadosModulo(resumoModulo, {});
+
+  const perfil = obterDadosModulo(perfilModulo, {}) || {};
+  const resumo = obterDadosModulo(resumoModulo, {}) || {};
   const gamificacaoResumo = obterDadosModulo(gamificacaoModulo, null);
-  const heatmap = obterDadosModulo(frequenciaModulo, []);
+  const resumoPendencias = obterDadosModulo(pendenciasModulo, null);
   const ultimasPartidas = (obterDadosModulo(ultimasPartidasModulo, []) || []).slice(0, 3);
   const conexoes = obterDadosModulo(conexoesModulo, {}) || {};
   const melhoresParceiros = conexoes.melhoresParceiros || [];
-  const rivaisMaisEnfrentados = conexoes.rivaisMaisEnfrentados || [];
   const parceirosRecentes = conexoes.parceirosRecentes || [];
-  const rivaisRecentes = conexoes.rivaisRecentes || [];
-  const insights = obterDadosModulo(insightsModulo, []) || [];
-  const insightsVisiveis = insightsExpandidos ? insights : insights.slice(0, 3);
+  const parceiroMomento = melhoresParceiros[0] || parceirosRecentes[0] || null;
   const nomePrincipal = nomeAtleta({
     nome: perfil.nome || usuario?.nome,
     apelido: perfil.apelido || usuario?.apelido
   });
   const fotoPerfilUrl = obterFotoPerfilAvatar(perfil) || obterFotoPerfilAvatar(usuario);
-  const saudacao = obterSaudacao();
-
-  const diasSemana = [
-    { indice: 1, nome: 'Seg' },
-    { indice: 2, nome: 'Ter' },
-    { indice: 3, nome: 'Qua' },
-    { indice: 4, nome: 'Qui' },
-    { indice: 5, nome: 'Sex' },
-    { indice: 6, nome: 'Sáb' },
-    { indice: 0, nome: 'Dom' }
-  ];
-
-  const frequenciaPorDiaSemana = diasSemana.map((diaSemana) => {
-    const total = heatmap
-      .filter((dia) => {
-        const data = new Date(`${dia.data}T00:00:00`);
-        return data.getDay() === diaSemana.indice;
-      })
-      .reduce((soma, dia) => soma + dia.quantidade, 0);
-
-    return { ...diaSemana, total };
-  });
-
-  const maiorTotalDiaSemana = Math.max(
-    ...frequenciaPorDiaSemana.map((dia) => dia.total),
-    1
-  );
-
-  const totalDiasJogados = heatmap.filter((dia) => dia.quantidade > 0).length;
-  const totalJogosPeriodo = heatmap.reduce((total, dia) => total + dia.quantidade, 0);
-  const badgeMomento = obterBadgeMomento(resumo, perfil, totalJogosPeriodo);
+  const perfilDestino = montarRotaPerfilAtleta(perfil.atletaId || usuario?.atletaId, usuario) || HOME_NAVIGATION.perfil;
+  const grupoAtual = obterGrupoAtual(ultimasPartidas);
+  const faixa = formatarFaixa(gamificacaoResumo?.nivel?.nome || perfil.categoriaPrincipal);
   const pendenciaCriarSenha = Array.isArray(usuario?.pendenciasConta)
     ? usuario.pendenciasConta.find((pendencia) => pendencia?.tipo === 'CriarSenha')
     : null;
   const deveCriarSenhaConta = Boolean(pendenciaCriarSenha) ||
     usuario?.possuiSenha === false ||
     usuario?.senhaCadastrada === false;
-  const resumoRapido = [
+
+  const scouts = [
     {
       id: 'partidas',
       rotulo: 'Partidas',
       valor: resumo.totalPartidas ?? 0,
-      complemento: 'registradas',
-      icone: FaGamepad,
-      destino: obterDestinoResumoRapido('partidas', perfil.atletaId, usuario)
+      icone: FaGamepad
     },
     {
       id: 'vitorias',
       rotulo: 'Vitórias',
       valor: resumo.vitorias ?? 0,
-      complemento: `${resumo.derrotas ?? 0} derrotas`,
-      icone: FaTrophy,
-      destino: obterDestinoResumoRapido('vitorias', perfil.atletaId, usuario)
+      icone: FaTrophy
     },
     {
       id: 'aproveitamento',
       rotulo: 'Aproveitamento',
-      valor: `${resumo.aproveitamento ?? perfil.aproveitamento ?? 0}%`,
-      complemento: 'no histórico',
-      icone: FaChartLine,
-      destino: obterDestinoResumoRapido('aproveitamento', perfil.atletaId, usuario)
+      valor: formatarPercentual(resumo.aproveitamento ?? perfil.aproveitamento ?? 0),
+      icone: FaChartLine
     },
     {
       id: 'sequencia',
       rotulo: 'Sequência',
-      valor: resumo.sequenciaAtual ?? 0,
-      complemento: perfil.textoSequencia || 'ritmo atual',
-      icone: FaFire,
-      destino: obterDestinoResumoRapido('sequencia', perfil.atletaId, usuario)
+      valor: resumo.sequenciaAtual ?? perfil.sequenciaAtual ?? 0,
+      icone: FaFire
     }
   ];
 
-  const renderizadoresSecoes = {
-    [HomeSectionType.Hero]: () => moduloCarregandoSemDados(perfilModulo) ? (
-      <HomeSecaoSkeleton sectionType={HomeSectionType.Hero} />
-    ) : (
-      <HomeHeroSection
-        nomePrincipal={nomePrincipal}
-        fotoPerfilUrl={fotoPerfilUrl}
-        perfil={perfil}
-        badgeMomento={badgeMomento}
-        perfilDestino={montarRotaPerfilAtleta(perfil.atletaId || usuario?.atletaId, usuario)}
-        erro={perfilModulo.erro}
-        gamificacaoResumo={gamificacaoResumo}
-        gamificacaoCarregando={gamificacaoModulo.carregando}
-        gamificacaoErro={gamificacaoModulo.erro}
-        resumoPendencias={resumoPendencias}
-        pendenciasCarregando={pendenciasModulo.carregando}
-        pendenciasErro={pendenciasModulo.erro}
-      />
-    ),
-    [HomeSectionType.Stats]: () => moduloCarregandoSemDados(resumoModulo) ? (
-      <HomeSecaoSkeleton sectionType={HomeSectionType.Stats} />
-    ) : (
-      <HomeResumoRapidoSection itens={resumoRapido} erro={resumoModulo.erro} />
-    ),
-    [HomeSectionType.Insights]: () => moduloCarregandoSemDados(insightsModulo) ? (
-      <HomeSecaoSkeleton sectionType={HomeSectionType.Insights} />
-    ) : (
-      <HomeInsightsSection
-        insights={insights}
-        insightsVisiveis={insightsVisiveis}
-        insightsExpandidos={insightsExpandidos}
-        onAlternarInsights={() => setInsightsExpandidos((valor) => !valor)}
-        erro={insightsModulo.erro}
-      />
-    ),
-    [HomeSectionType.RecentMatches]: () => moduloCarregandoSemDados(ultimasPartidasModulo) ? (
-      <HomeSecaoSkeleton sectionType={HomeSectionType.RecentMatches} />
-    ) : (
-      <HomeUltimasPartidasSection
-        ultimasPartidas={ultimasPartidas}
-        perfil={perfil}
-        usuario={usuario}
-        onAbrirEdicao={abrirEdicao}
-        erro={ultimasPartidasModulo.erro}
-      />
-    ),
-    [HomeSectionType.Feed]: () => (
-      <HomeFeedSection
-        feedCarregando={feedCarregando}
-        feedErro={feedErro}
-        feedPartidas={feedPartidas}
-      />
-    ),
-    [HomeSectionType.Connections]: () => moduloCarregandoSemDados(conexoesModulo) ? (
-      <HomeSecaoSkeleton sectionType={HomeSectionType.Connections} />
-    ) : (
-      <HomeConexoesSection
-        melhoresParceiros={melhoresParceiros}
-        rivaisMaisEnfrentados={rivaisMaisEnfrentados}
-        parceirosRecentes={parceirosRecentes}
-        rivaisRecentes={rivaisRecentes}
-        atletaId={perfil.atletaId}
-        usuario={usuario}
-        erro={conexoesModulo.erro}
-      />
-    ),
-    [HomeSectionType.Frequency]: () => moduloCarregandoSemDados(frequenciaModulo) ? (
-      <HomeSecaoSkeleton sectionType={HomeSectionType.Frequency} />
-    ) : (
-      <HomeFrequenciaSection
-        frequenciaPorDiaSemana={frequenciaPorDiaSemana}
-        maiorTotalDiaSemana={maiorTotalDiaSemana}
-        totalDiasJogados={totalDiasJogados}
-        totalJogosPeriodo={totalJogosPeriodo}
-        erro={frequenciaModulo.erro}
-      />
-    )
-  };
-
-  function abrirEdicao(partida) {
-    setErroEdicao('');
-    setPartidaEmEdicao(partida);
-  }
-
-  function fecharEdicao() {
-    if (!salvandoEdicao) {
-      setErroEdicao('');
-      setPartidaEmEdicao(null);
+  const destaques = [
+    {
+      id: 'ranking',
+      titulo: 'Ranking pessoal',
+      valor: perfil.posicaoRanking ? `#${perfil.posicaoRanking}` : 'Sem ranking',
+      descricao: perfil.posicaoRanking ? 'posição atual' : 'jogue para ranquear',
+      icone: FaMedal,
+      destino: HOME_NAVIGATION.ranking
+    },
+    {
+      id: 'dupla',
+      titulo: 'Dupla do momento',
+      valor: parceiroMomento ? nomeAtleta(parceiroMomento) : 'A descobrir',
+      descricao: parceiroMomento ? `${formatarPercentual(parceiroMomento.aproveitamento)} juntos` : 'registre partidas em dupla',
+      icone: FaStar,
+      destino: HOME_NAVIGATION.meusJogos
+    },
+    {
+      id: 'parceiros',
+      titulo: 'Parceiros frequentes',
+      valor: String(melhoresParceiros.length || parceirosRecentes.length || 0),
+      descricao: 'conexões recentes',
+      icone: FaUserFriends,
+      destino: HOME_NAVIGATION.meusJogos
+    },
+    {
+      id: 'jogos',
+      titulo: 'Últimos jogos',
+      valor: String(ultimasPartidas.length),
+      descricao: ultimasPartidas[0] ? obterResultadoPartida(ultimasPartidas[0]) : 'sem atividade',
+      icone: FaHistory,
+      destino: HOME_NAVIGATION.meusJogos
     }
-  }
-
-  async function salvarEdicao(dados) {
-    if (!partidaEmEdicao) {
-      return;
-    }
-
-    setSalvandoEdicao(true);
-    setErroEdicao('');
-
-    try {
-      const partidaAtualizada = await partidasServico.atualizarBasica(partidaEmEdicao.id, dados);
-      await onAtualizar?.();
-      showNotification({
-        type: 'success',
-        title: 'Partida atualizada',
-        message: 'Partida atualizada com sucesso.'
-      });
-      return partidaAtualizada;
-    } catch (falha) {
-      const mensagem = extrairMensagemErro(falha);
-      setErroEdicao(mensagem);
-      showNotification({
-        type: 'error',
-        title: 'Erro ao editar partida',
-        message: mensagem
-      });
-      throw falha;
-    } finally {
-      setSalvandoEdicao(false);
-    }
-  }
+  ];
 
   return (
     <section className="pagina home-dashboard">
-      <HomeDashboardHeader
-        nome={nomePrincipal}
-        saudacao={saudacao}
+      <HomeHero
+        nomePrincipal={nomePrincipal}
+        fotoPerfilUrl={fotoPerfilUrl}
+        grupoAtual={grupoAtual}
+        faixa={faixa}
+        perfilDestino={perfilDestino}
         resumoPendencias={resumoPendencias}
       />
 
       {deveCriarSenhaConta && (
-        <Link to="/app/perfil" className="home-dashboard-alerta-senha">
-          <span><FaLock aria-hidden="true" /></span>
+        <Link to={HOME_NAVIGATION.perfil} className="home-dashboard-alerta-senha">
+          <span><FaBell aria-hidden="true" /></span>
           <strong>Crie sua senha para continuar acessando sua conta com segurança.</strong>
           <em>Criar senha agora</em>
         </Link>
       )}
 
-      {homeSectionsConfig
-        .filter((secao) => secao.enabled)
-        .map((secao) => {
-          const renderizarSecao = renderizadoresSecoes[secao.type];
-          if (!renderizarSecao) {
-            return null;
-          }
+      <HomeScouts scouts={scouts} erro={resumoModulo.erro} />
 
-          const conteudo = renderizarSecao();
+      <HomeAcoesPrincipais />
 
-          if (!secoesHomeLazy.has(secao.type)) {
+      <HomeDestaques destaques={destaques} />
+
+      <HomeAtividadeRecente
+        ultimasPartidas={ultimasPartidas}
+        erro={ultimasPartidasModulo.erro}
+      />
+    </section>
+  );
+}
+
+function HomeHero({ nomePrincipal, fotoPerfilUrl, grupoAtual, faixa, perfilDestino, resumoPendencias }) {
+  return (
+    <header
+      className="home-dashboard-hero"
+      style={{ '--home-hero-image': `url(${heroFutevolei})` }}
+      role="region"
+      aria-label="Resumo principal da Home"
+    >
+      <div className="home-dashboard-hero-acoes">
+        <Link to={perfilDestino} className="home-dashboard-hero-icone" aria-label="Editar perfil">
+          <FaEdit aria-hidden="true" />
+        </Link>
+        <NotificacoesBotao autenticado resumo={resumoPendencias} />
+      </div>
+
+      <div className="home-dashboard-hero-identidade">
+        <AvatarUsuario
+          nome={nomePrincipal}
+          fotoPerfilUrl={fotoPerfilUrl}
+          tamanho="xl"
+          className="home-dashboard-avatar"
+        />
+
+        <div className="home-dashboard-hero-texto">
+          <h1>{nomePrincipal}</h1>
+          <div className="home-dashboard-hero-meta">
+            <span>{grupoAtual}</span>
+            <span>{faixa}</span>
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+function HomeScouts({ scouts, erro }) {
+  return (
+    <section className="home-dashboard-scouts" aria-labelledby="home-scouts-titulo">
+      <div className="home-dashboard-section-title">
+        <h2 id="home-scouts-titulo">Meus principais scouts</h2>
+      </div>
+
+      {erro ? (
+        <p className="home-dashboard-vazio">Não foi possível carregar seus scouts agora.</p>
+      ) : (
+        <div className="home-dashboard-scouts-grid">
+          {scouts.map((item) => {
+            const Icone = item.icone;
             return (
-              <Fragment key={secao.type}>
-                {conteudo}
-              </Fragment>
+              <article key={item.id} className="home-dashboard-scout-card">
+                <Icone aria-hidden="true" />
+                <strong>{item.valor}</strong>
+                <span>{item.rotulo}</span>
+              </article>
             );
-          }
+          })}
+        </div>
+      )}
+    </section>
+  );
+}
 
+function HomeAcoesPrincipais() {
+  return (
+    <section className="home-dashboard-acoes-principais" aria-label="Ações principais">
+      <Link to={HOME_NAVIGATION.registrarPartida} className="home-dashboard-cta home-dashboard-cta-principal">
+        <span className="home-dashboard-cta-icone"><FaPlus aria-hidden="true" /></span>
+        <span>
+          <strong>Registrar Partida</strong>
+          <small>Salve seu jogo e atualize sua evolução.</small>
+        </span>
+        <FaChevronRight aria-hidden="true" />
+      </Link>
+
+      <Link to={HOME_NAVIGATION.grupos} className="home-dashboard-cta home-dashboard-cta-secundario">
+        <span className="home-dashboard-cta-icone"><FaUsers aria-hidden="true" /></span>
+        <span>
+          <strong>Criar Grupo</strong>
+          <small>Organize sua galera e acompanhe o ranking.</small>
+        </span>
+        <FaChevronRight aria-hidden="true" />
+      </Link>
+    </section>
+  );
+}
+
+function HomeDestaques({ destaques }) {
+  return (
+    <section className="home-dashboard-destaques" aria-labelledby="home-destaques-titulo">
+      <div className="home-dashboard-section-title">
+        <h2 id="home-destaques-titulo">Em destaque para você</h2>
+      </div>
+
+      <div className="home-dashboard-destaques-grid">
+        {destaques.map((item) => {
+          const Icone = item.icone;
           return (
-            <HomeLazySection
-              key={secao.type}
-              sectionType={secao.type}
-              onVisible={
-                secao.type === HomeSectionType.Feed
-                  ? () => setFeedLiberado(true)
-                  : undefined
-              }
-            >
-              {conteudo}
-            </HomeLazySection>
+            <Link key={item.id} to={item.destino} className="home-dashboard-destaque-card">
+              <Icone aria-hidden="true" />
+              <span>{item.titulo}</span>
+              <strong>{item.valor}</strong>
+              <small>{item.descricao}</small>
+            </Link>
           );
         })}
+      </div>
+    </section>
+  );
+}
 
-      {partidaEmEdicao && (
-        <EditarPartidaRegistradaModal
-          partida={partidaEmEdicao}
-          salvando={salvandoEdicao}
-          erro={erroEdicao}
-          onSalvar={salvarEdicao}
-          onFechar={fecharEdicao}
-        />
+function HomeAtividadeRecente({ ultimasPartidas, erro }) {
+  return (
+    <section className="home-dashboard-atividade" aria-labelledby="home-atividade-titulo">
+      <div className="home-dashboard-section-title home-dashboard-section-title-com-acao">
+        <h2 id="home-atividade-titulo">Atividade recente</h2>
+        <Link to={HOME_NAVIGATION.meusJogos}>Ver histórico</Link>
+      </div>
+
+      {erro ? (
+        <p className="home-dashboard-vazio">Não foi possível carregar sua atividade agora.</p>
+      ) : ultimasPartidas.length > 0 ? (
+        <div className="home-dashboard-timeline">
+          {ultimasPartidas.map((partida) => {
+            const resultado = obterResultadoPartida(partida);
+            const vitoria = resultado === 'Vitória';
+
+            return (
+              <article key={partida.id} className="home-dashboard-timeline-item">
+                <span className="home-dashboard-timeline-ponto" aria-hidden="true" />
+                <div className="home-dashboard-timeline-conteudo">
+                  <div>
+                    <strong>Você registrou uma partida</strong>
+                    <span>{formatarDataAtividade(partida.dataPartida)}</span>
+                  </div>
+                  <p>{partida.grupo || partida.categoria || partida.competicao || 'Geral'}</p>
+                  <footer>
+                    <span>{obterPlacarPartida(partida)}</span>
+                    <em className={vitoria ? 'vitoria' : 'derrota'}>{resultado}</em>
+                  </footer>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="home-dashboard-empty-state">
+          <FaGamepad aria-hidden="true" />
+          <strong>Sua primeira partida vai aparecer aqui.</strong>
+          <p>Registre um jogo para acompanhar resultado, sequência e evolução.</p>
+          <Link to={HOME_NAVIGATION.registrarPartida}>Registrar agora</Link>
+        </div>
       )}
     </section>
   );
@@ -641,892 +430,10 @@ export function HomeDashboard({ modulos, dashboard, carregando, erro, onAtualiza
 function HomeDashboardSkeleton() {
   return (
     <section className="pagina home-dashboard home-dashboard-carregando" aria-busy="true">
-      <div className="home-dashboard-topo-premium home-dashboard-topo-skeleton" aria-hidden="true">
-        <div className="home-dashboard-topo-identidade">
-          <HomeSkeletonLinha className="home-dashboard-skeleton-logo" />
-          <div>
-            <HomeSkeletonLinha largura="10rem" altura="0.9rem" />
-          </div>
-        </div>
-
-        <div className="home-dashboard-topo-acoes">
-          <HomeSkeletonLinha className="home-dashboard-skeleton-icone" />
-          <HomeSkeletonLinha className="home-dashboard-skeleton-avatar-mini" />
-        </div>
-      </div>
-
-      {homeSectionsConfig
-        .filter((secao) => secao.enabled)
-        .map((secao) => (
-          <HomeSecaoSkeleton key={secao.type} sectionType={secao.type} />
-        ))}
+      <div className="home-dashboard-hero home-dashboard-skeleton-card" />
+      <div className="home-dashboard-scouts home-dashboard-skeleton-card" />
+      <div className="home-dashboard-cta home-dashboard-cta-principal home-dashboard-skeleton-card" />
+      <div className="home-dashboard-cta home-dashboard-cta-secundario home-dashboard-skeleton-card" />
     </section>
-  );
-}
-
-function HomeLazySection({ sectionType, children, onVisible }) {
-  const { ref, inView } = useInView({ rootMargin: '360px 0px 220px' });
-  const [deveRenderizar, setDeveRenderizar] = useState(false);
-
-  useEffect(() => {
-    if (inView && !deveRenderizar) {
-      setDeveRenderizar(true);
-      onVisible?.();
-    }
-  }, [deveRenderizar, inView, onVisible]);
-
-  return (
-    <div
-      ref={ref}
-      className={`home-dashboard-lazy ${deveRenderizar ? 'visivel' : ''}`}
-    >
-      {deveRenderizar ? children : <HomeSecaoSkeleton sectionType={sectionType} />}
-    </div>
-  );
-}
-
-function HomeSecaoSkeleton({ sectionType }) {
-  const config = skeletonsHomePorSecao[sectionType] || {
-    eyebrow: 'Seção',
-    titulo: 'Carregando',
-    variante: 'lista',
-    linhas: 2
-  };
-  const variante = config.variante || 'lista';
-
-  return (
-    <section
-      className={`home-dashboard-bloco home-dashboard-skeleton home-dashboard-skeleton-${sectionType} home-dashboard-skeleton-${variante}`}
-      aria-hidden="true"
-    >
-      <div className="home-dashboard-skeleton-cabecalho">
-        <span>{config.eyebrow}</span>
-        <HomeSkeletonLinha as="strong" largura="min(13rem, 72%)" altura="1.05rem" />
-      </div>
-      <HomeSkeletonConteudo config={config} sectionType={sectionType} />
-    </section>
-  );
-}
-
-function HomeSkeletonConteudo({ config, sectionType }) {
-  if (config.variante === 'hero') {
-    return (
-      <>
-        <div className="home-dashboard-skeleton-hero-identidade">
-          <HomeSkeletonLinha className="home-dashboard-skeleton-avatar" />
-          <div>
-            <HomeSkeletonLinha largura="58%" altura="1.55rem" />
-            <HomeSkeletonLinha largura="72%" altura="0.82rem" />
-          </div>
-        </div>
-        <HomeSkeletonLinha className="home-dashboard-skeleton-pill" largura="48%" altura="1.85rem" />
-        <div className="home-dashboard-skeleton-acoes">
-          <HomeSkeletonLinha altura="2.55rem" />
-          <HomeSkeletonLinha altura="2.55rem" />
-        </div>
-      </>
-    );
-  }
-
-  if (config.variante === 'stats') {
-    return (
-      <div className="home-dashboard-skeleton-stats-grid">
-        {Array.from({ length: 4 }).map((_, indice) => (
-          <div key={indice} className="home-dashboard-skeleton-stat-card">
-            <HomeSkeletonLinha className="home-dashboard-skeleton-icone-pequeno" />
-            <HomeSkeletonLinha largura="66%" altura="0.68rem" />
-            <HomeSkeletonLinha largura="46%" altura="1.35rem" />
-            <HomeSkeletonLinha largura="78%" altura="0.58rem" />
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  if (config.variante === 'frequency') {
-    return (
-      <div className="home-dashboard-skeleton-frequencia-grid">
-        {Array.from({ length: 7 }).map((_, indice) => (
-          <div key={indice} className="home-dashboard-skeleton-frequencia-coluna">
-            <HomeSkeletonLinha
-              className="home-dashboard-skeleton-barra"
-              altura={`${36 + ((indice % 4) * 14)}%`}
-            />
-            <HomeSkeletonLinha largura="1.55rem" altura="0.58rem" />
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  if (config.variante === 'connections') {
-    return (
-      <div className="home-dashboard-skeleton-conexoes-grid">
-        {['parceiros', 'rivais'].map((grupo) => (
-          <div key={grupo} className="home-dashboard-skeleton-relacao-grupo">
-            <HomeSkeletonLinha largura="42%" altura="0.82rem" />
-            <HomeSkeletonLista linhas={2} sectionType={sectionType} />
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  return <HomeSkeletonLista linhas={config.linhas || 2} sectionType={sectionType} />;
-}
-
-function HomeSkeletonLista({ linhas, sectionType }) {
-  return (
-    <div className="home-dashboard-skeleton-lista">
-      {Array.from({ length: linhas }).map((_, indice) => (
-        <HomeSkeletonLinha key={`${sectionType}-${indice}`} />
-      ))}
-    </div>
-  );
-}
-
-function HomeSkeletonLinha({
-  as: Elemento = 'span',
-  className = '',
-  largura,
-  altura
-}) {
-  const estilo = {
-    ...(largura ? { width: largura } : {}),
-    ...(altura ? { height: altura } : {})
-  };
-
-  return (
-    <Elemento
-      className={`home-dashboard-skeleton-linha ${className}`.trim()}
-      style={estilo}
-    />
-  );
-}
-
-function HomeModuloErro({ mensagem = 'Não foi possível carregar este módulo agora.' }) {
-  return <p className="home-dashboard-vazio home-dashboard-modulo-erro">{mensagem}</p>;
-}
-
-function HomeHeroSection({
-  nomePrincipal,
-  fotoPerfilUrl,
-  perfil,
-  badgeMomento,
-  perfilDestino,
-  erro,
-  gamificacaoResumo,
-  gamificacaoCarregando,
-  gamificacaoErro,
-  resumoPendencias,
-  pendenciasCarregando,
-  pendenciasErro
-}) {
-  const identidade = (
-    <>
-      <AvatarUsuario
-        nome={nomePrincipal}
-        fotoPerfilUrl={fotoPerfilUrl}
-        tamanho="xl"
-        className="home-dashboard-avatar"
-      />
-
-      <div className="home-dashboard-atleta-info">
-        <span>Seu momento</span>
-        <h1>{nomePrincipal}</h1>
-        <p>
-          {perfil.categoriaPrincipal}
-          {perfil.posicaoRanking ? ` • #${perfil.posicaoRanking} no ranking` : ''}
-        </p>
-        <div className="home-dashboard-momento-badge">
-          <FaFire aria-hidden="true" />
-          <span>{badgeMomento}</span>
-        </div>
-      </div>
-    </>
-  );
-
-  return (
-    <header className="home-dashboard-hero" role="region" aria-label="Card principal da Home">
-      {erro && <HomeModuloErro mensagem="Não foi possível carregar seu resumo agora." />}
-      <div className="home-dashboard-hero-cabecalho">
-        {perfilDestino ? (
-          <Link
-            to={perfilDestino}
-            className="home-dashboard-atleta-card home-dashboard-atleta-card-link"
-            aria-label={`Abrir perfil de ${nomePrincipal}`}
-          >
-            {identidade}
-          </Link>
-        ) : (
-          <div className="home-dashboard-atleta-card">
-            {identidade}
-          </div>
-        )}
-
-      </div>
-
-      <div className="home-dashboard-hero-divisor" aria-hidden="true" />
-
-      <HomePontosQnResumo
-        resumo={gamificacaoResumo}
-        carregando={gamificacaoCarregando}
-        erro={gamificacaoErro}
-      />
-
-      <div className="home-dashboard-hero-divisor" aria-hidden="true" />
-
-      <HomePendenciasOperacionaisSection
-        resumo={resumoPendencias}
-        carregando={pendenciasCarregando}
-        erro={pendenciasErro}
-      />
-
-      <div className="home-dashboard-hero-acoes">
-        <Link to={HOME_NAVIGATION.ranking} className="home-dashboard-ranking-link">
-          <FaMedal aria-hidden="true" />
-          Ranking
-        </Link>
-        <Link to={HOME_NAVIGATION.registrarPartida} className="botao-primario home-dashboard-registrar">
-          <FaPlus aria-hidden="true" />
-          Registrar Partida
-        </Link>
-      </div>
-    </header>
-  );
-}
-
-function HomeSubsecaoIcone({ children, variante = '' }) {
-  return (
-    <div
-      className={`home-dashboard-card-subsecao-icone ${variante}`.trim()}
-      aria-hidden="true"
-    >
-      {children}
-    </div>
-  );
-}
-
-function HomePontosQnResumo({ resumo, carregando, erro }) {
-  const pontuacao = resumo?.pontuacao;
-  const nivel = resumo?.nivel;
-  const saldo = pontuacao?.saldoAtual ?? 0;
-  const temAtletaVinculado = pontuacao?.temAtletaVinculado !== false;
-  const progresso = nivel?.progressoPercentual ?? 0;
-
-  if (carregando && !resumo) {
-    return (
-      <section className="home-dashboard-card-subsecao home-dashboard-pontosqn-card" aria-busy="true" aria-label="Pontos QN">
-        <HomeSubsecaoIcone variante="pontos">
-          <FaStar />
-        </HomeSubsecaoIcone>
-        <div className="home-dashboard-card-subsecao-conteudo">
-          <div className="home-dashboard-pontosqn-cabecalho">
-            <span>Pontos QN</span>
-            <small>Carregando</small>
-          </div>
-          <p className="home-dashboard-pontosqn-texto">Buscando seus pontos e benefícios.</p>
-        </div>
-      </section>
-    );
-  }
-
-  if (!temAtletaVinculado) {
-    return (
-      <section className="home-dashboard-card-subsecao home-dashboard-pontosqn-card" aria-label="Pontos QN">
-        <HomeSubsecaoIcone variante="pontos">
-          <FaStar />
-        </HomeSubsecaoIcone>
-        <div className="home-dashboard-card-subsecao-conteudo">
-          <div className="home-dashboard-pontosqn-cabecalho">
-            <span>Pontos QN</span>
-          </div>
-          <p className="home-dashboard-pontosqn-texto">Vincule seu atleta para começar a somar pontos.</p>
-        </div>
-        <Link to="/app/perfil" className="home-dashboard-pontosqn-cta">
-          Vincular
-          <FaChevronRight aria-hidden="true" />
-        </Link>
-      </section>
-    );
-  }
-
-  if (erro && !resumo) {
-    return (
-      <section className="home-dashboard-card-subsecao home-dashboard-pontosqn-card" aria-label="Pontos QN">
-        <HomeSubsecaoIcone variante="pontos">
-          <FaStar />
-        </HomeSubsecaoIcone>
-        <div className="home-dashboard-card-subsecao-conteudo">
-          <div className="home-dashboard-pontosqn-cabecalho">
-            <span>Pontos QN</span>
-          </div>
-          <div className="home-dashboard-pontosqn-saldo">
-            <strong>Seus pontos aparecem aqui</strong>
-          </div>
-          <p className="home-dashboard-pontosqn-texto">Jogue, registre e compartilhe para começar a somar.</p>
-        </div>
-        <Link to={HOME_NAVIGATION.pontosQN} className="home-dashboard-pontosqn-cta">
-          Ver pontos
-          <FaChevronRight aria-hidden="true" />
-        </Link>
-      </section>
-    );
-  }
-
-  return (
-    <section className="home-dashboard-card-subsecao home-dashboard-pontosqn-card" aria-label="Pontos QN">
-      <HomeSubsecaoIcone variante="pontos">
-        <FaStar />
-      </HomeSubsecaoIcone>
-      <div className="home-dashboard-card-subsecao-conteudo">
-        <div className="home-dashboard-pontosqn-cabecalho">
-          <span>Pontos QN</span>
-        </div>
-
-        <div className="home-dashboard-pontosqn-saldo">
-          <strong>{formatarPontosQN(saldo)} pontos</strong>
-        </div>
-
-        <span className="home-dashboard-pontosqn-faixa">
-          {formatarFaixaQN(nivel?.nome)}
-        </span>
-
-        {nivel && (
-          <div className="home-dashboard-pontosqn-progresso" aria-hidden="true">
-            <span style={{ width: `${Math.max(0, Math.min(100, Number(progresso || 0)))}%` }} />
-          </div>
-        )}
-
-        <p className="home-dashboard-pontosqn-texto">
-          {saldo === 0
-            ? 'Jogue, registre e compartilhe para evoluir.'
-            : obterTextoProgressoQN(nivel)}
-        </p>
-      </div>
-      <Link to={HOME_NAVIGATION.pontosQN} className="home-dashboard-pontosqn-cta">
-        Ver pontos
-        <FaChevronRight aria-hidden="true" />
-      </Link>
-    </section>
-  );
-}
-
-function HomeResumoRapidoSection({ itens, erro }) {
-  if (erro) {
-    return (
-      <section className="home-dashboard-resumo" aria-label="Resumo rápido">
-        <HomeModuloErro mensagem="Não foi possível carregar suas estatísticas agora." />
-      </section>
-    );
-  }
-
-  return (
-    <section className="home-dashboard-resumo" aria-label="Resumo rápido">
-      {itens.map((item) => {
-        const Icone = item.icone;
-        const Conteudo = (
-          <>
-            <Icone aria-hidden="true" />
-            <span>{item.rotulo}</span>
-            <strong>{item.valor}</strong>
-            <small>{item.complemento}</small>
-          </>
-        );
-
-        if (item.destino) {
-          return (
-            <Link
-              key={item.id}
-              to={item.destino}
-              className="home-dashboard-mini-card home-dashboard-mini-card-link"
-              aria-label={`Abrir ${item.rotulo.toLowerCase()}`}
-            >
-              {Conteudo}
-            </Link>
-          );
-        }
-
-        return (
-          <article key={item.id} className="home-dashboard-mini-card">
-            {Conteudo}
-          </article>
-        );
-      })}
-    </section>
-  );
-}
-
-function HomeInsightsSection({
-  insights,
-  insightsVisiveis,
-  insightsExpandidos,
-  onAlternarInsights,
-  erro
-}) {
-  return (
-    <section className="home-dashboard-bloco home-dashboard-insights-bloco">
-      <CabecalhoHome eyebrow="Insights" titulo="Leitura rápida" />
-
-      <div className="home-dashboard-insights">
-        {erro ? (
-          <HomeModuloErro mensagem="Não foi possível carregar seus insights agora." />
-        ) : insightsVisiveis.length === 0 ? (
-          <p className="home-dashboard-vazio">Registre mais partidas para gerar insights.</p>
-        ) : (
-          insightsVisiveis.map((insight) => (
-            <p key={insight}>
-              {obterIconeInsight(insight)}
-              <span>{insight}</span>
-            </p>
-          ))
-        )}
-      </div>
-
-      {!erro && insights.length > 3 && (
-        <button
-          type="button"
-          className="home-dashboard-link-botao"
-          onClick={onAlternarInsights}
-        >
-          {insightsExpandidos ? 'Ver menos' : 'Ver todos'}
-        </button>
-      )}
-    </section>
-  );
-}
-
-function HomeUltimasPartidasSection({ ultimasPartidas, perfil, usuario, onAbrirEdicao, erro }) {
-  return (
-    <section className="home-dashboard-bloco home-dashboard-ultimas-partidas">
-      <CabecalhoHome
-        eyebrow="Últimas partidas"
-        titulo="Seu ritmo recente"
-        descricao="Histórico pessoal para conferir resultado, dupla e próximos ajustes."
-        acao={<Link to={HOME_NAVIGATION.meusJogos}>Ver todas</Link>}
-      />
-
-      {erro ? (
-        <HomeModuloErro mensagem="Não foi possível carregar suas últimas partidas agora." />
-      ) : ultimasPartidas.length === 0 ? (
-        <p className="home-dashboard-vazio">Suas últimas partidas aparecerão aqui.</p>
-      ) : (
-        <div className="meus-jogos-lista-premium">
-          {ultimasPartidas.map((partida) => (
-            <PartidaHomeCard
-              key={partida.id}
-              partida={partida}
-              atletaId={perfil.atletaId}
-              onEditar={
-                podeEditarPartida(partida, usuario)
-                  ? () => onAbrirEdicao(partida)
-                  : null
-              }
-            />
-          ))}
-        </div>
-      )}
-    </section>
-  );
-}
-
-function HomeFeedSection({ feedCarregando, feedErro, feedPartidas }) {
-  return (
-    <section className="home-dashboard-bloco home-dashboard-feed-comunidade">
-      <CabecalhoHome
-        eyebrow="Feed"
-        titulo="Jogos da comunidade"
-        acao={<Link to={HOME_NAVIGATION.feed}>Ver feed</Link>}
-      />
-
-      {feedCarregando && (
-        <HomeSkeletonLista linhas={2} sectionType={HomeSectionType.Feed} />
-      )}
-      {feedErro && !feedCarregando && (
-        <p className="home-dashboard-vazio">Não foi possível carregar o feed agora.</p>
-      )}
-      {!feedCarregando && !feedErro && feedPartidas.length === 0 && (
-        <p className="home-dashboard-vazio">Nenhuma partida publicada ainda.</p>
-      )}
-      {!feedCarregando && !feedErro && feedPartidas.length > 0 && (
-        <div className="feed-partidas-lista">
-          {feedPartidas.map((partida) => (
-            <FeedPartidaCard key={partida.partidaId} partida={partida} variante="home" />
-          ))}
-        </div>
-      )}
-    </section>
-  );
-}
-
-function HomeConexoesSection({
-  melhoresParceiros,
-  rivaisMaisEnfrentados,
-  parceirosRecentes,
-  rivaisRecentes,
-  atletaId,
-  usuario,
-  erro
-}) {
-  return (
-    <section className="home-dashboard-bloco">
-      <CabecalhoHome
-        eyebrow="Conexões"
-        titulo="Duplas e rivalidades"
-        descricao="Relações calculadas a partir das suas partidas válidas."
-      />
-
-      {erro ? (
-        <HomeModuloErro mensagem="Não foi possível carregar suas conexões agora." />
-      ) : (
-        <div className="home-dashboard-conexoes-grid">
-          <DashboardRelacoes
-            titulo="Parceiros"
-            itens={melhoresParceiros}
-            recentes={parceirosRecentes}
-            tipo="parceiro"
-            icone={FaUserFriends}
-            vazio="Registre partidas com parceiros para acompanhar sua química de dupla."
-            atletaId={atletaId}
-            usuario={usuario}
-          />
-          <DashboardRelacoes
-            titulo="Rivais"
-            itens={rivaisMaisEnfrentados}
-            recentes={rivaisRecentes}
-            tipo="rival"
-            icone={FaShieldAlt}
-            vazio="Quando você enfrentar adversários, as rivalidades aparecerão aqui."
-            atletaId={atletaId}
-            usuario={usuario}
-          />
-        </div>
-      )}
-    </section>
-  );
-}
-
-function HomeFrequenciaSection({
-  frequenciaPorDiaSemana,
-  maiorTotalDiaSemana,
-  totalDiasJogados,
-  totalJogosPeriodo,
-  erro
-}) {
-  return (
-    <section className="home-dashboard-bloco home-dashboard-frequencia">
-      <CabecalhoHome
-        eyebrow="Frequência"
-        titulo="Ritmo da semana"
-        descricao={
-          totalDiasJogados > 0
-            ? `${totalJogosPeriodo} partida(s) em ${totalDiasJogados} dia(s) no período.`
-            : 'Registre partidas para acompanhar sua frequência.'
-        }
-        acao={<Link to={HOME_NAVIGATION.meusJogos}>Ver histórico</Link>}
-      />
-
-      {erro ? (
-        <HomeModuloErro mensagem="Não foi possível carregar sua frequência agora." />
-      ) : (
-      <div className="home-dashboard-grafico-frequencia">
-        <div className="home-dashboard-grafico-barras">
-          {frequenciaPorDiaSemana.map((dia) => {
-            const altura = dia.total > 0
-              ? Math.max(14, (dia.total / maiorTotalDiaSemana) * 100)
-              : 0;
-
-            return (
-              <div key={dia.nome} className="home-dashboard-grafico-coluna">
-                <div className="home-dashboard-grafico-area-barra">
-                  <span
-                    className={`home-dashboard-grafico-barra nivel-${obterNivelHeatmap(dia.total)}`}
-                    style={{ height: `${altura}%` }}
-                    title={`${dia.total} jogo(s)`}
-                  />
-                </div>
-                <strong>{dia.nome}</strong>
-                <span>{dia.total}</span>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-      )}
-    </section>
-  );
-}
-
-function HomePendenciasOperacionaisSection({ resumo, carregando, erro }) {
-  if (carregando && !resumo) {
-    return (
-      <section className="home-dashboard-card-subsecao home-dashboard-pendencias" aria-busy="true" aria-label="Pendências abertas">
-        <HomeSubsecaoIcone variante="pendencias">
-          <FaBell />
-        </HomeSubsecaoIcone>
-        <div className="home-dashboard-pendencias-texto">
-          <span>Pendências</span>
-          <strong>Conferindo ações</strong>
-          <p>Verificando o que precisa da sua atenção.</p>
-        </div>
-      </section>
-    );
-  }
-
-  const total = Number(resumo?.total || 0);
-
-  if (erro) {
-    return (
-      <section className="home-dashboard-card-subsecao home-dashboard-pendencias" aria-label="Pendências abertas">
-        <HomeSubsecaoIcone variante="pendencias">
-          <FaBell />
-        </HomeSubsecaoIcone>
-        <div className="home-dashboard-pendencias-texto">
-          <span>Pendências</span>
-          <strong>Não foi possível conferir agora</strong>
-          <p>Abra suas pendências para revisar manualmente.</p>
-        </div>
-        <Link to="/app/pendencias" className="home-dashboard-pendencias-cta">
-          Resolver agora
-          <FaChevronRight aria-hidden="true" />
-        </Link>
-      </section>
-    );
-  }
-
-  if (total <= 0) {
-    return (
-      <section className="home-dashboard-card-subsecao home-dashboard-pendencias home-dashboard-pendencias-ok" aria-label="Pendências abertas">
-        <HomeSubsecaoIcone variante="pendencias ok">
-          <FaShieldAlt />
-        </HomeSubsecaoIcone>
-        <div className="home-dashboard-pendencias-texto">
-          <span>Pendências</span>
-          <strong>Tudo em dia</strong>
-          <p>Nenhuma ação aguardando no momento.</p>
-        </div>
-      </section>
-    );
-  }
-
-  return (
-    <section className="home-dashboard-card-subsecao home-dashboard-pendencias" aria-label="Pendências abertas">
-      <HomeSubsecaoIcone variante="pendencias">
-        <FaBell />
-      </HomeSubsecaoIcone>
-      <div className="home-dashboard-pendencias-texto">
-        <span>Pendências</span>
-        <strong>{total === 1 ? '1 ação aguardando' : `${total} ações aguardando`}</strong>
-        <p>Ajude a manter seu histórico confiável.</p>
-      </div>
-      <Link to="/app/pendencias" className="home-dashboard-pendencias-cta">
-        Resolver agora
-        <FaChevronRight aria-hidden="true" />
-      </Link>
-    </section>
-  );
-}
-
-function HomeDashboardHeader({ nome, saudacao, resumoPendencias }) {
-  const [compacto, setCompacto] = useState(false);
-
-  useEffect(() => {
-    const areaRolagem = document.querySelector('.conteudo-principal') || window;
-
-    function aoScroll() {
-      const posicao = areaRolagem === window
-        ? window.scrollY
-        : areaRolagem.scrollTop;
-
-      setCompacto(posicao > 18);
-    }
-
-    aoScroll();
-    areaRolagem.addEventListener('scroll', aoScroll, { passive: true });
-
-    return () => areaRolagem.removeEventListener('scroll', aoScroll);
-  }, []);
-
-  return (
-    <div className={`home-dashboard-topo-premium ${compacto ? 'compacto' : ''}`}>
-      <div className="home-dashboard-topo-identidade">
-        <img src={logoLiga} alt="QuebraNunca" />
-        <div>
-          <strong>{saudacao}, {nome}</strong>
-        </div>
-      </div>
-
-      <div className="home-dashboard-topo-acoes">
-        <NotificacoesBotao autenticado resumo={resumoPendencias} />
-      </div>
-    </div>
-  );
-}
-
-function CabecalhoHome({ eyebrow, titulo, descricao, acao }) {
-  return (
-    <div className="home-dashboard-bloco-cabecalho">
-      <div>
-        <span>{eyebrow}</span>
-        <h2>{titulo}</h2>
-        {descricao && <p>{descricao}</p>}
-      </div>
-      {acao}
-    </div>
-  );
-}
-function PartidaHomeCard({ partida, atletaId, onEditar }) {
-  const resultado = obterResultadoPartidaHome(partida);
-  const idsDuplas = obterIdsDuplasPartidaHome(partida, atletaId);
-
-  return (
-    <PartidaCardPremium
-      className="partida-home-card-compacto"
-      contexto={obterContextoPartidaHome(partida)}
-      status={partida.status || 'Encerrada'}
-      dataPartida={partida.dataPartida}
-      resultado={resultado}
-      statusAprovacao={partida.statusAprovacao}
-      duplaA={{
-        label: 'Sua dupla',
-        atletas: partida.parceiro ? `Você e ${partida.parceiro}` : 'Sua dupla',
-        atleta1Id: idsDuplas.minhaDupla[0],
-        atleta2Id: idsDuplas.minhaDupla[1],
-        placar: partida.placarSuaDupla ?? 0,
-        destaque: true,
-        vencedora: resultado === 'Vitória'
-      }}
-      duplaB={{
-        label: 'Adversários',
-        atletas: partida.adversarios || 'Adversários',
-        atleta1Id: idsDuplas.adversarios[0],
-        atleta2Id: idsDuplas.adversarios[1],
-        placar: partida.placarAdversarios ?? 0,
-        destaque: false,
-        vencedora: resultado === 'Derrota'
-      }}
-      acaoCompartilhar={
-        onEditar ? (
-          <button
-            type="button"
-            className="botao-secundario botao-compacto botao-editar-partida-discreto"
-            onClick={(evento) => {
-              evento.stopPropagation();
-              onEditar();
-            }}
-            aria-label="Editar partida"
-            title="Editar partida"
-          >
-            <FaEdit aria-hidden="true" />
-            Editar
-          </button>
-        ) : null
-      }
-      detalhesHref={HOME_NAVIGATION.meusJogos}
-    />
-  );
-}
-
-function DashboardRelacoes({ titulo, itens, recentes, tipo, icone: Icone, vazio, atletaId, usuario }) {
-  const principal = itens[0] || null;
-  const listaRecentes = (recentes || []).filter((item) => item.atletaId !== principal?.atletaId).slice(0, 5);
-
-  return (
-    <section className="home-dashboard-relacao-grupo">
-      <div className="home-dashboard-relacao-grupo-titulo">
-        <Icone aria-hidden="true" />
-        <h3>{titulo}</h3>
-      </div>
-
-      <div className="home-dashboard-relacoes">
-        {itens.length === 0 ? (
-          <p className="home-dashboard-vazio">{vazio}</p>
-        ) : (
-          <>
-            <DashboardRelacaoCard
-              item={principal}
-              tipo={tipo}
-              atletaId={atletaId}
-              usuario={usuario}
-              destaque
-            />
-            {listaRecentes.length > 0 && (
-              <div className="home-dashboard-relacoes-recentes">
-                <span>{tipo === 'parceiro' ? 'Parceiros recentes' : 'Rivais recentes'}</span>
-                <div>
-                  {listaRecentes.map((item) => (
-                    <DashboardRelacaoCard
-                      key={item.atletaId || item.nome}
-                      item={item}
-                      tipo={tipo}
-                      atletaId={atletaId}
-                      usuario={usuario}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-          </>
-        )}
-      </div>
-    </section>
-  );
-}
-
-function DashboardRelacaoCard({ item, tipo, atletaId, usuario, destaque = false }) {
-  if (!item) {
-    return null;
-  }
-
-  const destino = obterDestinoConexao(item, tipo, atletaId, usuario);
-  const nome = nomeAtleta(item);
-  const titulo = tituloAtleta(item);
-  const rotuloPartidas = tipo === 'parceiro' ? 'jogos juntos' : 'jogos enfrentados';
-  const rotuloAproveitamento = tipo === 'parceiro' ? 'aproveitamento juntos' : 'aproveitamento contra';
-  const ultimaPartida = item.ultimaPartida ? formatarData(item.ultimaPartida) : '';
-  const classes = [
-    'home-dashboard-relacao',
-    destino ? 'home-dashboard-relacao-link' : '',
-    destaque ? 'home-dashboard-relacao-destaque' : ''
-  ].filter(Boolean).join(' ');
-  const conteudo = (
-    <>
-      <AvatarUsuario
-        nome={nome}
-        fotoPerfilUrl={obterFotoPerfilAvatar(item)}
-        tamanho={destaque ? 'md' : 'sm'}
-        className="home-dashboard-relacao-avatar"
-      />
-      <div className="home-dashboard-relacao-conteudo">
-        {destaque && (
-          <span className="home-dashboard-relacao-kicker">
-            {tipo === 'parceiro' ? 'Mais frequente' : 'Rival mais frequente'}
-          </span>
-        )}
-        <strong title={titulo}>{nome}</strong>
-        <span>
-          {item.partidas} {rotuloPartidas} · {item.vitorias}V/{item.derrotas ?? Math.max((item.partidas ?? 0) - (item.vitorias ?? 0), 0)}D
-        </span>
-        <small>
-          {formatarPercentual(item.aproveitamento)} {rotuloAproveitamento}
-          {ultimaPartida ? ` · último em ${ultimaPartida}` : ''}
-        </small>
-      </div>
-      {destino && <FaChevronRight aria-hidden="true" />}
-    </>
-  );
-
-  return destino ? (
-    <Link
-      to={destino}
-      className={classes}
-      aria-label={`Abrir ${tipo === 'parceiro' ? 'dashboard da dupla com' : 'dashboard de'} ${titulo}`}
-    >
-      {conteudo}
-    </Link>
-  ) : (
-    <article className={classes}>
-      {conteudo}
-    </article>
   );
 }
