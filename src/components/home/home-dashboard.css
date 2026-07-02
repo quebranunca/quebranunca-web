@@ -91,6 +91,8 @@
 
 .home-dashboard-hero-texto {
   min-width: 0;
+  display: grid;
+  gap: 0.55rem;
 }
 
 .home-dashboard-hero-texto h1 {
@@ -105,7 +107,6 @@
 }
 
 .home-dashboard-hero-meta {
-  margin-top: 0.6rem;
   display: flex;
   flex-wrap: wrap;
   gap: 0.45rem;
@@ -130,6 +131,27 @@
 .home-dashboard-hero-meta span:last-child {
   border-color: rgba(255, 179, 0, 0.38);
   color: var(--cor-primaria);
+}
+
+.home-dashboard-hero-resumo {
+  display: grid;
+  gap: 0.16rem;
+  max-width: min(100%, 24rem);
+  margin: 0.1rem 0 0;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.22;
+  text-shadow: 0 8px 22px rgba(0, 0, 0, 0.46);
+}
+
+.home-dashboard-hero-resumo strong {
+  color: var(--cor-texto);
+  font-size: 0.98rem;
+}
+
+.home-dashboard-hero-resumo span {
+  color: rgba(255, 255, 255, 0.74);
 }
 
 .home-dashboard-alerta-senha {
@@ -206,10 +228,16 @@
   min-height: 2.25rem;
   display: inline-flex;
   align-items: center;
+  gap: 0.28rem;
   color: var(--cor-primaria);
   font-size: 0.82rem;
   font-weight: 800;
   white-space: nowrap;
+}
+
+.home-dashboard-section-title a svg {
+  width: 0.72rem;
+  height: 0.72rem;
 }
 
 .home-dashboard-scouts {
@@ -224,24 +252,34 @@
 
 .home-dashboard-scouts-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.75rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
 }
 
 .home-dashboard-scout-card {
-  min-height: 7.2rem;
+  position: relative;
+  min-height: 6.65rem;
   display: grid;
   align-content: center;
-  gap: 0.36rem;
-  padding: 1rem 0.85rem;
-  border: 1px solid rgba(255, 255, 255, 0.075);
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.035);
+  justify-items: center;
+  gap: 0.34rem;
+  padding: 0.9rem 0.42rem;
+  text-align: center;
+}
+
+.home-dashboard-scout-card + .home-dashboard-scout-card::before {
+  content: "";
+  position: absolute;
+  top: 0.75rem;
+  bottom: 0.75rem;
+  left: 0;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.075);
 }
 
 .home-dashboard-scout-card svg {
-  width: 1.8rem;
-  height: 1.8rem;
+  width: clamp(1.3rem, 5.2vw, 1.8rem);
+  height: clamp(1.3rem, 5.2vw, 1.8rem);
   color: var(--cor-primaria);
   filter: drop-shadow(0 0 12px rgba(255, 179, 0, 0.18));
 }
@@ -249,15 +287,139 @@
 .home-dashboard-scout-card strong {
   color: var(--cor-texto);
   font-family: 'Space Grotesk', sans-serif;
-  font-size: clamp(1.75rem, 9vw, 2.55rem);
+  font-size: clamp(1.34rem, 7vw, 2.55rem);
   line-height: 0.95;
   letter-spacing: 0;
 }
 
 .home-dashboard-scout-card span {
   color: var(--cor-texto-suave);
-  font-size: 0.86rem;
+  font-size: clamp(0.66rem, 2.8vw, 0.86rem);
   font-weight: 700;
+  line-height: 1.06;
+}
+
+.home-dashboard-jornada {
+  display: grid;
+  gap: 0.9rem;
+  padding: clamp(1rem, 4vw, 1.25rem);
+  border: 1px solid rgba(255, 179, 0, 0.16);
+  border-radius: 22px;
+  background:
+    linear-gradient(145deg, rgba(255, 179, 0, 0.08), rgba(255, 255, 255, 0.022)),
+    rgba(14, 15, 18, 0.96);
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.23);
+}
+
+.home-dashboard-jornada-topo {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.home-dashboard-jornada-topo > span {
+  width: 4.65rem;
+  height: 4.65rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 179, 0, 0.32);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 35% 20%, rgba(255, 255, 255, 0.22), transparent 34%),
+    rgba(255, 179, 0, 0.12);
+  color: var(--cor-primaria);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.34rem;
+  font-weight: 900;
+  box-shadow: 0 0 28px rgba(255, 179, 0, 0.1);
+}
+
+.home-dashboard-jornada-topo div {
+  min-width: 0;
+  display: grid;
+  gap: 0.16rem;
+}
+
+.home-dashboard-jornada h2 {
+  color: var(--cor-texto);
+  font-size: clamp(1.08rem, 4.5vw, 1.42rem);
+  line-height: 1.05;
+}
+
+.home-dashboard-jornada strong {
+  color: var(--cor-primaria);
+  font-size: 0.92rem;
+  font-weight: 900;
+}
+
+.home-dashboard-jornada p {
+  margin: 0;
+  color: var(--cor-texto-suave);
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.32;
+}
+
+.home-dashboard-jornada-progresso {
+  height: 0.52rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.085);
+}
+
+.home-dashboard-jornada-progresso span {
+  height: 100%;
+  display: block;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--cor-primaria), #ffd15a);
+  box-shadow: 0 0 18px rgba(255, 179, 0, 0.24);
+  transition: width 280ms ease;
+}
+
+.home-dashboard-jornada-etapas {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.home-dashboard-jornada-etapas li {
+  min-width: 0;
+  display: grid;
+  justify-items: center;
+  gap: 0.36rem;
+  color: rgba(255, 255, 255, 0.42);
+  text-align: center;
+}
+
+.home-dashboard-jornada-etapas li > span {
+  width: 0.82rem;
+  height: 0.82rem;
+  border: 2px solid currentColor;
+  border-radius: 999px;
+  background: transparent;
+}
+
+.home-dashboard-jornada-etapas li.concluida,
+.home-dashboard-jornada-etapas li.atual {
+  color: var(--cor-primaria);
+}
+
+.home-dashboard-jornada-etapas li.concluida > span,
+.home-dashboard-jornada-etapas li.atual > span {
+  background: currentColor;
+  box-shadow: 0 0 0 5px rgba(255, 179, 0, 0.1);
+}
+
+.home-dashboard-jornada-etapas em {
+  font-size: 0.72rem;
+  font-style: normal;
+  font-weight: 800;
+  line-height: 1.08;
 }
 
 .home-dashboard-acoes-principais {
@@ -380,6 +542,18 @@
   opacity: 0.76;
 }
 
+.home-dashboard-cta em {
+  width: max-content;
+  min-height: 1.7rem;
+  display: inline-flex;
+  align-items: center;
+  margin-top: 0.12rem;
+  color: var(--cor-primaria);
+  font-size: 0.8rem;
+  font-style: normal;
+  font-weight: 900;
+}
+
 .home-dashboard-destaques-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -437,6 +611,57 @@
   text-overflow: ellipsis;
   overflow-wrap: anywhere;
   white-space: normal;
+}
+
+.home-dashboard-dica {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.78rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: 20px;
+  background:
+    linear-gradient(145deg, rgba(255, 179, 0, 0.045), rgba(255, 255, 255, 0.018)),
+    rgba(13, 14, 16, 0.92);
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.18);
+}
+
+.home-dashboard-dica > svg {
+  width: 1.7rem;
+  height: 1.7rem;
+  color: var(--cor-primaria);
+}
+
+.home-dashboard-dica div {
+  min-width: 0;
+  display: grid;
+  gap: 0.16rem;
+}
+
+.home-dashboard-dica h2 {
+  color: var(--cor-texto);
+  font-size: 1rem;
+  line-height: 1.1;
+}
+
+.home-dashboard-dica p {
+  margin: 0;
+  color: var(--cor-texto-suave);
+  font-size: 0.84rem;
+  font-weight: 700;
+  line-height: 1.22;
+}
+
+.home-dashboard-dica a {
+  grid-column: 2;
+  width: max-content;
+  min-height: 2.15rem;
+  display: inline-flex;
+  align-items: center;
+  color: var(--cor-primaria);
+  font-size: 0.82rem;
+  font-weight: 900;
 }
 
 .home-dashboard-timeline,
@@ -625,6 +850,7 @@
 
   .home-dashboard-cta,
   .home-dashboard-destaque-card,
+  .home-dashboard-jornada-progresso span,
   .home-dashboard-alerta-senha,
   .home-dashboard-hero-icone,
   .home-dashboard-hero .botao-notificacoes-topo {
@@ -663,13 +889,24 @@
     border-radius: 28px;
   }
 
-  .home-dashboard-scouts-grid,
-  .home-dashboard-destaques-grid {
+  .home-dashboard-scouts-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .home-dashboard-destaques-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .home-dashboard-acoes-principais {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .home-dashboard-dica {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .home-dashboard-dica a {
+    grid-column: auto;
   }
 }
 
@@ -681,21 +918,26 @@
 
   .home-dashboard-hero,
   .home-dashboard-scouts,
+  .home-dashboard-jornada,
   .home-dashboard-acoes-principais {
     grid-column: 1 / -1;
   }
 
   .home-dashboard-atividade {
     grid-column: 2;
-    grid-row: 4;
+    grid-row: 5;
   }
 
   .home-dashboard-destaques {
     grid-column: 1;
-    grid-row: 4;
+    grid-row: 5;
   }
 
   .home-dashboard-destaques-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .home-dashboard-dica {
+    grid-column: 1 / -1;
   }
 }

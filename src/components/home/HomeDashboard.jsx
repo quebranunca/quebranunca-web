@@ -6,12 +6,11 @@ import {
   FaEdit,
   FaFire,
   FaGamepad,
-  FaHistory,
+  FaLightbulb,
   FaMedal,
   FaPlus,
   FaStar,
   FaTrophy,
-  FaUserFriends,
   FaUsers
 } from 'react-icons/fa';
 import heroFutevolei from '../../assets/home-futevolei-hero.jpg';
@@ -116,6 +115,74 @@ function obterPlacarPartida(partida) {
   return `${placarSuaDupla} x ${placarAdversarios}`;
 }
 
+function formatarQuantidade(valor, singular, plural = `${singular}s`) {
+  const quantidade = Number(valor ?? 0);
+  return `${quantidade} ${quantidade === 1 ? singular : plural}`;
+}
+
+function obterResumoHero(totalPartidas, vitorias, grupoAtual) {
+  if (totalPartidas <= 0) {
+    return {
+      destaque: 'Você ainda não registrou sua primeira partida.',
+      apoio: 'Que tal começar hoje?'
+    };
+  }
+
+  if (grupoAtual === 'Sem grupo ativo') {
+    return {
+      destaque: `Você já registrou ${formatarQuantidade(totalPartidas, 'partida')}.`,
+      apoio: 'Entre em um grupo para acompanhar ranking e scouts com sua galera.'
+    };
+  }
+
+  return {
+    destaque: `Você já registrou ${formatarQuantidade(totalPartidas, 'partida')} e ${formatarQuantidade(vitorias, 'vitória')}.`,
+    apoio: `Continue evoluindo no ${grupoAtual}.`
+  };
+}
+
+function montarJornada({ totalPartidas, vitorias, grupoAtual, posicaoRanking }) {
+  const etapas = [
+    {
+      id: 'primeira-partida',
+      titulo: 'Primeira partida',
+      concluida: totalPartidas > 0
+    },
+    {
+      id: 'primeira-vitoria',
+      titulo: 'Primeira vitória',
+      concluida: vitorias > 0
+    },
+    {
+      id: 'entrar-grupo',
+      titulo: 'Entrar em um grupo',
+      concluida: grupoAtual !== 'Sem grupo ativo'
+    },
+    {
+      id: 'top-ranking',
+      titulo: 'Top Ranking',
+      concluida: Boolean(posicaoRanking)
+    }
+  ];
+  const concluidas = etapas.filter((etapa) => etapa.concluida).length;
+  const atual = etapas.find((etapa) => !etapa.concluida) || etapas[etapas.length - 1];
+  const porcentagem = Math.round((concluidas / etapas.length) * 100);
+
+  return {
+    porcentagem,
+    etapaAtualId: atual.id,
+    titulo:
+      totalPartidas <= 0
+        ? 'Primeiro passo'
+        : atual.titulo,
+    descricao:
+      totalPartidas <= 0
+        ? 'Registre sua primeira partida para começar sua evolução.'
+        : 'Continue acumulando jogos, vitórias e presença em grupo para evoluir no QuebraNunca.',
+    etapas
+  };
+}
+
 function HomeEstado({ titulo, mensagem }) {
   return (
     <section className="pagina home-dashboard">
@@ -169,6 +236,15 @@ export function HomeDashboard({ modulos, dashboard, carregando, erro }) {
   const perfilDestino = montarRotaPerfilAtleta(perfil.atletaId || usuario?.atletaId, usuario) || HOME_NAVIGATION.perfil;
   const grupoAtual = obterGrupoAtual(ultimasPartidas);
   const faixa = formatarFaixa(gamificacaoResumo?.nivel?.nome || perfil.categoriaPrincipal);
+  const totalPartidas = Number(resumo.totalPartidas ?? 0);
+  const totalVitorias = Number(resumo.vitorias ?? 0);
+  const resumoHero = obterResumoHero(totalPartidas, totalVitorias, grupoAtual);
+  const jornada = montarJornada({
+    totalPartidas,
+    vitorias: totalVitorias,
+    grupoAtual,
+    posicaoRanking: perfil.posicaoRanking
+  });
   const pendenciaCriarSenha = Array.isArray(usuario?.pendenciasConta)
     ? usuario.pendenciasConta.find((pendencia) => pendencia?.tipo === 'CriarSenha')
     : null;
@@ -180,13 +256,13 @@ export function HomeDashboard({ modulos, dashboard, carregando, erro }) {
     {
       id: 'partidas',
       rotulo: 'Partidas',
-      valor: resumo.totalPartidas ?? 0,
+      valor: totalPartidas,
       icone: FaGamepad
     },
     {
       id: 'vitorias',
       rotulo: 'Vitórias',
-      valor: resumo.vitorias ?? 0,
+      valor: totalVitorias,
       icone: FaTrophy
     },
     {
@@ -219,22 +295,6 @@ export function HomeDashboard({ modulos, dashboard, carregando, erro }) {
       descricao: parceiroMomento ? `${formatarPercentual(parceiroMomento.aproveitamento)} juntos` : 'registre partidas em dupla',
       icone: FaStar,
       destino: HOME_NAVIGATION.meusJogos
-    },
-    {
-      id: 'parceiros',
-      titulo: 'Parceiros frequentes',
-      valor: String(melhoresParceiros.length || parceirosRecentes.length || 0),
-      descricao: 'conexões recentes',
-      icone: FaUserFriends,
-      destino: HOME_NAVIGATION.meusJogos
-    },
-    {
-      id: 'jogos',
-      titulo: 'Últimos jogos',
-      valor: String(ultimasPartidas.length),
-      descricao: ultimasPartidas[0] ? obterResultadoPartida(ultimasPartidas[0]) : 'sem atividade',
-      icone: FaHistory,
-      destino: HOME_NAVIGATION.meusJogos
     }
   ];
 
@@ -247,6 +307,7 @@ export function HomeDashboard({ modulos, dashboard, carregando, erro }) {
         faixa={faixa}
         perfilDestino={perfilDestino}
         resumoPendencias={resumoPendencias}
+        resumoHero={resumoHero}
       />
 
       {deveCriarSenhaConta && (
@@ -259,6 +320,8 @@ export function HomeDashboard({ modulos, dashboard, carregando, erro }) {
 
       <HomeScouts scouts={scouts} erro={resumoModulo.erro} />
 
+      <HomeJornada jornada={jornada} />
+
       <HomeAcoesPrincipais />
 
       <HomeDestaques destaques={destaques} />
@@ -267,11 +330,13 @@ export function HomeDashboard({ modulos, dashboard, carregando, erro }) {
         ultimasPartidas={ultimasPartidas}
         erro={ultimasPartidasModulo.erro}
       />
+
+      <HomeDicaRapida />
     </section>
   );
 }
 
-function HomeHero({ nomePrincipal, fotoPerfilUrl, grupoAtual, faixa, perfilDestino, resumoPendencias }) {
+function HomeHero({ nomePrincipal, fotoPerfilUrl, grupoAtual, faixa, perfilDestino, resumoPendencias, resumoHero }) {
   return (
     <header
       className="home-dashboard-hero"
@@ -300,6 +365,10 @@ function HomeHero({ nomePrincipal, fotoPerfilUrl, grupoAtual, faixa, perfilDesti
             <span>{grupoAtual}</span>
             <span>{faixa}</span>
           </div>
+          <p className="home-dashboard-hero-resumo">
+            <strong>{resumoHero.destaque}</strong>
+            <span>{resumoHero.apoio}</span>
+          </p>
         </div>
       </div>
     </header>
@@ -333,6 +402,40 @@ function HomeScouts({ scouts, erro }) {
   );
 }
 
+function HomeJornada({ jornada }) {
+  return (
+    <section className="home-dashboard-jornada" aria-labelledby="home-jornada-titulo">
+      <div className="home-dashboard-jornada-topo">
+        <span>{jornada.porcentagem}%</span>
+        <div>
+          <h2 id="home-jornada-titulo">Sua jornada</h2>
+          <strong>{jornada.titulo}</strong>
+          <p>{jornada.descricao}</p>
+        </div>
+      </div>
+
+      <div className="home-dashboard-jornada-progresso" aria-hidden="true">
+        <span style={{ width: `${jornada.porcentagem}%` }} />
+      </div>
+
+      <ol className="home-dashboard-jornada-etapas">
+        {jornada.etapas.map((etapa) => (
+          <li
+            key={etapa.id}
+            className={[
+              etapa.concluida ? 'concluida' : '',
+              etapa.id === jornada.etapaAtualId ? 'atual' : ''
+            ].filter(Boolean).join(' ')}
+          >
+            <span aria-hidden="true" />
+            <em>{etapa.titulo}</em>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
 function HomeAcoesPrincipais() {
   return (
     <section className="home-dashboard-acoes-principais" aria-label="Ações principais">
@@ -348,8 +451,9 @@ function HomeAcoesPrincipais() {
       <Link to={HOME_NAVIGATION.grupos} className="home-dashboard-cta home-dashboard-cta-secundario">
         <span className="home-dashboard-cta-icone"><FaUsers aria-hidden="true" /></span>
         <span>
-          <strong>Criar Grupo</strong>
-          <small>Organize sua galera e acompanhe o ranking.</small>
+          <strong>Ainda joga sem grupo?</strong>
+          <small>Crie um grupo e acompanhe ranking, histórico e scouts com sua galera.</small>
+          <em>Criar Grupo</em>
         </span>
         <FaChevronRight aria-hidden="true" />
       </Link>
@@ -362,6 +466,10 @@ function HomeDestaques({ destaques }) {
     <section className="home-dashboard-destaques" aria-labelledby="home-destaques-titulo">
       <div className="home-dashboard-section-title">
         <h2 id="home-destaques-titulo">Em destaque para você</h2>
+        <Link to={HOME_NAVIGATION.meusJogos}>
+          Ver todos
+          <FaChevronRight aria-hidden="true" />
+        </Link>
       </div>
 
       <div className="home-dashboard-destaques-grid">
@@ -377,6 +485,20 @@ function HomeDestaques({ destaques }) {
           );
         })}
       </div>
+    </section>
+  );
+}
+
+function HomeDicaRapida() {
+  return (
+    <section className="home-dashboard-dica" aria-labelledby="home-dica-titulo">
+      <FaLightbulb aria-hidden="true" />
+      <div>
+        <h2 id="home-dica-titulo">Dica rápida</h2>
+        <p>Você pode registrar partidas informando apenas o vencedor ou o placar completo.</p>
+        <p>Ambos contam para sua evolução.</p>
+      </div>
+      <Link to={HOME_NAVIGATION.registrarPartida}>Saiba mais</Link>
     </section>
   );
 }
@@ -418,8 +540,8 @@ function HomeAtividadeRecente({ ultimasPartidas, erro }) {
       ) : (
         <div className="home-dashboard-empty-state">
           <FaGamepad aria-hidden="true" />
-          <strong>Sua primeira partida vai aparecer aqui.</strong>
-          <p>Registre um jogo para acompanhar resultado, sequência e evolução.</p>
+          <strong>Você ainda não possui atividades.</strong>
+          <p>Registre sua primeira partida para iniciar seu histórico.</p>
           <Link to={HOME_NAVIGATION.registrarPartida}>Registrar agora</Link>
         </div>
       )}
