@@ -310,6 +310,10 @@ export function HomeDashboard({ modulos, dashboard, carregando, erro }) {
         resumoHero={resumoHero}
       />
 
+      <HomeScouts scouts={scouts} erro={resumoModulo.erro} />
+
+      <HomeAcoesPrincipais />
+
       {deveCriarSenhaConta && (
         <Link to={HOME_NAVIGATION.perfil} className="home-dashboard-alerta-senha">
           <span><FaBell aria-hidden="true" /></span>
@@ -318,11 +322,7 @@ export function HomeDashboard({ modulos, dashboard, carregando, erro }) {
         </Link>
       )}
 
-      <HomeScouts scouts={scouts} erro={resumoModulo.erro} />
-
       <HomeJornada jornada={jornada} />
-
-      <HomeAcoesPrincipais />
 
       <HomeDestaques destaques={destaques} />
 

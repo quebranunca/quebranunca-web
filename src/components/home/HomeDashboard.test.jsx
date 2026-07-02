@@ -159,11 +159,15 @@ describe('HomeDashboard redesenhada', () => {
 
     const registrar = screen.getByRole('link', { name: /Registrar Partida/i });
     const criarGrupo = screen.getByRole('link', { name: /Criar Grupo/i });
+    const jornada = screen.getByRole('region', { name: /Sua jornada/i });
 
     expect(registrar).toHaveClass('home-dashboard-cta-principal');
     expect(criarGrupo).toHaveClass('home-dashboard-cta-secundario');
     expect(screen.getByText('Ainda joga sem grupo?')).toBeInTheDocument();
     expect(screen.getByText('Crie um grupo e acompanhe ranking, histórico e scouts com sua galera.')).toBeInTheDocument();
+    expect(
+      criarGrupo.compareDocumentPosition(jornada) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
 
     await usuario.click(registrar);
     expect(screen.getByTestId('rota-atual')).toHaveTextContent('/partidas/registrar');
@@ -257,9 +261,9 @@ describe('homeSectionsConfig', () => {
     expect(secoesAtivas).toEqual([
       HomeSectionType.Hero,
       HomeSectionType.Stats,
-      HomeSectionType.Journey,
       HomeSectionType.PrimaryAction,
       HomeSectionType.SecondaryAction,
+      HomeSectionType.Journey,
       HomeSectionType.Highlights,
       HomeSectionType.RecentActivity,
       HomeSectionType.QuickTip
