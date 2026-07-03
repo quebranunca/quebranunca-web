@@ -1,13 +1,12 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
 import {
+  FaArrowRight,
+  FaChartBar,
   FaCheck,
   FaChevronLeft,
   FaClipboardCheck,
   FaEllipsisH,
-  FaImage,
   FaLayerGroup,
-  FaMedal,
-  FaRedo,
   FaTimes,
   FaTrophy,
   FaUserFriends
@@ -191,7 +190,7 @@ function IconeEtapa({ tipo }) {
   }
 
   if (tipo === 'score') {
-    return <FaMedal aria-hidden="true" />;
+    return <FaChartBar aria-hidden="true" />;
   }
 
   if (tipo === 'summary') {
@@ -226,16 +225,18 @@ function HeaderModal({
   titulo = 'Registrar partida',
   ariaFechar = 'Fechar registro de partida'
 }) {
-  const podeVoltar = fluxoSimplificado ? !salvando : indiceEtapa > 0 && !salvando && !sucesso;
+  const primeiraEtapa = indiceEtapa <= 0;
+  const podeVoltar = fluxoSimplificado ? !salvando : !salvando && !sucesso;
+  const acaoVoltar = fluxoSimplificado || primeiraEtapa ? onFechar : onVoltar;
 
   return (
     <header className="registrar-partida-novo-header">
       <button
         type="button"
         className="registrar-partida-novo-icone-botao"
-        onClick={fluxoSimplificado ? onFechar : onVoltar}
+        onClick={acaoVoltar}
         disabled={!podeVoltar}
-        aria-label={fluxoSimplificado ? ariaFechar : 'Voltar para editar'}
+        aria-label={fluxoSimplificado ? ariaFechar : 'Voltar'}
       >
         <FaChevronLeft aria-hidden="true" />
       </button>
@@ -740,20 +741,22 @@ function EtapaGrupo({
   return (
     <section className="registrar-partida-novo-etapa registrar-partida-novo-etapa-grupo">
       <div className="registrar-partida-novo-intro">
-        <h3>Grupo</h3>
+        <h3>Em qual grupo foi a partida?</h3>
+        <p>Escolha onde a partida será registrada.</p>
       </div>
 
       <div className="registrar-partida-novo-grupo-escolha">
         {!grupoSelecionadoId && (
           <button
             type="button"
-            className="registrar-partida-novo-grupo-opcao selecionada"
+            className="registrar-partida-novo-grupo-opcao"
             onClick={onSelecionarGrupo}
-            aria-pressed="true"
+            aria-pressed="false"
           >
             <GrupoOpcaoAvatar semGrupo />
             <span>
-              <strong>Nenhum grupo</strong>
+              <strong>Escolha um grupo</strong>
+              <small>Toque para selecionar onde a partida será registrada</small>
             </span>
             <FaEllipsisH aria-hidden="true" />
           </button>
@@ -805,7 +808,7 @@ function EtapaGrupo({
                 type="button"
                 key={grupoOpcao.id}
                 className={`registrar-partida-novo-grupo-opcao ${selecionada ? 'selecionada' : ''}`}
-                onClick={() => (selecionada && permitirRemoverGrupo ? onRemoverGrupo?.() : onEscolherGrupo?.(grupoOpcao))}
+                onClick={() => (selecionada ? onSelecionarGrupo?.() : onEscolherGrupo?.(grupoOpcao))}
                 aria-pressed={selecionada}
               >
                 <GrupoOpcaoAvatar grupo={grupoOpcao} />
@@ -843,8 +846,7 @@ function EtapaDupla({ numero, propsDupla, onConcluir }) {
   return (
     <section className="registrar-partida-novo-etapa registrar-partida-novo-etapa-dupla">
       <div className="registrar-partida-novo-intro">
-        <h3>Informe os atletas da Dupla {numero}</h3>
-        <p>Preencha os dois atletas desta dupla.</p>
+        <h3>Quem jogou na Dupla {numero}?</h3>
       </div>
 
       <DuplaRegistro
@@ -854,6 +856,93 @@ function EtapaDupla({ numero, propsDupla, onConcluir }) {
         {...propsDupla}
         {...refs}
       />
+    </section>
+  );
+}
+
+function ResumoDuplasWizard({ dados, selecoes }) {
+  const atletasDupla1 = montarAtletasDuplaVencedora(dados, selecoes, 'dupla1');
+  const atletasDupla2 = montarAtletasDuplaVencedora(dados, selecoes, 'dupla2');
+
+  function renderizarDupla(rotulo, atletas) {
+    return (
+      <div className="registrar-partida-novo-dupla-resumo">
+        <span>{rotulo}</span>
+        <div className="registrar-partida-novo-dupla-resumo-avatares" aria-hidden="true">
+          {atletas.map((atleta, indice) => (
+            <AvatarUsuario
+              key={`${rotulo}-avatar-${indice}`}
+              nome={atleta.nome}
+              fotoPerfilUrl={atleta.fotoPerfilUrl}
+              tamanho="sm"
+              className="registrar-partida-novo-dupla-resumo-avatar"
+            />
+          ))}
+        </div>
+        {atletas.map((atleta, indice) => (
+          <strong key={`${rotulo}-nome-${indice}`}>{atleta.nome}</strong>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="registrar-partida-novo-confronto-resumo" aria-label="Resumo das duplas">
+      {renderizarDupla('Dupla 1', atletasDupla1)}
+      <span className="registrar-partida-novo-versus">VS</span>
+      {renderizarDupla('Dupla 2', atletasDupla2)}
+    </div>
+  );
+}
+
+function TipoRegistroCard({ selecionado, icone, titulo, descricao, detalhe, onSelecionar }) {
+  return (
+    <button
+      type="button"
+      className={`registrar-partida-novo-tipo-card ${selecionado ? 'selecionado' : ''}`}
+      onClick={onSelecionar}
+      aria-pressed={selecionado}
+    >
+      <span className="registrar-partida-novo-tipo-icone">{icone}</span>
+      <span className="registrar-partida-novo-tipo-conteudo">
+        <strong>{titulo}</strong>
+        <small>{descricao}</small>
+        <em>{detalhe}</em>
+      </span>
+      {selecionado ? <FaCheck aria-hidden="true" /> : <FaArrowRight aria-hidden="true" />}
+    </button>
+  );
+}
+
+function EtapaTipoRegistro({ dados, selecoes, onAlterarCampo }) {
+  const modo = dados.resultado?.modo || '';
+
+  return (
+    <section className="registrar-partida-novo-etapa registrar-partida-novo-etapa-tipo">
+      <div className="registrar-partida-novo-intro">
+        <h3>Como deseja registrar?</h3>
+      </div>
+
+      <ResumoDuplasWizard dados={dados} selecoes={selecoes} />
+
+      <div className="registrar-partida-novo-tipo-lista" role="group" aria-label="Como registrar o resultado">
+        <TipoRegistroCard
+          selecionado={modo === 'PlacarDetalhado'}
+          icone={<FaChartBar aria-hidden="true" />}
+          titulo="Com placar"
+          descricao="Informe o placar completo da partida."
+          detalhe="Gera estatísticas completas."
+          onSelecionar={() => onAlterarCampo('resultado.modo', 'PlacarDetalhado')}
+        />
+        <TipoRegistroCard
+          selecionado={modo === 'ApenasResultado'}
+          icone={<FaTrophy aria-hidden="true" />}
+          titulo="Apenas vencedor"
+          descricao="Registro mais rápido."
+          detalhe="Calcula vitórias, derrotas, ranking e sequência."
+          onSelecionar={() => onAlterarCampo('resultado.modo', 'ApenasResultado')}
+        />
+      </div>
     </section>
   );
 }
@@ -929,6 +1018,66 @@ function EtapaPlacar(props) {
           onAlterarCampo={props.onAlterarCampo}
           onRevisar={props.onRevisar}
         />
+      )}
+    </section>
+  );
+}
+
+function EtapaResultado(props) {
+  const modo = props.dados.resultado?.modo || '';
+  const apenasResultado = modo === 'ApenasResultado';
+  const duplaVencedora = props.dados.resultado?.duplaVencedora || '';
+  const atletasDupla1 = montarAtletasDuplaVencedora(props.dados, props.selecoes, 'dupla1');
+  const atletasDupla2 = montarAtletasDuplaVencedora(props.dados, props.selecoes, 'dupla2');
+
+  return (
+    <section className="registrar-partida-novo-etapa registrar-partida-novo-etapa-resultado">
+      <div className="registrar-partida-novo-intro">
+        <h3>Resultado</h3>
+      </div>
+
+      {modo === 'PlacarDetalhado' ? (
+        <PlacarCentral
+          dados={props.dados}
+          placar1Ref={props.placar1Ref}
+          placar2Ref={props.placar2Ref}
+          regraPartida={props.regraPartida}
+          carregandoRegraPartida={props.carregandoRegraPartida}
+          erroRegraPartida={props.erroRegraPartida}
+          onAlterarCampo={props.onAlterarCampo}
+          onRevisar={props.onRevisar}
+        />
+      ) : apenasResultado ? (
+        <section className="registrar-partida-novo-apenas-resultado" aria-label="Escolha da dupla vencedora">
+          <div className="registrar-partida-novo-apenas-resultado-intro">
+            <strong>Quem venceu?</strong>
+          </div>
+
+          <div className="registrar-partida-novo-vencedora-lista">
+            <DuplaVencedoraCard
+              numero={1}
+              atletas={atletasDupla1}
+              selecionada={String(duplaVencedora) === '1'}
+              onSelecionar={() => props.onAlterarCampo('resultado.duplaVencedora', '1')}
+            />
+            <DuplaVencedoraCard
+              numero={2}
+              atletas={atletasDupla2}
+              selecionada={String(duplaVencedora) === '2'}
+              onSelecionar={() => props.onAlterarCampo('resultado.duplaVencedora', '2')}
+            />
+          </div>
+
+          {!duplaVencedora && (
+            <span className="registrar-partida-novo-vencedora-pendente">
+              Escolha uma dupla para continuar.
+            </span>
+          )}
+        </section>
+      ) : (
+        <div className="registrar-partida-novo-estado-pendente">
+          <strong>Escolha o tipo de registro antes de informar o resultado.</strong>
+        </div>
       )}
     </section>
   );
@@ -1287,14 +1436,87 @@ function obterRotuloAcao(etapaAtual, salvando) {
   }
 
   if (etapaAtual?.id === 'dupla1' || etapaAtual?.id === 'dupla2') {
-    return 'Próximo';
+    return 'Continuar';
   }
 
-  if (etapaAtual?.id === 'placar') {
-    return 'Revisar';
+  if (etapaAtual?.id === 'tipo' || etapaAtual?.id === 'resultado') {
+    return 'Continuar';
   }
 
   return 'Registrar partida';
+}
+
+function obterNomesAtletasWizard(dados) {
+  return [
+    limparTexto(dados.dupla1.atletaDireita),
+    limparTexto(dados.dupla1.atletaEsquerda),
+    limparTexto(dados.dupla2.atletaDireita),
+    limparTexto(dados.dupla2.atletaEsquerda)
+  ];
+}
+
+function duplaEstaPreenchida(dados, prefixo) {
+  const atleta1 = limparTexto(dados[prefixo].atletaDireita);
+  const atleta2 = limparTexto(dados[prefixo].atletaEsquerda);
+
+  return Boolean(atleta1 && atleta2 && atleta1.toLowerCase() !== atleta2.toLowerCase());
+}
+
+function atletasEstaoValidosParaWizard(dados) {
+  const nomes = obterNomesAtletasWizard(dados);
+  const nomesNormalizados = nomes.map((nome) => nome.toLowerCase()).filter(Boolean);
+
+  return nomes.every(Boolean) && new Set(nomesNormalizados).size === nomesNormalizados.length;
+}
+
+function resultadoEstaPreenchido(dados, regraPartida) {
+  const modo = dados.resultado?.modo || '';
+
+  if (modo === 'ApenasResultado') {
+    return Boolean(dados.resultado?.duplaVencedora);
+  }
+
+  if (modo === 'PlacarDetalhado') {
+    return montarValidacoesPlacar(dados, regraPartida).every((validacao) => validacao.ok);
+  }
+
+  return false;
+}
+
+function obterAcaoPrincipalDesabilitada({
+  etapaAtual,
+  dados,
+  grupo,
+  regraPartida,
+  salvando,
+  duplicidade,
+  revisaoInvalida
+}) {
+  if (salvando || duplicidade) {
+    return true;
+  }
+
+  if (etapaAtual?.id === 'grupo') {
+    return !grupo?.id;
+  }
+
+  if (etapaAtual?.id === 'dupla1') {
+    return !duplaEstaPreenchida(dados, 'dupla1');
+  }
+
+  if (etapaAtual?.id === 'dupla2') {
+    return !duplaEstaPreenchida(dados, 'dupla2') || !atletasEstaoValidosParaWizard(dados);
+  }
+
+  if (etapaAtual?.id === 'tipo') {
+    return dados.resultado?.modo !== 'PlacarDetalhado' && dados.resultado?.modo !== 'ApenasResultado';
+  }
+
+  if (etapaAtual?.id === 'resultado') {
+    return !resultadoEstaPreenchido(dados, regraPartida);
+  }
+
+  return revisaoInvalida;
 }
 
 function RodapeAcoesPartida({
@@ -1405,8 +1627,12 @@ function ConteudoEtapa({
     return <EtapaDupla numero={2} propsDupla={propsRegistro} onConcluir={onConcluirEtapa} />;
   }
 
-  if (etapaAtual.id === 'placar') {
-    return <EtapaPlacar {...propsRegistro} />;
+  if (etapaAtual.id === 'tipo') {
+    return <EtapaTipoRegistro dados={dados} selecoes={selecoes} onAlterarCampo={onAlterarCampo} />;
+  }
+
+  if (etapaAtual.id === 'resultado') {
+    return <EtapaResultado {...propsRegistro} />;
   }
 
   return (
@@ -1458,7 +1684,6 @@ export function RegistrarPartidaNovoModal({
   onSelecionarAtleta,
   onConfirmarEtapa,
   onVoltar,
-  onRevisar,
   onCancelarDuplicidade,
   onConfirmarDuplicidade,
   onFechar,
@@ -1497,7 +1722,17 @@ export function RegistrarPartidaNovoModal({
   const [tecladoAberto, setTecladoAberto] = useState(false);
   const [modoMobile, setModoMobile] = useState(false);
   const revisaoInvalida = revisaoPossuiInconsistencia(dados, regraPartida);
-  const acaoPrincipalDesabilitada = salvando || Boolean(duplicidade) || revisaoInvalida;
+  const acaoPrincipalDesabilitada = fluxoSimplificado
+    ? salvando || Boolean(duplicidade) || revisaoInvalida
+    : obterAcaoPrincipalDesabilitada({
+        etapaAtual,
+        dados,
+        grupo,
+        regraPartida,
+        salvando,
+        duplicidade,
+        revisaoInvalida
+      });
 
   useEffect(() => {
     if (!aberto) {
@@ -1522,13 +1757,15 @@ export function RegistrarPartidaNovoModal({
     }
 
     const focosPorEtapa = {
-      registro: campoRef,
+      grupo: null,
       dupla1: campoRef,
       dupla2: dupla2Atleta1Ref,
-      placar: placar1Ref
+      resultado: placar1Ref
     };
 
-    const foco = focosPorEtapa[etapaAtual?.id] || campoRef;
+    const foco = Object.prototype.hasOwnProperty.call(focosPorEtapa, etapaAtual?.id)
+      ? focosPorEtapa[etapaAtual?.id]
+      : campoRef;
     if (foco) {
       focusCampoSemPular(foco);
     }
@@ -1776,7 +2013,7 @@ export function RegistrarPartidaNovoModal({
             carregandoRegraPartida={carregandoRegraPartida}
             erroRegraPartida={erroRegraPartida}
             onAlterarCampo={onAlterarCampo}
-            onRevisar={onConfirmarEtapa}
+            onRevisar={() => formRef.current?.requestSubmit()}
           />
 
           {duplicidade && (
@@ -1903,7 +2140,7 @@ export function RegistrarPartidaNovoModal({
                 onRemoverGrupo={onRemoverGrupo}
                 onAlterarCampo={onAlterarCampo}
                 onSelecionarAtleta={onSelecionarAtleta}
-                onRevisar={onRevisar}
+                onRevisar={() => formRef.current?.requestSubmit()}
                 onConcluirEtapa={() => formRef.current?.requestSubmit()}
                 onCancelarDuplicidade={onCancelarDuplicidade}
                 onConfirmarDuplicidade={onConfirmarDuplicidade}
@@ -1917,8 +2154,8 @@ export function RegistrarPartidaNovoModal({
               textoBotaoPrincipal={obterRotuloAcao(etapaAtual, false)}
               textoBotaoPrincipalSalvando={obterRotuloAcao(etapaAtual, true)}
               textoBotaoSecundario="Voltar"
-              onAcaoSecundaria={onVoltar}
-              exibirSecundario={indiceEtapa > 0 && !duplicidade}
+              onAcaoSecundaria={indiceEtapa > 0 ? onVoltar : onFechar}
+              exibirSecundario={!duplicidade}
             />
 
             <SeletorGrupoPartida

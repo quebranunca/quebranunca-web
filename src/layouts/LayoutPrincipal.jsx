@@ -10,7 +10,6 @@ import { obterItensNavegacao, obterItensNavegacaoPublica } from '../pages/navaga
 const ROTAS_SEM_BOTTOM_NAV = [
   /^\/login$/,
   /^\/cadastro\//,
-  /^\/partidas\/registrar$/,
   /^\/partidas\/campeonato$/,
   /^\/partidas\/consulta$/,
   /^\/campeonatos\//,

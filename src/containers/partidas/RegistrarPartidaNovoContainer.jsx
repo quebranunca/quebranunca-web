@@ -44,7 +44,7 @@ const estadoInicial = {
     pontos: ''
   },
   resultado: {
-    modo: 'ApenasResultado',
+    modo: '',
     duplaVencedora: ''
   }
 };
@@ -57,7 +57,12 @@ const estadoInicialSelecoes = {
 };
 
 const etapas = [
-  { id: 'registro', titulo: 'Registro', icone: 'group' }
+  { id: 'grupo', titulo: 'Grupo', icone: 'group' },
+  { id: 'dupla1', titulo: 'Dupla 1', icone: 'players' },
+  { id: 'dupla2', titulo: 'Dupla 2', icone: 'players' },
+  { id: 'tipo', titulo: 'Tipo', icone: 'score' },
+  { id: 'resultado', titulo: 'Resultado', icone: 'score' },
+  { id: 'revisao', titulo: 'Revisão', icone: 'summary' }
 ];
 
 function obterCampoAtletaUsuario(lado) {
@@ -371,7 +376,11 @@ function validarDupla(dados, prefixo, rotulo) {
   return '';
 }
 
-function validarEtapaAtual(idEtapa, dados, regraPartida) {
+function validarEtapaAtual(idEtapa, dados, regraPartida, contextoPartida = {}) {
+  if (idEtapa === 'grupo') {
+    return contextoPartida?.grupoId ? '' : 'Escolha um grupo para registrar a partida.';
+  }
+
   if (idEtapa === 'dupla1') {
     return validarDupla(dados, 'dupla1', 'Dupla 1');
   }
@@ -380,7 +389,13 @@ function validarEtapaAtual(idEtapa, dados, regraPartida) {
     return validarDupla(dados, 'dupla2', 'Dupla 2') || validarAtletas(dados);
   }
 
-  if (idEtapa === 'placar') {
+  if (idEtapa === 'tipo') {
+    return dados.resultado?.modo === 'PlacarDetalhado' || dados.resultado?.modo === 'ApenasResultado'
+      ? ''
+      : 'Escolha como deseja registrar o resultado.';
+  }
+
+  if (idEtapa === 'resultado') {
     return validarPlacar(dados, regraPartida);
   }
 
@@ -1083,7 +1098,23 @@ export function RegistrarPartidaNovoContainer({
 
   function confirmarEtapa(evento) {
     evento.preventDefault();
-    registrarPartida();
+
+    if (ehEdicao || etapaAtual.id === 'revisao') {
+      registrarPartida();
+      return;
+    }
+
+    const erroValidacao = validarEtapaAtual(etapaAtual.id, dados, regraPartida, contextoPartida);
+
+    if (erroValidacao) {
+      setErro(erroValidacao);
+      return;
+    }
+
+    setErro('');
+    setDuplicidade(null);
+    setPayloadPendente(null);
+    setIndiceEtapa((atual) => Math.min(etapas.length - 1, atual + 1));
   }
 
   function cancelarDuplicidade() {
@@ -1178,7 +1209,7 @@ export function RegistrarPartidaNovoContainer({
     setDuplicidade(null);
     setPayloadPendente(null);
     setSugestoes({});
-    setIndiceEtapa(etapas.findIndex((etapa) => etapa.id === 'placar'));
+    setIndiceEtapa(etapas.findIndex((etapa) => etapa.id === 'resultado'));
   }
 
   function registrarNovaPartida() {
@@ -1273,7 +1304,7 @@ export function RegistrarPartidaNovoContainer({
         onAbrirGrupo={abrirGrupo}
         onRegistrarRevanche={registrarRevanche}
         onRegistrarNovaPartida={registrarNovaPartida}
-        fluxoSimplificado
+        fluxoSimplificado={ehEdicao}
         titulo={ehEdicao ? 'Editar partida' : 'Registrar partida'}
         ariaFechar={ehEdicao ? 'Fechar edição de partida' : 'Fechar registro de partida'}
         rotuloAcaoPrincipal={ehEdicao ? 'Salvar alterações' : 'Registrar partida'}
