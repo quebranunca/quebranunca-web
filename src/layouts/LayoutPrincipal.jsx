@@ -26,6 +26,7 @@ export function LayoutPrincipal() {
   const homePublica = !autenticado && location.pathname === '/';
   const loginPublico = !autenticado && location.pathname === '/login';
   const homeDashboardApp = autenticado && location.pathname === '/app';
+  const gruposDashboardApp = autenticado && location.pathname === '/grupos';
   const itensMenu = autenticado
     ? obterItensNavegacao(usuario, estadoAcesso)
     : obterItensNavegacaoPublica();
@@ -64,13 +65,15 @@ export function LayoutPrincipal() {
         autenticado ? ' layout-autenticado' : ''
       }${mostrarBottomNavMobile ? ' layout-com-bottom-nav' : ''}${
         homeDashboardApp ? ' layout-home-dashboard-app' : ''
+      }${
+        gruposDashboardApp ? ' layout-grupos-dashboard-app' : ''
       }`}
     >
       <AppHeader
         autenticado={autenticado}
         usuario={usuario}
         estadoAcesso={estadoAcesso}
-        mostrarNotificacoes={!homeDashboardApp}
+        mostrarNotificacoes={!homeDashboardApp && !gruposDashboardApp}
         menuAberto={menuAberto}
         aoAlternarMenu={() => setMenuAberto((aberto) => !aberto)}
         aoSair={aoSair}

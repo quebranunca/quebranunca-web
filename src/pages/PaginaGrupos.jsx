@@ -1,15 +1,31 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { FaTrash, FaUpload, FaTimes, FaChevronLeft } from 'react-icons/fa';
+import {
+  FaCalendarCheck,
+  FaChevronLeft,
+  FaChevronRight,
+  FaClock,
+  FaExclamationTriangle,
+  FaGamepad,
+  FaPlus,
+  FaStar,
+  FaTimes,
+  FaTrash,
+  FaTrophy,
+  FaUpload,
+  FaUserPlus,
+  FaUsers
+} from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
-import { AtletaPerfilLink } from '../components/AtletaPerfilLink';
-import { AvatarUsuario, obterFotoPerfilAvatar } from '../components/AvatarUsuario';
-import { AvatarGrupo } from '../components/grupos/AvatarGrupo';
+import heroFutevolei from '../assets/home-futevolei-hero.jpg';
+import { LogoQNF } from '../components/branding/LogoQNF';
+import { AvatarGrupo, obterImagemGrupoAvatar } from '../components/grupos/AvatarGrupo';
 import { CriarGrupoFluxoModal } from '../components/grupos/CriarGrupoFluxoModal';
+import { NotificacoesBotao } from '../components/NotificacoesBotao';
 import { useNotification } from '../contexts/NotificationContext';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { gruposServico } from '../services/gruposServico';
+import { resolverUrlRecurso } from '../services/http';
 import { ESTADOS_ACESSO } from '../utils/acesso';
-import { obterNomeExibicaoAtleta } from '../utils/atletaUtils';
 import { comprimirImagemParaUpload, ehImagemNaoSuportada, ehImagemPermitida } from '../utils/compressaoImagem';
 import { extrairMensagemErro } from '../utils/erros';
 import { formatarDataHora } from '../utils/formatacao';
@@ -50,19 +66,26 @@ const dashboardVazio = {
   grupos: []
 };
 
-function formatarPontuacao(valor) {
-  const numero = Number(valor);
-
-  if (!Number.isFinite(numero)) {
-    return '0 pts';
+const gruposPopularesPlaceholder = [
+  {
+    id: 'popular-praia-central',
+    nome: 'Praia Central',
+    quantidadeAtletas: 32,
+    quantidadePartidas: 118
+  },
+  {
+    id: 'popular-sol-e-rede',
+    nome: 'Sol e Rede',
+    quantidadeAtletas: 24,
+    quantidadePartidas: 86
+  },
+  {
+    id: 'popular-quebra-areia',
+    nome: 'Quebra Areia',
+    quantidadeAtletas: 18,
+    quantidadePartidas: 54
   }
-
-  const texto = Number.isInteger(numero)
-    ? String(numero)
-    : numero.toFixed(1).replace('.', ',');
-
-  return `${texto} pts`;
-}
+];
 
 function formatarUltimaAtividade(data) {
   if (!data) {
@@ -79,6 +102,124 @@ function obterIdGrupo(grupo) {
 function obterQuantidade(valor) {
   const numero = Number(valor);
   return Number.isFinite(numero) ? numero : 0;
+}
+
+function pluralizar(quantidade, singular, plural = `${singular}s`) {
+  return quantidade === 1 ? singular : plural;
+}
+
+function obterPerfilNoGrupo(grupo, podeGerenciarGrupo) {
+  return grupo?.perfilUsuarioNoGrupo || grupo?.perfilNoGrupo || grupo?.papelUsuario || (podeGerenciarGrupo ? 'Administrador' : 'Membro');
+}
+
+function obterDataGrupo(grupo) {
+  return grupo?.ultimaAtividade || grupo?.ultimaPartidaEm || grupo?.criadoEm || grupo?.dataCriacao || null;
+}
+
+function obterUltimaPartidaGrupo(grupo) {
+  if (!grupo) {
+    return null;
+  }
+
+  const listas = [
+    grupo.ultimasPartidas,
+    grupo.partidasRecentes,
+    grupo.atividadeRecente
+  ];
+
+  const partidaEmLista = listas
+    .filter(Array.isArray)
+    .flat()
+    .find((item) => item?.tipo === undefined || String(item?.tipo || '').toLowerCase().includes('partida'));
+
+  return grupo.ultimaPartida || grupo.partidaRecente || partidaEmLista || null;
+}
+
+function obterPlacarPartida(partida) {
+  if (!partida) {
+    return 'Sem partida';
+  }
+
+  const placarA = partida.placarDupla1 ?? partida.placarTimeA ?? partida.placarEquipeA ?? partida.placarSuaDupla;
+  const placarB = partida.placarDupla2 ?? partida.placarTimeB ?? partida.placarEquipeB ?? partida.placarAdversarios;
+
+  if (placarA === null || placarA === undefined || placarB === null || placarB === undefined) {
+    return partida.resultadoTexto || partida.resultado || 'Resultado pendente';
+  }
+
+  return `${placarA} x ${placarB}`;
+}
+
+function obterResultadoPartida(partida) {
+  const resultado = String(partida?.resultado || partida?.status || '').trim();
+
+  if (resultado === 'W' || /vit[oó]ria/i.test(resultado)) {
+    return 'Vitória';
+  }
+
+  if (resultado === 'L' || /derrota/i.test(resultado)) {
+    return 'Derrota';
+  }
+
+  return resultado || 'Pendente';
+}
+
+function obterTimesPartida(partida) {
+  if (!partida) {
+    return 'Times a definir';
+  }
+
+  const dupla1 = partida.dupla1Nome || partida.dupla1 || partida.timeA || partida.equipeA || partida.suaDupla || 'Dupla 1';
+  const dupla2 = partida.dupla2Nome || partida.dupla2 || partida.timeB || partida.equipeB || partida.adversarios || 'Dupla 2';
+
+  return `${dupla1} x ${dupla2}`;
+}
+
+function criarEstiloImagemGrupo(grupo) {
+  const imagem = resolverUrlRecurso(obterImagemGrupoAvatar(grupo));
+  return { '--grupos-card-image': `url(${imagem || heroFutevolei})` };
+}
+
+function montarAtividadesRecentes(grupos) {
+  return (grupos || []).slice(0, 4).flatMap((grupo) => {
+    const grupoId = obterIdGrupo(grupo);
+    const atividades = [];
+
+    if (grupo.ultimaAtividade) {
+      atividades.push({
+        id: `${grupoId}-atividade`,
+        icone: FaGamepad,
+        titulo: 'Partida registrada',
+        descricao: grupo.nome,
+        data: grupo.ultimaAtividade,
+        status: 'Ativo'
+      });
+    }
+
+    if (obterQuantidade(grupo.pendencias) > 0) {
+      atividades.push({
+        id: `${grupoId}-pendencia`,
+        icone: FaExclamationTriangle,
+        titulo: 'Pendência aberta',
+        descricao: `${obterQuantidade(grupo.pendencias)} ${pluralizar(obterQuantidade(grupo.pendencias), 'pendência')}`,
+        data: obterDataGrupo(grupo),
+        status: 'Pendente'
+      });
+    }
+
+    if (!atividades.length) {
+      atividades.push({
+        id: `${grupoId}-grupo`,
+        icone: FaUsers,
+        titulo: 'Grupo ativo',
+        descricao: grupo.nome,
+        data: obterDataGrupo(grupo),
+        status: 'Grupo'
+      });
+    }
+
+    return atividades;
+  }).slice(0, 5);
 }
 
 function normalizarNome(nome) {
@@ -99,46 +240,303 @@ function aguardarRecalculoViewport() {
   });
 }
 
-function CardTotal({ rotulo, valor }) {
+function GruposHero({ autenticado, resumoPendencias }) {
   return (
-    <article className="grupos-dashboard-total">
-      <span className="grupos-dashboard-total-rotulo">{rotulo}</span>
-      <strong>{valor}</strong>
+    <header
+      className="grupos-dashboard-hero"
+      style={{ '--grupos-hero-image': `url(${heroFutevolei})` }}
+      role="region"
+      aria-label="Resumo de grupos"
+    >
+      <div className="grupos-dashboard-hero-acoes">
+        {autenticado && <NotificacoesBotao autenticado resumo={resumoPendencias} />}
+      </div>
+
+      <div className="grupos-dashboard-hero-identidade">
+        <span className="grupos-dashboard-hero-logo">
+          <LogoQNF variante="light" textoAlternativo="QuebraNunca" />
+        </span>
+        <div>
+          <span className="grupos-dashboard-hero-eyebrow">Sua galera no jogo</span>
+          <h1>Grupos</h1>
+          <p>Jogue com sua galera e acompanhe tudo em um só lugar.</p>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+function GruposResumo({ totais }) {
+  const itens = [
+    { id: 'grupos', rotulo: 'Grupos', valor: obterQuantidade(totais.quantidadeGrupos), icone: FaUsers },
+    { id: 'atletas', rotulo: 'Atletas', valor: obterQuantidade(totais.quantidadeAtletas), icone: FaUserPlus },
+    { id: 'partidas', rotulo: 'Partidas', valor: obterQuantidade(totais.quantidadePartidas), icone: FaGamepad },
+    { id: 'pendencias', rotulo: 'Pendências', valor: obterQuantidade(totais.pendenciasGrupos), icone: FaExclamationTriangle }
+  ];
+
+  return (
+    <section className="grupos-dashboard-resumo" aria-label="Resumo dos grupos">
+      <div className="grupos-dashboard-resumo-grid">
+        {itens.map((item) => {
+          const Icone = item.icone;
+          return (
+            <article key={item.id} className="grupos-dashboard-total">
+              <Icone aria-hidden="true" />
+              <strong>{item.valor}</strong>
+              <span className="grupos-dashboard-total-rotulo">{item.rotulo}</span>
+            </article>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function GrupoPrimeiroCard({ onCriarGrupo }) {
+  return (
+    <article className="grupos-dashboard-primeiro-card">
+      <div>
+        <span className="grupos-dashboard-card-icone"><FaUsers aria-hidden="true" /></span>
+        <h2>Crie seu primeiro grupo</h2>
+        <p>Organize sua turma. Acompanhe rankings, histórico, scouts e ranking de duplas.</p>
+      </div>
+      <div className="grupos-dashboard-primeiro-visual" aria-hidden="true">
+        <span />
+        <span />
+        <span />
+      </div>
+      <button type="button" className="grupos-dashboard-cta grupos-dashboard-cta-principal" onClick={onCriarGrupo}>
+        <span className="grupos-dashboard-cta-icone"><FaPlus aria-hidden="true" /></span>
+        <span>
+          <strong>Criar grupo</strong>
+          <small>Comece com sua galera agora.</small>
+        </span>
+        <FaChevronRight aria-hidden="true" />
+      </button>
     </article>
   );
 }
 
-function RankingPreview({ ranking }) {
-  const lista = Array.isArray(ranking) ? ranking.slice(0, 3) : [];
+function GruposAcoesVazio({ onCriarGrupo, onRegistrarAvulsa }) {
+  return (
+    <section className="grupos-dashboard-acoes-vazio" aria-label="Ações de grupos">
+      <button type="button" className="grupos-dashboard-cta grupos-dashboard-cta-principal" onClick={onCriarGrupo}>
+        <span className="grupos-dashboard-cta-icone"><FaPlus aria-hidden="true" /></span>
+        <span>
+          <strong>Criar Grupo</strong>
+          <small>Ranking, histórico e scouts com sua turma.</small>
+        </span>
+        <FaChevronRight aria-hidden="true" />
+      </button>
+
+      <span className="grupos-dashboard-ou">OU</span>
+
+      <button type="button" className="grupos-dashboard-cta grupos-dashboard-cta-secundario" onClick={onRegistrarAvulsa}>
+        <span className="grupos-dashboard-cta-icone"><FaGamepad aria-hidden="true" /></span>
+        <span>
+          <strong>Registrar partida avulsa</strong>
+          <small>Salve um jogo mesmo sem grupo.</small>
+        </span>
+        <FaChevronRight aria-hidden="true" />
+      </button>
+    </section>
+  );
+}
+
+function GruposEmptyState() {
+  return (
+    <article className="grupos-dashboard-empty-premium" style={{ '--grupos-empty-image': `url(${heroFutevolei})` }}>
+      <div>
+        <span className="grupos-dashboard-card-icone"><FaStar aria-hidden="true" /></span>
+        <h2>Você ainda não participa de nenhum grupo.</h2>
+        <p>Criar um grupo permite:</p>
+        <ul>
+          <li>Ranking exclusivo</li>
+          <li>Histórico do grupo</li>
+          <li>Scouts dos atletas</li>
+          <li>Ranking de duplas</li>
+        </ul>
+      </div>
+    </article>
+  );
+}
+
+function GruposPopulares() {
+  return (
+    <section className="grupos-dashboard-populares" aria-labelledby="grupos-populares-titulo">
+      <div className="grupos-dashboard-section-title">
+        <h2 id="grupos-populares-titulo">Grupos populares</h2>
+        <button type="button">Ver todos <FaChevronRight aria-hidden="true" /></button>
+      </div>
+      <div className="grupos-dashboard-populares-lista">
+        {gruposPopularesPlaceholder.map((grupo) => (
+          <article key={grupo.id} className="grupos-dashboard-popular-card">
+            <AvatarGrupo nome={grupo.nome} tamanho="md" />
+            <strong>{grupo.nome}</strong>
+            <span>{grupo.quantidadeAtletas} atletas</span>
+            <span>{grupo.quantidadePartidas} partidas</span>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function GrupoAtualCard({ grupo, perfil, onAbrir }) {
+  return (
+    <article className="grupos-dashboard-grupo-atual" style={criarEstiloImagemGrupo(grupo)}>
+      <div className="grupos-dashboard-grupo-atual-conteudo">
+        <AvatarGrupo grupo={grupo} tamanho="xl" className="grupos-dashboard-grupo-atual-avatar" />
+        <div>
+          <span className="grupos-dashboard-privacidade">{grupo.privacidade || 'Grupo'}</span>
+          <h2>{grupo.nome}</h2>
+          <div className="grupos-dashboard-grupo-atual-meta">
+            <span>{obterQuantidade(grupo.quantidadeAtletas)} atletas</span>
+            <span>{obterQuantidade(grupo.quantidadePartidas)} partidas</span>
+            <span>{perfil}</span>
+          </div>
+        </div>
+      </div>
+      <button type="button" className="grupos-dashboard-card-link" onClick={onAbrir}>
+        Abrir grupo
+        <FaChevronRight aria-hidden="true" />
+      </button>
+    </article>
+  );
+}
+
+function GruposUltimaPartida({ grupo }) {
+  const partida = obterUltimaPartidaGrupo(grupo);
+  const resultado = obterResultadoPartida(partida);
+  const classeResultado = resultado === 'Vitória' ? 'vitoria' : resultado === 'Derrota' ? 'derrota' : '';
 
   return (
-    <section className="grupos-dashboard-ranking" aria-label="Prévia do ranking">
-      <span className="grupo-resumo-rotulo grupos-dashboard-ranking-titulo">Ranking</span>
-
-      {lista.length > 0 ? (
-        <ol className="grupo-resumo-ranking grupos-dashboard-ranking-lista">
-          {lista.map((atleta) => (
-            <li
-              key={`${atleta.posicao}-${atleta.atletaId}`}
-              className={atleta.usuarioLogado ? 'home-grupo-usuario-ranking-atual' : undefined}
-            >
-              <span className="grupos-dashboard-ranking-posicao">{atleta.posicao}º</span>
-              <AvatarUsuario
-                nome={obterNomeExibicaoAtleta(atleta)}
-                fotoPerfilUrl={obterFotoPerfilAvatar(atleta)}
-                tamanho="sm"
-                className="grupo-ranking-avatar"
-              />
-              <AtletaPerfilLink atleta={atleta} className="atleta-nome-link grupos-dashboard-ranking-nome">
-                <strong>{obterNomeExibicaoAtleta(atleta) || 'Atleta'}</strong>
-              </AtletaPerfilLink>
-              <small className="grupos-dashboard-ranking-pontos">{formatarPontuacao(atleta.pontuacao)}</small>
-            </li>
-          ))}
-        </ol>
+    <section className="grupos-dashboard-ultima-partida" aria-labelledby="grupos-ultima-partida-titulo">
+      <div className="grupos-dashboard-section-title">
+        <h2 id="grupos-ultima-partida-titulo">Última partida</h2>
+      </div>
+      {partida ? (
+        <article className="grupos-dashboard-partida-card">
+          <span><FaClock aria-hidden="true" /> {formatarUltimaAtividade(partida.data || partida.dataPartida || partida.criadoEm)}</span>
+          <strong>{obterTimesPartida(partida)}</strong>
+          <div>
+            <b>{obterPlacarPartida(partida)}</b>
+            <em className={classeResultado}>{resultado}</em>
+          </div>
+        </article>
       ) : (
-        <p>Ainda sem ranking</p>
+        <article className="grupos-dashboard-partida-card grupos-dashboard-partida-vazia">
+          <span><FaClock aria-hidden="true" /> Sem partida recente</span>
+          <strong>Registre um jogo para iniciar o histórico do grupo.</strong>
+          <div>
+            <b>0 x 0</b>
+            <em>Pendente</em>
+          </div>
+        </article>
       )}
+    </section>
+  );
+}
+
+function GruposRegistrarPartidaCTA({ onRegistrar }) {
+  return (
+    <button type="button" className="grupos-dashboard-cta grupos-dashboard-cta-principal" onClick={onRegistrar}>
+      <span className="grupos-dashboard-cta-icone"><FaPlus aria-hidden="true" /></span>
+      <span>
+        <strong>Registrar partida</strong>
+        <small>Registre um novo jogo do grupo.</small>
+      </span>
+      <FaChevronRight aria-hidden="true" />
+    </button>
+  );
+}
+
+function GruposAcoesRapidas({ grupoId, navegar }) {
+  return (
+    <section className="grupos-dashboard-acoes-rapidas" aria-label="Ações rápidas">
+      <button type="button" onClick={() => navegar(`/ranking?tipo=grupos&grupoId=${grupoId}`)}>
+        <span><FaTrophy aria-hidden="true" /> Ver Ranking</span>
+        <FaChevronRight aria-hidden="true" />
+      </button>
+      <button type="button" onClick={() => navegar(`/grupos/${grupoId}/atletas`)}>
+        <span><FaUsers aria-hidden="true" /> Ver Atletas</span>
+        <FaChevronRight aria-hidden="true" />
+      </button>
+    </section>
+  );
+}
+
+function GruposAtividadeRecente({ atividades }) {
+  return (
+    <section className="grupos-dashboard-atividade-recente" aria-labelledby="grupos-atividade-titulo">
+      <div className="grupos-dashboard-section-title">
+        <h2 id="grupos-atividade-titulo">Atividade recente</h2>
+      </div>
+      <div className="grupos-dashboard-timeline">
+        {atividades.length > 0 ? atividades.map((atividade) => {
+          const Icone = atividade.icone;
+          return (
+            <article key={atividade.id} className="grupos-dashboard-timeline-item">
+              <span className="grupos-dashboard-timeline-icone"><Icone aria-hidden="true" /></span>
+              <div>
+                <strong>{atividade.titulo}</strong>
+                <p>{atividade.descricao}</p>
+                <small>{formatarUltimaAtividade(atividade.data)}</small>
+              </div>
+              <em>{atividade.status}</em>
+            </article>
+          );
+        }) : (
+          <article className="grupos-dashboard-timeline-item">
+            <span className="grupos-dashboard-timeline-icone"><FaCalendarCheck aria-hidden="true" /></span>
+            <div>
+              <strong>Nenhuma atividade recente</strong>
+              <p>As movimentações do grupo aparecerão aqui.</p>
+              <small>Agora</small>
+            </div>
+            <em>Novo</em>
+          </article>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function MeusGruposLista({ grupos, usuarioPodeGerenciar, onAbrir, onRegistrar, onEditar, onRemover }) {
+  return (
+    <section className="grupos-dashboard-meus-grupos" aria-labelledby="grupos-meus-grupos-titulo">
+      <div className="grupos-dashboard-section-title">
+        <h2 id="grupos-meus-grupos-titulo">Meus grupos</h2>
+      </div>
+      <div className="grupos-dashboard-meus-grupos-lista">
+        {grupos.map((grupo) => {
+          const grupoId = obterIdGrupo(grupo);
+          const podeGerenciarGrupo = usuarioPodeGerenciar(grupo);
+          return (
+            <article key={grupoId} className="grupos-dashboard-meu-grupo-card">
+              <button type="button" onClick={() => onAbrir(grupoId)}>
+                <AvatarGrupo grupo={grupo} tamanho="md" />
+                <span>
+                  <strong>{grupo.nome}</strong>
+                  <small>
+                    {obterQuantidade(grupo.quantidadeAtletas)} atletas · {obterQuantidade(grupo.quantidadePartidas)} partidas · {obterPerfilNoGrupo(grupo, podeGerenciarGrupo)}
+                  </small>
+                </span>
+                <FaChevronRight aria-hidden="true" />
+              </button>
+              <div className="grupos-dashboard-meu-grupo-acoes">
+                <button type="button" onClick={() => onRegistrar(grupoId)}>Registrar</button>
+                {podeGerenciarGrupo && (
+                  <>
+                    <button type="button" onClick={() => onEditar(grupo)}>Editar</button>
+                    <button type="button" onClick={() => onRemover(grupoId)}>Remover</button>
+                  </>
+                )}
+              </div>
+            </article>
+          );
+        })}
+      </div>
     </section>
   );
 }
@@ -334,6 +732,15 @@ export function PaginaGrupos() {
 
   function abrirNovoGrupo() {
     setFluxoCriarAberto(true);
+  }
+
+  function iniciarCriacaoGrupo() {
+    if (!podeCriarGrupo) {
+      navegar('/login');
+      return;
+    }
+
+    abrirNovoGrupo();
   }
 
   async function iniciarEdicao(grupo) {
@@ -563,25 +970,21 @@ export function PaginaGrupos() {
       return;
     }
 
-    navegar(`/partidas/registrar?grupoId=${grupoId}`);
+    navegar(grupoId ? `/partidas/registrar?grupoId=${grupoId}` : '/partidas/registrar');
   }
 
   const totais = dashboard.totais || dashboardVazio.totais;
+  const autenticado = Boolean(token);
+  const resumoPendencias = { total: obterQuantidade(totais.pendenciasGrupos) };
+  const possuiGrupos = gruposOrdenados.length > 0;
+  const grupoAtual = gruposOrdenados[0] || null;
+  const grupoAtualId = grupoAtual ? obterIdGrupo(grupoAtual) : null;
+  const perfilGrupoAtual = grupoAtual ? obterPerfilNoGrupo(grupoAtual, podeGerenciar(grupoAtual)) : 'Membro';
+  const atividadesRecentes = montarAtividadesRecentes(gruposOrdenados);
 
   return (
     <section className="pagina grupos-dashboard-pagina">
-      <header className="cabecalho-pagina grupos-dashboard-cabecalho">
-        <div>
-          <h2>Grupos</h2>
-          <p>Acompanhe partidas, rankings e atletas dos seus grupos</p>
-        </div>
-
-        {podeCriarGrupo && !formularioAberto && (
-          <button type="button" className="botao-primario" onClick={abrirNovoGrupo}>
-            Criar grupo
-          </button>
-        )}
-      </header>
+      <GruposHero autenticado={autenticado} resumoPendencias={resumoPendencias} />
 
       {podeCriarGrupo && formularioAberto && (
         <div className="modal-sobreposicao grupos-edicao-sobreposicao" role="presentation" onClick={limparFormulario}>
@@ -770,13 +1173,6 @@ export function PaginaGrupos() {
         </div>
       )}
 
-      <section className="grupos-dashboard-totais" aria-label="Resumo dos grupos">
-        <CardTotal rotulo="Grupos" valor={obterQuantidade(totais.quantidadeGrupos)} />
-        <CardTotal rotulo="Atletas" valor={obterQuantidade(totais.quantidadeAtletas)} />
-        <CardTotal rotulo="Partidas" valor={obterQuantidade(totais.quantidadePartidas)} />
-        <CardTotal rotulo="Pendências" valor={obterQuantidade(totais.pendenciasGrupos)} />
-      </section>
-
       {carregando ? (
         <article className="cartao-lista grupos-dashboard-estado">
           <p>Carregando grupos...</p>
@@ -789,86 +1185,39 @@ export function PaginaGrupos() {
             Recarregar
           </button>
         </article>
-      ) : gruposOrdenados.length === 0 ? (
-        <article className="cartao-lista grupos-dashboard-vazio">
-          <h3>Você ainda não participa de nenhum grupo</h3>
-          <p>Crie um grupo para organizar partidas com seus amigos ou participe de um grupo existente.</p>
-
-          <div className="grupos-dashboard-acoes">
-            {podeCriarGrupo && (
-              <button type="button" className="botao-primario" onClick={abrirNovoGrupo}>
-                Criar grupo
-              </button>
-            )}
-            <button type="button" className="botao-secundario" onClick={() => navegar('/partidas/registrar')}>
-              Registrar partida avulsa
-            </button>
-          </div>
-        </article>
+      ) : !possuiGrupos ? (
+        <>
+          <GrupoPrimeiroCard onCriarGrupo={iniciarCriacaoGrupo} />
+          <GruposResumo totais={totais} />
+          <GruposAcoesVazio
+            onCriarGrupo={iniciarCriacaoGrupo}
+            onRegistrarAvulsa={() => navegarParaRegistro(null)}
+          />
+          <GruposEmptyState />
+          <GruposPopulares />
+        </>
       ) : (
-        <section className="grupos-dashboard-lista" aria-label="Lista de grupos">
-          {gruposOrdenados.map((grupo) => {
-            const grupoId = obterIdGrupo(grupo);
-            return (
-              <article key={grupoId} className="cartao-lista grupos-dashboard-card">
-                <button
-                  type="button"
-                  className="grupos-dashboard-card-corpo"
-                  onClick={() => navegar(`/grupos/${grupoId}`)}
-                >
-                  <div className="grupos-dashboard-card-topo">
-                    <AvatarGrupo
-                      grupo={grupo}
-                      tamanho="lg"
-                      className="grupos-dashboard-card-avatar"
-                      alt={`Foto do grupo ${grupo.nome}`}
-                    />
-                    <div>
-                      <span className="grupos-dashboard-privacidade">{grupo.privacidade || 'Privado'}</span>
-                      <h3>{grupo.nome}</h3>
-                      {(grupo.criadoEm || grupo.dataCriacao) && (
-                        <span className="grupos-dashboard-criacao">
-                          Criado em {formatarUltimaAtividade(grupo.criadoEm || grupo.dataCriacao)}
-                        </span>
-                      )}
-                    </div>
-
-                    <span className="grupos-dashboard-atividade">
-                      Última atividade: {formatarUltimaAtividade(grupo.ultimaAtividade)}
-                    </span>
-                  </div>
-
-                  <div className="grupos-dashboard-metricas">
-                    <span>{obterQuantidade(grupo.quantidadeAtletas)} atletas</span>
-                    <span>{obterQuantidade(grupo.quantidadePartidas)} partidas</span>
-                    <span>{obterQuantidade(grupo.pendencias)} pendências</span>
-                  </div>
-                </button>
-
-                <RankingPreview ranking={grupo.rankingTop3} />
-
-                <div className="grupos-dashboard-acoes">
-                  <button type="button" className="botao-primario grupos-dashboard-acao-principal" onClick={() => navegar(`/grupos/${grupoId}`)}>
-                    Abrir grupo
-                  </button>
-                  <button type="button" className="botao-secundario grupos-dashboard-acao-principal" onClick={() => navegarParaRegistro(grupoId)}>
-                    Registrar partida
-                  </button>
-                  {podeGerenciar(grupo) && (
-                    <>
-                      <button type="button" className="botao-secundario grupos-dashboard-acao-menor" onClick={() => iniciarEdicao(grupo)}>
-                        Editar
-                      </button>
-                      <button type="button" className="botao-perigo grupos-dashboard-acao-menor" onClick={() => confirmarRemocaoGrupo(grupoId)}>
-                        Remover
-                      </button>
-                    </>
-                  )}
-                </div>
-              </article>
-            );
-          })}
-        </section>
+        <>
+          <GrupoAtualCard
+            grupo={grupoAtual}
+            perfil={perfilGrupoAtual}
+            onAbrir={() => navegar(`/grupos/${grupoAtualId}`)}
+          />
+          <GruposResumo totais={totais} />
+          <GruposUltimaPartida grupo={grupoAtual} />
+          <GruposRegistrarPartidaCTA onRegistrar={() => navegarParaRegistro(grupoAtualId)} />
+          <GruposAcoesRapidas grupoId={grupoAtualId} navegar={navegar} />
+          <GruposAtividadeRecente atividades={atividadesRecentes} />
+          <MeusGruposLista
+            grupos={gruposOrdenados}
+            usuarioPodeGerenciar={podeGerenciar}
+            onAbrir={(grupoId) => navegar(`/grupos/${grupoId}`)}
+            onRegistrar={navegarParaRegistro}
+            onEditar={iniciarEdicao}
+            onRemover={confirmarRemocaoGrupo}
+          />
+          <GruposPopulares />
+        </>
       )}
 
       <CriarGrupoFluxoModal
