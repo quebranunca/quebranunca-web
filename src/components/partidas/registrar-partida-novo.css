@@ -1103,7 +1103,7 @@ body.registrar-partida-modal-aberto {
 .registrar-partida-novo-sugestoes {
   position: relative;
   z-index: 4;
-  max-height: min(14rem, 34dvh);
+  max-height: min(11.5rem, 30dvh);
   display: flex;
   flex-direction: column;
   gap: 0.45rem;

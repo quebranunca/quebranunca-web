@@ -371,6 +371,8 @@ function obterNomeInputAtleta(campo) {
   return nomes[campo] || 'atletaPartida';
 }
 
+const LIMITE_SUGESTOES_ATLETA_VISIVEIS = 3;
+
 function AutocompleteAtleta({
   campo,
   rotulo,
@@ -387,16 +389,18 @@ function AutocompleteAtleta({
   onLimparSelecao
 }) {
   const valor = obterValorCampo(dados, campo);
-  const sugestoesCampo = sugestoes[campo] || [];
+  const sugestoesCampoTodas = sugestoes[campo] || [];
+  const sugestoesCampo = sugestoesCampoTodas.slice(0, LIMITE_SUGESTOES_ATLETA_VISIVEIS);
   const buscaAtiva = limparTermoBuscaAtleta(valor).length >= 2;
-  const idsResultados = new Set(sugestoesCampo.map(obterChaveAtletaSugestao).filter(Boolean));
+  const idsResultados = new Set(sugestoesCampoTodas.map(obterChaveAtletaSugestao).filter(Boolean));
   const sugestoesRapidasCampo = (sugestoesRapidas?.atletas || [])
-    .filter((atleta) => !idsResultados.has(obterChaveAtletaSugestao(atleta)));
+    .filter((atleta) => !idsResultados.has(obterChaveAtletaSugestao(atleta)))
+    .slice(0, LIMITE_SUGESTOES_ATLETA_VISIVEIS);
   const temSelecao = Boolean(selecao?.id);
   const nomeSelecao = obterNomeExibicaoAtleta(selecao);
   const campoEstaAtivo = campoAtivo === campo;
   const exibirSugestoesRapidas = campoEstaAtivo && !temSelecao && !buscaAtiva && sugestoesRapidasCampo.length > 0;
-  const exibirListaResultados = campoEstaAtivo && !temSelecao && (buscaAtiva || sugestoesCampo.length > 0 || buscando);
+  const exibirListaResultados = campoEstaAtivo && !temSelecao && (buscaAtiva || sugestoesCampoTodas.length > 0 || buscando);
 
   function selecionarComPonteiro(evento, atleta) {
     evento.preventDefault();
@@ -471,7 +475,7 @@ function AutocompleteAtleta({
             </span>
           )}
           {buscando && <span className="registrar-partida-novo-sugestao-status carregando">Buscando atletas...</span>}
-          {buscaAtiva && !buscando && sugestoesCampo.length === 0 && (
+          {buscaAtiva && !buscando && sugestoesCampoTodas.length === 0 && (
             <span className="registrar-partida-novo-sugestao-status vazio">Nenhum atleta encontrado</span>
           )}
           {sugestoesCampo.map((atleta, indice) => {
