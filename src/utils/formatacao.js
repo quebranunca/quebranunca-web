@@ -14,6 +14,30 @@ export function formatarDataHora(data) {
   return new Date(data).toLocaleString('pt-BR');
 }
 
+export function formatarDataHoraCurta(data) {
+  if (!data) {
+    return '-';
+  }
+
+  const dataReferencia = new Date(data);
+
+  if (Number.isNaN(dataReferencia.getTime())) {
+    return '-';
+  }
+
+  const dataFormatada = dataReferencia.toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  });
+  const horaFormatada = dataReferencia.toLocaleTimeString('pt-BR', {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+
+  return `${dataFormatada} às ${horaFormatada}`;
+}
+
 export function formatarHora(data) {
   if (!data) {
     return '-';

@@ -23,7 +23,7 @@ import { NotificacoesBotao } from '../NotificacoesBotao';
 
 const HOME_NAVIGATION = Object.freeze({
   ranking: '/ranking',
-  meusJogos: '/app/meus-jogos',
+  meusJogos: '/minhas-partidas',
   registrarPartida: '/partidas/registrar',
   grupos: '/grupos',
   perfil: '/app/perfil'

@@ -23,7 +23,6 @@ const ROTA_HOME_APP = '/app';
 const ROTAS_PRINCIPAIS_SEM_VOLTAR = new Set([
   '/',
   '/app',
-  '/app/meus-jogos',
   '/ranking',
   '/grupos',
   '/app/perfil'

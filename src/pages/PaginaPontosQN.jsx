@@ -501,7 +501,7 @@ export function PaginaPontosQN() {
             <h2>Como ganhar mais pontos</h2>
             <div className="pontosqn-acoes-grid">
               <Link to="/partidas/registrar"><FaClipboardList aria-hidden="true" /><span>Registrar partida</span><FaChevronRight aria-hidden="true" /></Link>
-              <Link to="/app/meus-jogos"><FaUserFriends aria-hidden="true" /><span>Participar de partida</span><FaChevronRight aria-hidden="true" /></Link>
+              <Link to="/minhas-partidas?filtro=participei"><FaUserFriends aria-hidden="true" /><span>Participar de partida</span><FaChevronRight aria-hidden="true" /></Link>
               <Link to="/feed"><FaShareAlt aria-hidden="true" /><span>Compartilhar resultado</span><FaChevronRight aria-hidden="true" /></Link>
             </div>
           </section>

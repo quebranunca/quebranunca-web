@@ -15,7 +15,7 @@ function obterDestinoFechamento(location) {
     return `/partidas/consulta?categoriaId=${categoriaId}`;
   }
 
-  return '/minhas-partidas-registradas';
+  return '/minhas-partidas?filtro=registradas';
 }
 
 export function PaginaRegistrarPartidas() {

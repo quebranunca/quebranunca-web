@@ -274,9 +274,9 @@ export function HomeResumoUsuario({
         ) : (
           <>                 
             <Link
-              to="/app/meus-jogos"
+              to="/minhas-partidas"
               className="home-resumo-usuario-metricas"
-              aria-label="Abrir meus jogos"
+              aria-label="Abrir minhas partidas"
             >
               <div className="home-resumo-usuario-pontos">
                 <span>Pontos</span>

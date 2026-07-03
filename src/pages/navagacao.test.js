@@ -11,17 +11,19 @@ function obterNomesMenu(perfil) {
 }
 
 describe('navagacao', () => {
-  it('mostra Meus Jogos para atleta sem duplicar com Minhas Partidas Registradas', () => {
+  it('mostra Minhas Partidas para atleta sem duplicar rotas antigas', () => {
     const nomes = obterNomesMenu(PERFIS_USUARIO.atleta);
 
-    expect(nomes).toContain('Meus Jogos');
+    expect(nomes).toContain('Minhas Partidas');
+    expect(nomes).not.toContain('Meus Jogos');
     expect(nomes).not.toContain('Minhas Partidas Registradas');
   });
 
-  it('mostra Minhas Partidas Registradas para organizador sem expor Meus Jogos', () => {
+  it('mostra Minhas Partidas para organizador sem expor nomes antigos', () => {
     const nomes = obterNomesMenu(PERFIS_USUARIO.organizador);
 
-    expect(nomes).toContain('Minhas Partidas Registradas');
+    expect(nomes).toContain('Minhas Partidas');
+    expect(nomes).not.toContain('Minhas Partidas Registradas');
     expect(nomes).not.toContain('Meus Jogos');
   });
 
@@ -30,6 +32,7 @@ describe('navagacao', () => {
 
     expect(nomes).toContain('Partidas');
     expect(nomes).not.toContain('Meus Jogos');
+    expect(nomes).not.toContain('Minhas Partidas');
     expect(nomes).not.toContain('Minhas Partidas Registradas');
   });
 });

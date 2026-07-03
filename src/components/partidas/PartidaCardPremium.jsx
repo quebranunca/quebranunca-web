@@ -2,7 +2,7 @@ import { FaCalendarAlt, FaChevronRight } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 import { DuplaLink } from '../duplas/DuplaLink';
 import { formatarNomeDupla } from '../../utils/atletaUtils';
-import { formatarDataHora } from '../../utils/formatacao';
+import { formatarDataHoraCurta } from '../../utils/formatacao';
 import {
   obterNomeStatusAprovacao,
   STATUS_APROVACAO_PARTIDA,
@@ -59,17 +59,32 @@ export function PartidaCardPremium({
   dataPartida,
   resultado,
   statusAprovacao,
+  badges,
+  avisoPendencias,
   duplaA,
   duplaB,
+  acaoPrincipal = null,
   acaoCompartilhar = null,
   detalhesHref,
-  onDetalhes
+  onDetalhes,
+  detalhesDesabilitado = false
 }) {
   const navegar = useNavigate();
   const resultadoTexto = normalizarResultado(resultado);
-  const podeAbrirDetalhes = Boolean(detalhesHref || onDetalhes);
+  const podeAbrirDetalhes = !detalhesDesabilitado && Boolean(detalhesHref || onDetalhes);
+  const badgesExibicao = Array.isArray(badges) && badges.length > 0
+    ? badges
+    : [
+      { texto: resultadoTexto, classe: obterClasseResultado(resultadoTexto) },
+      { texto: obterNomeStatusAprovacao(statusAprovacao), classe: obterClasseValidacao(statusAprovacao) }
+    ];
+  const exibirVersus = duplaA?.mostrarPlacar === false && duplaB?.mostrarPlacar === false;
 
   function abrirDetalhes() {
+    if (!podeAbrirDetalhes) {
+      return;
+    }
+
     if (detalhesHref) {
       navegar(detalhesHref);
       return;
@@ -105,48 +120,53 @@ export function PartidaCardPremium({
     >
       <div className="meus-jogos-card-topo-premium">
         <div>
-          <span>{contexto || 'Geral'}</span>
+          <span>{contexto || 'Partida avulsa'}</span>
           <strong>{obterStatusPartida(status)}</strong>
           <small>
             <FaCalendarAlt aria-hidden="true" />
-            {dataPartida ? formatarDataHora(dataPartida) : 'Data a definir'}
+            {dataPartida ? formatarDataHoraCurta(dataPartida) : 'Data a definir'}
           </small>
         </div>
 
         <div className="meus-jogos-badges">
-          <span className={`meus-jogos-badge ${obterClasseResultado(resultadoTexto)}`}>
-            {resultadoTexto}
-          </span>
-          <span className={`meus-jogos-badge ${obterClasseValidacao(statusAprovacao)}`}>
-            {obterNomeStatusAprovacao(statusAprovacao)}
-          </span>
+          {badgesExibicao.map((badge, indice) => (
+            <span key={`${badge.texto}-${indice}`} className={`meus-jogos-badge ${badge.classe || 'neutro'}`}>
+              {badge.texto}
+            </span>
+          ))}
         </div>
       </div>
 
       <div className="meus-jogos-placar-premium">
         <LinhaPlacar {...duplaA} />
+        {exibirVersus && <span className="meus-jogos-versus">vs</span>}
         <LinhaPlacar {...duplaB} />
       </div>
 
+      {avisoPendencias && (
+        <p className="meus-jogos-pendencias-aviso">{avisoPendencias}</p>
+      )}
+
       <div className="meus-jogos-card-acoes" onClick={(evento) => evento.stopPropagation()}>
+        {acaoPrincipal}
         {acaoCompartilhar}
-        {detalhesHref ? (
+        {detalhesHref && !detalhesDesabilitado ? (
           <Link to={detalhesHref} className="botao-secundario botao-compacto meus-jogos-detalhes">
             Detalhes
             <FaChevronRight aria-hidden="true" />
           </Link>
-        ) : (
+        ) : !detalhesDesabilitado ? (
           <button type="button" className="botao-secundario botao-compacto meus-jogos-detalhes" onClick={abrirDetalhes}>
             Detalhes
             <FaChevronRight aria-hidden="true" />
           </button>
-        )}
+        ) : null}
       </div>
     </article>
   );
 }
 
-function LinhaPlacar({ label, atletas, placar, destaque, vencedora, atleta1Id, atleta2Id }) {
+function LinhaPlacar({ label, atletas, placar, mostrarPlacar = true, destaque, vencedora, atleta1Id, atleta2Id }) {
   const nomesAtletas = formatarNomeDupla(atletas, 'A definir');
 
   return (
@@ -160,7 +180,13 @@ function LinhaPlacar({ label, atletas, placar, destaque, vencedora, atleta1Id, a
         <span>{label}</span>
         <strong className="nome-dupla">{nomesAtletas}</strong>
       </div>
-      <strong className="meus-jogos-placar-numero">{placar ?? '-'}</strong>
+      {mostrarPlacar ? (
+        <strong className="meus-jogos-placar-numero">{placar ?? '-'}</strong>
+      ) : vencedora ? (
+        <span className="meus-jogos-vencedora-chip">Vencedora</span>
+      ) : null}
     </DuplaLink>
   );
 }
+
+PartidaCardPremium.LinhaPlacar = LinhaPlacar;

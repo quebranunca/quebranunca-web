@@ -547,8 +547,8 @@ function EstadoPendencias({ tipo, filtro = 'todas' }) {
       <strong>{titulo}</strong>
       <p>{texto}</p>
       {!ehErro && filtro === 'todas' && (
-        <Link to="/app/meus-jogos" className="botao-secundario">
-          Ver meus jogos
+        <Link to="/minhas-partidas?filtro=pendentes" className="botao-secundario">
+          Ver minhas partidas
         </Link>
       )}
     </section>

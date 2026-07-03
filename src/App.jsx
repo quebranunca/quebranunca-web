@@ -25,8 +25,7 @@ import { PaginaInscricoesCampeonato } from './pages/PaginaInscricoesCampeonato';
 import { PaginaRegistrarPartidas } from './pages/PaginaRegistrarPartidas1';
 import { PaginaConsultaPartidas } from './pages/PaginaConsultaPartidas';
 import { PaginaPartidasCampeonato } from './pages/PaginaPartidasCampeonato';
-import { PaginaMeusJogos } from './pages/PaginaMeusJogos';
-import { MinhasPartidasRegistradasPagina } from './pages/MinhasPartidasRegistradasPagina';
+import { PaginaMinhasPartidas } from './pages/PaginaMinhasPartidas';
 import { PaginaMeuPerfil } from './pages/PaginaMeuPerfil';
 import { PaginaPontosQN } from './pages/PaginaPontosQN';
 import { PaginaArenas } from './pages/PaginaArenas';
@@ -87,14 +86,16 @@ export default function App() {
         <Route path="/app" element={<PaginaHome />} />
         <Route path="/app/feed" element={<FeedPartidasPage />} />
         <Route path="/app/registrar-partida" element={<Navigate to="/partidas/registrar" replace />} />
+        <Route path="/app/meus-jogos" element={<Navigate to="/minhas-partidas" replace />} />
+        <Route path="/app/minhas-partidas" element={<Navigate to="/minhas-partidas" replace />} />
         <Route
-          path="/app/meus-jogos"
+          path="/minhas-partidas"
           element={
             <RotaProtegida
-              perfisPermitidos={[PERFIS_USUARIO.atleta]}
+              perfisPermitidos={[PERFIS_USUARIO.administrador, PERFIS_USUARIO.organizador, PERFIS_USUARIO.atleta]}
               estadosPermitidos={[ESTADOS_ACESSO.ativo]}
             >
-              <PaginaMeusJogos />
+              <PaginaMinhasPartidas />
             </RotaProtegida>
           }
         />
@@ -119,17 +120,7 @@ export default function App() {
             </RotaProtegida>
           }
         />
-        <Route
-          path="/minhas-partidas-registradas"
-          element={
-            <RotaProtegida
-              perfisPermitidos={[PERFIS_USUARIO.administrador, PERFIS_USUARIO.organizador, PERFIS_USUARIO.atleta]}
-              estadosPermitidos={[ESTADOS_ACESSO.ativo]}
-            >
-              <MinhasPartidasRegistradasPagina />
-            </RotaProtegida>
-          }
-        />
+        <Route path="/minhas-partidas-registradas" element={<Navigate to="/minhas-partidas?filtro=registradas" replace />} />
         <Route
           path="/app/inicio"
           element={

@@ -90,16 +90,10 @@ const ITENS_NAVEGACAO = [
     visivel: ({ gestorCompeticao, atleta, estadoAtivo }) => estadoAtivo && (gestorCompeticao || atleta)
   },
   {
-    caminho: '/app/meus-jogos',
-    nome: 'Meus Jogos',
-    descricao: 'Todos os jogos vinculados ao seu atleta, com duplas, lados, placar e validação.',
-    visivel: ({ atleta, estadoAtivo }) => estadoAtivo && atleta
-  },
-  {
-    caminho: '/minhas-partidas-registradas',
-    nome: 'Minhas Partidas Registradas',
-    descricao: 'Veja e edite partidas que você cadastrou, mesmo quando não participou do jogo.',
-    visivel: ({ organizador, estadoAtivo }) => estadoAtivo && organizador
+    caminho: '/minhas-partidas',
+    nome: 'Minhas Partidas',
+    descricao: 'Veja jogos disputados, partidas registradas, resultados e pendências.',
+    visivel: ({ organizador, atleta, estadoAtivo }) => estadoAtivo && (organizador || atleta)
   },
   {
     caminho: '/perfil-usuario',
@@ -262,8 +256,10 @@ export const ROTAS_APP_HEADER = [
   { path: '/dashboard', title: 'Painel', tipoTela: TIPOS_TELA.raiz },
   { path: '/app/perfil', title: 'Meu Perfil', tipoTela: TIPOS_TELA.raiz },
   { path: '/app/pontos-qn', title: 'Pontos QN', tipoTela: TIPOS_TELA.raiz },
-  { path: '/app/meus-jogos', title: 'Meus Jogos', tipoTela: TIPOS_TELA.acao },
-  { path: '/minhas-partidas-registradas', title: 'Minhas Partidas Registradas', tipoTela: TIPOS_TELA.acao },
+  { path: '/minhas-partidas', title: 'Minhas Partidas', tipoTela: TIPOS_TELA.acao },
+  { path: '/app/meus-jogos', title: 'Minhas Partidas', tipoTela: TIPOS_TELA.acao },
+  { path: '/app/minhas-partidas', title: 'Minhas Partidas', tipoTela: TIPOS_TELA.acao },
+  { path: '/minhas-partidas-registradas', title: 'Minhas Partidas', tipoTela: TIPOS_TELA.acao },
   { path: '/perfil-usuario', title: 'Perfil Usuário', tipoTela: TIPOS_TELA.raiz },
   { path: '/app/pendencias', title: 'Pendências', tipoTela: TIPOS_TELA.acao },
   { path: '/atletas', title: 'Atletas', tipoTela: TIPOS_TELA.raiz },
