@@ -186,20 +186,20 @@ function montarValidacoesRevisao(dados, regraPartida) {
   return [
     {
       id: 'atletas',
-      texto: 'Quatro atletas informados',
       ok: nomes.every(Boolean)
     },
     {
       id: 'sem-repeticao',
-      texto: 'Atletas sem repetição',
       ok: nomesNormalizados.length === 4 && new Set(nomesNormalizados).size === nomesNormalizados.length
     },
     {
       id: 'placar',
-      texto: apenasResultado ? 'Dupla vencedora informada' : 'Placar final preenchido',
       ok: apenasResultado ? Boolean(dados.resultado.duplaVencedora) : placarNumerico
     },
-    ...montarValidacoesPlacar(dados, regraPartida)
+    ...montarValidacoesPlacar(dados, regraPartida).map((validacao) => ({
+      id: validacao.id,
+      ok: validacao.ok
+    }))
   ];
 }
 
@@ -1200,11 +1200,8 @@ function RevisaoRapida({
   onCancelarDuplicidade,
   onConfirmarDuplicidade
 }) {
-  const contexto = resumo.contexto || {};
   const vencedora = obterVencedora(dados);
   const exibindoDuplicidade = Boolean(duplicidade);
-  const validacoes = montarValidacoesRevisao(dados, regraPartida);
-  const possuiInconsistencia = validacoes.some((validacao) => !validacao.ok);
   const nomeVencedora = vencedora === 'dupla1' ? 'Dupla 1' : vencedora === 'dupla2' ? 'Dupla 2' : '';
   const apenasResultado = resumo.tipoRegistroResultado === 'ApenasResultado' || dados.resultado?.modo === 'ApenasResultado';
 
@@ -1253,13 +1250,7 @@ function RevisaoRapida({
             </div>
           ) : (
             <div className="registrar-partida-novo-meta registrar-partida-novo-meta-contexto">
-              <strong>Partida avulsa</strong>
-            </div>
-          )}
-          {contexto.categoriaId && (
-            <div className="registrar-partida-novo-meta">
-              <span>Categoria</span>
-              <strong>Selecionada</strong>
+              <strong>Partidas avulsas</strong>
             </div>
           )}
           <div className="registrar-partida-novo-meta">
@@ -1269,24 +1260,6 @@ function RevisaoRapida({
                 ? 'Carregando regra...'
                 : regraPartida?.nome || (erroRegraPartida ? 'Validada pela API' : 'Partida avulsa')}
             </strong>
-          </div>
-        </div>
-
-        {grupo?.id && (
-          <p className="registrar-partida-novo-info-grupo-publico">
-            Atletas que ainda não estão no grupo serão adicionados automaticamente.
-          </p>
-        )}
-
-        <div className={`registrar-partida-novo-validacoes-revisao ${possuiInconsistencia ? 'pendente' : 'ok'}`}>
-          <strong>{possuiInconsistencia ? 'Revise antes de salvar' : 'Tudo pronto para salvar'}</strong>
-          <div>
-            {validacoes.map((validacao) => (
-              <span key={validacao.id} className={validacao.ok ? 'ok' : ''}>
-                <FaCheck aria-hidden="true" />
-                {validacao.texto}
-              </span>
-            ))}
           </div>
         </div>
 
