@@ -39,9 +39,9 @@ export function GrupoContextoPartida({
             </>
           ) : (
             <>
-              <strong>Grupo (Opcional)</strong>
-              <span>Nenhum grupo selecionado</span>
-              <small>A partida não será vinculada a um grupo.</small>
+              <strong>Partidas avulsas</strong>
+              <span>Registrar sem grupo</span>
+              <small>Partida sem vínculo com grupo.</small>
             </>
           )}
         </div>

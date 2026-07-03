@@ -60,8 +60,8 @@ export function SeletorGrupoPartida({
                 <FaTimes aria-hidden="true" />
               </span>
               <span>
-                <strong>Registrar sem grupo</strong>
-                <small>A partida será registrada como avulsa.</small>
+                <strong>Partidas avulsas</strong>
+                <small>Registrar sem grupo</small>
               </span>
               <FaChevronRight aria-hidden="true" />
             </button>

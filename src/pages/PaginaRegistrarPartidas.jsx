@@ -22,6 +22,7 @@ const LADOS_ATLETA = {
 
 const GRUPO_GERAL_ID = '__grupo-geral__';
 const NOME_GRUPO_GERAL = 'Geral';
+const ROTULO_PARTIDAS_AVULSAS = 'Partidas avulsas';
 const MENSAGEM_GRUPO_DUPLICADO = 'Já existe grupo com esse nome. Altere o nome para criar um novo grupo.';
 const CAMPOS_ATLETAS = ['duplaAAtleta1', 'duplaAAtleta2', 'duplaBAtleta1', 'duplaBAtleta2'];
 
@@ -571,7 +572,7 @@ export function PaginaRegistrarPartidas() {
             Grupo
             <select value={grupoId} onChange={(evento) => selecionarGrupo(evento.target.value)}>
               <option value="">Sem grupo selecionado</option>
-              {!grupoGeralNaLista && <option value={GRUPO_GERAL_ID}>{NOME_GRUPO_GERAL}</option>}
+              {!grupoGeralNaLista && <option value={GRUPO_GERAL_ID}>{ROTULO_PARTIDAS_AVULSAS}</option>}
               {grupos.map((grupo) => (
                 <option key={grupo.id} value={grupo.id}>
                   {grupo.nome}
@@ -581,7 +582,7 @@ export function PaginaRegistrarPartidas() {
           </label>
 
           <p className="campo-largo texto-ajuda">
-            Se não selecionar ou criar um grupo, a partida será registrada no grupo Geral.
+            Se não selecionar ou criar um grupo, a partida será registrada como partida avulsa.
           </p>
 
           {!grupoFoiEscolhido && (
