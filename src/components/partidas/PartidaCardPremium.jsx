@@ -1,12 +1,11 @@
-import { FaCalendarAlt, FaChevronRight } from 'react-icons/fa';
+import { FaChevronRight, FaExclamationCircle } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 import { DuplaLink } from '../duplas/DuplaLink';
 import { formatarNomeDupla } from '../../utils/atletaUtils';
 import { formatarDataHoraCurta } from '../../utils/formatacao';
 import {
   obterNomeStatusAprovacao,
-  STATUS_APROVACAO_PARTIDA,
-  STATUS_PARTIDA
+  STATUS_APROVACAO_PARTIDA
 } from '../../utils/partidas';
 
 function obterClasseResultado(resultado) {
@@ -44,18 +43,9 @@ function normalizarResultado(resultado) {
   return resultado || 'Pendente';
 }
 
-function obterStatusPartida(status) {
-  if (typeof status === 'string' && status.trim()) {
-    return status;
-  }
-
-  return Number(status) === STATUS_PARTIDA.encerrada ? 'Encerrada' : 'Pendente';
-}
-
 export function PartidaCardPremium({
   className = '',
   contexto,
-  status,
   dataPartida,
   resultado,
   statusAprovacao,
@@ -115,49 +105,48 @@ export function PartidaCardPremium({
 
   return (
     <article
-      className={`meus-jogos-card-premium ${podeAbrirDetalhes ? 'meus-jogos-card-clicavel' : ''} ${className}`.trim()}
+      className={`minhas-partidas-card-premium ${podeAbrirDetalhes ? 'minhas-partidas-card-clicavel' : ''} ${className}`.trim()}
       {...propriedadesCard}
     >
-      <div className="meus-jogos-card-topo-premium">
+      <div className="minhas-partidas-card-topo-premium">
         <div>
-          <span>{contexto || 'Partida avulsa'}</span>
-          <strong>{obterStatusPartida(status)}</strong>
+          <strong>{contexto || 'Partida avulsa'}</strong>
           <small>
-            <FaCalendarAlt aria-hidden="true" />
             {dataPartida ? formatarDataHoraCurta(dataPartida) : 'Data a definir'}
           </small>
         </div>
 
-        <div className="meus-jogos-badges">
+        <div className="minhas-partidas-badges">
           {badgesExibicao.map((badge, indice) => (
-            <span key={`${badge.texto}-${indice}`} className={`meus-jogos-badge ${badge.classe || 'neutro'}`}>
+            <span key={`${badge.texto}-${indice}`} className={`minhas-partidas-badge ${badge.classe || 'neutro'}`}>
               {badge.texto}
             </span>
           ))}
         </div>
       </div>
 
-      <div className="meus-jogos-placar-premium">
+      <div className="minhas-partidas-placar-premium">
         <LinhaPlacar {...duplaA} />
-        {exibirVersus && <span className="meus-jogos-versus">vs</span>}
+        {exibirVersus && <span className="minhas-partidas-versus">vs</span>}
         <LinhaPlacar {...duplaB} />
       </div>
 
       {avisoPendencias && (
-        <p className="meus-jogos-pendencias-aviso">{avisoPendencias}</p>
+        <p className="minhas-partidas-pendencias-aviso">
+          <FaExclamationCircle aria-hidden="true" />
+          <span>{avisoPendencias}</span>
+        </p>
       )}
 
-      <div className="meus-jogos-card-acoes" onClick={(evento) => evento.stopPropagation()}>
+      <div className="minhas-partidas-card-acoes" onClick={(evento) => evento.stopPropagation()}>
         {acaoPrincipal}
         {acaoCompartilhar}
         {detalhesHref && !detalhesDesabilitado ? (
-          <Link to={detalhesHref} className="botao-secundario botao-compacto meus-jogos-detalhes">
-            Detalhes
+          <Link to={detalhesHref} className="botao-secundario botao-compacto minhas-partidas-detalhes" aria-label="Abrir detalhes da partida" title="Abrir detalhes">
             <FaChevronRight aria-hidden="true" />
           </Link>
         ) : !detalhesDesabilitado ? (
-          <button type="button" className="botao-secundario botao-compacto meus-jogos-detalhes" onClick={abrirDetalhes}>
-            Detalhes
+          <button type="button" className="botao-secundario botao-compacto minhas-partidas-detalhes" onClick={abrirDetalhes} aria-label="Abrir detalhes da partida" title="Abrir detalhes">
             <FaChevronRight aria-hidden="true" />
           </button>
         ) : null}
@@ -173,17 +162,17 @@ function LinhaPlacar({ label, atletas, placar, mostrarPlacar = true, destaque, v
     <DuplaLink
       atleta1Id={atleta1Id}
       atleta2Id={atleta2Id}
-      className={`meus-jogos-linha-placar ${destaque ? 'minha-dupla' : ''} ${vencedora ? 'vencedora' : ''}`}
+      className={`minhas-partidas-linha-placar ${destaque ? 'minha-dupla' : ''} ${vencedora ? 'vencedora' : ''}`}
       tag="div"
     >
       <div>
-        <span>{label}</span>
+        {label && <span>{label}</span>}
         <strong className="nome-dupla">{nomesAtletas}</strong>
       </div>
       {mostrarPlacar ? (
-        <strong className="meus-jogos-placar-numero">{placar ?? '-'}</strong>
+        <strong className="minhas-partidas-placar-numero">{placar ?? '-'}</strong>
       ) : vencedora ? (
-        <span className="meus-jogos-vencedora-chip">Vencedora</span>
+        <span className="minhas-partidas-vencedora-chip">Vencedora</span>
       ) : null}
     </DuplaLink>
   );

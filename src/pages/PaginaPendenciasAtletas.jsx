@@ -855,7 +855,7 @@ export function PaginaPendenciasAtletas() {
 
       {carregando && (
         <section className="pendencias-estado">
-          <span className="meus-jogos-loading" aria-hidden="true" />
+          <span className="pendencias-loading" aria-hidden="true" />
           <strong>Carregando pendências</strong>
           <p>Buscando suas ações abertas.</p>
         </section>

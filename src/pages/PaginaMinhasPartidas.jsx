@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { FaEdit, FaExclamationTriangle, FaFilter, FaGamepad, FaSortAmountDown, FaTrophy } from 'react-icons/fa';
+import { FaCrown, FaEdit, FaExclamationTriangle, FaGamepad, FaSortAmountDown, FaTimes, FaTrophy } from 'react-icons/fa';
 import { Link, useSearchParams } from 'react-router-dom';
 import { CompartilharPartidaBotao } from '../components/partidas/CompartilharPartidaBotao';
 import { EditarPartidaRegistradaModal } from '../components/partidas/EditarPartidaRegistradaModal';
@@ -10,13 +10,13 @@ import { partidasServico } from '../services/partidasServico';
 import { pendenciasServico } from '../services/pendenciasServico';
 import { formatarNomeDupla } from '../utils/atletaUtils';
 import { extrairMensagemErro } from '../utils/erros';
+import { formatarDataHoraCurta } from '../utils/formatacao';
 import { podeEditarPartida } from '../utils/permissoesPartida';
 import {
   atletaEstaNaDuplaA,
   atletaEstaNaDuplaB,
   obterAtletasPartida,
   obterNomeStatusAprovacao,
-  obterNomeStatusPartida,
   ordenarPartidasRecentes,
   STATUS_APROVACAO_PARTIDA,
   STATUS_PARTIDA
@@ -25,7 +25,7 @@ import {
 const FILTROS_PRINCIPAIS = [
   { id: 'todas', rotulo: 'Todas' },
   { id: 'participei', rotulo: 'Participei' },
-  { id: 'registradas', rotulo: 'Registradas por mim' },
+  { id: 'registradas', rotulo: 'Registradas' },
   { id: 'pendentes', rotulo: 'Pendentes' }
 ];
 
@@ -383,13 +383,29 @@ function ordenarPartidas(partidas, ordem) {
 function obterMensagemVazia(filtro) {
   switch (filtro) {
     case 'participei':
-      return 'Você ainda não participou de partidas registradas.';
+      return {
+        titulo: 'Você ainda não participou de partidas registradas.',
+        texto: '',
+        exibirCta: true
+      };
     case 'registradas':
-      return 'Você ainda não registrou partidas.';
+      return {
+        titulo: 'Você ainda não registrou partidas.',
+        texto: '',
+        exibirCta: true
+      };
     case 'pendentes':
-      return 'Nenhuma pendência encontrada.';
+      return {
+        titulo: 'Nenhuma pendência encontrada.',
+        texto: '',
+        exibirCta: false
+      };
     default:
-      return 'Nenhuma partida encontrada.';
+      return {
+        titulo: 'Nenhuma partida encontrada.',
+        texto: 'Que tal registrar uma agora?',
+        exibirCta: true
+      };
   }
 }
 
@@ -397,40 +413,46 @@ function obterChipsPartida(partida, filtroAtivo, atletaLogadoId) {
   const chips = [];
   const resultado = obterResultadoParticipacao(partida, atletaLogadoId);
   const statusAprovacao = Number(partida.statusAprovacao);
+  const possuiPendencia = partidaEstaPendente(partida);
+  const adicionarChip = (chip) => {
+    if (chips.some((item) => item.texto === chip.texto)) {
+      return;
+    }
 
-  chips.push({
+    chips.push(chip);
+  };
+
+  if (possuiPendencia) {
+    adicionarChip({ texto: 'Pendente', classe: 'pendente' });
+  }
+
+  adicionarChip({
     texto: Number(partida.status) === STATUS_PARTIDA.encerrada ? 'Encerrada' : 'Pendente',
     classe: Number(partida.status) === STATUS_PARTIDA.encerrada ? 'validado' : 'pendente'
   });
 
-  if (statusAprovacao === STATUS_APROVACAO_PARTIDA.pendenteDeVinculos) {
-    chips.push({ texto: 'Pendente de vínculos', classe: 'pendente' });
-  } else if (statusAprovacao === STATUS_APROVACAO_PARTIDA.pendente) {
-    chips.push({ texto: 'Pendente', classe: 'pendente' });
-  } else if (statusAprovacao === STATUS_APROVACAO_PARTIDA.aprovada) {
-    chips.push({ texto: 'Aprovada', classe: 'validado' });
-  } else if (statusAprovacao === STATUS_APROVACAO_PARTIDA.contestada) {
-    chips.push({ texto: 'Contestada', classe: 'derrota' });
-  }
-
-  chips.push({
+  adicionarChip({
     texto: partidaTemPlacar(partida) ? 'Com placar' : 'Sem placar',
-    classe: partidaTemPlacar(partida) ? 'validado' : 'neutro'
+    classe: 'neutro'
   });
 
-  if (resultado.texto) {
-    chips.push({ texto: resultado.texto, classe: resultado.classe });
+  if (chips.length < 3 && statusAprovacao === STATUS_APROVACAO_PARTIDA.contestada) {
+    adicionarChip({ texto: 'Contestada', classe: 'derrota' });
   }
 
-  if (partida.__registradaPorMim && filtroAtivo !== 'registradas') {
-    chips.push({ texto: 'Registrada por mim', classe: 'neutro' });
+  if (chips.length < 3 && resultado.texto && filtroAtivo !== 'registradas') {
+    adicionarChip({ texto: resultado.texto, classe: resultado.classe });
   }
 
-  if (partida.__participei && filtroAtivo !== 'participei') {
-    chips.push({ texto: 'Participei', classe: 'neutro' });
+  if (chips.length < 3 && partida.__registradaPorMim && filtroAtivo === 'todas') {
+    adicionarChip({ texto: 'Registrada', classe: 'neutro' });
   }
 
-  return chips;
+  if (chips.length < 3 && partida.__participei && filtroAtivo === 'todas') {
+    adicionarChip({ texto: 'Participei', classe: 'neutro' });
+  }
+
+  return chips.slice(0, 3);
 }
 
 function obterTextoPendencias(partida) {
@@ -455,6 +477,14 @@ function obterTextoPendencias(partida) {
   }
 
   return '';
+}
+
+function obterTipoPartida(partida) {
+  return partidaTemPlacar(partida) ? 'Com placar' : 'Sem placar';
+}
+
+function formatarSimNao(valor) {
+  return valor ? 'Sim' : 'Não';
 }
 
 export function PaginaMinhasPartidas() {
@@ -602,27 +632,30 @@ export function PaginaMinhasPartidas() {
   }, [atletaLogadoId, filtroAtivo, ordem, partidas]);
 
   return (
-    <section className="pagina meus-jogos-pagina">
-      <header className="meus-jogos-hero minhas-partidas-hero">
+    <section className="pagina minhas-partidas-pagina">
+      <header className="minhas-partidas-hero">
         <div>
           <span>Histórico esportivo</span>
           <h1>Minhas Partidas</h1>
           <p>Veja seus jogos, partidas registradas, resultados e pendências.</p>
         </div>
+        <FaCrown className="minhas-partidas-hero-icone" aria-hidden="true" />
       </header>
 
       {atletaLogadoId && (
-        <article className="meus-jogos-resumo-premium">
-          <div className="meus-jogos-resumo-topo">
+        <article className="minhas-partidas-resumo-premium">
+          <div className="minhas-partidas-resumo-topo">
             <div>
               <span>Resumo</span>
               <strong>{formatarPontuacao(resumo.pontos)} pts</strong>
-              <small>Pendente +{formatarPontuacao(resumo.pontosPendentes)}</small>
+              {resumo.pontosPendentes > 0 && (
+                <small>Pendente +{formatarPontuacao(resumo.pontosPendentes)}</small>
+              )}
             </div>
             <FaTrophy aria-hidden="true" />
           </div>
 
-          <div className="meus-jogos-metricas">
+          <div className="minhas-partidas-metricas">
             <ResumoMetrica rotulo="Jogos" valor={resumo.jogos} />
             <ResumoMetrica rotulo="Vitórias" valor={resumo.vitorias} />
             <ResumoMetrica rotulo="Derrotas" valor={resumo.derrotas} />
@@ -631,8 +664,8 @@ export function PaginaMinhasPartidas() {
         </article>
       )}
 
-      <section className="meus-jogos-controles" aria-label="Filtros das partidas">
-        <div className="meus-jogos-filtros">
+      <section className="minhas-partidas-controles" aria-label="Filtros das partidas">
+        <div className="minhas-partidas-filtros">
           {filtrosDisponiveis.map((filtro) => (
             <button
               key={filtro.id}
@@ -640,13 +673,12 @@ export function PaginaMinhasPartidas() {
               className={filtroAtivo === filtro.id ? 'ativo' : ''}
               onClick={() => setFiltroAtivo(filtro.id)}
             >
-              <FaFilter aria-hidden="true" />
               {filtro.rotulo}
             </button>
           ))}
         </div>
 
-        <label className="meus-jogos-ordenacao">
+        <label className="minhas-partidas-ordenacao">
           <FaSortAmountDown aria-hidden="true" />
           <select value={ordem} onChange={(evento) => setOrdem(evento.target.value)}>
             <option value="recentes">Mais recentes</option>
@@ -659,8 +691,8 @@ export function PaginaMinhasPartidas() {
       {erro && <p className="texto-erro">{erro}</p>}
 
       {carregando ? (
-        <article className="meus-jogos-estado">
-          <span className="meus-jogos-loading" />
+        <article className="minhas-partidas-estado">
+          <span className="minhas-partidas-loading" />
           <strong>Carregando suas partidas...</strong>
         </article>
       ) : partidas.length === 0 ? (
@@ -668,7 +700,7 @@ export function PaginaMinhasPartidas() {
       ) : partidasFiltradas.length === 0 ? (
         <EstadoVazio filtro={filtroAtivo} />
       ) : (
-        <div className="meus-jogos-lista-premium">
+        <div className="minhas-partidas-lista-premium">
           {partidasFiltradas.map((partida) => (
             <CardMinhaPartida
               key={partida.id}
@@ -714,13 +746,20 @@ function ResumoMetrica({ rotulo, valor }) {
 }
 
 function EstadoVazio({ filtro }) {
+  const estado = obterMensagemVazia(filtro);
+
   return (
-    <article className="meus-jogos-estado">
+    <article className="minhas-partidas-estado minhas-partidas-vazio">
       <FaGamepad aria-hidden="true" />
-      <strong>{obterMensagemVazia(filtro)}</strong>
-      <Link to="/partidas/registrar" className="botao-secundario botao-compacto">
-        Registrar partida
-      </Link>
+      <div>
+        <strong>{estado.titulo}</strong>
+        {estado.texto && <p>{estado.texto}</p>}
+      </div>
+      {estado.exibirCta && (
+        <Link to="/partidas/registrar" className="botao-secundario botao-compacto">
+          Registrar partida
+        </Link>
+      )}
     </article>
   );
 }
@@ -737,12 +776,11 @@ function CardMinhaPartida({ partida, atletaLogadoId, filtroAtivo, onDetalhes, on
   return (
     <PartidaCardPremium
       contexto={obterContextoPartida(partida)}
-      status={obterNomeStatusPartida(partida.status)}
       dataPartida={partida.dataPartida || partida.dataCriacao}
       badges={obterChipsPartida(partida, filtroAtivo, atletaLogadoId)}
       avisoPendencias={pendenciasTexto}
       duplaA={{
-        label: minhaDuplaEhA ? 'Sua dupla' : 'Dupla 1',
+        label: minhaDuplaEhA ? 'Sua dupla' : '',
         atletas: formatarAtletasPlacar(atletas.duplaA),
         atleta1Id: partida.duplaAAtleta1Id,
         atleta2Id: partida.duplaAAtleta2Id,
@@ -752,7 +790,7 @@ function CardMinhaPartida({ partida, atletaLogadoId, filtroAtivo, onDetalhes, on
         vencedora: duplaAVenceu(partida)
       }}
       duplaB={{
-        label: minhaDuplaEhB ? 'Sua dupla' : 'Dupla 2',
+        label: minhaDuplaEhB ? 'Sua dupla' : '',
         atletas: formatarAtletasPlacar(atletas.duplaB),
         atleta1Id: partida.duplaBAtleta1Id,
         atleta2Id: partida.duplaBAtleta2Id,
@@ -762,9 +800,9 @@ function CardMinhaPartida({ partida, atletaLogadoId, filtroAtivo, onDetalhes, on
         vencedora: duplaBVenceu(partida)
       }}
       acaoPrincipal={podeResolverPendencias && (
-        <Link to="/app/pendencias" className="botao-primario botao-compacto meus-jogos-acao-principal">
+        <Link to="/app/pendencias" className="botao-primario botao-compacto minhas-partidas-acao-principal">
           <FaExclamationTriangle aria-hidden="true" />
-          Resolver pendências
+          Resolver
         </Link>
       )}
       acaoCompartilhar={
@@ -793,65 +831,92 @@ function CardMinhaPartida({ partida, atletaLogadoId, filtroAtivo, onDetalhes, on
 function DetalhesPartidaModal({ partida, atletaLogadoId, onFechar, onEditar }) {
   const atletas = obterAtletasPartida(partida, atletaLogadoId);
   const resultado = obterResultadoParticipacao(partida, atletaLogadoId);
+  const contexto = obterContextoPartida(partida);
+  const pendenciasTexto = obterTextoPendencias(partida);
+  const podeResolverPendencias = partida.__pendenciaAcionavel;
+  const podeCompartilhar = Number(partida.status) === STATUS_PARTIDA.encerrada && partida.id;
 
   return (
-    <div className="modal-backdrop" role="presentation" onClick={onFechar}>
-      <article className="modal-conteudo meus-jogos-modal" role="dialog" aria-modal="true" aria-label="Detalhes da partida" onClick={(evento) => evento.stopPropagation()}>
-        <div className="modal-cabecalho">
+    <div className="modal-backdrop minhas-partidas-detalhe-backdrop" role="presentation" onClick={onFechar}>
+      <article className="modal-conteudo minhas-partidas-modal" role="dialog" aria-modal="true" aria-label="Detalhes da partida" onClick={(evento) => evento.stopPropagation()}>
+        <div className="minhas-partidas-modal-cabecalho">
           <div>
             <span>Detalhes da partida</span>
-            <h3>{obterContextoPartida(partida)}</h3>
+            <h3>{contexto}</h3>
+            <p>{partida.dataPartida || partida.dataCriacao ? formatarDataHoraCurta(partida.dataPartida || partida.dataCriacao) : 'Data a definir'}</p>
           </div>
-          <div className="acoes-item acoes-item-compactas">
-            {onEditar && (
-              <button type="button" className="botao-secundario botao-compacto botao-editar-partida-discreto" onClick={onEditar}>
-                <FaEdit aria-hidden="true" />
-                Editar partida
-              </button>
-            )}
-            <button type="button" className="botao-secundario botao-compacto" onClick={onFechar}>
-              Fechar
+          <button type="button" className="minhas-partidas-modal-fechar" onClick={onFechar} aria-label="Fechar detalhes da partida">
+            <FaTimes aria-hidden="true" />
+          </button>
+        </div>
+
+        <div className="minhas-partidas-modal-corpo">
+          <div className="minhas-partidas-badges minhas-partidas-modal-badges">
+            {obterChipsPartida(partida, 'todas', atletaLogadoId).map((badge, indice) => (
+              <span key={`${badge.texto}-${indice}`} className={`minhas-partidas-badge ${badge.classe || 'neutro'}`}>
+                {badge.texto}
+              </span>
+            ))}
+          </div>
+
+          <div className="minhas-partidas-placar-premium">
+            <PartidaCardPremium.LinhaPlacar
+              label="Dupla 1"
+              atletas={formatarAtletasPlacar(atletas.duplaA)}
+              placar={obterPlacar(partida, 'A')}
+              mostrarPlacar={partidaTemPlacar(partida)}
+              destaque={atletaEstaNaDuplaA(partida, atletaLogadoId)}
+              vencedora={duplaAVenceu(partida)}
+              atleta1Id={partida.duplaAAtleta1Id}
+              atleta2Id={partida.duplaAAtleta2Id}
+            />
+            <PartidaCardPremium.LinhaPlacar
+              label="Dupla 2"
+              atletas={formatarAtletasPlacar(atletas.duplaB)}
+              placar={obterPlacar(partida, 'B')}
+              mostrarPlacar={partidaTemPlacar(partida)}
+              destaque={atletaEstaNaDuplaB(partida, atletaLogadoId)}
+              vencedora={duplaBVenceu(partida)}
+              atleta1Id={partida.duplaBAtleta1Id}
+              atleta2Id={partida.duplaBAtleta2Id}
+            />
+          </div>
+
+          {pendenciasTexto && (
+            <p className="minhas-partidas-pendencias-aviso">{pendenciasTexto}</p>
+          )}
+
+          <div className="minhas-partidas-modal-grid">
+            <ResumoMetrica rotulo="Registrada por" valor={partida.nomeCriadoPorUsuario || 'Usuário QN'} />
+            <ResumoMetrica rotulo="Grupo" valor={contexto} />
+            <ResumoMetrica rotulo="Tipo" valor={obterTipoPartida(partida)} />
+            <ResumoMetrica rotulo="Status" valor={obterNomeStatusAprovacao(partida.statusAprovacao)} />
+            <ResumoMetrica rotulo="Participei" valor={formatarSimNao(partida.__participei)} />
+            <ResumoMetrica rotulo="Registrada por mim" valor={formatarSimNao(partida.__registradaPorMim)} />
+            <ResumoMetrica rotulo="Resultado" valor={resultado.texto || 'Não aplicável'} />
+            <ResumoMetrica rotulo="Pendências" valor={partida.quantidadeAtletasPendentes || 0} />
+          </div>
+
+          {partida.observacoes && <p className="minhas-partidas-observacoes">{partida.observacoes}</p>}
+        </div>
+
+        <div className="minhas-partidas-modal-acoes">
+          {podeResolverPendencias && (
+            <Link to="/app/pendencias" className="botao-primario">
+              Resolver pendências
+            </Link>
+          )}
+          {onEditar && (
+            <button type="button" className="botao-secundario" onClick={onEditar}>
+              <FaEdit aria-hidden="true" />
+              Editar
             </button>
-          </div>
+          )}
+          {podeCompartilhar && <CompartilharPartidaBotao partidaId={partida.id} className="botao-secundario botao-compartilhar-partida" />}
+          <button type="button" className="botao-terciario" onClick={onFechar}>
+            Fechar
+          </button>
         </div>
-
-        <div className="meus-jogos-modal-grid">
-          <ResumoMetrica rotulo="Resultado" valor={resultado.texto || 'Partida'} />
-          <ResumoMetrica rotulo="Status" valor={obterNomeStatusAprovacao(partida.statusAprovacao)} />
-          <ResumoMetrica rotulo="Jogo" valor={obterNomeStatusPartida(partida.status)} />
-          <ResumoMetrica rotulo="Pendências" valor={partida.quantidadeAtletasPendentes || 0} />
-        </div>
-
-        <div className="meus-jogos-placar-premium">
-          <PartidaCardPremium.LinhaPlacar
-            label="Dupla 1"
-            atletas={formatarAtletasPlacar(atletas.duplaA)}
-            placar={obterPlacar(partida, 'A')}
-            mostrarPlacar={partidaTemPlacar(partida)}
-            destaque={atletaEstaNaDuplaA(partida, atletaLogadoId)}
-            vencedora={duplaAVenceu(partida)}
-            atleta1Id={partida.duplaAAtleta1Id}
-            atleta2Id={partida.duplaAAtleta2Id}
-          />
-          <PartidaCardPremium.LinhaPlacar
-            label="Dupla 2"
-            atletas={formatarAtletasPlacar(atletas.duplaB)}
-            placar={obterPlacar(partida, 'B')}
-            mostrarPlacar={partidaTemPlacar(partida)}
-            destaque={atletaEstaNaDuplaB(partida, atletaLogadoId)}
-            vencedora={duplaBVenceu(partida)}
-            atleta1Id={partida.duplaBAtleta1Id}
-            atleta2Id={partida.duplaBAtleta2Id}
-          />
-        </div>
-
-        {obterTextoPendencias(partida) && (
-          <p className="meus-jogos-observacoes">{obterTextoPendencias(partida)}</p>
-        )}
-
-        {partida.observacoes && (
-          <p className="meus-jogos-observacoes">{partida.observacoes}</p>
-        )}
       </article>
     </div>
   );
