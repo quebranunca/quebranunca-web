@@ -12854,7 +12854,7 @@ a.botao-terciario:active {
   width: min(100%, 34rem);
   margin-inline: auto;
   gap: 0.56rem;
-  padding-bottom: calc(var(--altura-bottom-nav, 4.7rem) + 1.25rem + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(var(--altura-bottom-nav, 4.7rem) + 2.25rem + env(safe-area-inset-bottom, 0px));
 }
 
 .minhas-partidas-hero,
@@ -12953,7 +12953,7 @@ a.botao-terciario:active {
 .minhas-partidas-metricas div,
 .minhas-partidas-modal-grid div {
   min-width: 0;
-  padding: 0.62rem 0.48rem;
+  padding: 0.58rem 0.42rem;
   border: 1px solid var(--qn-border-soft);
   border-radius: 12px;
   background: var(--qn-bg-card-soft);
@@ -12961,7 +12961,7 @@ a.botao-terciario:active {
 
 .minhas-partidas-metricas span {
   display: block;
-  font-size: clamp(0.54rem, 2.05vw, 0.64rem);
+  font-size: clamp(0.56rem, 2vw, 0.63rem);
   letter-spacing: 0.03em;
   line-height: 1.05;
   white-space: nowrap;
@@ -12991,17 +12991,25 @@ a.botao-terciario:active {
 }
 
 .minhas-partidas-filtros {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   gap: 0.42rem;
-  margin-inline: -0.1rem;
-  padding: 0.1rem 1rem 0.08rem 0.1rem;
+  margin-inline: 0;
+  padding: 0.1rem 1.6rem 0.1rem 0;
   overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-behavior: smooth;
   scroll-padding-inline: 0.8rem;
+  -webkit-overflow-scrolling: touch;
 }
 
 .minhas-partidas-filtros button {
-  min-height: 2.18rem;
-  padding: 0.42rem 0.82rem;
-  font-size: 0.86rem;
+  flex: 0 0 auto;
+  min-height: 2.08rem;
+  padding: 0.38rem 0.68rem;
+  font-size: 0.8rem;
+  white-space: nowrap;
 }
 
 .minhas-partidas-filtros button.ativo {
@@ -13022,20 +13030,20 @@ a.botao-terciario:active {
 }
 
 .minhas-partidas-lista-premium {
-  gap: 0.7rem;
+  gap: 0.62rem;
 }
 
 .minhas-partidas-card-premium {
-  gap: 0.56rem;
-  padding: 0.78rem;
+  gap: 0.48rem;
+  padding: 0.72rem;
   border-radius: 16px;
 }
 
 .minhas-partidas-card-topo-premium {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr);
   align-items: start;
-  gap: 0.58rem;
+  gap: 0.38rem;
 }
 
 .minhas-partidas-card-topo-premium > div:first-child {
@@ -13043,26 +13051,32 @@ a.botao-terciario:active {
 }
 
 .minhas-partidas-card-topo-premium strong {
+  display: -webkit-box;
+  overflow: hidden;
   margin: 0;
   color: var(--qn-gold);
   font-size: 0.98rem;
   line-height: 1.15;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow-wrap: anywhere;
 }
 
 .minhas-partidas-card-topo-premium small {
-  margin-top: 0.18rem;
+  margin-top: 0.12rem;
   font-size: 0.82rem;
 }
 
 .minhas-partidas-badges {
-  max-width: 11rem;
-  gap: 0.28rem;
+  justify-content: flex-start;
+  max-width: none;
+  gap: 0.24rem;
 }
 
 .minhas-partidas-badge {
-  min-height: 1.36rem;
-  padding: 0.12rem 0.45rem;
-  font-size: 0.66rem;
+  min-height: 1.28rem;
+  padding: 0.1rem 0.38rem;
+  font-size: 0.63rem;
   letter-spacing: 0;
 }
 
@@ -13071,23 +13085,23 @@ a.botao-terciario:active {
 }
 
 .minhas-partidas-placar-premium {
-  gap: 0.24rem;
-  padding: 0.12rem;
+  gap: 0.18rem;
+  padding: 0.1rem;
   border: 1px solid var(--qn-border-soft);
   border-radius: 13px;
   background: rgba(255, 255, 255, 0.025);
 }
 
 .minhas-partidas-linha-placar {
-  min-height: 2.46rem;
-  padding: 0.48rem 0.56rem;
-  border: 0;
+  min-height: 2.34rem;
+  padding: 0.42rem 0.52rem;
+  border: 1px solid rgba(255, 255, 255, 0.075);
   border-radius: 10px;
-  background: transparent;
+  background: rgba(255, 255, 255, 0.028);
 }
 
 .minhas-partidas-linha-placar + .minhas-partidas-linha-placar {
-  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  border-top-color: rgba(255, 255, 255, 0.075);
 }
 
 .minhas-partidas-linha-placar.minha-dupla,
@@ -13099,12 +13113,13 @@ a.botao-terciario:active {
 
 .minhas-partidas-linha-placar strong:not(.minhas-partidas-placar-numero) {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: 0.92rem;
+  line-height: 1.15;
 }
 
 .minhas-partidas-placar-numero {
-  min-width: 2.2rem;
-  min-height: 1.9rem;
+  min-width: 2rem;
+  min-height: 1.6rem;
   padding: 0;
   background: transparent;
   color: var(--qn-gold);
@@ -13115,10 +13130,12 @@ a.botao-terciario:active {
 .minhas-partidas-versus {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.42rem;
   width: 100%;
   color: var(--qn-text-secondary);
   font-size: 0.68rem;
+  line-height: 1;
+  margin-block: -0.02rem;
 }
 
 .minhas-partidas-versus::before,
@@ -13130,17 +13147,18 @@ a.botao-terciario:active {
 }
 
 .minhas-partidas-vencedora-chip {
-  min-height: 1.58rem;
-  padding: 0.12rem 0.5rem;
-  font-size: 0.66rem;
+  min-height: 1.44rem;
+  padding: 0.1rem 0.44rem;
+  font-size: 0.62rem;
 }
 
 .minhas-partidas-pendencias-aviso {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.48rem 0.58rem;
-  font-size: 0.78rem;
+  gap: 0.34rem;
+  min-width: 0;
+  padding: 0.34rem 0.52rem;
+  font-size: 0.74rem;
   color: var(--qn-gold);
 }
 
@@ -13148,20 +13166,28 @@ a.botao-terciario:active {
   flex: 0 0 auto;
 }
 
+.minhas-partidas-pendencias-aviso span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .minhas-partidas-card-acoes {
-  gap: 0.38rem;
+  gap: 0.26rem;
   justify-content: flex-start;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
 }
 
 .minhas-partidas-card-acoes .botao-compartilhar-partida,
 .minhas-partidas-card-acoes .botao-editar-partida-discreto,
 .minhas-partidas-card-acoes .minhas-partidas-acao-principal,
 .minhas-partidas-card-acoes .minhas-partidas-detalhes {
-  min-height: 2.1rem;
-  padding: 0.36rem 0.6rem;
-  border-radius: 11px;
-  font-size: 0.78rem;
+  min-height: 2rem;
+  padding: 0.3rem 0.42rem;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  line-height: 1;
 }
 
 .minhas-partidas-card-acoes .minhas-partidas-acao-principal {
@@ -13175,9 +13201,9 @@ a.botao-terciario:active {
 }
 
 .minhas-partidas-detalhes {
-  min-width: 2.1rem;
+  min-width: 1.9rem;
   margin-left: auto;
-  padding-inline: 0.52rem !important;
+  padding-inline: 0.42rem !important;
 }
 
 .minhas-partidas-vazio {
@@ -13313,6 +13339,29 @@ a.botao-terciario:active {
 @media (min-width: 820px) {
   .minhas-partidas-detalhe-backdrop {
     align-items: center;
+  }
+}
+
+@media (min-width: 480px) {
+  .minhas-partidas-card-topo-premium {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .minhas-partidas-badges {
+    justify-content: flex-end;
+    max-width: 11.5rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .minhas-partidas-filtros {
+    gap: 0.34rem;
+    padding-right: 1.9rem;
+  }
+
+  .minhas-partidas-filtros button {
+    padding-inline: 0.56rem;
+    font-size: 0.78rem;
   }
 }
 

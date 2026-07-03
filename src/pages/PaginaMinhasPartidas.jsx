@@ -659,7 +659,7 @@ export function PaginaMinhasPartidas() {
             <ResumoMetrica rotulo="Jogos" valor={resumo.jogos} />
             <ResumoMetrica rotulo="Vitórias" valor={resumo.vitorias} />
             <ResumoMetrica rotulo="Derrotas" valor={resumo.derrotas} />
-            <ResumoMetrica rotulo="Aproveitamento" valor={`${aproveitamento}%`} />
+            <ResumoMetrica rotulo="Aprov." rotuloCompleto="Aproveitamento" valor={`${aproveitamento}%`} />
           </div>
         </article>
       )}
@@ -736,10 +736,10 @@ export function PaginaMinhasPartidas() {
   );
 }
 
-function ResumoMetrica({ rotulo, valor }) {
+function ResumoMetrica({ rotulo, valor, rotuloCompleto }) {
   return (
     <div>
-      <span>{rotulo}</span>
+      <span title={rotuloCompleto || rotulo} aria-label={rotuloCompleto || rotulo}>{rotulo}</span>
       <strong>{valor}</strong>
     </div>
   );
