@@ -4,6 +4,7 @@ import { DuplaLink } from '../duplas/DuplaLink';
 import { formatarNomeDupla } from '../../utils/atletaUtils';
 import { formatarDataHoraCurta } from '../../utils/formatacao';
 import {
+  obterNomeGrupoPartidaExibicao,
   obterNomeStatusAprovacao,
   STATUS_APROVACAO_PARTIDA
 } from '../../utils/partidas';
@@ -110,7 +111,7 @@ export function PartidaCardPremium({
     >
       <div className="minhas-partidas-card-topo-premium">
         <div>
-          <strong>{contexto || 'Partida avulsa'}</strong>
+          <strong>{obterNomeGrupoPartidaExibicao(contexto)}</strong>
           <small>
             {dataPartida ? formatarDataHoraCurta(dataPartida) : 'Data a definir'}
           </small>

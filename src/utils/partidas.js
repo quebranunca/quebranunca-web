@@ -10,6 +10,29 @@ export const STATUS_APROVACAO_PARTIDA = {
   contestada: 4
 };
 
+export const ROTULO_PARTIDAS_AVULSAS = 'Partidas avulsas';
+
+function normalizarNomeGrupoPartida(valor) {
+  return String(valor || '').trim().replace(/\s+/g, ' ').toLocaleLowerCase('pt-BR');
+}
+
+export function ehNomeGrupoGeralPartida(valor) {
+  return normalizarNomeGrupoPartida(valor) === 'geral';
+}
+
+export function obterNomeGrupoPartidaExibicao(grupoOuNome, fallback = ROTULO_PARTIDAS_AVULSAS) {
+  const nome = typeof grupoOuNome === 'string'
+    ? grupoOuNome
+    : grupoOuNome?.nome || grupoOuNome?.nomeGrupo || '';
+  const nomeLimpo = String(nome || '').trim();
+
+  if (!nomeLimpo) {
+    return fallback;
+  }
+
+  return ehNomeGrupoGeralPartida(nomeLimpo) ? ROTULO_PARTIDAS_AVULSAS : nomeLimpo;
+}
+
 export function obterNomeStatusPartida(status) {
   switch (Number(status)) {
     case STATUS_PARTIDA.agendada:

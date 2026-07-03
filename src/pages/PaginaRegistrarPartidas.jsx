@@ -14,6 +14,10 @@ import {
   obterDataHoraPadraoInput,
   STEP_HORA_15_MINUTOS_SEGUNDOS
 } from '../utils/formatacao';
+import {
+  obterNomeGrupoPartidaExibicao,
+  ROTULO_PARTIDAS_AVULSAS
+} from '../utils/partidas';
 
 const LADOS_ATLETA = {
   direito: 1,
@@ -22,7 +26,6 @@ const LADOS_ATLETA = {
 
 const GRUPO_GERAL_ID = '__grupo-geral__';
 const NOME_GRUPO_GERAL = 'Geral';
-const ROTULO_PARTIDAS_AVULSAS = 'Partidas avulsas';
 const MENSAGEM_GRUPO_DUPLICADO = 'Já existe grupo com esse nome. Altere o nome para criar um novo grupo.';
 const CAMPOS_ATLETAS = ['duplaAAtleta1', 'duplaAAtleta2', 'duplaBAtleta1', 'duplaBAtleta2'];
 
@@ -575,7 +578,7 @@ export function PaginaRegistrarPartidas() {
               {!grupoGeralNaLista && <option value={GRUPO_GERAL_ID}>{ROTULO_PARTIDAS_AVULSAS}</option>}
               {grupos.map((grupo) => (
                 <option key={grupo.id} value={grupo.id}>
-                  {grupo.nome}
+                  {obterNomeGrupoPartidaExibicao(grupo, 'Grupo')}
                 </option>
               ))}
             </select>

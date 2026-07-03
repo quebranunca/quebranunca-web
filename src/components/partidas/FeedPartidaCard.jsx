@@ -5,6 +5,7 @@ import { AvatarUsuario } from '../AvatarUsuario';
 import { CompartilharPartidaBotao } from './CompartilharPartidaBotao';
 import { formatarData, formatarDataHora, formatarHora } from '../../utils/formatacao';
 import { formatarNomeDupla } from '../../utils/atletaUtils';
+import { obterNomeGrupoPartidaExibicao } from '../../utils/partidas';
 
 function nomesDupla(dupla) {
   return formatarNomeDupla(dupla, 'Dupla a definir');
@@ -27,10 +28,10 @@ function NomesDuplaLinks({ dupla }) {
 
 function obterContexto(partida) {
   return [
-    partida.grupoNome,
+    obterNomeGrupoPartidaExibicao(partida.grupoNome, ''),
     partida.competicaoNome,
     partida.categoriaNome
-  ].filter(Boolean).join(' • ') || 'Geral';
+  ].filter(Boolean).join(' • ') || 'Partidas avulsas';
 }
 
 function ehVideo(midiaTipo) {

@@ -18,6 +18,7 @@ import { useAutenticacao } from '../../hooks/useAutenticacao';
 import { formatarData } from '../../utils/formatacao';
 import { montarRotaPerfilAtleta } from '../../utils/perfilAtleta';
 import { obterNomeExibicaoAtletaPerfil } from '../../utils/atletaUtils';
+import { obterNomeGrupoPartidaExibicao } from '../../utils/partidas';
 import { AvatarUsuario, obterFotoPerfilAvatar } from '../AvatarUsuario';
 import { NotificacoesBotao } from '../NotificacoesBotao';
 
@@ -527,7 +528,13 @@ function HomeAtividadeRecente({ ultimasPartidas, erro }) {
                     <strong>Você registrou uma partida</strong>
                     <span>{formatarDataAtividade(partida.dataPartida)}</span>
                   </div>
-                  <p>{partida.grupo || partida.categoria || partida.competicao || 'Geral'}</p>
+                  <p>
+                    {[
+                      obterNomeGrupoPartidaExibicao(partida.grupo, ''),
+                      partida.categoria,
+                      partida.competicao
+                    ].filter(Boolean)[0] || 'Partidas avulsas'}
+                  </p>
                   <footer>
                     <span>{obterPlacarPartida(partida)}</span>
                     <em className={vitoria ? 'vitoria' : 'derrota'}>{resultado}</em>

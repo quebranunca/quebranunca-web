@@ -1,5 +1,6 @@
 import { FaChevronRight, FaTimes } from 'react-icons/fa';
 import { AvatarGrupo } from '../grupos/AvatarGrupo';
+import { obterNomeGrupoPartidaExibicao } from '../../utils/partidas';
 
 function formatarQuantidadeAtletas(valor) {
   const quantidade = Number(valor);
@@ -88,7 +89,7 @@ export function SeletorGrupoPartida({
             >
               <GrupoAvatar grupo={grupo} />
               <span>
-                <strong>{grupo.nome}</strong>
+                <strong>{obterNomeGrupoPartidaExibicao(grupo, 'Grupo selecionado')}</strong>
                 <small>{formatarQuantidadeAtletas(grupo.quantidadeAtletas)} • {grupo.privacidade || 'Privado'}</small>
               </span>
               <FaChevronRight aria-hidden="true" />

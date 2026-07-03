@@ -14,6 +14,7 @@ import { AtletaPerfilLink } from '../AtletaPerfilLink';
 import { AvatarUsuario, obterFotoPerfilAvatar } from '../AvatarUsuario';
 import { PlacarDupla } from '../partidas/PlacarDupla';
 import { obterNomeExibicaoAtletaPerfil } from '../../utils/atletaUtils';
+import { obterNomeGrupoPartidaExibicao } from '../../utils/partidas';
 
 const estadoCriarConta = {
   mensagem: 'Use seu e-mail para entrar ou criar sua conta grátis.',
@@ -181,7 +182,7 @@ function PublicLiveMatches({ partidas }) {
           partidas.map((partida) => (
             <article key={partida.id} className="public-live-card">
               <div className="public-live-card-top">
-                <span>{partida.grupo || partida.campeonato || 'Grupo Geral'}</span>
+                <span>{obterNomeGrupoPartidaExibicao(partida.grupo, '') || partida.campeonato || 'Partidas avulsas'}</span>
                 <strong>{formatarTempo(partida.minutosAtras)}</strong>
               </div>
               <PlacarDupla

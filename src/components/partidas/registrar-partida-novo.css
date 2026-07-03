@@ -1562,108 +1562,155 @@ body.registrar-partida-modal-aberto {
   font-weight: 850;
 }
 
-.registrar-partida-novo-resumo-card {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
+.registrar-partida-novo-revisao-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 0.75rem;
-  padding: 1rem;
-  border: 1px solid rgba(248, 195, 0, 0.18);
+  gap: 0.85rem;
+  padding: 1.25rem 1.05rem 1.1rem;
+  overflow: hidden;
+  border: 1px solid rgba(248, 195, 0, 0.36);
   border-radius: 1.15rem;
   background:
-    linear-gradient(135deg, rgba(248, 195, 0, 0.09), transparent),
-    rgba(255, 255, 255, 0.055);
-  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.28);
+    radial-gradient(circle at 50% 0, rgba(88, 214, 141, 0.12), transparent 34%),
+    linear-gradient(145deg, rgba(248, 195, 0, 0.1), transparent 56%),
+    rgba(255, 255, 255, 0.045);
+  box-shadow:
+    0 0 0 1px rgba(248, 195, 0, 0.08),
+    0 18px 42px rgba(0, 0, 0, 0.3),
+    0 0 30px rgba(248, 195, 0, 0.12);
+  text-align: center;
 }
 
-.registrar-partida-novo-vencedor {
-  display: grid;
-  grid-template-columns: 2.35rem minmax(0, 1fr) auto;
+.registrar-partida-novo-revisao-topo {
+  display: inline-flex;
   align-items: center;
-  gap: 0.7rem;
-  padding: 0.78rem 0.9rem;
-  border: 1px solid rgba(88, 214, 141, 0.32);
-  border-radius: 1rem;
-  background: rgba(88, 214, 141, 0.1);
+  justify-content: center;
+  gap: 0.55rem;
+  color: #58d68d;
 }
 
-.registrar-partida-novo-vencedor svg {
-  color: #58d68d;
+.registrar-partida-novo-revisao-topo svg {
+  color: var(--color-primary);
   font-size: 1.05rem;
 }
 
-.registrar-partida-novo-vencedor span {
-  color: var(--color-text-secondary);
-  font-size: 0.72rem;
-  font-weight: 900;
-  text-transform: uppercase;
-}
-
-.registrar-partida-novo-vencedor strong {
-  color: #58d68d;
-  font-size: 0.98rem;
+.registrar-partida-novo-revisao-topo span {
+  font-size: 0.78rem;
   font-weight: 950;
+  letter-spacing: 0;
 }
 
-.registrar-partida-novo-resumo-dupla {
+.registrar-partida-novo-revisao-dupla {
+  width: min(100%, 21rem);
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.22rem;
+  align-items: center;
+  gap: 0.45rem;
 }
 
-.registrar-partida-novo-resumo-dupla span,
+.registrar-partida-novo-revisao-dupla.vencedora {
+  gap: 0.52rem;
+}
+
+.registrar-partida-novo-revisao-atleta {
+  max-width: 100%;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.55rem;
+  color: var(--color-text-primary);
+}
+
+.registrar-partida-novo-revisao-atleta strong {
+  min-width: 0;
+  overflow: hidden;
+  color: inherit;
+  font-size: 0.98rem;
+  font-weight: 850;
+  line-height: 1.12;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.registrar-partida-novo-revisao-atleta.vencedor {
+  color: #58d68d;
+}
+
+.registrar-partida-novo-revisao-atleta.vencedor strong {
+  font-size: 1.34rem;
+  font-weight: 950;
+  text-shadow: 0 8px 22px rgba(88, 214, 141, 0.14);
+}
+
+.registrar-partida-novo-revisao-atleta.vencedor .registrar-partida-novo-revisao-avatar {
+  border-color: rgba(88, 214, 141, 0.45);
+  box-shadow: 0 0 0 1px rgba(88, 214, 141, 0.16), 0 10px 20px rgba(0, 0, 0, 0.26);
+}
+
+.registrar-partida-novo-revisao-placar {
+  width: min(100%, 21rem);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.55rem;
+  color: var(--color-text-primary);
+}
+
+.registrar-partida-novo-revisao-placar strong {
+  min-width: 0;
+  color: var(--color-text-primary);
+  font-size: 2.55rem;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.registrar-partida-novo-revisao-placar strong:first-child {
+  color: #58d68d;
+}
+
+.registrar-partida-novo-revisao-placar span {
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.registrar-partida-novo-revisao-versus {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(1.75rem, 1fr) auto minmax(1.75rem, 1fr);
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.registrar-partida-novo-revisao-versus span {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(248, 195, 0, 0.54), transparent);
+}
+
+.registrar-partida-novo-revisao-versus strong {
+  width: 2.45rem;
+  height: 2.45rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.2);
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.78rem;
+  font-weight: 950;
+}
+
 .registrar-partida-novo-meta span {
   color: var(--color-text-secondary);
   font-size: 0.72rem;
   font-weight: 850;
   text-transform: uppercase;
-}
-
-.registrar-partida-novo-resumo-dupla strong {
-  overflow: hidden;
-  color: var(--color-text-primary);
-  font-size: 0.86rem;
-  font-weight: 850;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.registrar-partida-novo-resumo-dupla.vencedora strong {
-  color: #58d68d;
-}
-
-.registrar-partida-novo-resumo-placar {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.34rem;
-  color: var(--color-primary);
-}
-
-.registrar-partida-novo-resumo-placar strong {
-  font-size: 1.7rem;
-  font-weight: 950;
-}
-
-.registrar-partida-novo-resumo-placar span {
-  color: var(--color-text-secondary);
-  font-size: 0.9rem;
-  font-weight: 900;
-}
-
-.registrar-partida-novo-resumo-sem-placar {
-  display: grid;
-  gap: 0.2rem;
-  place-items: center;
-  min-width: 8rem;
-  color: var(--color-primary);
-  text-align: center;
-}
-
-.registrar-partida-novo-resumo-sem-placar span {
-  color: var(--color-text-secondary);
-  font-size: 0.78rem;
 }
 
 .registrar-partida-novo-meta {
@@ -1687,6 +1734,61 @@ body.registrar-partida-modal-aberto {
   justify-content: center;
 }
 
+.registrar-partida-novo-revisao-meta-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.registrar-partida-novo-revisao-meta {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 2.55rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.74rem 0.85rem;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 0.95rem;
+  background:
+    linear-gradient(135deg, rgba(248, 195, 0, 0.07), transparent 62%),
+    rgba(255, 255, 255, 0.045);
+}
+
+.registrar-partida-novo-revisao-meta-icone {
+  width: 2.55rem;
+  height: 2.55rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.76rem;
+  background: rgba(248, 195, 0, 0.12);
+  color: var(--color-primary);
+  font-size: 1rem;
+}
+
+.registrar-partida-novo-revisao-meta > span:last-child {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.registrar-partida-novo-revisao-meta small {
+  color: var(--color-text-secondary);
+  font-size: 0.68rem;
+  font-weight: 950;
+}
+
+.registrar-partida-novo-revisao-meta strong {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--color-text-primary);
+  font-size: 0.94rem;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .registrar-partida-novo-revisao {
   min-height: 0;
   display: flex;
@@ -1704,12 +1806,6 @@ body.registrar-partida-modal-aberto {
   border-radius: 1.15rem 1.15rem 0 0;
   background: rgba(16, 18, 22, 0.98);
   box-shadow: 0 -18px 50px rgba(0, 0, 0, 0.34);
-}
-
-.registrar-partida-novo-meta-lista {
-  display: flex;
-  flex-direction: column;
-  gap: 0.55rem;
 }
 
 .registrar-partida-novo-acoes {
@@ -2308,6 +2404,30 @@ body.registrar-partida-modal-aberto {
     font-size: 0.86rem;
   }
 
+  .registrar-partida-novo-revisao-card {
+    gap: 0.64rem;
+    padding-top: 0.9rem;
+    padding-bottom: 0.9rem;
+  }
+
+  .registrar-partida-novo-revisao-atleta.vencedor strong {
+    font-size: 1.16rem;
+  }
+
+  .registrar-partida-novo-revisao-placar strong {
+    font-size: 2.15rem;
+  }
+
+  .registrar-partida-novo-revisao-versus strong {
+    width: 2.15rem;
+    height: 2.15rem;
+  }
+
+  .registrar-partida-novo-revisao-meta {
+    padding-top: 0.58rem;
+    padding-bottom: 0.58rem;
+  }
+
   .registrar-partida-novo-acoes {
     padding-top: 0.55rem;
   }
@@ -2322,13 +2442,45 @@ body.registrar-partida-modal-aberto {
     min-width: 5.5rem;
   }
 
-  .registrar-partida-novo-resumo-card {
-    grid-template-columns: 1fr;
-    text-align: center;
+  .registrar-partida-novo-revisao-card {
+    gap: 0.72rem;
+    padding: 1rem 0.82rem;
   }
 
-  .registrar-partida-novo-resumo-dupla {
-    align-items: center;
+  .registrar-partida-novo-revisao-atleta {
+    gap: 0.48rem;
+  }
+
+  .registrar-partida-novo-revisao-atleta strong {
+    font-size: 0.92rem;
+  }
+
+  .registrar-partida-novo-revisao-atleta.vencedor strong {
+    font-size: 1.18rem;
+  }
+
+  .registrar-partida-novo-revisao-placar strong {
+    font-size: 2.22rem;
+  }
+
+  .registrar-partida-novo-revisao-versus {
+    gap: 0.52rem;
+  }
+
+  .registrar-partida-novo-revisao-versus strong {
+    width: 2.2rem;
+    height: 2.2rem;
+    font-size: 0.72rem;
+  }
+
+  .registrar-partida-novo-revisao-meta {
+    grid-template-columns: 2.35rem minmax(0, 1fr);
+    padding: 0.64rem 0.72rem;
+  }
+
+  .registrar-partida-novo-revisao-meta-icone {
+    width: 2.35rem;
+    height: 2.35rem;
   }
 
   .registrar-partida-novo-placar {

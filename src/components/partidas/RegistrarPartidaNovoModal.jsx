@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
 import {
   FaArrowRight,
+  FaCalendarAlt,
   FaChartBar,
   FaCheck,
   FaChevronLeft,
@@ -15,12 +16,15 @@ import { AvatarUsuario, obterFotoPerfilAvatar } from '../AvatarUsuario';
 import { AvatarGrupo } from '../grupos/AvatarGrupo';
 import { CompartilharPartidaBotao } from './CompartilharPartidaBotao';
 import { SeletorGrupoPartida } from './SeletorGrupoPartida';
+import { obterNomeExibicaoAtletaPerfil as obterNomeExibicaoAtleta } from '../../utils/atletaUtils';
+import { formatarDataHoraCurta } from '../../utils/formatacao';
 import {
   aoPressionarEnterParaProximo,
   focusCampoSemPular,
   focusNextField,
   scrollFocusedInputIntoView
 } from '../../utils/tecladoMobile';
+import { obterNomeGrupoPartidaExibicao } from '../../utils/partidas';
 
 function obterValorCampo(dados, campo) {
   return campo.split('.').reduce((valor, parte) => valor?.[parte], dados) ?? '';
@@ -32,10 +36,6 @@ function limparTermoBuscaAtleta(valor) {
 
 function obterChaveAtletaSugestao(atleta) {
   return atleta?.id || limparTermoBuscaAtleta(atleta?.nome).toLowerCase();
-}
-
-function obterNomeExibicaoAtleta(atleta) {
-  return limparTermoBuscaAtleta(atleta?.apelido || atleta?.apelidoAtleta || atleta?.nome || atleta?.nomeAtleta);
 }
 
 function campoInterativoEstaFocado() {
@@ -53,25 +53,6 @@ function campoInterativoEstaFocado() {
     tag === 'textarea' ||
     tag === 'select'
   );
-}
-
-function formatarData(data) {
-  if (!data) {
-    return '';
-  }
-
-  const dataFormatada = data instanceof Date ? data : new Date(data);
-
-  if (Number.isNaN(dataFormatada.getTime())) {
-    return '';
-  }
-
-  return new Intl.DateTimeFormat('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
-  }).format(dataFormatada);
 }
 
 function formatarIdPartida(partida) {
@@ -304,11 +285,17 @@ function montarDetalhesAtleta(atleta) {
   }
 
   if (atleta?.grupo) {
-    detalhes.push(atleta.grupo);
+    const grupo = obterNomeGrupoPartidaExibicao(atleta.grupo, '');
+    if (grupo) {
+      detalhes.push(grupo);
+    }
   }
 
   if (atleta?.nomeGrupo) {
-    detalhes.push(atleta.nomeGrupo);
+    const grupo = obterNomeGrupoPartidaExibicao(atleta.nomeGrupo, '');
+    if (grupo) {
+      detalhes.push(grupo);
+    }
   }
 
   if (atleta?.cidade || atleta?.estado) {
@@ -698,7 +685,7 @@ function montarAtletasDuplaVencedora(dados, selecoes, prefixo) {
   return campos.map((campo) => {
     const selecao = selecoes?.[campo];
     const nomeDigitado = limparTexto(obterValorCampo(dados, campo));
-    const nome = selecao?.apelido || selecao?.nome || nomeDigitado || 'Atleta pendente';
+    const nome = obterNomeExibicaoAtleta(selecao) || nomeDigitado || 'Atleta pendente';
 
     return {
       nome,
@@ -805,7 +792,7 @@ function EtapaGrupo({
             >
               <GrupoOpcaoAvatar grupo={grupo} />
               <span>
-                <strong>{carregandoGrupo ? 'Carregando grupo...' : grupo?.nome || 'Grupo selecionado'}</strong>
+                <strong>{carregandoGrupo ? 'Carregando grupo...' : obterNomeGrupoPartidaExibicao(grupo, 'Grupo selecionado')}</strong>
               </span>
               <FaEllipsisH aria-hidden="true" />
             </button>
@@ -846,7 +833,7 @@ function EtapaGrupo({
               >
                 <GrupoOpcaoAvatar grupo={grupoOpcao} />
                 <span>
-                  <strong>{grupoOpcao.nome}</strong>
+                  <strong>{obterNomeGrupoPartidaExibicao(grupoOpcao, 'Grupo')}</strong>
                   <small>{formatarQuantidadeAtletasGrupo(grupoOpcao.quantidadeAtletas)} • {grupoOpcao.privacidade || 'Privado'}</small>
                 </span>
                 {selecionada && <FaCheck aria-hidden="true" />}
@@ -1116,13 +1103,64 @@ function EtapaResultado(props) {
   );
 }
 
-function ResumoDupla({ titulo, atletas, destaque }) {
+function AtletaRevisao({ atleta, destaque }) {
   return (
-    <div className={`registrar-partida-novo-resumo-dupla ${destaque ? 'vencedora' : ''}`}>
-      <span>{titulo}</span>
+    <span className={`registrar-partida-novo-revisao-atleta ${destaque ? 'vencedor' : ''}`}>
+      <AvatarUsuario
+        nome={atleta.nome}
+        fotoPerfilUrl={atleta.fotoPerfilUrl}
+        tamanho={destaque ? 'md' : 'sm'}
+        className="registrar-partida-novo-revisao-avatar"
+      />
+      <strong>{atleta.nome}</strong>
+    </span>
+  );
+}
+
+function DuplaRevisao({ atletas, destaque }) {
+  return (
+    <div className={`registrar-partida-novo-revisao-dupla ${destaque ? 'vencedora' : 'adversaria'}`}>
       {atletas.map((atleta, indice) => (
-        <strong key={`${titulo}-${indice}`}>{atleta || 'Atleta pendente'}</strong>
+        <AtletaRevisao
+          key={`revisao-${destaque ? 'vencedora' : 'adversaria'}-${indice}`}
+          atleta={atleta}
+          destaque={destaque}
+        />
       ))}
+    </div>
+  );
+}
+
+function PlacarRevisao({ placarVencedores, placarAdversarios }) {
+  return (
+    <div className="registrar-partida-novo-revisao-placar" aria-label={`Placar ${placarVencedores} a ${placarAdversarios}`}>
+      <strong>{placarVencedores}</strong>
+      <span>x</span>
+      <strong>{placarAdversarios}</strong>
+    </div>
+  );
+}
+
+function SeparadorVersusRevisao() {
+  return (
+    <div className="registrar-partida-novo-revisao-versus" aria-hidden="true">
+      <span />
+      <strong>VS</strong>
+      <span />
+    </div>
+  );
+}
+
+function MetaRevisaoCard({ icone, rotulo, valor }) {
+  return (
+    <div className="registrar-partida-novo-revisao-meta">
+      <span className="registrar-partida-novo-revisao-meta-icone" aria-hidden="true">
+        {icone}
+      </span>
+      <span>
+        <small>{rotulo}</small>
+        <strong>{valor}</strong>
+      </span>
     </div>
   );
 }
@@ -1145,7 +1183,7 @@ function ResultadoSucessoPremium({ resumo, partida }) {
       duplaVencedora: resumo?.duplaVencedora || partida?.duplaVencedora
     }
   });
-  const grupo = partida?.nomeGrupo || 'Partida avulsa';
+  const grupo = obterNomeGrupoPartidaExibicao(partida?.nomeGrupo);
   const apenasResultado = resumo?.tipoRegistroResultado === 'ApenasResultado' || partida?.tipoRegistroResultado === 'ApenasResultado';
 
   return (
@@ -1200,6 +1238,7 @@ function RevisaoRapida({
   resumo,
   grupo,
   dados,
+  selecoes,
   salvando,
   duplicidade,
   onCancelarDuplicidade,
@@ -1207,57 +1246,56 @@ function RevisaoRapida({
 }) {
   const vencedora = obterVencedora(dados);
   const exibindoDuplicidade = Boolean(duplicidade);
-  const nomeVencedora = vencedora === 'dupla1' ? 'Dupla 1' : vencedora === 'dupla2' ? 'Dupla 2' : '';
   const apenasResultado = resumo.tipoRegistroResultado === 'ApenasResultado' || dados.resultado?.modo === 'ApenasResultado';
+  const atletasDupla1 = montarAtletasDuplaVencedora(dados, selecoes, 'dupla1');
+  const atletasDupla2 = montarAtletasDuplaVencedora(dados, selecoes, 'dupla2');
+  const vencedores = vencedora === 'dupla2' ? atletasDupla2 : atletasDupla1;
+  const adversarios = vencedora === 'dupla2' ? atletasDupla1 : atletasDupla2;
+  const placarVencedores = vencedora === 'dupla2' ? resumo.placar.dupla2 : resumo.placar.dupla1;
+  const placarAdversarios = vencedora === 'dupla2' ? resumo.placar.dupla1 : resumo.placar.dupla2;
+  const nomeGrupo = grupo?.id
+    ? obterNomeGrupoPartidaExibicao(grupo, 'Partidas avulsas')
+    : 'Partidas avulsas';
 
   return (
     <section className="registrar-partida-novo-revisao" aria-label="Revisão rápida da partida">
       <div className="registrar-partida-novo-sheet">
         <div className="registrar-partida-novo-intro">
           <h3>Conferir partida</h3>
-          <p>Confira atletas e resultado antes de confirmar.</p>
+          <p>Confira os detalhes antes de registrar.</p>
         </div>
 
-        {nomeVencedora && (
-          <div className="registrar-partida-novo-vencedor">
+        <div className="registrar-partida-novo-revisao-card">
+          <div className="registrar-partida-novo-revisao-topo">
             <FaTrophy aria-hidden="true" />
-            <span>Vencedora</span>
-            <strong>{nomeVencedora}</strong>
+            <span>VENCEDORES</span>
           </div>
-        )}
 
-        <div className="registrar-partida-novo-resumo-card">
-          <ResumoDupla titulo="Dupla 1" atletas={resumo.dupla1} destaque={vencedora === 'dupla1'} />
-          {apenasResultado ? (
-            <div className="registrar-partida-novo-resumo-sem-placar">
-              <strong>{nomeVencedora ? `${nomeVencedora} venceu` : 'Resultado sem placar'}</strong>
-              <span>Resultado informado sem placar detalhado</span>
-            </div>
-          ) : (
-            <div className="registrar-partida-novo-resumo-placar">
-              <strong>{resumo.placar.dupla1 || 0}</strong>
-              <span>x</span>
-              <strong>{resumo.placar.dupla2 || 0}</strong>
-            </div>
+          <DuplaRevisao atletas={vencedores} destaque />
+
+          {!apenasResultado && (
+            <PlacarRevisao
+              placarVencedores={placarVencedores || 0}
+              placarAdversarios={placarAdversarios || 0}
+            />
           )}
-          <ResumoDupla titulo="Dupla 2" atletas={resumo.dupla2} destaque={vencedora === 'dupla2'} />
+
+          <SeparadorVersusRevisao />
+
+          <DuplaRevisao atletas={adversarios} destaque={false} />
         </div>
 
-        <div className="registrar-partida-novo-meta-lista">
-          <div className="registrar-partida-novo-meta">
-            <span>Data e hora</span>
-            <strong>{formatarData(resumo.data)}</strong>
-          </div>
-          {grupo?.id ? (
-            <div className="registrar-partida-novo-meta">
-              <span>Grupo</span>
-              <strong>{grupo.nome || 'Grupo selecionado'}</strong>
-            </div>
-          ) : (
-            <div className="registrar-partida-novo-meta registrar-partida-novo-meta-contexto">
-              <strong>Partidas avulsas</strong>
-            </div>
-          )}
+        <div className="registrar-partida-novo-revisao-meta-lista">
+          <MetaRevisaoCard
+            icone={<FaUserFriends />}
+            rotulo="GRUPO"
+            valor={nomeGrupo}
+          />
+          <MetaRevisaoCard
+            icone={<FaCalendarAlt />}
+            rotulo="DATA E HORA"
+            valor={formatarDataHoraCurta(resumo.data)}
+          />
         </div>
 
         {exibindoDuplicidade && (
@@ -1287,8 +1325,8 @@ function TelaSucesso({ sucesso, grupo, onFechar }) {
   const partida = sucesso?.partida || {};
   const resumo = sucesso?.resumo || {};
   const partidaId = partida?.id;
-  const grupoNome = grupo?.nome || partida?.nomeGrupo || 'Partida avulsa';
-  const dataRegistro = formatarData(resumo?.salvoEm || partida?.dataAtualizacao || new Date());
+  const grupoNome = obterNomeGrupoPartidaExibicao(grupo || partida?.nomeGrupo);
+  const dataRegistro = formatarDataHoraCurta(resumo?.salvoEm || partida?.dataAtualizacao || new Date());
   const modoResultado = partida?.tipoRegistroResultado || resumo?.tipoRegistroResultado;
   const apenasResultado = modoResultado === 'ApenasResultado';
   const duplaVencedora = Number(partida?.duplaVencedora || resumo?.duplaVencedora || 0);
@@ -1629,6 +1667,7 @@ function ConteudoEtapa({
       resumo={resumo}
       grupo={grupo}
       dados={dados}
+      selecoes={selecoes}
       salvando={salvando}
       duplicidade={duplicidade}
       onCancelarDuplicidade={onCancelarDuplicidade}

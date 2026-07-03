@@ -16,6 +16,7 @@ import {
   atletaEstaNaDuplaA,
   atletaEstaNaDuplaB,
   obterAtletasPartida,
+  obterNomeGrupoPartidaExibicao,
   obterNomeStatusAprovacao,
   ordenarPartidasRecentes,
   STATUS_APROVACAO_PARTIDA,
@@ -167,7 +168,7 @@ function obterPlacar(partida, dupla) {
 }
 
 function obterContextoPartida(partida) {
-  return partida?.nomeGrupo?.trim() || 'Partida avulsa';
+  return obterNomeGrupoPartidaExibicao(partida?.nomeGrupo);
 }
 
 function pendenciaAindaVisivel(item) {

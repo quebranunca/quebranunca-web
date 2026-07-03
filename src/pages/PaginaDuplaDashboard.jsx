@@ -8,6 +8,7 @@ import { duplasServico } from '../services/duplasServico';
 import { formatarNomeDupla } from '../utils/atletaUtils';
 import { extrairMensagemErro } from '../utils/erros';
 import { formatarDataHora } from '../utils/formatacao';
+import { obterNomeGrupoPartidaExibicao } from '../utils/partidas';
 
 function formatarPercentual(valor) {
   return `${Number(valor || 0).toLocaleString('pt-BR', { maximumFractionDigits: 1 })}%`;
@@ -179,14 +180,14 @@ function DashboardMetrica({ icone, rotulo, valor }) {
 
 function PartidaDuplaCard({ partida, dupla }) {
   const venceu = partida.resultado === 'Vitória';
-  const contexto = partida.competicao || partida.grupo || partida.categoria || 'Partida';
+  const contexto = partida.competicao || obterNomeGrupoPartidaExibicao(partida.grupo, '') || partida.categoria || 'Partidas avulsas';
 
   return (
     <article className="atleta-dashboard-jogo">
       <div className="atleta-dashboard-jogo-topo">
         <div>
           <strong>{contexto}</strong>
-          <span>{partida.categoria || partida.grupo || 'Geral'}</span>
+          <span>{partida.categoria || obterNomeGrupoPartidaExibicao(partida.grupo)}</span>
         </div>
         <span>{partida.dataPartida ? formatarDataHora(partida.dataPartida) : 'Data a definir'}</span>
       </div>

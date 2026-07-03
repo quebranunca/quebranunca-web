@@ -1,4 +1,5 @@
 import { AvatarGrupo } from '../grupos/AvatarGrupo';
+import { obterNomeGrupoPartidaExibicao } from '../../utils/partidas';
 
 function formatarQuantidadeAtletas(valor) {
   const quantidade = Number(valor);
@@ -34,7 +35,7 @@ export function GrupoContextoPartida({
             </>
           ) : possuiGrupo ? (
             <>
-              <strong>{grupo.nome}</strong>
+              <strong>{obterNomeGrupoPartidaExibicao(grupo, 'Grupo selecionado')}</strong>
               <span>{formatarQuantidadeAtletas(grupo.quantidadeAtletas)} • {grupo.privacidade || 'Privado'}</span>
             </>
           ) : (
