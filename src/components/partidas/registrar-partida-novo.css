@@ -983,6 +983,10 @@ body.registrar-partida-modal-aberto {
   transition: color 160ms ease;
 }
 
+.registrar-partida-novo-campo.ativo {
+  z-index: 3;
+}
+
 .registrar-partida-novo-campo > span {
   transition: color 160ms ease, transform 160ms ease, text-shadow 160ms ease;
 }
@@ -1038,6 +1042,8 @@ body.registrar-partida-modal-aberto {
 }
 
 .registrar-partida-novo-sugestoes-rapidas {
+  position: relative;
+  z-index: 4;
   display: flex;
   flex-direction: column;
   gap: 0.42rem;
@@ -1095,6 +1101,8 @@ body.registrar-partida-modal-aberto {
 }
 
 .registrar-partida-novo-sugestoes {
+  position: relative;
+  z-index: 4;
   max-height: min(14rem, 34dvh);
   display: flex;
   flex-direction: column;

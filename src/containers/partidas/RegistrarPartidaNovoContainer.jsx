@@ -462,8 +462,8 @@ function limitarSugestoes(atletas) {
   return (atletas || []).map(criarAtletaSelecao).filter(Boolean).slice(0, 5);
 }
 
-function limitarSugestoesGrupo(atletas, grupo) {
-  return (atletas || [])
+function limitarSugestoesGrupo(atletas, grupo, limite = 5) {
+  const sugestoesGrupo = (atletas || [])
     .map((atleta) => criarAtletaSelecao({
       ...atleta,
       id: obterAtletaSelecaoId(atleta),
@@ -472,8 +472,9 @@ function limitarSugestoesGrupo(atletas, grupo) {
       nomeGrupo: atleta.nomeGrupo || grupo?.nome || 'Grupo',
       origemSugestao: 'grupo'
     }))
-    .filter(Boolean)
-    .slice(0, 5);
+    .filter(Boolean);
+
+  return Number.isFinite(limite) ? sugestoesGrupo.slice(0, limite) : sugestoesGrupo;
 }
 
 function limitarSugestoesExternas(atletas, idsIgnorados) {
@@ -599,6 +600,7 @@ export function RegistrarPartidaNovoContainer({
     ehEdicao ? criarContextoEdicaoPartida(partidaInicial, contextoInicial) : contextoInicial
   ));
   const [grupoContexto, setGrupoContexto] = useState(() => (ehEdicao ? criarGrupoContextoEdicao(partidaInicial) : null));
+  const [atletasGrupo, setAtletasGrupo] = useState([]);
   const [carregandoGrupo, setCarregandoGrupo] = useState(false);
   const [gruposDisponiveis, setGruposDisponiveis] = useState([]);
   const [carregandoGruposDisponiveis, setCarregandoGruposDisponiveis] = useState(false);
@@ -653,20 +655,67 @@ export function RegistrarPartidaNovoContainer({
       }
     });
 
-    function filtrar(lista, { removerAtletaUsuario = false } = {}) {
+    function filtrarNormalizadas(lista, { removerAtletaUsuario = false } = {}) {
       return (lista || [])
+        .map(criarAtletaSelecao)
         .filter((atleta) => atleta?.id)
         .filter((atleta) => !idsSelecionados.has(atleta.id))
         .filter((atleta) => !nomesSelecionados.has(normalizarNomeSugestao(atleta.nome)))
-        .filter((atleta) => !removerAtletaUsuario || atleta.id !== atletaUsuarioId)
-        .map((atleta) => criarAtletaSelecao({
+        .filter((atleta) => !removerAtletaUsuario || atleta.id !== atletaUsuarioId);
+    }
+
+    function filtrarFrequentes(lista, { removerAtletaUsuario = false } = {}) {
+      return filtrarNormalizadas(
+        (lista || []).map((atleta) => ({
           id: atleta.id,
           nome: atleta.nome,
           quantidadeJogos: atleta.totalPartidas,
           totalPartidas: atleta.totalPartidas,
           origemSugestao: 'frequente'
-        }))
-        .filter(Boolean);
+        })),
+        { removerAtletaUsuario }
+      );
+    }
+
+    function combinarSugestoes(...listas) {
+      const idsVistos = new Set();
+      const nomesVistos = new Set();
+
+      return listas
+        .flat()
+        .filter((atleta) => {
+          const id = atleta?.id || '';
+          const nome = normalizarNomeSugestao(atleta?.nome);
+
+          if (!id && !nome) {
+            return false;
+          }
+
+          if ((id && idsVistos.has(id)) || (nome && nomesVistos.has(nome))) {
+            return false;
+          }
+
+          if (id) {
+            idsVistos.add(id);
+          }
+
+          if (nome) {
+            nomesVistos.add(nome);
+          }
+
+          return true;
+        })
+        .slice(0, 5);
+    }
+
+    function montarSugestoesCampo(campo, titulo, ...listas) {
+      if (selecoes[campo]?.id) {
+        return null;
+      }
+
+      const atletas = combinarSugestoes(...listas);
+
+      return atletas.length > 0 ? { titulo, atletas } : null;
     }
 
     const campoParceiro = campoAtletaUsuario === 'dupla1.atletaDireita'
@@ -674,30 +723,49 @@ export function RegistrarPartidaNovoContainer({
       : 'dupla1.atletaDireita';
     const campoRivalDireita = 'dupla2.atletaDireita';
     const campoRivalEsquerda = 'dupla2.atletaEsquerda';
-    const parceiroDisponivel = fixarAtletaUsuario && !selecoes[campoParceiro]?.id;
-    const rivaisDisponiveis = filtrar(sugestoesPartida.rivaisFrequentes, { removerAtletaUsuario: true });
+    const parceirosDisponiveis = filtrarFrequentes(sugestoesPartida.parceirosFrequentes, { removerAtletaUsuario: true });
+    const rivaisDisponiveis = filtrarFrequentes(sugestoesPartida.rivaisFrequentes, { removerAtletaUsuario: true });
+    const atletasGrupoDisponiveis = contextoPartida?.grupoId
+      ? filtrarNormalizadas(limitarSugestoesGrupo(atletasGrupo, grupoContexto, null), { removerAtletaUsuario: false })
+      : [];
+
+    if (contextoPartida?.grupoId) {
+      return {
+        'dupla1.atletaDireita': montarSugestoesCampo(
+          'dupla1.atletaDireita',
+          'Atletas do grupo',
+          parceirosDisponiveis,
+          atletasGrupoDisponiveis
+        ),
+        'dupla1.atletaEsquerda': montarSugestoesCampo(
+          'dupla1.atletaEsquerda',
+          'Atletas do grupo',
+          parceirosDisponiveis,
+          atletasGrupoDisponiveis
+        ),
+        [campoRivalDireita]: montarSugestoesCampo(
+          campoRivalDireita,
+          'Atletas do grupo',
+          rivaisDisponiveis,
+          atletasGrupoDisponiveis
+        ),
+        [campoRivalEsquerda]: montarSugestoesCampo(
+          campoRivalEsquerda,
+          'Atletas do grupo',
+          rivaisDisponiveis,
+          atletasGrupoDisponiveis
+        )
+      };
+    }
 
     return {
-      [campoParceiro]: parceiroDisponivel
-        ? {
-            titulo: 'Parceiros frequentes',
-            atletas: filtrar(sugestoesPartida.parceirosFrequentes, { removerAtletaUsuario: true })
-          }
+      [campoParceiro]: fixarAtletaUsuario
+        ? montarSugestoesCampo(campoParceiro, 'Parceiros frequentes', parceirosDisponiveis)
         : null,
-      [campoRivalDireita]: !selecoes[campoRivalDireita]?.id
-        ? {
-            titulo: 'Rivais frequentes',
-            atletas: rivaisDisponiveis
-          }
-        : null,
-      [campoRivalEsquerda]: !selecoes[campoRivalEsquerda]?.id
-        ? {
-            titulo: 'Rivais frequentes',
-            atletas: rivaisDisponiveis
-          }
-        : null
+      [campoRivalDireita]: montarSugestoesCampo(campoRivalDireita, 'Rivais frequentes', rivaisDisponiveis),
+      [campoRivalEsquerda]: montarSugestoesCampo(campoRivalEsquerda, 'Rivais frequentes', rivaisDisponiveis)
     };
-  }, [dados, selecoes, sugestoesPartida, fixarAtletaUsuario, campoAtletaUsuario, atletaUsuarioId]);
+  }, [dados, selecoes, sugestoesPartida, fixarAtletaUsuario, campoAtletaUsuario, atletaUsuarioId, contextoPartida?.grupoId, atletasGrupo, grupoContexto]);
 
   useEffect(() => {
     if (ehEdicao) {
@@ -803,6 +871,7 @@ export function RegistrarPartidaNovoContainer({
     async function carregarGrupoContexto() {
       if (!grupoId) {
         setGrupoContexto(null);
+        setAtletasGrupo([]);
         setCarregandoGrupo(false);
         return;
       }
@@ -816,6 +885,7 @@ export function RegistrarPartidaNovoContainer({
 
         if (!cancelado) {
           setGrupoContexto(normalizarGrupoContexto(grupo, atletas?.length));
+          setAtletasGrupo(atletas || []);
         }
       } catch {
         if (!cancelado) {
@@ -826,6 +896,7 @@ export function RegistrarPartidaNovoContainer({
             privacidade: 'Privado',
             imagemUrl: ''
           });
+          setAtletasGrupo([]);
         }
       } finally {
         if (!cancelado) {
@@ -927,7 +998,7 @@ export function RegistrarPartidaNovoContainer({
     const termo = limparTexto(valor);
     clearTimeout(buscaTimersRef.current[campo]);
     const grupoId = contextoPartida?.grupoId;
-    const minimoCaracteres = grupoId ? 3 : 2;
+    const minimoCaracteres = 2;
 
     if (termo.length < minimoCaracteres) {
       setSugestoes((anterior) => ({ ...anterior, [campo]: [] }));
@@ -941,8 +1012,38 @@ export function RegistrarPartidaNovoContainer({
         ? `grupo:${grupoId}:${podeBuscarExternos ? 'com-externos' : 'membros'}:${termo.toLowerCase()}`
         : `${competicaoId || 'geral'}:${termo.toLowerCase()}`;
 
+      function filtrarAtletasJaSelecionados(lista) {
+        const idsBloqueados = new Set();
+        const nomesBloqueados = new Set();
+
+        CAMPOS_ATLETAS.forEach((campoAtleta) => {
+          if (campoAtleta === campo) {
+            return;
+          }
+
+          const selecao = selecoes[campoAtleta];
+          if (selecao?.id) {
+            idsBloqueados.add(selecao.id);
+          }
+
+          const nome = normalizarNomeSugestao(obterValorCampo(dados, campoAtleta));
+          if (nome) {
+            nomesBloqueados.add(nome);
+          }
+        });
+
+        return (lista || []).filter((atleta) => {
+          const id = atleta?.id || '';
+          const nome = normalizarNomeSugestao(atleta?.nome);
+          return (!id || !idsBloqueados.has(id)) && (!nome || !nomesBloqueados.has(nome));
+        });
+      }
+
       if (cacheBuscaRef.current.has(chaveCache)) {
-        setSugestoes((anterior) => ({ ...anterior, [campo]: cacheBuscaRef.current.get(chaveCache) }));
+        setSugestoes((anterior) => ({
+          ...anterior,
+          [campo]: filtrarAtletasJaSelecionados(cacheBuscaRef.current.get(chaveCache))
+        }));
         return;
       }
 
@@ -969,7 +1070,7 @@ export function RegistrarPartidaNovoContainer({
         }
 
         cacheBuscaRef.current.set(chaveCache, lista);
-        setSugestoes((anterior) => ({ ...anterior, [campo]: lista }));
+        setSugestoes((anterior) => ({ ...anterior, [campo]: filtrarAtletasJaSelecionados(lista) }));
       } catch {
         setSugestoes((anterior) => ({ ...anterior, [campo]: [] }));
       } finally {
@@ -1003,6 +1104,20 @@ export function RegistrarPartidaNovoContainer({
     setSelecoes((anterior) => ({ ...anterior, [campo]: atletaSelecionado }));
     setSugestoes((anterior) => ({ ...anterior, [campo]: [] }));
     avancarAposSelecao(campo);
+  }
+
+  function limparSelecaoAtleta(campo) {
+    if (!CAMPOS_ATLETAS.includes(campo)) {
+      return;
+    }
+
+    clearTimeout(buscaTimersRef.current[campo]);
+    setErro('');
+    setDuplicidade(null);
+    setPayloadPendente(null);
+    setDados((anterior) => atualizarValorCampo(anterior, campo, ''));
+    setSelecoes((anterior) => ({ ...anterior, [campo]: null }));
+    setSugestoes((anterior) => ({ ...anterior, [campo]: [] }));
   }
 
   function voltar() {
@@ -1310,6 +1425,7 @@ export function RegistrarPartidaNovoContainer({
         onFecharSeletorGrupo={fecharSeletorGrupo}
         onAlterarCampo={alterarCampo}
         onSelecionarAtleta={selecionarAtleta}
+        onLimparSelecao={limparSelecaoAtleta}
         onConfirmarEtapa={confirmarEtapa}
         onVoltar={voltar}
         onCancelarDuplicidade={cancelarDuplicidade}

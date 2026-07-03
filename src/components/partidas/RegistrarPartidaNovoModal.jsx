@@ -449,8 +449,12 @@ function AutocompleteAtleta({
           <button
             type="button"
             className="registrar-partida-novo-chip-remover"
+            onPointerDown={(evento) => evento.preventDefault()}
             onMouseDown={(evento) => evento.preventDefault()}
-            onClick={() => onLimparSelecao?.(campo)}
+            onClick={() => {
+              onLimparSelecao?.(campo);
+              window.setTimeout(() => inputRef?.current?.focus(), 0);
+            }}
             aria-label={`Remover ${nomeSelecao}`}
             title="Remover atleta"
           >
@@ -1567,6 +1571,7 @@ function ConteudoEtapa({
   onRemoverGrupo,
   onAlterarCampo,
   onSelecionarAtleta,
+  onLimparSelecao,
   onRevisar,
   onConcluirEtapa,
   onCancelarDuplicidade,
@@ -1589,6 +1594,7 @@ function ConteudoEtapa({
     campoAtivo,
     onAlterarCampo,
     onSelecionarAtleta,
+    onLimparSelecao,
     onRevisar
   };
 
@@ -1672,6 +1678,7 @@ export function RegistrarPartidaNovoModal({
   onFecharSeletorGrupo,
   onAlterarCampo,
   onSelecionarAtleta,
+  onLimparSelecao,
   onConfirmarEtapa,
   onVoltar,
   onCancelarDuplicidade,
@@ -2127,6 +2134,7 @@ export function RegistrarPartidaNovoModal({
                 onRemoverGrupo={onRemoverGrupo}
                 onAlterarCampo={onAlterarCampo}
                 onSelecionarAtleta={onSelecionarAtleta}
+                onLimparSelecao={onLimparSelecao}
                 onRevisar={() => formRef.current?.requestSubmit()}
                 onConcluirEtapa={() => formRef.current?.requestSubmit()}
                 onCancelarDuplicidade={onCancelarDuplicidade}
