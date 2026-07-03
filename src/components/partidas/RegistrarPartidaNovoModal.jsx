@@ -1200,9 +1200,6 @@ function RevisaoRapida({
   resumo,
   grupo,
   dados,
-  regraPartida,
-  carregandoRegraPartida,
-  erroRegraPartida,
   salvando,
   duplicidade,
   onCancelarDuplicidade,
@@ -1218,7 +1215,7 @@ function RevisaoRapida({
       <div className="registrar-partida-novo-sheet">
         <div className="registrar-partida-novo-intro">
           <h3>Conferir partida</h3>
-          <p>Confira atletas, placar e regras antes de confirmar.</p>
+          <p>Confira atletas e resultado antes de confirmar.</p>
         </div>
 
         {nomeVencedora && (
@@ -1261,14 +1258,6 @@ function RevisaoRapida({
               <strong>Partidas avulsas</strong>
             </div>
           )}
-          <div className="registrar-partida-novo-meta">
-            <span>Regra</span>
-            <strong>
-              {carregandoRegraPartida
-                ? 'Carregando regra...'
-                : regraPartida?.nome || (erroRegraPartida ? 'Validada pela API' : 'Partida avulsa')}
-            </strong>
-          </div>
         </div>
 
         {exibindoDuplicidade && (
@@ -1640,9 +1629,6 @@ function ConteudoEtapa({
       resumo={resumo}
       grupo={grupo}
       dados={dados}
-      regraPartida={regraPartida}
-      carregandoRegraPartida={carregandoRegraPartida}
-      erroRegraPartida={erroRegraPartida}
       salvando={salvando}
       duplicidade={duplicidade}
       onCancelarDuplicidade={onCancelarDuplicidade}
