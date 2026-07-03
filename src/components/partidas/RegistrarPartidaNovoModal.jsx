@@ -121,8 +121,6 @@ function montarValidacoesPlacar(dados, regraPartida) {
   const temPlacar = dados.dupla1.pontos !== '' && dados.dupla2.pontos !== '';
   const pontosMinimos = obterNumeroRegra(regraPartida?.pontosMinimosPartida);
   const diferencaMinima = obterNumeroRegra(regraPartida?.diferencaMinimaPartida);
-  const permiteEmpate = regraPartida?.permiteEmpate === true;
-
   return [
     pontosMinimos !== null && {
       id: 'minimo',
@@ -133,13 +131,38 @@ function montarValidacoesPlacar(dados, regraPartida) {
       id: 'diferenca',
       texto: `Diferença mínima ${diferencaMinima}`,
       ok: temPlacar && Math.abs(placarA - placarB) >= diferencaMinima
-    },
-    {
-      id: 'empate',
-      texto: permiteEmpate ? 'Empate permitido' : 'Sem empate',
-      ok: temPlacar && (permiteEmpate || placarA !== placarB)
     }
   ].filter(Boolean);
+}
+
+function placarDetalhadoEstaValido(dados, regraPartida) {
+  const placarA = Number(dados.dupla1.pontos);
+  const placarB = Number(dados.dupla2.pontos);
+  const pontosMinimos = obterNumeroRegra(regraPartida?.pontosMinimosPartida);
+  const diferencaMinima = obterNumeroRegra(regraPartida?.diferencaMinimaPartida);
+  const permiteEmpate = regraPartida?.permiteEmpate === true;
+
+  if (dados.dupla1.pontos === '' || dados.dupla2.pontos === '') {
+    return false;
+  }
+
+  if (!Number.isFinite(placarA) || !Number.isFinite(placarB) || placarA < 0 || placarB < 0) {
+    return false;
+  }
+
+  if (!permiteEmpate && placarA === placarB) {
+    return false;
+  }
+
+  if (pontosMinimos !== null && Math.max(placarA, placarB) < pontosMinimos) {
+    return false;
+  }
+
+  if (diferencaMinima !== null && Math.abs(placarA - placarB) < diferencaMinima) {
+    return false;
+  }
+
+  return true;
 }
 
 function limparTexto(valor) {
@@ -181,7 +204,8 @@ function montarValidacoesRevisao(dados, regraPartida) {
 }
 
 function revisaoPossuiInconsistencia(dados, regraPartida) {
-  return montarValidacoesRevisao(dados, regraPartida).some((validacao) => !validacao.ok);
+  return montarValidacoesRevisao(dados, regraPartida).some((validacao) => !validacao.ok) ||
+    (dados.resultado?.modo === 'PlacarDetalhado' && !placarDetalhadoEstaValido(dados, regraPartida));
 }
 
 function IconeEtapa({ tipo }) {
@@ -589,8 +613,9 @@ function PlacarCentral({
     onAlterarCampo(campo, valor);
 
     const valorLimpo = String(valor || '').replace(/\D/g, '').slice(0, 2);
-    if (campo === 'dupla1.pontos' && valorLimpo.length === 2) {
-      window.setTimeout(() => placar2Ref.current?.focus(), 0);
+    if (valorLimpo.length === 2) {
+      const campoAtualRef = campo === 'dupla1.pontos' ? placar1Ref : placar2Ref;
+      window.setTimeout(() => campoAtualRef.current?.blur(), 0);
     }
   }
 
@@ -1288,7 +1313,7 @@ function RevisaoRapida({
   );
 }
 
-function TelaSucesso({ sucesso, grupo, onCompartilhar, onVerRanking, onRegistrarOutraPartida, onFechar }) {
+function TelaSucesso({ sucesso, grupo, onFechar }) {
   const partida = sucesso?.partida || {};
   const resumo = sucesso?.resumo || {};
   const partidaId = partida?.id;
@@ -1366,17 +1391,9 @@ function TelaSucesso({ sucesso, grupo, onCompartilhar, onVerRanking, onRegistrar
           </div>
         )}
 
-        <div className="registrar-partida-novo-acoes-secundarias">
-          <button type="button" className="botao-secundario" onClick={onRegistrarOutraPartida}>
-            Registrar outra partida
-          </button>
-          <button type="button" className="botao-secundario" onClick={() => onVerRanking?.()}>
-            Ver ranking
-          </button>
-          <button type="button" className="botao-secundario" onClick={onFechar}>
-            Fechar
-          </button>
-        </div>
+        <button type="button" className="botao-secundario registrar-partida-novo-fechar-sucesso" onClick={onFechar}>
+          Fechar
+        </button>
       </div>
     </section>
   );
@@ -1477,7 +1494,8 @@ function resultadoEstaPreenchido(dados, regraPartida) {
   }
 
   if (modo === 'PlacarDetalhado') {
-    return montarValidacoesPlacar(dados, regraPartida).every((validacao) => validacao.ok);
+    return placarDetalhadoEstaValido(dados, regraPartida) &&
+      montarValidacoesPlacar(dados, regraPartida).every((validacao) => validacao.ok);
   }
 
   return false;
@@ -1580,7 +1598,6 @@ function ConteudoEtapa({
   onConcluirEtapa,
   onCancelarDuplicidade,
   onConfirmarDuplicidade,
-  onVerRanking,
   fluxoSimplificado = false
 }) {
   const propsRegistro = {
@@ -1687,11 +1704,10 @@ export function RegistrarPartidaNovoModal({
   onCancelarDuplicidade,
   onConfirmarDuplicidade,
   onFechar,
+  onFecharSucesso,
   onAdicionarMidia,
   onVerPartida,
-  onVerRanking,
   onRegistrarRevanche,
-  onRegistrarNovaPartida,
   fluxoSimplificado = false,
   titulo = 'Registrar partida',
   ariaFechar = 'Fechar registro de partida',
@@ -1722,6 +1738,7 @@ export function RegistrarPartidaNovoModal({
   const [tecladoAberto, setTecladoAberto] = useState(false);
   const [modoMobile, setModoMobile] = useState(false);
   const revisaoInvalida = revisaoPossuiInconsistencia(dados, regraPartida);
+  const acaoFecharAtual = sucesso && !sucessoEdicao ? onFecharSucesso || onFechar : onFechar;
   const acaoPrincipalDesabilitada = fluxoSimplificado
     ? salvando || Boolean(duplicidade) || revisaoInvalida
     : obterAcaoPrincipalDesabilitada({
@@ -2080,7 +2097,7 @@ export function RegistrarPartidaNovoModal({
           etapaAtual={etapaAtual}
           salvando={salvando}
           onVoltar={onVoltar}
-          onFechar={onFechar}
+          onFechar={acaoFecharAtual}
           sucesso={sucesso}
           fluxoSimplificado={fluxoSimplificado}
           titulo={titulo}
@@ -2093,10 +2110,7 @@ export function RegistrarPartidaNovoModal({
           <TelaSucesso
             sucesso={sucesso}
             grupo={grupo}
-            onCompartilhar={onAdicionarMidia}
-            onVerRanking={onVerRanking}
-            onRegistrarOutraPartida={onRegistrarNovaPartida}
-            onFechar={onFechar}
+            onFechar={acaoFecharAtual}
           />
         ) : fluxoSimplificado ? (
           renderizarConteudoSimplificado()

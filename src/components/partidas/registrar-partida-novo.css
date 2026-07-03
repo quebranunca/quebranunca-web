@@ -1453,6 +1453,10 @@ body.registrar-partida-modal-aberto {
   text-align: center;
 }
 
+.registrar-partida-novo-placar input:focus {
+  font-size: 4.25rem;
+}
+
 .registrar-partida-novo-placar input::-webkit-outer-spin-button,
 .registrar-partida-novo-placar input::-webkit-inner-spin-button {
   margin: 0;
@@ -2202,7 +2206,7 @@ body.registrar-partida-modal-aberto {
 .registrar-partida-novo-acoes-sucesso {
   width: min(520px, 100%);
   flex-direction: column;
-  gap: 0.55rem;
+  gap: 0.65rem;
   padding: 0;
   background: transparent;
   box-shadow: none;
@@ -2240,17 +2244,11 @@ body.registrar-partida-modal-aberto {
   box-shadow: 0 18px 34px rgba(248, 195, 0, 0.24);
 }
 
-.registrar-partida-novo-acoes-secundarias {
-  width: 100%;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.45rem;
-}
-
-.registrar-partida-novo-acoes-secundarias .botao-secundario {
-  min-height: 2.8rem;
-  padding-inline: 0.35rem;
-  font-size: 0.76rem;
+.registrar-partida-novo-fechar-sucesso {
+  min-height: 2.95rem;
+  justify-content: center;
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .registrar-partida-novo-nova-partida {
@@ -2394,6 +2392,10 @@ body.registrar-partida-modal-aberto {
   }
 
   .registrar-partida-novo-placar input {
+    font-size: 3.35rem;
+  }
+
+  .registrar-partida-novo-placar input:focus {
     font-size: 3.35rem;
   }
 
@@ -2647,6 +2649,10 @@ body.registrar-partida-modal-aberto {
   font-size: 3.2rem;
 }
 
+.registrar-partida-novo-corpo-simples .registrar-partida-novo-placar input:focus {
+  font-size: 3.2rem;
+}
+
 .registrar-partida-novo-corpo-simples .registrar-partida-novo-placar > strong {
   padding-bottom: 1.2rem;
 }
@@ -2790,6 +2796,10 @@ body.registrar-partida-modal-aberto {
 
   .registrar-partida-novo-corpo-simples .registrar-partida-novo-placar input {
     min-height: 4rem;
+    font-size: 2.75rem;
+  }
+
+  .registrar-partida-novo-corpo-simples .registrar-partida-novo-placar input:focus {
     font-size: 2.75rem;
   }
 

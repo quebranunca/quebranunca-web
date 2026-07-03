@@ -1212,8 +1212,17 @@ export function RegistrarPartidaNovoContainer({
     setIndiceEtapa(etapas.findIndex((etapa) => etapa.id === 'resultado'));
   }
 
-  function registrarNovaPartida() {
-    if (deveFixarAtletaUsuario(usuario, contextoPartida, modo)) {
+  function resetarEstadoRegistro({ restaurarContextoInicial = false } = {}) {
+    const contextoBase = restaurarContextoInicial && !ehEdicao ? contextoInicial : contextoPartida;
+
+    if (restaurarContextoInicial && !ehEdicao) {
+      setContextoPartida(contextoInicial);
+      if (!contextoInicial?.grupoId) {
+        setGrupoContexto(null);
+      }
+    }
+
+    if (deveFixarAtletaUsuario(usuario, contextoBase, modo)) {
       setDados(criarDadosComAtletaUsuario(estadoInicial, usuario, atletaUsuario));
       setSelecoes(criarSelecoesComAtletaUsuario(usuario, atletaUsuario));
     } else {
@@ -1223,17 +1232,24 @@ export function RegistrarPartidaNovoContainer({
 
     setSucesso(null);
     setErro('');
+    setSalvando(false);
+    setDuplicidade(null);
+    setPayloadPendente(null);
+    setSugestoes({});
+    setCampoBuscando('');
+    setUploadMidiaAberto(false);
+    setSeletorGrupoAberto(false);
+    setErroGruposDisponiveis(false);
+    Object.values(buscaTimersRef.current).forEach(clearTimeout);
+    buscaTimersRef.current = {};
+    cacheBuscaRef.current.clear();
     setIndiceEtapa(0);
   }
 
-  function verRanking() {
-    const grupoIdRanking = grupoContexto?.id || contextoPartida?.grupoId;
-    const destino = grupoIdRanking
-      ? `/ranking?tipo=grupos&grupoId=${encodeURIComponent(grupoIdRanking)}`
-      : '/ranking';
-
+  function fecharSucesso() {
+    resetarEstadoRegistro({ restaurarContextoInicial: true });
     onFechar?.();
-    navegar(destino, { replace: true });
+    navegar('/app', { replace: true });
   }
 
   function abrirGrupo() {
@@ -1299,11 +1315,10 @@ export function RegistrarPartidaNovoContainer({
         onCancelarDuplicidade={cancelarDuplicidade}
         onConfirmarDuplicidade={confirmarDuplicidade}
         onFechar={onFechar}
+        onFecharSucesso={fecharSucesso}
         onAdicionarMidia={() => setUploadMidiaAberto(true)}
-        onVerRanking={verRanking}
         onAbrirGrupo={abrirGrupo}
         onRegistrarRevanche={registrarRevanche}
-        onRegistrarNovaPartida={registrarNovaPartida}
         fluxoSimplificado={ehEdicao}
         titulo={ehEdicao ? 'Editar partida' : 'Registrar partida'}
         ariaFechar={ehEdicao ? 'Fechar edição de partida' : 'Fechar registro de partida'}
