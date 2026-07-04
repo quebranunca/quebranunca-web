@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { FaCrown, FaEdit, FaExclamationTriangle, FaGamepad, FaSortAmountDown, FaTimes, FaTrophy } from 'react-icons/fa';
+import { FaCrown, FaEdit, FaExclamationTriangle, FaGamepad, FaSortAmountDown, FaTimes, FaTrashAlt, FaTrophy } from 'react-icons/fa';
 import { Link, useSearchParams } from 'react-router-dom';
 import { CompartilharPartidaBotao } from '../components/partidas/CompartilharPartidaBotao';
 import { EditarPartidaRegistradaModal } from '../components/partidas/EditarPartidaRegistradaModal';
@@ -11,7 +11,7 @@ import { pendenciasServico } from '../services/pendenciasServico';
 import { formatarNomeDupla } from '../utils/atletaUtils';
 import { extrairMensagemErro } from '../utils/erros';
 import { formatarDataHoraCurta } from '../utils/formatacao';
-import { podeEditarPartida } from '../utils/permissoesPartida';
+import { podeEditarPartida, podeExcluirPartida } from '../utils/permissoesPartida';
 import {
   atletaEstaNaDuplaA,
   atletaEstaNaDuplaB,
@@ -488,6 +488,10 @@ function formatarSimNao(valor) {
   return valor ? 'Sim' : 'Não';
 }
 
+function obterIdPartida(partida) {
+  return partida?.id || partida?.partidaId || '';
+}
+
 export function PaginaMinhasPartidas() {
   const { usuario } = useAutenticacao();
   const { showNotification } = useNotification();
@@ -502,7 +506,10 @@ export function PaginaMinhasPartidas() {
   const [ordem, setOrdem] = useState('recentes');
   const [partidaDetalhe, setPartidaDetalhe] = useState(null);
   const [partidaEmEdicao, setPartidaEmEdicao] = useState(null);
+  const [partidaEmExclusao, setPartidaEmExclusao] = useState(null);
+  const [erroExclusao, setErroExclusao] = useState('');
   const [salvandoEdicao, setSalvandoEdicao] = useState(false);
+  const [excluindoPartidaId, setExcluindoPartidaId] = useState('');
 
   useEffect(() => {
     setFiltroAtivo(normalizarFiltro(searchParams.get('filtro')));
@@ -568,6 +575,53 @@ export function PaginaMinhasPartidas() {
     if (!salvandoEdicao) {
       setErroEdicao('');
       setPartidaEmEdicao(null);
+    }
+  }
+
+  function abrirConfirmacaoExclusao(partida) {
+    setErroExclusao('');
+    setPartidaEmExclusao(partida);
+  }
+
+  function fecharConfirmacaoExclusao() {
+    if (excluindoPartidaId) {
+      return;
+    }
+
+    setErroExclusao('');
+    setPartidaEmExclusao(null);
+  }
+
+  async function confirmarExclusaoPartida() {
+    const partidaId = obterIdPartida(partidaEmExclusao);
+
+    if (!partidaId || excluindoPartidaId) {
+      return;
+    }
+
+    setErroExclusao('');
+    setExcluindoPartidaId(partidaId);
+
+    try {
+      await partidasServico.remover(partidaId);
+      setPartidas((atuais) => atuais.filter((partida) => obterIdPartida(partida) !== partidaId));
+      setPartidaDetalhe((atual) => (obterIdPartida(atual) === partidaId ? null : atual));
+      setPartidaEmExclusao(null);
+      showNotification({
+        type: 'success',
+        title: 'Partida excluída com sucesso.',
+        message: 'A partida foi removida do histórico.'
+      });
+    } catch {
+      const mensagem = 'Não foi possível excluir a partida. Tente novamente.';
+      setErroExclusao(mensagem);
+      showNotification({
+        type: 'error',
+        title: 'Erro ao excluir partida',
+        message: mensagem
+      });
+    } finally {
+      setExcluindoPartidaId('');
     }
   }
 
@@ -721,6 +775,17 @@ export function PaginaMinhasPartidas() {
           atletaLogadoId={atletaLogadoId}
           onFechar={() => setPartidaDetalhe(null)}
           onEditar={podeEditarPartida(partidaDetalhe, usuario) ? () => abrirEdicao(partidaDetalhe) : null}
+          onExcluir={podeExcluirPartida(partidaDetalhe, usuario) ? () => abrirConfirmacaoExclusao(partidaDetalhe) : null}
+          excluindo={excluindoPartidaId === obterIdPartida(partidaDetalhe)}
+        />
+      )}
+
+      {partidaEmExclusao && (
+        <ConfirmarExclusaoPartidaModal
+          erro={erroExclusao}
+          excluindo={excluindoPartidaId === obterIdPartida(partidaEmExclusao)}
+          onCancelar={fecharConfirmacaoExclusao}
+          onConfirmar={confirmarExclusaoPartida}
         />
       )}
 
@@ -829,7 +894,7 @@ function CardMinhaPartida({ partida, atletaLogadoId, filtroAtivo, onDetalhes, on
   );
 }
 
-function DetalhesPartidaModal({ partida, atletaLogadoId, onFechar, onEditar }) {
+function DetalhesPartidaModal({ partida, atletaLogadoId, onFechar, onEditar, onExcluir, excluindo = false }) {
   const atletas = obterAtletasPartida(partida, atletaLogadoId);
   const resultado = obterResultadoParticipacao(partida, atletaLogadoId);
   const contexto = obterContextoPartida(partida);
@@ -914,8 +979,62 @@ function DetalhesPartidaModal({ partida, atletaLogadoId, onFechar, onEditar }) {
             </button>
           )}
           {podeCompartilhar && <CompartilharPartidaBotao partidaId={partida.id} className="botao-secundario botao-compartilhar-partida" />}
+          {onExcluir && (
+            <button
+              type="button"
+              className="botao-perigo minhas-partidas-modal-excluir"
+              onClick={onExcluir}
+              disabled={excluindo}
+            >
+              <FaTrashAlt aria-hidden="true" />
+              {excluindo ? 'Excluindo...' : 'Excluir partida'}
+            </button>
+          )}
           <button type="button" className="botao-terciario" onClick={onFechar}>
             Fechar
+          </button>
+        </div>
+      </article>
+    </div>
+  );
+}
+
+function ConfirmarExclusaoPartidaModal({ erro, excluindo, onCancelar, onConfirmar }) {
+  return (
+    <div
+      className="modal-backdrop minhas-partidas-confirmacao-backdrop"
+      role="presentation"
+      onClick={excluindo ? undefined : onCancelar}
+    >
+      <article
+        className="modal-conteudo minhas-partidas-confirmacao-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="confirmar-exclusao-partida-titulo"
+        aria-describedby="confirmar-exclusao-partida-descricao"
+        onClick={(evento) => evento.stopPropagation()}
+      >
+        <div className="minhas-partidas-confirmacao-icone" aria-hidden="true">
+          <FaTrashAlt />
+        </div>
+
+        <div className="minhas-partidas-confirmacao-texto">
+          <span>Ação destrutiva</span>
+          <h3 id="confirmar-exclusao-partida-titulo">Excluir partida?</h3>
+          <p id="confirmar-exclusao-partida-descricao">
+            Essa ação não pode ser desfeita. A partida será removida do histórico, rankings e scouts relacionados conforme as regras atuais do sistema.
+          </p>
+        </div>
+
+        {erro && <p className="texto-erro minhas-partidas-confirmacao-erro">{erro}</p>}
+
+        <div className="minhas-partidas-confirmacao-acoes">
+          <button type="button" className="botao-terciario" onClick={onCancelar} disabled={excluindo}>
+            Cancelar
+          </button>
+          <button type="button" className="botao-perigo" onClick={onConfirmar} disabled={excluindo}>
+            <FaTrashAlt aria-hidden="true" />
+            {excluindo ? 'Excluindo partida...' : 'Excluir partida'}
           </button>
         </div>
       </article>

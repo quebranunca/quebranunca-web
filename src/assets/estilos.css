@@ -13325,7 +13325,8 @@ a.botao-terciario:active {
 
 .minhas-partidas-modal-acoes .botao-primario,
 .minhas-partidas-modal-acoes .botao-secundario,
-.minhas-partidas-modal-acoes .botao-terciario {
+.minhas-partidas-modal-acoes .botao-terciario,
+.minhas-partidas-modal-acoes .botao-perigo {
   width: 100%;
   justify-content: center;
   min-height: 2.55rem;
@@ -13336,8 +13337,118 @@ a.botao-terciario:active {
   grid-column: 1 / -1;
 }
 
+.minhas-partidas-modal-excluir {
+  border-color: rgba(255, 107, 122, 0.34);
+  background: rgba(255, 107, 122, 0.1);
+  color: #ff9aa4;
+  box-shadow: none;
+}
+
+.minhas-partidas-modal-excluir:hover:not(:disabled),
+.minhas-partidas-modal-excluir:focus-visible {
+  border-color: rgba(255, 107, 122, 0.58);
+  background: rgba(255, 107, 122, 0.16);
+  color: #ffc1c7;
+}
+
+.minhas-partidas-confirmacao-backdrop {
+  z-index: 1100;
+  align-items: flex-end;
+  padding: 0.8rem;
+}
+
+.minhas-partidas-confirmacao-modal {
+  display: grid;
+  width: min(100%, 23rem);
+  gap: 0.78rem;
+  padding: 1rem;
+  border: 1px solid rgba(255, 107, 122, 0.34);
+  border-radius: 20px 20px 16px 16px;
+  background:
+    linear-gradient(145deg, rgba(255, 107, 122, 0.12), transparent 42%),
+    var(--qn-bg-card);
+  box-shadow:
+    0 0 0 1px rgba(255, 107, 122, 0.06),
+    0 24px 70px rgba(0, 0, 0, 0.48);
+}
+
+.minhas-partidas-confirmacao-icone {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid rgba(255, 107, 122, 0.34);
+  border-radius: 999px;
+  background: rgba(255, 107, 122, 0.12);
+  color: #ff9aa4;
+  font-size: 1.12rem;
+}
+
+.minhas-partidas-confirmacao-texto {
+  display: grid;
+  gap: 0.34rem;
+}
+
+.minhas-partidas-confirmacao-texto span {
+  color: #ff9aa4;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.minhas-partidas-confirmacao-texto h3,
+.minhas-partidas-confirmacao-texto p {
+  margin: 0;
+}
+
+.minhas-partidas-confirmacao-texto h3 {
+  color: var(--qn-text-primary);
+  font-size: 1.18rem;
+  letter-spacing: 0;
+}
+
+.minhas-partidas-confirmacao-texto p {
+  color: var(--qn-text-secondary);
+  font-size: 0.88rem;
+  font-weight: 700;
+  line-height: 1.42;
+}
+
+.minhas-partidas-confirmacao-erro {
+  font-size: 0.84rem;
+}
+
+.minhas-partidas-confirmacao-acoes {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+}
+
+.minhas-partidas-confirmacao-acoes button {
+  width: 100%;
+  justify-content: center;
+  min-height: 2.6rem;
+}
+
+.minhas-partidas-confirmacao-acoes .botao-perigo {
+  border-color: rgba(255, 107, 122, 0.5);
+  background: rgba(255, 107, 122, 0.18);
+  color: #ffd4d8;
+}
+
+.minhas-partidas-confirmacao-acoes .botao-perigo:hover:not(:disabled),
+.minhas-partidas-confirmacao-acoes .botao-perigo:focus-visible {
+  border-color: rgba(255, 107, 122, 0.72);
+  background: rgba(255, 107, 122, 0.24);
+}
+
 @media (min-width: 820px) {
   .minhas-partidas-detalhe-backdrop {
+    align-items: center;
+  }
+
+  .minhas-partidas-confirmacao-backdrop {
     align-items: center;
   }
 }
@@ -13350,6 +13461,10 @@ a.botao-terciario:active {
   .minhas-partidas-badges {
     justify-content: flex-end;
     max-width: 11.5rem;
+  }
+
+  .minhas-partidas-confirmacao-acoes {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 

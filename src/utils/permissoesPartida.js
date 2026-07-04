@@ -7,3 +7,11 @@ export function podeEditarPartida(partida, usuario) {
 
   return ehAdministrador(usuario) || partida.criadoPorUsuarioId === usuario.id;
 }
+
+export function podeExcluirPartida(partida, usuario) {
+  if (!partida?.id || !usuario?.id) {
+    return false;
+  }
+
+  return ehAdministrador(usuario);
+}
