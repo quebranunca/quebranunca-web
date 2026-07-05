@@ -2321,6 +2321,94 @@ body.registrar-partida-modal-aberto {
   background: transparent;
 }
 
+.confirmar-duplicidade-resumo {
+  display: grid;
+  gap: 0.72rem;
+  margin: 0.85rem 0 0;
+  padding: 0.85rem;
+  border: 1px solid rgba(255, 179, 0, 0.22);
+  border-radius: 16px;
+  background:
+    linear-gradient(145deg, rgba(255, 179, 0, 0.1), rgba(255, 255, 255, 0.025)),
+    rgba(12, 13, 15, 0.96);
+}
+
+.confirmar-duplicidade-resumo dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.confirmar-duplicidade-resumo dt,
+.confirmar-duplicidade-resumo dd {
+  margin: 0;
+}
+
+.confirmar-duplicidade-resumo dt {
+  color: var(--cor-primaria);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.confirmar-duplicidade-resumo dd {
+  overflow: hidden;
+  margin-top: 0.16rem;
+  color: var(--cor-texto);
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.confirmar-duplicidade-duplas {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.confirmar-duplicidade-duplas span {
+  min-width: 0;
+  overflow: hidden;
+  padding: 0.55rem 0.6rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.045);
+  color: var(--cor-texto);
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.confirmar-duplicidade-duplas strong,
+.confirmar-duplicidade-resultado {
+  color: var(--cor-primaria);
+  font-weight: 900;
+}
+
+.confirmar-duplicidade-resultado {
+  justify-self: start;
+  padding: 0.38rem 0.58rem;
+  border-radius: 999px;
+  background: rgba(255, 179, 0, 0.12);
+  font-size: 0.86rem;
+}
+
+@media (max-width: 480px) {
+  .confirmar-duplicidade-resumo dl,
+  .confirmar-duplicidade-duplas {
+    grid-template-columns: 1fr;
+  }
+
+  .confirmar-duplicidade-duplas strong {
+    justify-self: center;
+  }
+}
+
 .registrar-partida-novo-acoes-sucesso {
   width: min(520px, 100%);
   flex-direction: column;

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ConteudoBotao, IconeAcao } from '../components/ConteudoBotao';
 import { ConfirmarDuplicidadePartidaModal } from '../components/partidas/ConfirmarDuplicidadePartidaModal';
 import { atletasServico } from '../services/atletasServico';
@@ -517,6 +517,7 @@ export function PaginaPartidas({ modo = 'consulta' }) {
   const [mensagem, setMensagem] = useState('');
   const [feedbackPendencias, setFeedbackPendencias] = useState([]);
   const [duplicidadePartida, setDuplicidadePartida] = useState(null);
+  const navegar = useNavigate();
   const [payloadDuplicidadePendente, setPayloadDuplicidadePendente] = useState(null);
   const formularioRef = useRef(null);
   const tabelaJogosRef = useRef(null);
@@ -1521,6 +1522,13 @@ export function PaginaPartidas({ modo = 'consulta' }) {
     }
   }
 
+  function verPartidaDuplicada() {
+    const partidaId = duplicidadePartida?.partidaId || duplicidadePartida?.partida?.id;
+    if (partidaId) {
+      navegar(`/minhas-partidas?partidaId=${partidaId}`);
+    }
+  }
+
   async function gerarTabela(substituirTabelaExistente = false) {
     if (!categoriaSelecionada) {
       setErro('Selecione uma categoria para gerar a tabela.');
@@ -2442,10 +2450,12 @@ export function PaginaPartidas({ modo = 'consulta' }) {
 
       {duplicidadePartida && (
         <ConfirmarDuplicidadePartidaModal
-          mensagem={duplicidadePartida.mensagem || 'Já existe uma partida registrada hoje com os mesmos atletas e o mesmo placar. Isso pode ser uma partida repetida. Deseja registrar mesmo assim?'}
+          mensagem={duplicidadePartida.mensagem}
+          duplicidade={duplicidadePartida}
           salvando={salvando}
           onCancelar={cancelarDuplicidadePartida}
           onConfirmar={confirmarDuplicidadePartida}
+          onVerPartida={verPartidaDuplicada}
         />
       )}
     </section>

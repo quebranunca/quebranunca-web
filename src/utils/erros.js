@@ -43,7 +43,8 @@ export function extrairConfirmacaoDuplicidadePartida(erro) {
 export function ehResultadoConfirmacaoDuplicidadePartida(resultado) {
   const duplicidade = resultado?.duplicidade || {};
 
-  return resultado?.status === 'RequerConfirmacaoDuplicidade' ||
+  return resultado?.status === 'PossivelDuplicidade' ||
+    resultado?.status === 'RequerConfirmacaoDuplicidade' ||
     resultado?.codigo === CODIGO_DUPLICIDADE_PARTIDA_CONFIRMAR ||
     duplicidade.codigo === CODIGO_DUPLICIDADE_PARTIDA_CONFIRMAR ||
     duplicidade.requerConfirmacao === true;
@@ -58,7 +59,9 @@ export function extrairConfirmacaoDuplicidadePartidaResultado(resultado) {
       resultado?.mensagem ||
       duplicidade.erro ||
       resultado?.erro ||
-      'Já existe uma partida registrada hoje com os mesmos atletas e o mesmo placar.',
-    correlationId: duplicidade.correlationId || resultado?.correlationId
+      'Encontramos uma partida muito parecida registrada recentemente.',
+    correlationId: duplicidade.correlationId || resultado?.correlationId,
+    partidaId: duplicidade.partidaId || duplicidade.partida?.id || resultado?.partidaId,
+    partida: duplicidade.partida || resultado?.partida || null
   };
 }

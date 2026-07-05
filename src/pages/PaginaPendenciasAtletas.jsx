@@ -12,11 +12,13 @@ import { criarPendenciasPerfil } from '../utils/pendenciasPerfil';
 import { rolarParaTopo } from '../utils/rolagem';
 import { scrollFocusedInputIntoView } from '../utils/tecladoMobile';
 import { formatarNomeDupla, obterNomeExibicaoAtleta, obterNomeExibicaoDupla } from '../utils/atletaUtils';
+import { obterNomeGrupoPartidaExibicao } from '../utils/partidas';
 import { useNotification } from '../contexts/NotificationContext';
 
 const TIPOS_PENDENCIA = {
   aprovarPartida: 1,
-  completarContato: 2
+  completarContato: 2,
+  confirmarParticipacaoPartida: 3
 };
 
 const STATUS_APROVACAO = {
@@ -28,7 +30,8 @@ const STATUS_APROVACAO = {
 
 const STATUS_PENDENCIA = {
   pendente: 1,
-  aguardandoCadastro: 4
+  aguardandoCadastro: 4,
+  contestada: 5
 };
 
 const PRIORIDADES = {
@@ -147,7 +150,11 @@ function obterDupla(item, lado) {
 }
 
 function obterContextoPartida(item) {
-  return item.nomeGrupo || item.nomeCategoria || 'Partida QNF';
+  return obterNomeGrupoPartidaExibicao(item.nomeGrupo, '') || item.nomeCategoria || 'Partidas avulsas';
+}
+
+function ehPendenciaConfirmacaoParticipacao(item) {
+  return item?.tipo === TIPOS_PENDENCIA.confirmarParticipacaoPartida;
 }
 
 function PendenciasCabecalho({ metricas }) {
@@ -237,20 +244,22 @@ function PendenciaPerfilCard({ item }) {
 }
 
 function PendenciaPartidaCard({ item, expandida, onExpandir, processando, onResponder }) {
-  const status = obterRotuloStatusAprovacao(item.statusAprovacaoPartida);
+  const confirmacaoParticipacao = ehPendenciaConfirmacaoParticipacao(item);
+  const status = confirmacaoParticipacao ? 'Aguardando confirmação' : obterRotuloStatusAprovacao(item.statusAprovacaoPartida);
   const prioridade = obterApresentacaoPrioridade(item);
   const detalhesId = `pendencia-detalhes-${item.id}`;
+  const linkPartida = item.partidaId ? `/minhas-partidas?partidaId=${item.partidaId}` : '/partidas/consulta';
 
   return (
     <article className={`pendencia-card pendencia-partida-card prioridade-${prioridade.classe}${expandida ? ' expandida' : ''}`}>
       <div className="pendencia-card-topo">
         <div className="pendencia-card-conteudo">
           <span>{prioridade.rotulo} · Partida</span>
-          <h3>Confirmar resultado</h3>
-          <p>Uma partida aguarda sua confirmação.</p>
+          <h3>{confirmacaoParticipacao ? 'Confirmar participação' : 'Confirmar resultado'}</h3>
+          <p>{confirmacaoParticipacao ? 'Você participou desta partida?' : 'Uma partida aguarda sua confirmação.'}</p>
           <small>{obterContextoPartida(item)} · {formatarDataHora(item.dataPartida || item.dataCriacao)}</small>
         </div>
-        <PendenciaStatusBadge tipo={obterClasseStatusAprovacao(item.statusAprovacaoPartida)}>
+        <PendenciaStatusBadge tipo={confirmacaoParticipacao ? 'alerta' : obterClasseStatusAprovacao(item.statusAprovacaoPartida)}>
           {status}
         </PendenciaStatusBadge>
       </div>
@@ -302,10 +311,10 @@ function PendenciaPartidaCard({ item, expandida, onExpandir, processando, onResp
               onClick={() => onResponder(item.id, 'aprovar')}
               disabled={processando}
             >
-              {processando ? 'Processando...' : 'Confirmar partida'}
+              {processando ? 'Processando...' : 'Confirmar'}
             </button>
-            <Link to="/partidas/consulta" className="botao-secundario">
-              Ver partida
+            <Link to={linkPartida} className="botao-secundario">
+              Ver detalhes
             </Link>
             <button
               type="button"
@@ -313,7 +322,7 @@ function PendenciaPartidaCard({ item, expandida, onExpandir, processando, onResp
               onClick={() => onResponder(item.id, 'contestar')}
               disabled={processando}
             >
-              {processando ? 'Processando...' : 'Recusar resultado'}
+              {processando ? 'Processando...' : confirmacaoParticipacao ? 'Não reconheço' : 'Recusar resultado'}
             </button>
           </div>
         </section>
@@ -579,7 +588,10 @@ export function PaginaPendenciasAtletas() {
 
   const metricas = useMemo(() => {
     const pendenciasAcionaveis = pendencias.filter(pendenciaExigeAcao);
-    const validacoes = pendenciasAcionaveis.filter((item) => item.tipo === TIPOS_PENDENCIA.aprovarPartida).length;
+    const validacoes = pendenciasAcionaveis.filter((item) =>
+      item.tipo === TIPOS_PENDENCIA.aprovarPartida ||
+      item.tipo === TIPOS_PENDENCIA.confirmarParticipacaoPartida
+    ).length;
     const vinculos = pendenciasAcionaveis.filter((item) => item.tipo === TIPOS_PENDENCIA.completarContato).length;
     const importantes = pendenciasAcionaveis.filter((item) => obterPrioridade(item) === PRIORIDADES.alta).length;
 
@@ -604,7 +616,10 @@ export function PaginaPendenciasAtletas() {
 
   const pendenciasFiltradas = useMemo(() => {
     if (filtroAtivo === 'partidas') {
-      return pendencias.filter((item) => item.tipo === TIPOS_PENDENCIA.aprovarPartida);
+      return pendencias.filter((item) =>
+        item.tipo === TIPOS_PENDENCIA.aprovarPartida ||
+        item.tipo === TIPOS_PENDENCIA.confirmarParticipacaoPartida
+      );
     }
 
     if (filtroAtivo === 'vinculos') {
@@ -797,25 +812,33 @@ export function PaginaPendenciasAtletas() {
 
   async function responderPartida(pendenciaId, acao) {
     setProcessandoId(pendenciaId);
+    const pendenciaRespondida = pendencias.find((item) => item.id === pendenciaId);
+    const confirmacaoParticipacao = ehPendenciaConfirmacaoParticipacao(pendenciaRespondida);
 
     try {
       if (acao === 'contestar') {
         await pendenciasServico.contestarPartida(pendenciaId);
-        registrarResolvida('Resultado recusado', 'A contestação da partida foi registrada.');
+        registrarResolvida(
+          confirmacaoParticipacao ? 'Partida não reconhecida' : 'Resultado recusado',
+          confirmacaoParticipacao ? 'A partida saiu da sua Home.' : 'A contestação da partida foi registrada.'
+        );
 
         showNotification({
           type: 'success',
-          title: 'Solicitação recusada',
-          message: 'O resultado foi contestado com sucesso.'
+          title: confirmacaoParticipacao ? 'Partida não reconhecida' : 'Solicitação recusada',
+          message: confirmacaoParticipacao ? 'A partida saiu das suas pendências.' : 'O resultado foi contestado com sucesso.'
         });
       } else {
         await pendenciasServico.aprovarPartida(pendenciaId);
-        registrarResolvida('Partida confirmada', 'O resultado foi confirmado com sucesso.');
+        registrarResolvida(
+          'Partida confirmada',
+          confirmacaoParticipacao ? 'Sua participação foi confirmada.' : 'O resultado foi confirmado com sucesso.'
+        );
 
         showNotification({
           type: 'success',
-          title: 'Partida confirmada com sucesso',
-          message: 'A pendência foi resolvida.'
+          title: 'Partida confirmada',
+          message: confirmacaoParticipacao ? 'Partida confirmada.' : 'A pendência foi resolvida.'
         });
       }
 

@@ -3,6 +3,7 @@ import {
   FaBell,
   FaChartLine,
   FaChevronRight,
+  FaClipboardCheck,
   FaEdit,
   FaFire,
   FaGamepad,
@@ -195,7 +196,14 @@ function HomeEstado({ titulo, mensagem }) {
   );
 }
 
-export function HomeDashboard({ modulos, dashboard, carregando, erro }) {
+export function HomeDashboard({
+  modulos,
+  dashboard,
+  carregando,
+  erro,
+  onConfirmarPendenciaPartida,
+  confirmandoPendenciaId
+}) {
   const { usuario } = useAutenticacao();
 
   if (carregando) {
@@ -224,6 +232,7 @@ export function HomeDashboard({ modulos, dashboard, carregando, erro }) {
   const resumo = obterDadosModulo(resumoModulo, {}) || {};
   const gamificacaoResumo = obterDadosModulo(gamificacaoModulo, null);
   const resumoPendencias = obterDadosModulo(pendenciasModulo, null);
+  const pendenciaConfirmacaoPartida = resumoPendencias?.confirmacaoPartidaMaisRecente || null;
   const ultimasPartidas = (obterDadosModulo(ultimasPartidasModulo, []) || []).slice(0, 3);
   const conexoes = obterDadosModulo(conexoesModulo, {}) || {};
   const melhoresParceiros = conexoes.melhoresParceiros || [];
@@ -311,6 +320,12 @@ export function HomeDashboard({ modulos, dashboard, carregando, erro }) {
         resumoHero={resumoHero}
       />
 
+      <HomeConfirmarPartidaCard
+        pendencia={pendenciaConfirmacaoPartida}
+        confirmando={confirmandoPendenciaId === pendenciaConfirmacaoPartida?.id}
+        onConfirmar={onConfirmarPendenciaPartida}
+      />
+
       <HomeScouts scouts={scouts} erro={resumoModulo.erro} />
 
       <HomeAcoesPrincipais />
@@ -335,6 +350,91 @@ export function HomeDashboard({ modulos, dashboard, carregando, erro }) {
       <HomeDicaRapida />
     </section>
   );
+}
+
+function HomeConfirmarPartidaCard({ pendencia, confirmando, onConfirmar }) {
+  if (!pendencia) {
+    return null;
+  }
+
+  const grupo = obterNomeGrupoPartidaExibicao(pendencia.nomeGrupo, '') || 'Partidas avulsas';
+  const duplaA = obterDuplaPendencia(pendencia, 'A');
+  const duplaB = obterDuplaPendencia(pendencia, 'B');
+  const resultado = obterResultadoPendencia(pendencia);
+  const partidaId = pendencia.partidaId;
+
+  return (
+    <section className="home-dashboard-confirmacao" aria-labelledby="home-confirmacao-titulo">
+      <div className="home-dashboard-confirmacao-topo">
+        <span aria-hidden="true"><FaClipboardCheck /></span>
+        <div>
+          <h2 id="home-confirmacao-titulo">Confirmar partida</h2>
+          <p>Você participou desta partida?</p>
+        </div>
+      </div>
+
+      <div className="home-dashboard-confirmacao-meta">
+        <strong>{grupo}</strong>
+        <span>{formatarDataAtividade(pendencia.dataPartida || pendencia.dataCriacao)}</span>
+      </div>
+
+      <div className="home-dashboard-confirmacao-duplas">
+        <span>{duplaA}</span>
+        <em>VS</em>
+        <span>{duplaB}</span>
+      </div>
+
+      <footer className="home-dashboard-confirmacao-rodape">
+        <div>
+          <strong>{resultado}</strong>
+          <small>Registrado por {pendencia.nomeCriadoPorUsuario || 'Usuário QNF'}</small>
+        </div>
+        <div className="home-dashboard-confirmacao-acoes">
+          <button
+            type="button"
+            className="botao-primario"
+            onClick={() => onConfirmar?.(pendencia.id)}
+            disabled={confirmando}
+          >
+            {confirmando ? 'Confirmando...' : 'Confirmar'}
+          </button>
+          {partidaId && (
+            <Link to={`/minhas-partidas?partidaId=${partidaId}`} className="botao-secundario">
+              Ver detalhes
+            </Link>
+          )}
+          <Link to="/app/pendencias" className="botao-terciario">
+            Ver todas
+          </Link>
+        </div>
+      </footer>
+    </section>
+  );
+}
+
+function obterDuplaPendencia(pendencia, lado) {
+  const nome = lado === 'A' ? pendencia.nomeDuplaA : pendencia.nomeDuplaB;
+  const atleta1 = lado === 'A' ? pendencia.nomeDuplaAAtleta1 : pendencia.nomeDuplaBAtleta1;
+  const atleta2 = lado === 'A' ? pendencia.nomeDuplaAAtleta2 : pendencia.nomeDuplaBAtleta2;
+
+  return nome || [atleta1, atleta2].filter(Boolean).join(' / ') || 'Dupla a definir';
+}
+
+function obterResultadoPendencia(pendencia) {
+  if (pendencia?.placarDuplaA !== null && pendencia?.placarDuplaA !== undefined &&
+    pendencia?.placarDuplaB !== null && pendencia?.placarDuplaB !== undefined) {
+    return `${pendencia.placarDuplaA} x ${pendencia.placarDuplaB}`;
+  }
+
+  if (pendencia?.duplaVencedora === 1) {
+    return 'Vencedores: Dupla 1';
+  }
+
+  if (pendencia?.duplaVencedora === 2) {
+    return 'Vencedores: Dupla 2';
+  }
+
+  return 'Resultado informado';
 }
 
 function HomeHero({ nomePrincipal, fotoPerfilUrl, grupoAtual, faixa, perfilDestino, resumoPendencias, resumoHero }) {

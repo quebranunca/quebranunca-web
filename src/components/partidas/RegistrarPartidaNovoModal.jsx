@@ -17,6 +17,7 @@ import {
 import { AvatarUsuario, obterFotoPerfilAvatar } from '../AvatarUsuario';
 import { AvatarGrupo } from '../grupos/AvatarGrupo';
 import { CompartilharPartidaBotao } from './CompartilharPartidaBotao';
+import { ConfirmarDuplicidadePartidaModal } from './ConfirmarDuplicidadePartidaModal';
 import { SeletorGrupoPartida } from './SeletorGrupoPartida';
 import { obterNomeExibicaoAtletaPerfil as obterNomeExibicaoAtleta } from '../../utils/atletaUtils';
 import { formatarDataHoraCurta } from '../../utils/formatacao';
@@ -1289,24 +1290,6 @@ function RevisaoRapida({
           </>
         )}
 
-        {exibindoDuplicidade && (
-          <div className="registrar-partida-novo-alerta-duplicidade" role="alert">
-            <strong>Possível partida duplicada</strong>
-            <p>
-              {duplicidade.mensagem ||
-                'Já existe uma partida registrada hoje com os mesmos atletas e o mesmo placar. Isso pode ser uma partida repetida. Deseja registrar mesmo assim?'}
-            </p>
-            <div className="registrar-partida-novo-acoes registrar-partida-novo-acoes-duplicidade">
-              <button type="button" className="botao-secundario" onClick={onCancelarDuplicidade} disabled={salvando}>
-                Não, revisar
-              </button>
-              <button type="button" className="botao-primario" onClick={onConfirmarDuplicidade} disabled={salvando}>
-                {salvando ? 'Salvando...' : 'Sim, registrar'}
-              </button>
-            </div>
-          </div>
-        )}
-
       </div>
     </section>
   );
@@ -2044,23 +2027,6 @@ export function RegistrarPartidaNovoModal({
             onRevisar={() => formRef.current?.requestSubmit()}
           />
 
-          {duplicidade && (
-            <div className="registrar-partida-novo-alerta-duplicidade" role="alert">
-              <strong>Possível partida duplicada</strong>
-              <p>
-                {duplicidade.mensagem ||
-                  'Já existe uma partida registrada hoje com os mesmos atletas e o mesmo placar. Isso pode ser uma partida repetida. Deseja registrar mesmo assim?'}
-              </p>
-              <div className="registrar-partida-novo-acoes registrar-partida-novo-acoes-duplicidade">
-                <button type="button" className="botao-secundario" onClick={onCancelarDuplicidade} disabled={salvando}>
-                  Não, revisar
-                </button>
-                <button type="button" className="botao-primario" onClick={onConfirmarDuplicidade} disabled={salvando}>
-                  {salvando ? 'Salvando...' : `Sim, ${rotuloAcaoPrincipal.toLowerCase()}`}
-                </button>
-              </div>
-            </div>
-          )}
         </main>
 
         <RodapeAcoesPartida
@@ -2204,6 +2170,17 @@ export function RegistrarPartidaNovoModal({
           </form>
         )}
       </section>
+
+      {duplicidade && (
+        <ConfirmarDuplicidadePartidaModal
+          mensagem={duplicidade.mensagem}
+          duplicidade={duplicidade}
+          salvando={salvando}
+          onCancelar={onCancelarDuplicidade}
+          onConfirmar={onConfirmarDuplicidade}
+          onVerPartida={onVerPartida}
+        />
+      )}
     </div>
   );
 }

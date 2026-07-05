@@ -86,13 +86,24 @@ function LocalizacaoAtual() {
   return <span data-testid="rota-atual">{location.pathname}</span>;
 }
 
-function renderizarHome({ modulos = criarModulos(), rota = '/app' } = {}) {
+function renderizarHome({
+  modulos = criarModulos(),
+  rota = '/app',
+  onConfirmarPendenciaPartida,
+  confirmandoPendenciaId
+} = {}) {
   return render(
     <MemoryRouter
       initialEntries={[rota]}
       future={{ v7_relativeSplatPath: true, v7_startTransition: true }}
     >
-      <HomeDashboard modulos={modulos} carregando={false} erro="" />
+      <HomeDashboard
+        modulos={modulos}
+        carregando={false}
+        erro=""
+        onConfirmarPendenciaPartida={onConfirmarPendenciaPartida}
+        confirmandoPendenciaId={confirmandoPendenciaId}
+      />
       <LocalizacaoAtual />
     </MemoryRouter>
   );
@@ -171,6 +182,52 @@ describe('HomeDashboard redesenhada', () => {
 
     await usuario.click(registrar);
     expect(screen.getByTestId('rota-atual')).toHaveTextContent('/partidas/registrar');
+  });
+
+  it('mostra card de confirmação de partida e dispara confirmação', async () => {
+    const usuario = userEvent.setup();
+    const onConfirmar = vi.fn();
+    const pendencia = {
+      id: 'pendencia-1',
+      tipo: 3,
+      partidaId: 'partida-duplicada',
+      nomeGrupo: 'Beach Friends',
+      dataPartida: new Date().toISOString(),
+      nomeDuplaAAtleta1: 'Primo',
+      nomeDuplaAAtleta2: 'Gustavo',
+      nomeDuplaBAtleta1: 'Paulo',
+      nomeDuplaBAtleta2: 'Renato',
+      placarDuplaA: 21,
+      placarDuplaB: 18,
+      nomeCriadoPorUsuario: 'Bruno'
+    };
+
+    renderizarHome({
+      onConfirmarPendenciaPartida: onConfirmar,
+      modulos: criarModulos({
+        pendencias: criarModulo({
+          total: 1,
+          altaPrioridade: 1,
+          confirmacaoPartidaMaisRecente: pendencia
+        })
+      })
+    });
+
+    const card = screen.getByRole('region', { name: /Confirmar partida/i });
+
+    expect(within(card).getByText('Você participou desta partida?')).toBeInTheDocument();
+    expect(within(card).getByText('Beach Friends')).toBeInTheDocument();
+    expect(within(card).getByText('Primo / Gustavo')).toBeInTheDocument();
+    expect(within(card).getByText('Paulo / Renato')).toBeInTheDocument();
+    expect(within(card).getByText('21 x 18')).toBeInTheDocument();
+    expect(within(card).getByRole('link', { name: /Ver detalhes/i })).toHaveAttribute(
+      'href',
+      '/minhas-partidas?partidaId=partida-duplicada'
+    );
+
+    await usuario.click(within(card).getByRole('button', { name: /Confirmar/i }));
+
+    expect(onConfirmar).toHaveBeenCalledWith('pendencia-1');
   });
 
   it('renderiza apenas os destaques iniciais com ação de ver todos', () => {

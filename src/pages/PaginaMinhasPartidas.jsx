@@ -516,6 +516,18 @@ export function PaginaMinhasPartidas() {
     setFiltroAtivo(normalizarFiltro(searchParams.get('filtro')));
   }, [searchParams]);
 
+  useEffect(() => {
+    const partidaId = searchParams.get('partidaId');
+    if (!partidaId || partidas.length === 0) {
+      return;
+    }
+
+    const partida = partidas.find((item) => obterIdPartida(item) === partidaId);
+    if (partida && obterIdPartida(partidaDetalhe) !== partidaId) {
+      setPartidaDetalhe(partida);
+    }
+  }, [partidaDetalhe, partidas, searchParams]);
+
   async function carregarPartidas({ manterCarregando = true } = {}) {
     if (manterCarregando) {
       setCarregando(true);

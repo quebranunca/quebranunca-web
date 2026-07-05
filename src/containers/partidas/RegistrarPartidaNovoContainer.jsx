@@ -1207,6 +1207,16 @@ export function RegistrarPartidaNovoContainer({
     }
   }
 
+  function verPartidaDuplicada() {
+    const partidaId = duplicidade?.partidaId || duplicidade?.partida?.id;
+    if (!partidaId) {
+      return;
+    }
+
+    navegar(`/minhas-partidas?partidaId=${partidaId}`);
+    onFechar?.();
+  }
+
   async function carregarGruposParaSelecao() {
     if (gruposDisponiveis.length || carregandoGruposDisponiveis) {
       return;
@@ -1393,6 +1403,7 @@ export function RegistrarPartidaNovoContainer({
         onVoltar={voltar}
         onCancelarDuplicidade={cancelarDuplicidade}
         onConfirmarDuplicidade={confirmarDuplicidade}
+        onVerPartida={verPartidaDuplicada}
         onFechar={onFechar}
         onFecharSucesso={fecharSucesso}
         onAdicionarMidia={() => setUploadMidiaAberto(true)}

@@ -3,6 +3,7 @@ import { dashboardServico } from '../../services/dashboardServico';
 import { gamificacaoServico } from '../../services/gamificacaoServico';
 import { EVENTO_PENDENCIAS_ATUALIZADAS, pendenciasServico } from '../../services/pendenciasServico';
 import { HomeDashboard } from '../../components/home/HomeDashboard';
+import { useNotification } from '../../contexts/NotificationContext';
 import { extrairMensagemErro } from '../../utils/erros';
 import '../../components/home/home-dashboard.css';
 
@@ -27,6 +28,8 @@ function criarEstadoInicialModulos() {
 
 export function HomeDashboardContainer() {
   const [modulos, setModulos] = useState(criarEstadoInicialModulos);
+  const [confirmandoPendenciaId, setConfirmandoPendenciaId] = useState(null);
+  const { showNotification } = useNotification();
 
   async function carregarModulo(chave, carregador, estaAtivo = () => true) {
     setModulos((anteriores) => ({
@@ -93,5 +96,37 @@ export function HomeDashboardContainer() {
     return () => window.removeEventListener(EVENTO_PENDENCIAS_ATUALIZADAS, atualizarPendencias);
   }, []);
 
-  return <HomeDashboard modulos={modulos} onAtualizar={carregarModulos} />;
+  async function confirmarPendenciaPartida(pendenciaId) {
+    if (!pendenciaId || confirmandoPendenciaId) {
+      return;
+    }
+
+    setConfirmandoPendenciaId(pendenciaId);
+    try {
+      await pendenciasServico.aprovarPartida(pendenciaId);
+      showNotification({
+        type: 'success',
+        title: 'Partida confirmada',
+        message: 'Partida confirmada.'
+      });
+      await carregarModulo('pendencias', pendenciasServico.obterResumo);
+    } catch (falha) {
+      showNotification({
+        type: 'error',
+        title: 'Erro ao confirmar partida',
+        message: extrairMensagemErro(falha)
+      });
+    } finally {
+      setConfirmandoPendenciaId(null);
+    }
+  }
+
+  return (
+    <HomeDashboard
+      modulos={modulos}
+      onAtualizar={carregarModulos}
+      onConfirmarPendenciaPartida={confirmarPendenciaPartida}
+      confirmandoPendenciaId={confirmandoPendenciaId}
+    />
+  );
 }
