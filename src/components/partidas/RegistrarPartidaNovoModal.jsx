@@ -19,6 +19,12 @@ import { SeletorGrupoPartida } from './SeletorGrupoPartida';
 import { obterNomeExibicaoAtletaPerfil as obterNomeExibicaoAtleta } from '../../utils/atletaUtils';
 import { formatarDataHoraCurta } from '../../utils/formatacao';
 import {
+  obterAtletasConsolidadosPartida,
+  obterNumeroRegraPartida,
+  placarDetalhadoEstaValidoRegistro,
+  validarRevisaoPartida
+} from '../../utils/registroPartidaWizard';
+import {
   aoPressionarEnterParaProximo,
   focusCampoSemPular,
   focusNextField,
@@ -69,7 +75,7 @@ function obterVencedora(dados) {
   const pontos1 = Number(dados.dupla1.pontos);
   const pontos2 = Number(dados.dupla2.pontos);
 
-  if (dados.dupla1.pontos === '' || dados.dupla2.pontos === '' || pontos1 === pontos2) {
+  if (!placarFoiInformado(dados.dupla1.pontos) || !placarFoiInformado(dados.dupla2.pontos) || pontos1 === pontos2) {
     return '';
   }
 
@@ -77,8 +83,11 @@ function obterVencedora(dados) {
 }
 
 function obterNumeroRegra(valor) {
-  const numero = Number(valor);
-  return Number.isFinite(numero) ? numero : null;
+  return obterNumeroRegraPartida(valor);
+}
+
+function placarFoiInformado(valor) {
+  return valor !== '' && valor !== null && valor !== undefined;
 }
 
 function montarValidacoesPlacar(dados, regraPartida) {
@@ -99,7 +108,7 @@ function montarValidacoesPlacar(dados, regraPartida) {
 
   const placarA = Number(dados.dupla1.pontos);
   const placarB = Number(dados.dupla2.pontos);
-  const temPlacar = dados.dupla1.pontos !== '' && dados.dupla2.pontos !== '';
+  const temPlacar = placarFoiInformado(dados.dupla1.pontos) && placarFoiInformado(dados.dupla2.pontos);
   const pontosMinimos = obterNumeroRegra(regraPartida?.pontosMinimosPartida);
   const diferencaMinima = obterNumeroRegra(regraPartida?.diferencaMinimaPartida);
   return [
@@ -117,76 +126,21 @@ function montarValidacoesPlacar(dados, regraPartida) {
 }
 
 function placarDetalhadoEstaValido(dados, regraPartida) {
-  const placarA = Number(dados.dupla1.pontos);
-  const placarB = Number(dados.dupla2.pontos);
-  const pontosMinimos = obterNumeroRegra(regraPartida?.pontosMinimosPartida);
-  const diferencaMinima = obterNumeroRegra(regraPartida?.diferencaMinimaPartida);
-  const permiteEmpate = regraPartida?.permiteEmpate === true;
-
-  if (dados.dupla1.pontos === '' || dados.dupla2.pontos === '') {
-    return false;
-  }
-
-  if (!Number.isFinite(placarA) || !Number.isFinite(placarB) || placarA < 0 || placarB < 0) {
-    return false;
-  }
-
-  if (!permiteEmpate && placarA === placarB) {
-    return false;
-  }
-
-  if (pontosMinimos !== null && Math.max(placarA, placarB) < pontosMinimos) {
-    return false;
-  }
-
-  if (diferencaMinima !== null && Math.abs(placarA - placarB) < diferencaMinima) {
-    return false;
-  }
-
-  return true;
+  return placarDetalhadoEstaValidoRegistro(dados, regraPartida);
 }
 
 function limparTexto(valor) {
   return String(valor || '').trim().replace(/\s+/g, ' ');
 }
 
-function montarValidacoesRevisao(dados, regraPartida) {
-  const nomes = [
-    limparTexto(dados.dupla1.atletaDireita),
-    limparTexto(dados.dupla1.atletaEsquerda),
-    limparTexto(dados.dupla2.atletaDireita),
-    limparTexto(dados.dupla2.atletaEsquerda)
-  ];
-  const nomesNormalizados = nomes.map((nome) => nome.toLowerCase()).filter(Boolean);
-  const placarA = Number(dados.dupla1.pontos);
-  const placarB = Number(dados.dupla2.pontos);
-  const temPlacar = dados.dupla1.pontos !== '' && dados.dupla2.pontos !== '';
-  const placarNumerico = temPlacar && Number.isFinite(placarA) && Number.isFinite(placarB) && placarA >= 0 && placarB >= 0;
-  const apenasResultado = dados.resultado?.modo === 'ApenasResultado';
-
-  return [
-    {
-      id: 'atletas',
-      ok: nomes.every(Boolean)
-    },
-    {
-      id: 'sem-repeticao',
-      ok: nomesNormalizados.length === 4 && new Set(nomesNormalizados).size === nomesNormalizados.length
-    },
-    {
-      id: 'placar',
-      ok: apenasResultado ? Boolean(dados.resultado.duplaVencedora) : placarNumerico
-    },
-    ...montarValidacoesPlacar(dados, regraPartida).map((validacao) => ({
-      id: validacao.id,
-      ok: validacao.ok
-    }))
-  ];
-}
-
-function revisaoPossuiInconsistencia(dados, regraPartida) {
-  return montarValidacoesRevisao(dados, regraPartida).some((validacao) => !validacao.ok) ||
-    (dados.resultado?.modo === 'PlacarDetalhado' && !placarDetalhadoEstaValido(dados, regraPartida));
+function obterMensagemValidacaoRevisao({ dados, selecoes, regraPartida, resumo, grupo }) {
+  return validarRevisaoPartida({
+    dados,
+    selecoes,
+    regraPartida,
+    contexto: resumo?.contexto,
+    grupo
+  });
 }
 
 function IconeEtapa({ tipo }) {
@@ -769,14 +723,14 @@ function EtapaGrupo({
         {!grupoSelecionadoId && (
           <button
             type="button"
-            className="registrar-partida-novo-grupo-opcao"
+            className="registrar-partida-novo-grupo-opcao selecionada"
             onClick={onSelecionarGrupo}
-            aria-pressed="false"
+            aria-pressed="true"
           >
             <GrupoOpcaoAvatar semGrupo />
             <span>
-              <strong>Escolha um grupo</strong>
-              <small>Toque para selecionar onde a partida será registrada</small>
+              <strong>Partidas avulsas</strong>
+              <small>Registrar sem grupo</small>
             </span>
             <FaEllipsisH aria-hidden="true" />
           </button>
@@ -1239,6 +1193,8 @@ function RevisaoRapida({
   grupo,
   dados,
   selecoes,
+  erro,
+  mensagemValidacao,
   salvando,
   duplicidade,
   onCancelarDuplicidade,
@@ -1246,9 +1202,11 @@ function RevisaoRapida({
 }) {
   const vencedora = obterVencedora(dados);
   const exibindoDuplicidade = Boolean(duplicidade);
+  const mensagemBloqueio = !exibindoDuplicidade ? (mensagemValidacao || erro) : '';
   const apenasResultado = resumo.tipoRegistroResultado === 'ApenasResultado' || dados.resultado?.modo === 'ApenasResultado';
-  const atletasDupla1 = montarAtletasDuplaVencedora(dados, selecoes, 'dupla1');
-  const atletasDupla2 = montarAtletasDuplaVencedora(dados, selecoes, 'dupla2');
+  const atletasConsolidados = obterAtletasConsolidadosPartida(dados, selecoes);
+  const atletasDupla1 = atletasConsolidados.dupla1;
+  const atletasDupla2 = atletasConsolidados.dupla2;
   const vencedores = vencedora === 'dupla2' ? atletasDupla2 : atletasDupla1;
   const adversarios = vencedora === 'dupla2' ? atletasDupla1 : atletasDupla2;
   const placarVencedores = vencedora === 'dupla2' ? resumo.placar.dupla2 : resumo.placar.dupla1;
@@ -1260,43 +1218,51 @@ function RevisaoRapida({
   return (
     <section className="registrar-partida-novo-revisao" aria-label="Revisão rápida da partida">
       <div className="registrar-partida-novo-sheet">
-        <div className="registrar-partida-novo-intro">
-          <h3>Conferir partida</h3>
-          <p>Confira os detalhes antes de registrar.</p>
-        </div>
+        {mensagemBloqueio ? (
+          <p className="texto-erro registrar-partida-novo-erro" role="alert">
+            {mensagemBloqueio}
+          </p>
+        ) : (
+          <>
+            <div className="registrar-partida-novo-intro">
+              <h3>Conferir partida</h3>
+              <p>Confira os detalhes antes de registrar.</p>
+            </div>
 
-        <div className="registrar-partida-novo-revisao-card">
-          <div className="registrar-partida-novo-revisao-topo">
-            <FaTrophy aria-hidden="true" />
-            <span>VENCEDORES</span>
-          </div>
+            <div className="registrar-partida-novo-revisao-card">
+              <div className="registrar-partida-novo-revisao-topo">
+                <FaTrophy aria-hidden="true" />
+                <span>VENCEDORES</span>
+              </div>
 
-          <DuplaRevisao atletas={vencedores} destaque />
+              <DuplaRevisao atletas={vencedores} destaque />
 
-          {!apenasResultado && (
-            <PlacarRevisao
-              placarVencedores={placarVencedores || 0}
-              placarAdversarios={placarAdversarios || 0}
-            />
-          )}
+              {!apenasResultado && (
+                <PlacarRevisao
+                  placarVencedores={placarVencedores}
+                  placarAdversarios={placarAdversarios}
+                />
+              )}
 
-          <SeparadorVersusRevisao />
+              <SeparadorVersusRevisao />
 
-          <DuplaRevisao atletas={adversarios} destaque={false} />
-        </div>
+              <DuplaRevisao atletas={adversarios} destaque={false} />
+            </div>
 
-        <div className="registrar-partida-novo-revisao-meta-lista">
-          <MetaRevisaoCard
-            icone={<FaUserFriends />}
-            rotulo="GRUPO"
-            valor={nomeGrupo}
-          />
-          <MetaRevisaoCard
-            icone={<FaCalendarAlt />}
-            rotulo="DATA E HORA"
-            valor={formatarDataHoraCurta(resumo.data)}
-          />
-        </div>
+            <div className="registrar-partida-novo-revisao-meta-lista">
+              <MetaRevisaoCard
+                icone={<FaUserFriends />}
+                rotulo="GRUPO"
+                valor={nomeGrupo}
+              />
+              <MetaRevisaoCard
+                icone={<FaCalendarAlt />}
+                rotulo="DATA E HORA"
+                valor={formatarDataHoraCurta(resumo.data)}
+              />
+            </div>
+          </>
+        )}
 
         {exibindoDuplicidade && (
           <div className="registrar-partida-novo-alerta-duplicidade" role="alert">
@@ -1523,7 +1489,7 @@ function obterAcaoPrincipalDesabilitada({
   }
 
   if (etapaAtual?.id === 'grupo') {
-    return !grupo?.id;
+    return false;
   }
 
   if (etapaAtual?.id === 'dupla1') {
@@ -1582,6 +1548,8 @@ function ConteudoEtapa({
   sugestoes,
   sugestoesRapidas,
   campoBuscando,
+  erro,
+  mensagemValidacaoRevisao,
   duplicidade,
   regraPartida,
   carregandoRegraPartida,
@@ -1668,6 +1636,8 @@ function ConteudoEtapa({
       grupo={grupo}
       dados={dados}
       selecoes={selecoes}
+      erro={erro}
+      mensagemValidacao={mensagemValidacaoRevisao}
       salvando={salvando}
       duplicidade={duplicidade}
       onCancelarDuplicidade={onCancelarDuplicidade}
@@ -1746,7 +1716,14 @@ export function RegistrarPartidaNovoModal({
   const [campoAtivo, setCampoAtivo] = useState('');
   const [tecladoAberto, setTecladoAberto] = useState(false);
   const [modoMobile, setModoMobile] = useState(false);
-  const revisaoInvalida = revisaoPossuiInconsistencia(dados, regraPartida);
+  const mensagemValidacaoRevisao = obterMensagemValidacaoRevisao({
+    dados,
+    selecoes,
+    regraPartida,
+    resumo,
+    grupo
+  });
+  const revisaoInvalida = Boolean(mensagemValidacaoRevisao);
   const acaoFecharAtual = sucesso && !sucessoEdicao ? onFecharSucesso || onFechar : onFechar;
   const acaoPrincipalDesabilitada = fluxoSimplificado
     ? salvando || Boolean(duplicidade) || revisaoInvalida
@@ -2133,7 +2110,9 @@ export function RegistrarPartidaNovoModal({
             <Stepper etapas={etapas} indiceEtapa={indiceEtapa} />
 
             <main ref={corpoRef} className="registrar-partida-novo-corpo">
-              {erro && <p className="texto-erro registrar-partida-novo-erro">{erro}</p>}
+              {erro && etapaAtual?.id !== 'revisao' && (
+                <p className="texto-erro registrar-partida-novo-erro">{erro}</p>
+              )}
               <ConteudoEtapa
                 etapaAtual={etapaAtual}
                 dados={dados}
@@ -2142,6 +2121,8 @@ export function RegistrarPartidaNovoModal({
                 sugestoes={sugestoes}
                 sugestoesRapidas={sugestoesRapidas}
                 campoBuscando={campoBuscando}
+                erro={erro}
+                mensagemValidacaoRevisao={mensagemValidacaoRevisao}
                 duplicidade={duplicidade}
                 regraPartida={regraPartida}
                 carregandoRegraPartida={carregandoRegraPartida}

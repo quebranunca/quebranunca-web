@@ -19,18 +19,21 @@ import {
   extrairMensagemErro
 } from '../../utils/erros';
 import { ehAdministrador, ehOrganizador } from '../../utils/perfis';
+import {
+  CAMPOS_ATLETAS_PARTIDA,
+  limparTextoRegistro,
+  obterValorCampoRegistro,
+  validarAtletasConsolidados,
+  validarResultadoRegistro,
+  validarRevisaoPartida
+} from '../../utils/registroPartidaWizard';
 
 const LADOS_ATLETA = {
   direito: 1,
   esquerdo: 2
 };
 
-const CAMPOS_ATLETAS = [
-  'dupla1.atletaDireita',
-  'dupla1.atletaEsquerda',
-  'dupla2.atletaDireita',
-  'dupla2.atletaEsquerda'
-];
+const CAMPOS_ATLETAS = CAMPOS_ATLETAS_PARTIDA;
 
 const estadoInicial = {
   dupla1: {
@@ -82,7 +85,7 @@ function obterAtletaUsuarioLado(usuario, atletaUsuario) {
 }
 
 function obterValorCampo(dados, caminho) {
-  return caminho.split('.').reduce((valor, parte) => valor?.[parte], dados) ?? '';
+  return obterValorCampoRegistro(dados, caminho);
 }
 
 function atualizarValorCampo(dados, caminho, valor) {
@@ -98,7 +101,7 @@ function atualizarValorCampo(dados, caminho, valor) {
 }
 
 function limparTexto(valor) {
-  return String(valor || '').trim().replace(/\s+/g, ' ');
+  return limparTextoRegistro(valor);
 }
 
 function obterAtletaSelecaoId(atleta) {
@@ -347,18 +350,7 @@ function criarPayloadEdicao(partida, dados, selecoes, contextoPartida) {
 }
 
 function validarAtletas(dados) {
-  const nomes = CAMPOS_ATLETAS.map((campo) => limparTexto(obterValorCampo(dados, campo)));
-
-  if (nomes.some((nome) => !nome)) {
-    return 'Informe os quatro atletas da partida.';
-  }
-
-  const nomesNormalizados = nomes.map((nome) => nome.toLowerCase());
-  if (new Set(nomesNormalizados).size !== nomesNormalizados.length) {
-    return 'Não é permitido repetir atleta na mesma partida.';
-  }
-
-  return '';
+  return validarAtletasConsolidados(dados, null, { exigirSelecao: false });
 }
 
 function validarDupla(dados, prefixo, rotulo) {
@@ -378,7 +370,7 @@ function validarDupla(dados, prefixo, rotulo) {
 
 function validarEtapaAtual(idEtapa, dados, regraPartida, contextoPartida = {}) {
   if (idEtapa === 'grupo') {
-    return contextoPartida?.grupoId ? '' : 'Escolha um grupo para registrar a partida.';
+    return '';
   }
 
   if (idEtapa === 'dupla1') {
@@ -406,43 +398,8 @@ function validarEtapaAtual(idEtapa, dados, regraPartida, contextoPartida = {}) {
   return '';
 }
 
-function obterNumeroRegra(valor) {
-  const numero = Number(valor);
-  return Number.isFinite(numero) ? numero : null;
-}
-
 function validarPlacar(dados, regraPartida = null) {
-  if (dados.resultado?.modo === 'ApenasResultado') {
-    return dados.resultado.duplaVencedora ? '' : 'Informe qual dupla venceu a partida.';
-  }
-
-  const placarA = Number(dados.dupla1.pontos);
-  const placarB = Number(dados.dupla2.pontos);
-  const pontosMinimos = obterNumeroRegra(regraPartida?.pontosMinimosPartida);
-  const diferencaMinima = obterNumeroRegra(regraPartida?.diferencaMinimaPartida);
-  const permiteEmpate = regraPartida?.permiteEmpate === true;
-
-  if (dados.dupla1.pontos === '' || dados.dupla2.pontos === '') {
-    return 'Informe os pontos das duas duplas.';
-  }
-
-  if (!Number.isFinite(placarA) || !Number.isFinite(placarB) || placarA < 0 || placarB < 0) {
-    return 'Informe pontos numéricos maiores ou iguais a zero.';
-  }
-
-  if (!permiteEmpate && placarA === placarB) {
-    return 'Não existe empate no futevôlei.';
-  }
-
-  if (pontosMinimos !== null && Math.max(placarA, placarB) < pontosMinimos) {
-    return `A dupla vencedora precisa atingir pelo menos ${pontosMinimos} pontos.`;
-  }
-
-  if (diferencaMinima !== null && Math.abs(placarA - placarB) < diferencaMinima) {
-    return `A diferença mínima precisa ser de ${diferencaMinima} pontos.`;
-  }
-
-  return '';
+  return validarResultadoRegistro(dados, regraPartida);
 }
 
 function normalizarRegraPartida(competicao) {
@@ -1194,7 +1151,13 @@ export function RegistrarPartidaNovoContainer({
       return;
     }
 
-    const erroValidacao = validarAtletas(dados) || validarPlacar(dados, regraPartida);
+    const erroValidacao = validarRevisaoPartida({
+      dados,
+      selecoes,
+      regraPartida,
+      contexto: contextoPartida,
+      grupo: grupoContexto
+    });
 
     if (erroValidacao) {
       setErro(erroValidacao);
