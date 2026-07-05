@@ -7,7 +7,9 @@ import {
   FaChevronLeft,
   FaClipboardCheck,
   FaEllipsisH,
+  FaFutbol,
   FaLayerGroup,
+  FaShieldAlt,
   FaTimes,
   FaTrophy,
   FaUserFriends
@@ -289,6 +291,10 @@ function formatarQuantidadeAtletasGrupo(valor) {
   return `${quantidade} ${quantidade === 1 ? 'atleta' : 'atletas'}`;
 }
 
+function ehOpcaoPartidaAvulsa(grupo) {
+  return obterNomeGrupoPartidaExibicao(grupo, '') === 'Partidas avulsas';
+}
+
 function GrupoOpcaoAvatar({ grupo, semGrupo = false }) {
   if (semGrupo) {
     return (
@@ -299,6 +305,14 @@ function GrupoOpcaoAvatar({ grupo, semGrupo = false }) {
   }
 
   return <AvatarGrupo grupo={grupo} tamanho="md" className="registrar-partida-novo-grupo-opcao-avatar" alt="" />;
+}
+
+function IconePartidaAvulsa() {
+  return (
+    <span className="registrar-partida-novo-avulsa-icone" aria-hidden="true">
+      <FaFutbol />
+    </span>
+  );
 }
 
 function obterNomeInputAtleta(campo) {
@@ -699,8 +713,11 @@ function EtapaGrupo({
   onEscolherGrupo,
   onRemoverGrupo
 }) {
-  const gruposVisiveis = (gruposDisponiveis || []).slice(0, 3);
-  const grupoSelecionadoId = grupo?.id || null;
+  const gruposReais = (gruposDisponiveis || []).filter((grupoOpcao) => !ehOpcaoPartidaAvulsa(grupoOpcao));
+  const gruposVisiveis = gruposReais.slice(0, 4);
+  const grupoSelecionadoEhPartidaAvulsa = grupo ? ehOpcaoPartidaAvulsa(grupo) : false;
+  const grupoSelecionadoId = grupoSelecionadoEhPartidaAvulsa ? null : grupo?.id || null;
+  const partidaAvulsaSelecionada = !grupoSelecionadoId;
   const solicitouGruposRef = useRef(false);
 
   useEffect(() => {
@@ -715,29 +732,37 @@ function EtapaGrupo({
   return (
     <section className="registrar-partida-novo-etapa registrar-partida-novo-etapa-grupo">
       <div className="registrar-partida-novo-intro">
-        <h3>Em qual grupo foi a partida?</h3>
-        <p>Escolha onde a partida será registrada.</p>
+        <h3>Onde foi a partida?</h3>
+        <p>Escolha como deseja registrar esta partida.</p>
       </div>
 
       <div className="registrar-partida-novo-grupo-escolha">
-        {!grupoSelecionadoId && (
+        <div className="registrar-partida-novo-secao registrar-partida-novo-secao-avulsa">
           <button
             type="button"
-            className="registrar-partida-novo-grupo-opcao selecionada"
-            onClick={onSelecionarGrupo}
-            aria-pressed="true"
+            className={`registrar-partida-novo-grupo-opcao registrar-partida-novo-partida-avulsa-card ${partidaAvulsaSelecionada ? 'selecionada' : ''}`}
+            onClick={onRemoverGrupo}
+            aria-pressed={partidaAvulsaSelecionada}
           >
-            <GrupoOpcaoAvatar semGrupo />
+            <IconePartidaAvulsa />
             <span>
-              <strong>Partidas avulsas</strong>
-              <small>Registrar sem grupo</small>
+              <strong>Partida avulsa</strong>
+              <small>Registrar uma partida sem vinculá-la a um grupo.</small>
             </span>
-            <FaEllipsisH aria-hidden="true" />
+            {partidaAvulsaSelecionada && <FaCheck aria-hidden="true" />}
           </button>
-        )}
+        </div>
 
-        {grupoSelecionadoId && (
-          <div className="registrar-partida-novo-grupo-selecionado">
+        <div className="registrar-partida-novo-secao registrar-partida-novo-grupo-lista">
+          <div className="registrar-partida-novo-grupo-lista-topo">
+            <strong>MEUS GRUPOS</strong>
+            <button type="button" onClick={onSelecionarGrupo}>
+              <FaEllipsisH aria-hidden="true" />
+              Ver todos
+            </button>
+          </div>
+
+          {grupoSelecionadoId && !gruposVisiveis.some((grupoOpcao) => grupoOpcao.id === grupoSelecionadoId) && (
             <button
               type="button"
               className="registrar-partida-novo-grupo-opcao selecionada"
@@ -748,19 +773,9 @@ function EtapaGrupo({
               <span>
                 <strong>{carregandoGrupo ? 'Carregando grupo...' : obterNomeGrupoPartidaExibicao(grupo, 'Grupo selecionado')}</strong>
               </span>
-              <FaEllipsisH aria-hidden="true" />
+              <FaCheck aria-hidden="true" />
             </button>
-          </div>
-        )}
-
-        <div className="registrar-partida-novo-grupo-lista">
-          <div className="registrar-partida-novo-grupo-lista-topo">
-            <strong>Meus grupos</strong>
-            <button type="button" onClick={onSelecionarGrupo}>
-              <FaEllipsisH aria-hidden="true" />
-              Ver todos
-            </button>
-          </div>
+          )}
 
           {carregandoGruposDisponiveis && (
             <span className="registrar-partida-novo-grupo-estado carregando">Carregando grupos...</span>
@@ -770,7 +785,7 @@ function EtapaGrupo({
             <span className="registrar-partida-novo-grupo-estado erro">Não foi possível carregar seus grupos.</span>
           )}
 
-          {!carregandoGruposDisponiveis && !erroGruposDisponiveis && gruposVisiveis.length === 0 && (
+          {!carregandoGruposDisponiveis && !erroGruposDisponiveis && gruposReais.length === 0 && (
             <span className="registrar-partida-novo-grupo-estado vazio">Nenhum grupo disponível.</span>
           )}
 
@@ -794,6 +809,16 @@ function EtapaGrupo({
               </button>
             );
           })}
+        </div>
+
+        <div className="registrar-partida-novo-info-card">
+          <span className="registrar-partida-novo-info-icone" aria-hidden="true">
+            <FaShieldAlt />
+          </span>
+          <span>
+            <strong>Sem grupo, sem problema.</strong>
+            <small>A partida será registrada normalmente e poderá ser vinculada a um grupo futuramente, se necessário.</small>
+          </span>
         </div>
       </div>
     </section>
@@ -2055,6 +2080,7 @@ export function RegistrarPartidaNovoModal({
           carregando={carregandoGruposDisponiveis}
           erro={erroGruposDisponiveis}
           permitirRemoverGrupo={permitirRemoverGrupo}
+          exibirPartidaAvulsa={false}
           onSelecionarGrupo={onEscolherGrupo}
           onRemoverGrupo={onRemoverGrupo}
           onFechar={onFecharSeletorGrupo}
@@ -2170,6 +2196,7 @@ export function RegistrarPartidaNovoModal({
               carregando={carregandoGruposDisponiveis}
               erro={erroGruposDisponiveis}
               permitirRemoverGrupo={permitirRemoverGrupo}
+              exibirPartidaAvulsa={false}
               onSelecionarGrupo={onEscolherGrupo}
               onRemoverGrupo={onRemoverGrupo}
               onFechar={onFecharSeletorGrupo}

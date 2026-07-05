@@ -23,6 +23,7 @@ export function SeletorGrupoPartida({
   carregando,
   erro,
   permitirRemoverGrupo = true,
+  exibirPartidaAvulsa = true,
   onSelecionarGrupo,
   onRemoverGrupo,
   onFechar
@@ -30,6 +31,14 @@ export function SeletorGrupoPartida({
   if (!aberto) {
     return null;
   }
+
+  const gruposVisiveis = (grupos || []).filter(
+    (grupo) => obterNomeGrupoPartidaExibicao(grupo, '') !== 'Partidas avulsas'
+  );
+  const grupoSelecionadoEhPartidaAvulsa = grupoSelecionado
+    ? obterNomeGrupoPartidaExibicao(grupoSelecionado, '') === 'Partidas avulsas'
+    : false;
+  const grupoSelecionadoId = grupoSelecionadoEhPartidaAvulsa ? null : grupoSelecionado?.id;
 
   return (
     <div className="seletor-grupo-partida-sobreposicao" role="presentation" onClick={onFechar}>
@@ -51,10 +60,10 @@ export function SeletorGrupoPartida({
         </header>
 
         <div className="seletor-grupo-partida-lista">
-          {permitirRemoverGrupo && (
+          {permitirRemoverGrupo && exibirPartidaAvulsa && (
             <button
               type="button"
-              className={`seletor-grupo-partida-item ${!grupoSelecionado?.id ? 'ativo' : ''}`}
+              className={`seletor-grupo-partida-item ${!grupoSelecionadoId ? 'ativo' : ''}`}
               onClick={onRemoverGrupo}
             >
               <span className="seletor-grupo-partida-avatar">
@@ -76,15 +85,15 @@ export function SeletorGrupoPartida({
             <span className="seletor-grupo-partida-estado">Não foi possível carregar os grupos agora.</span>
           )}
 
-          {!carregando && !erro && grupos.length === 0 && (
+          {!carregando && !erro && gruposVisiveis.length === 0 && (
             <span className="seletor-grupo-partida-estado">Nenhum grupo disponível.</span>
           )}
 
-          {!carregando && !erro && grupos.map((grupo) => (
+          {!carregando && !erro && gruposVisiveis.map((grupo) => (
             <button
               type="button"
               key={grupo.id}
-              className={`seletor-grupo-partida-item ${grupoSelecionado?.id === grupo.id ? 'ativo' : ''}`}
+              className={`seletor-grupo-partida-item ${grupoSelecionadoId === grupo.id ? 'ativo' : ''}`}
               onClick={() => onSelecionarGrupo?.(grupo)}
             >
               <GrupoAvatar grupo={grupo} />

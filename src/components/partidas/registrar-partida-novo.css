@@ -481,6 +481,16 @@ body.registrar-partida-modal-aberto {
   gap: 0.85rem;
 }
 
+.registrar-partida-novo-secao {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.registrar-partida-novo-secao-avulsa {
+  gap: 0;
+}
+
 .registrar-partida-novo-grupo-opcao {
   width: 100%;
   display: grid;
@@ -551,6 +561,30 @@ body.registrar-partida-modal-aberto {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.registrar-partida-novo-avulsa-icone {
+  width: 2.75rem;
+  height: 2.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(248, 195, 0, 0.28);
+  border-radius: 0.9rem;
+  background: rgba(248, 195, 0, 0.1);
+  color: var(--color-primary);
+}
+
+.registrar-partida-novo-avulsa-icone svg {
+  width: 1.05rem;
+  height: 1.05rem;
+}
+
+.registrar-partida-novo-partida-avulsa-card {
+  min-height: 4.55rem;
+  background:
+    linear-gradient(135deg, rgba(248, 195, 0, 0.055), transparent 58%),
+    rgba(255, 255, 255, 0.045);
 }
 
 .registrar-partida-novo-grupo-opcao span:nth-child(2) {
@@ -660,6 +694,50 @@ body.registrar-partida-modal-aberto {
 .registrar-partida-novo-grupo-estado.vazio {
   border-style: dashed;
   background: rgba(255, 255, 255, 0.032);
+}
+
+.registrar-partida-novo-info-card {
+  display: grid;
+  grid-template-columns: 2.25rem minmax(0, 1fr);
+  align-items: start;
+  gap: 0.65rem;
+  padding: 0.72rem;
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: 0.9rem;
+  background: rgba(255, 255, 255, 0.035);
+  color: var(--color-text-secondary);
+}
+
+.registrar-partida-novo-info-icone {
+  width: 2.25rem;
+  height: 2.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(248, 195, 0, 0.16);
+  border-radius: 0.75rem;
+  background: rgba(248, 195, 0, 0.06);
+  color: rgba(248, 195, 0, 0.72);
+}
+
+.registrar-partida-novo-info-card > span:last-child {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+}
+
+.registrar-partida-novo-info-card strong {
+  color: var(--color-text-primary);
+  font-size: 0.84rem;
+  font-weight: 850;
+}
+
+.registrar-partida-novo-info-card small {
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.35;
 }
 
 .registrar-partida-novo-intro {
@@ -2622,8 +2700,26 @@ body.registrar-partida-modal-aberto {
   border-radius: 0.7rem;
 }
 
+.registrar-partida-novo-corpo-simples .registrar-partida-novo-avulsa-icone {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.7rem;
+}
+
 .registrar-partida-novo-corpo-simples .registrar-partida-novo-grupo-lista {
   gap: 0.42rem;
+}
+
+.registrar-partida-novo-corpo-simples .registrar-partida-novo-info-card {
+  grid-template-columns: 2rem minmax(0, 1fr);
+  gap: 0.55rem;
+  padding: 0.58rem;
+  border-radius: 0.75rem;
+}
+
+.registrar-partida-novo-corpo-simples .registrar-partida-novo-info-icone {
+  width: 2rem;
+  height: 2rem;
 }
 
 .registrar-partida-novo-duplas-unicas {

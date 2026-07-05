@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { FaChevronRight, FaFilter, FaTrophy } from 'react-icons/fa';
+import { FaChevronRight, FaFilter, FaTrophy, FaUser, FaUserFriends, FaUsers } from 'react-icons/fa';
 import { competicoesServico } from '../services/competicoesServico';
 import { gruposServico } from '../services/gruposServico';
 import { rankingServico } from '../services/rankingServico';
@@ -15,6 +15,30 @@ const ABAS_RANKING = [
   { valor: 'grupos', rotulo: 'Grupos' },
   { valor: 'competicoes', rotulo: 'Competições' },
   { valor: 'regiao', rotulo: 'Região' }
+];
+
+const VISOES_RANKING = [
+  {
+    valor: 'atletas',
+    rotulo: 'Atletas',
+    descricao: 'Ranking individual',
+    Icone: FaUser,
+    disponivel: true
+  },
+  {
+    valor: 'duplas',
+    rotulo: 'Duplas',
+    descricao: 'Em preparação',
+    Icone: FaUserFriends,
+    disponivel: false
+  },
+  {
+    valor: 'grupos',
+    rotulo: 'Grupos',
+    descricao: 'Em preparação',
+    Icone: FaUsers,
+    disponivel: false
+  }
 ];
 
 const TIPOS_COMPETICAO = {
@@ -70,14 +94,6 @@ function formatarPontuacao(valor) {
   });
 }
 
-function calcularAproveitamento(item) {
-  if (!item?.jogos) {
-    return 0;
-  }
-
-  return Math.round((Number(item.vitorias || 0) / Number(item.jogos)) * 100);
-}
-
 function obterStatusVisual(item) {
   if (item.possuiUsuarioVinculado && !item.cadastroPendente) {
     return { texto: 'Ativo', classe: 'ativo' };
@@ -119,12 +135,78 @@ function obterResumoFiltro({
   return 'Todos os atletas';
 }
 
+function obterRotuloEscopo(visaoRanking, abaRanking, resumoFiltro) {
+  if (abaRanking !== 'geral') {
+    return resumoFiltro;
+  }
+
+  switch (visaoRanking) {
+    case 'duplas':
+      return 'Todas as duplas';
+    case 'grupos':
+      return 'Todos os grupos';
+    default:
+      return 'Todos os atletas';
+  }
+}
+
+function obterMensagemVisaoIndisponivel(visaoRanking) {
+  if (visaoRanking === 'duplas') {
+    return {
+      titulo: 'Ranking de duplas em preparação',
+      texto: 'Assim que o ranking de duplas estiver disponível pela API, ele aparecerá aqui sem mudar o fluxo atual.'
+    };
+  }
+
+  return {
+    titulo: 'Ranking de grupos em preparação',
+    texto: 'A comparação entre grupos ainda não possui dados próprios no contrato atual. Os rankings por grupo continuam disponíveis no filtro Grupos.'
+  };
+}
+
+function obterCabecalhoSecao(grupo, abaRanking) {
+  if (abaRanking === 'geral') {
+    return {
+      label: 'Ranking geral',
+      titulo: 'Atletas'
+    };
+  }
+
+  if (abaRanking === 'grupos') {
+    return {
+      label: grupo.nomeCompeticao || 'Grupo',
+      titulo: 'Ranking do grupo'
+    };
+  }
+
+  if (abaRanking === 'regiao') {
+    return {
+      label: 'Ranking por região',
+      titulo: grupo.nomeCategoria || 'Atletas'
+    };
+  }
+
+  return {
+    label: grupo.nomeCompeticao || 'Competição',
+    titulo: grupo.nomeCategoria || 'Categoria'
+  };
+}
+
+function ordenarTop3(top3) {
+  if (top3.length >= 3) {
+    return [top3[1], top3[0], top3[2]].filter(Boolean);
+  }
+
+  return top3;
+}
+
 export function PaginaRanking() {
   const { navegarParaPerfilAtleta } = useNavegacaoPerfilAtleta();
   const [params, setParams] = useSearchParams();
   const [grupos, setGrupos] = useState([]);
   const [competicoes, setCompeticoes] = useState([]);
   const [regioes, setRegioes] = useState({ estados: [], cidades: [], bairros: [] });
+  const [visaoRanking, setVisaoRanking] = useState('atletas');
   const [abaRanking, setAbaRanking] = useState('geral');
   const [grupoId, setGrupoId] = useState('');
   const [competicaoId, setCompeticaoId] = useState('');
@@ -135,6 +217,7 @@ export function PaginaRanking() {
   const [ranking, setRanking] = useState([]);
   const [filtrosAbertos, setFiltrosAbertos] = useState(false);
   const [carregandoBase, setCarregandoBase] = useState(true);
+  const [baseInicializada, setBaseInicializada] = useState(false);
   const [carregandoRanking, setCarregandoRanking] = useState(false);
   const [erro, setErro] = useState('');
 
@@ -194,6 +277,10 @@ export function PaginaRanking() {
 
     return ranking.filter((grupo) => grupo.categoriaId === categoriaId);
   }, [ranking, categoriaId]);
+  const rankingComAtletas = useMemo(
+    () => rankingFiltrado.filter((grupo) => (grupo.atletas || []).length > 0),
+    [rankingFiltrado]
+  );
   const resumoFiltro = obterResumoFiltro({
     abaRanking,
     grupoSelecionado,
@@ -203,12 +290,18 @@ export function PaginaRanking() {
     cidadeRegiao,
     bairroRegiao
   });
+  const visaoAtual = VISOES_RANKING.find((visao) => visao.valor === visaoRanking) || VISOES_RANKING[0];
+  const filtroPrincipal = obterRotuloEscopo(visaoRanking, abaRanking, resumoFiltro);
 
   useEffect(() => {
     carregarBase();
   }, []);
 
   useEffect(() => {
+    if (!baseInicializada || visaoRanking !== 'atletas') {
+      return;
+    }
+
     if (abaRanking === 'grupos' && !grupoId) {
       setRanking([]);
       return;
@@ -220,7 +313,7 @@ export function PaginaRanking() {
     }
 
     carregarRanking();
-  }, [abaRanking, grupoId, competicaoId, estadoRegiao, cidadeRegiao, bairroRegiao]);
+  }, [baseInicializada, visaoRanking, abaRanking, grupoId, competicaoId, estadoRegiao, cidadeRegiao, bairroRegiao]);
 
   useEffect(() => {
     if (!categoriaId || categoriasRanking.length === 0) {
@@ -235,6 +328,7 @@ export function PaginaRanking() {
 
   async function carregarBase() {
     setCarregandoBase(true);
+    setBaseInicializada(false);
     setErro('');
 
     try {
@@ -275,6 +369,7 @@ export function PaginaRanking() {
       setCidadeRegiao(cidadeUrl);
       setBairroRegiao(bairroUrl);
       atualizarParametros(abaInicial, grupoInicial, competicaoInicial, estadoUrl, cidadeUrl, bairroUrl, params.get('categoriaId') || '');
+      setBaseInicializada(true);
     } catch (error) {
       setErro(extrairMensagemErro(error));
     } finally {
@@ -340,6 +435,11 @@ export function PaginaRanking() {
     setParams(proximos);
   }
 
+  function selecionarVisao(valor) {
+    setVisaoRanking(valor);
+    setFiltrosAbertos(false);
+  }
+
   function selecionarAba(valor) {
     setAbaRanking(valor);
     setCategoriaId('');
@@ -392,39 +492,60 @@ export function PaginaRanking() {
 
   return (
     <section className="pagina pagina-ranking ranking-app">
+      <div className="ranking-page-heading">
+        <h1>Ranking</h1>
+        <p>Sua referência de performance no QuebraNunca.</p>
+      </div>
+
       <header className="ranking-app-header">
         <div>
-          <span>QNF Ranking</span>
+          <span>QNF RANKING</span>
           <h2>Ranking</h2>
+          <p>Acompanhe os atletas, duplas e grupos.</p>
         </div>
         <div className="ranking-app-header-acoes">
           <CompartilharRankingBotao
             contexto={resumoFiltro}
             titulo="Ranking QuebraNunca"
-            ranking={rankingFiltrado}
+            ranking={rankingComAtletas}
           />
-          <FaTrophy aria-hidden="true" />
         </div>
       </header>
 
-      <nav className="ranking-tabs scroll-discreto" aria-label="Tipos de ranking">
-        {ABAS_RANKING.map((aba) => (
+      <nav className="ranking-visao-tabs" aria-label="Visões do ranking">
+        {VISOES_RANKING.map(({ valor, rotulo, descricao, Icone, disponivel }) => (
           <button
-            key={aba.valor}
+            key={valor}
             type="button"
-            className={abaRanking === aba.valor ? 'ativo' : ''}
-            onClick={() => selecionarAba(aba.valor)}
+            className={visaoRanking === valor ? 'ativo' : ''}
+            onClick={() => selecionarVisao(valor)}
+            aria-pressed={visaoRanking === valor}
           >
-            {aba.rotulo}
+            <Icone aria-hidden="true" />
+            <span>{rotulo}</span>
+            <small>{disponivel ? descricao : 'Em breve'}</small>
           </button>
         ))}
       </nav>
 
       <section className="ranking-filtros-shell">
+        <nav className="ranking-tabs ranking-contexto-tabs scroll-discreto" aria-label="Filtros de ranking">
+          {ABAS_RANKING.map((aba) => (
+            <button
+              key={aba.valor}
+              type="button"
+              className={abaRanking === aba.valor ? 'ativo' : ''}
+              onClick={() => selecionarAba(aba.valor)}
+            >
+              {aba.rotulo}
+            </button>
+          ))}
+        </nav>
+
         <div className="ranking-filtros-resumo">
           <div>
-            <span>{ABAS_RANKING.find((aba) => aba.valor === abaRanking)?.rotulo}</span>
-            <strong>{resumoFiltro}</strong>
+            <span>{visaoAtual.rotulo}</span>
+            <strong>{filtroPrincipal}</strong>
           </div>
           <button
             type="button"
@@ -517,13 +638,15 @@ export function PaginaRanking() {
 
       {erro && <p className="texto-erro">{erro}</p>}
 
-      {carregandoBase || carregandoRanking ? (
+      {visaoRanking !== 'atletas' ? (
+        <RankingEstadoIndisponivel visao={visaoRanking} />
+      ) : carregandoBase || carregandoRanking ? (
         <div className="ranking-estado">Carregando ranking...</div>
-      ) : rankingFiltrado.length === 0 ? (
+      ) : rankingComAtletas.length === 0 ? (
         <div className="ranking-estado">Nenhuma pontuação encontrada para o filtro selecionado.</div>
       ) : (
         <div className="ranking-secoes">
-          {rankingFiltrado.map((grupo) => (
+          {rankingComAtletas.map((grupo) => (
             <RankingSecao
               key={grupo.chave}
               grupo={grupo}
@@ -540,47 +663,63 @@ export function PaginaRanking() {
 function RankingSecao({ grupo, abaRanking, abrirAtleta }) {
   const top3 = grupo.atletas.slice(0, 3);
   const restante = grupo.atletas.slice(3);
+  const cabecalho = obterCabecalhoSecao(grupo, abaRanking);
 
   return (
     <section className="ranking-secao">
       <div className="ranking-secao-titulo">
         <div>
-          <span>{grupo.nomeCompeticao}</span>
-          <h3>{grupo.nomeCategoria}</h3>
+          <span>{cabecalho.label}</span>
+          <h3>{cabecalho.titulo}</h3>
         </div>
         {grupo.genero && <small>{generos[grupo.genero] || 'Categoria'}</small>}
       </div>
 
       {top3.length > 0 && (
-        <div className="ranking-podio-premium">
-          {[top3[1], top3[0], top3[2]].filter(Boolean).map((item) => (
-            <AtletaPodioCard
-              key={item.atletaId}
-              item={item}
-              grupo={grupo}
-              destaque={item.posicao === 1}
-              onClick={() => abrirAtleta(item, grupo)}
-            />
-          ))}
-        </div>
+        <section className="ranking-destaques" aria-label="Top 3 do ranking">
+          <div className="ranking-subsecao-titulo">
+            <span>Destaques</span>
+          </div>
+
+          <div className={`ranking-podio-premium quantidade-${top3.length}`}>
+            {ordenarTop3(top3).map((item) => (
+              <AtletaPodioCard
+                key={item.atletaId}
+                item={item}
+                destaque={item.posicao === 1}
+                onClick={() => abrirAtleta(item, grupo)}
+              />
+            ))}
+          </div>
+        </section>
       )}
 
-      <div className="ranking-lista-compacta">
-        {restante.map((item) => (
-          <AtletaRankingLinha
-            key={item.atletaId}
-            item={item}
-            grupo={grupo}
-            exibirRegiao={abaRanking === 'regiao'}
-            onClick={() => abrirAtleta(item, grupo)}
-          />
-        ))}
-      </div>
+      <section className="ranking-completo" aria-label="Ranking completo">
+        <div className="ranking-subsecao-titulo">
+          <span>Ranking completo</span>
+          <small>{grupo.atletas.length} atletas</small>
+        </div>
+
+        {restante.length > 0 ? (
+          <div className="ranking-lista-compacta">
+            {restante.map((item) => (
+              <AtletaRankingLinha
+                key={item.atletaId}
+                item={item}
+                exibirRegiao={abaRanking === 'regiao'}
+                onClick={() => abrirAtleta(item, grupo)}
+              />
+            ))}
+          </div>
+        ) : (
+          <p className="ranking-lista-vazia">Os atletas disponíveis já aparecem nos destaques.</p>
+        )}
+      </section>
     </section>
   );
 }
 
-function AtletaPodioCard({ item, grupo, destaque, onClick }) {
+function AtletaPodioCard({ item, destaque, onClick }) {
   const status = obterStatusVisual(item);
 
   return (
@@ -603,15 +742,11 @@ function AtletaPodioCard({ item, grupo, destaque, onClick }) {
         <span>{item.vitorias}V</span>
         <span>{item.derrotas}D</span>
       </div>
-      <small>{grupo.nomeCategoria}</small>
     </button>
   );
 }
 
 function AtletaRankingLinha({ item, exibirRegiao, onClick }) {
-  const status = obterStatusVisual(item);
-  const aproveitamento = calcularAproveitamento(item);
-
   return (
     <button
       type="button"
@@ -625,13 +760,11 @@ function AtletaRankingLinha({ item, exibirRegiao, onClick }) {
         <strong>{obterNomeExibicaoAtleta(item)}</strong>
         {exibirRegiao && formatarRegiaoAtleta(item) && <small>{formatarRegiaoAtleta(item)}</small>}
         <small>{item.jogos} jogos • {item.vitorias} vitórias • {item.derrotas} derrotas</small>
-        <small>{aproveitamento}% aproveitamento</small>
       </span>
       <span className="ranking-linha-pontos">
         <strong>{formatarPontuacao(item.pontos)}</strong>
         <small>pts</small>
       </span>
-      <span className={`ranking-status-dot ${status.classe}`}>{status.texto}</span>
       <FaChevronRight className="ranking-linha-seta" aria-hidden="true" />
     </button>
   );
@@ -645,6 +778,20 @@ function AvatarAtleta({ item, destaque = false }) {
       tamanho={destaque ? 'lg' : 'md'}
       className={`ranking-avatar ${destaque ? 'destaque' : ''}`}
     />
+  );
+}
+
+function RankingEstadoIndisponivel({ visao }) {
+  const mensagem = obterMensagemVisaoIndisponivel(visao);
+
+  return (
+    <article className="ranking-estado ranking-estado-vazio">
+      <FaTrophy aria-hidden="true" />
+      <div>
+        <strong>{mensagem.titulo}</strong>
+        <p>{mensagem.texto}</p>
+      </div>
+    </article>
   );
 }
 

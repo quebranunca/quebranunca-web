@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { FaCrown, FaEdit, FaExclamationTriangle, FaGamepad, FaSortAmountDown, FaTimes, FaTrashAlt, FaTrophy } from 'react-icons/fa';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { CompartilharPartidaBotao } from '../components/partidas/CompartilharPartidaBotao';
 import { EditarPartidaRegistradaModal } from '../components/partidas/EditarPartidaRegistradaModal';
 import { PartidaCardPremium } from '../components/partidas/PartidaCardPremium';
@@ -496,6 +496,7 @@ export function PaginaMinhasPartidas() {
   const { usuario } = useAutenticacao();
   const { showNotification } = useNotification();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const atletaLogadoId = usuario?.atletaId;
   const usuarioId = usuario?.id;
   const [partidas, setPartidas] = useState([]);
@@ -609,11 +610,11 @@ export function PaginaMinhasPartidas() {
       setPartidaEmExclusao(null);
       showNotification({
         type: 'success',
-        title: 'Partida excluída com sucesso.',
-        message: 'A partida foi removida do histórico.'
+        title: 'Partida excluída com sucesso.'
       });
-    } catch {
-      const mensagem = 'Não foi possível excluir a partida. Tente novamente.';
+      navigate('/minhas-partidas', { replace: true });
+    } catch (error) {
+      const mensagem = extrairMensagemErro(error) || 'Não foi possível excluir a partida. Tente novamente.';
       setErroExclusao(mensagem);
       showNotification({
         type: 'error',
@@ -1011,7 +1012,7 @@ function ConfirmarExclusaoPartidaModal({ erro, excluindo, onCancelar, onConfirma
         role="dialog"
         aria-modal="true"
         aria-labelledby="confirmar-exclusao-partida-titulo"
-        aria-describedby="confirmar-exclusao-partida-descricao"
+        aria-describedby="confirmar-exclusao-partida-descricao confirmar-exclusao-partida-pergunta"
         onClick={(evento) => evento.stopPropagation()}
       >
         <div className="minhas-partidas-confirmacao-icone" aria-hidden="true">
@@ -1022,7 +1023,10 @@ function ConfirmarExclusaoPartidaModal({ erro, excluindo, onCancelar, onConfirma
           <span>Ação destrutiva</span>
           <h3 id="confirmar-exclusao-partida-titulo">Excluir partida?</h3>
           <p id="confirmar-exclusao-partida-descricao">
-            Essa ação não pode ser desfeita. A partida será removida do histórico, rankings e scouts relacionados conforme as regras atuais do sistema.
+            Esta ação é permanente e removerá esta partida do histórico, rankings e estatísticas relacionadas.
+          </p>
+          <p id="confirmar-exclusao-partida-pergunta">
+            Você realmente deseja excluir esta partida?
           </p>
         </div>
 
