@@ -1,11 +1,23 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { FaChevronRight, FaFilter, FaTrophy, FaUser, FaUserFriends, FaUsers } from 'react-icons/fa';
+import {
+  FaChevronDown,
+  FaChevronRight,
+  FaFilter,
+  FaFutbol,
+  FaTimes,
+  FaTrophy,
+  FaUser,
+  FaUserFriends,
+  FaUsers
+} from 'react-icons/fa';
 import { competicoesServico } from '../services/competicoesServico';
 import { gruposServico } from '../services/gruposServico';
 import { rankingServico } from '../services/rankingServico';
 import { CompartilharRankingBotao } from '../components/ranking/CompartilharRankingBotao';
 import { AvatarUsuario, obterFotoPerfilAvatar } from '../components/AvatarUsuario';
+import { NotificacoesBotao } from '../components/NotificacoesBotao';
+import { useAutenticacao } from '../hooks/useAutenticacao';
 import { useNavegacaoPerfilAtleta } from '../hooks/useNavegacaoPerfilAtleta';
 import { extrairMensagemErro } from '../utils/erros';
 import { obterNomeExibicaoAtleta } from '../utils/atletaUtils';
@@ -201,6 +213,7 @@ function ordenarTop3(top3) {
 }
 
 export function PaginaRanking() {
+  const { token } = useAutenticacao();
   const { navegarParaPerfilAtleta } = useNavegacaoPerfilAtleta();
   const [params, setParams] = useSearchParams();
   const [grupos, setGrupos] = useState([]);
@@ -292,6 +305,7 @@ export function PaginaRanking() {
   });
   const visaoAtual = VISOES_RANKING.find((visao) => visao.valor === visaoRanking) || VISOES_RANKING[0];
   const filtroPrincipal = obterRotuloEscopo(visaoRanking, abaRanking, resumoFiltro);
+  const autenticado = Boolean(token);
 
   useEffect(() => {
     carregarBase();
@@ -481,6 +495,24 @@ export function PaginaRanking() {
     atualizarParametros(abaRanking, grupoId, competicaoId, estadoRegiao, cidadeRegiao, bairroRegiao, valor);
   }
 
+  function limparFiltrosAvancados() {
+    setCategoriaId('');
+
+    if (abaRanking === 'regiao') {
+      setEstadoRegiao('');
+      setCidadeRegiao('');
+      setBairroRegiao('');
+      atualizarParametros(abaRanking, grupoId, competicaoId, '', '', '', '');
+      return;
+    }
+
+    atualizarParametros(abaRanking, grupoId, competicaoId, estadoRegiao, cidadeRegiao, bairroRegiao, '');
+  }
+
+  function aplicarFiltrosAvancados() {
+    setFiltrosAbertos(false);
+  }
+
   function abrirAtleta(item, grupo) {
     navegarParaPerfilAtleta(item, {
       state: {
@@ -492,15 +524,10 @@ export function PaginaRanking() {
 
   return (
     <section className="pagina pagina-ranking ranking-app">
-      <div className="ranking-page-heading">
-        <h1>Ranking</h1>
-        <p>Sua referência de performance no QuebraNunca.</p>
-      </div>
-
       <header className="ranking-app-header">
-        <div>
+        <div className="ranking-hero-conteudo">
           <span>QNF RANKING</span>
-          <h2>Ranking</h2>
+          <h1>Ranking</h1>
           <p>Acompanhe os atletas, duplas e grupos.</p>
         </div>
         <div className="ranking-app-header-acoes">
@@ -510,6 +537,14 @@ export function PaginaRanking() {
             ranking={rankingComAtletas}
           />
         </div>
+        <div className="ranking-hero-arte" aria-hidden="true">
+          <FaTrophy />
+        </div>
+        {autenticado && (
+          <div className="ranking-hero-notificacoes">
+            <NotificacoesBotao autenticado={autenticado} />
+          </div>
+        )}
       </header>
 
       <nav className="ranking-visao-tabs" aria-label="Visões do ranking">
@@ -529,109 +564,139 @@ export function PaginaRanking() {
       </nav>
 
       <section className="ranking-filtros-shell">
-        <nav className="ranking-tabs ranking-contexto-tabs scroll-discreto" aria-label="Filtros de ranking">
-          {ABAS_RANKING.map((aba) => (
-            <button
-              key={aba.valor}
-              type="button"
-              className={abaRanking === aba.valor ? 'ativo' : ''}
-              onClick={() => selecionarAba(aba.valor)}
+        <div className="ranking-contexto-linha">
+          <label className="ranking-contexto-seletor">
+            <span className="sr-only">Contexto do ranking</span>
+            <FaFutbol aria-hidden="true" />
+            <select
+              aria-label="Contexto do ranking"
+              value={abaRanking}
+              onChange={(evento) => selecionarAba(evento.target.value)}
             >
-              {aba.rotulo}
-            </button>
-          ))}
-        </nav>
-
-        <div className="ranking-filtros-resumo">
-          <div>
-            <span>{visaoAtual.rotulo}</span>
-            <strong>{filtroPrincipal}</strong>
-          </div>
+              {ABAS_RANKING.map((aba) => (
+                <option key={aba.valor} value={aba.valor}>{aba.rotulo}</option>
+              ))}
+            </select>
+            <FaChevronDown className="ranking-contexto-seta" aria-hidden="true" />
+          </label>
           <button
             type="button"
             className="botao-secundario botao-compacto"
-            onClick={() => setFiltrosAbertos((aberto) => !aberto)}
+            onClick={() => setFiltrosAbertos(true)}
             aria-expanded={filtrosAbertos}
+            aria-label={`Abrir filtros do ranking: ${filtroPrincipal}`}
           >
             <FaFilter aria-hidden="true" /> Filtros
           </button>
         </div>
 
         {filtrosAbertos && (
-          <div className="ranking-filtros">
-            {abaRanking === 'grupos' && (
-              <label>
-                Grupo
-                <select value={grupoId} onChange={(evento) => selecionarGrupo(evento.target.value)}>
-                  <option value="">Selecione</option>
-                  {grupos.map((grupo) => (
-                    <option key={grupo.id} value={grupo.id}>{grupo.nome}</option>
-                  ))}
-                </select>
-              </label>
-            )}
+          <div className="ranking-filtros-backdrop" onClick={() => setFiltrosAbertos(false)}>
+            <section
+              className="ranking-filtros ranking-filtros-painel"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="ranking-filtros-titulo"
+              onClick={(evento) => evento.stopPropagation()}
+            >
+              <div className="ranking-filtros-topo">
+                <div>
+                  <span>{visaoAtual.rotulo}</span>
+                  <h2 id="ranking-filtros-titulo">Filtros</h2>
+                </div>
+                <button
+                  type="button"
+                  className="botao-terciario botao-compacto"
+                  onClick={() => setFiltrosAbertos(false)}
+                  aria-label="Fechar filtros"
+                >
+                  <FaTimes aria-hidden="true" />
+                </button>
+              </div>
 
-            {abaRanking === 'competicoes' && (
-              <>
+              {abaRanking === 'grupos' && (
                 <label>
-                  Competição
-                  <select value={competicaoId} onChange={(evento) => selecionarCompeticao(evento.target.value)}>
+                  Grupo
+                  <select value={grupoId} onChange={(evento) => selecionarGrupo(evento.target.value)}>
                     <option value="">Selecione</option>
-                    {competicoes.map((competicao) => (
-                      <option key={competicao.id} value={competicao.id}>{competicao.nome}</option>
+                    {grupos.map((grupo) => (
+                      <option key={grupo.id} value={grupo.id}>{grupo.nome}</option>
                     ))}
                   </select>
                 </label>
+              )}
 
-                {categoriasRanking.length > 0 && (
+              {abaRanking === 'competicoes' && (
+                <>
                   <label>
-                    Categoria
-                    <select value={categoriaId} onChange={(evento) => selecionarCategoria(evento.target.value)}>
-                      <option value="">Todas as categorias</option>
-                      {categoriasRanking.map((categoria) => (
-                        <option key={categoria.id} value={categoria.id}>{categoria.nome}</option>
+                    Competição
+                    <select value={competicaoId} onChange={(evento) => selecionarCompeticao(evento.target.value)}>
+                      <option value="">Selecione</option>
+                      {competicoes.map((competicao) => (
+                        <option key={competicao.id} value={competicao.id}>{competicao.nome}</option>
                       ))}
                     </select>
                   </label>
-                )}
-              </>
-            )}
 
-            {abaRanking === 'regiao' && (
-              <div className="ranking-regiao-grid">
-                <label>
-                  Estado
-                  <select value={estadoRegiao} onChange={(evento) => selecionarEstadoRegiao(evento.target.value)}>
-                    <option value="">Todos</option>
-                    {(regioes.estados || []).map((estado) => (
-                      <option key={estado} value={estado}>{estado}</option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  Cidade
-                  <select value={cidadeRegiao} onChange={(evento) => selecionarCidadeRegiao(evento.target.value)}>
-                    <option value="">Todas</option>
-                    {cidadesRegiao.map((cidade) => (
-                      <option key={cidade} value={cidade}>{cidade}</option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  Bairro
-                  <select value={bairroRegiao} onChange={(evento) => selecionarBairroRegiao(evento.target.value)}>
-                    <option value="">Todos</option>
-                    {bairrosRegiao.map((bairro) => (
-                      <option key={bairro} value={bairro}>{bairro}</option>
-                    ))}
-                  </select>
-                </label>
+                  {categoriasRanking.length > 0 && (
+                    <label>
+                      Categoria
+                      <select value={categoriaId} onChange={(evento) => selecionarCategoria(evento.target.value)}>
+                        <option value="">Todas as categorias</option>
+                        {categoriasRanking.map((categoria) => (
+                          <option key={categoria.id} value={categoria.id}>{categoria.nome}</option>
+                        ))}
+                      </select>
+                    </label>
+                  )}
+                </>
+              )}
+
+              {abaRanking === 'regiao' && (
+                <div className="ranking-regiao-grid">
+                  <label>
+                    Estado
+                    <select value={estadoRegiao} onChange={(evento) => selecionarEstadoRegiao(evento.target.value)}>
+                      <option value="">Todos</option>
+                      {(regioes.estados || []).map((estado) => (
+                        <option key={estado} value={estado}>{estado}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    Cidade
+                    <select value={cidadeRegiao} onChange={(evento) => selecionarCidadeRegiao(evento.target.value)}>
+                      <option value="">Todas</option>
+                      {cidadesRegiao.map((cidade) => (
+                        <option key={cidade} value={cidade}>{cidade}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    Bairro
+                    <select value={bairroRegiao} onChange={(evento) => selecionarBairroRegiao(evento.target.value)}>
+                      <option value="">Todos</option>
+                      {bairrosRegiao.map((bairro) => (
+                        <option key={bairro} value={bairro}>{bairro}</option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+              )}
+
+              {abaRanking === 'geral' && (
+                <p className="texto-ajuda">Ranking consolidado de todas as partidas registradas.</p>
+              )}
+
+              <div className="ranking-filtros-acoes">
+                <button type="button" className="botao-secundario" onClick={limparFiltrosAvancados}>
+                  Limpar filtros
+                </button>
+                <button type="button" className="botao-primario" onClick={aplicarFiltrosAvancados}>
+                  Aplicar filtros
+                </button>
               </div>
-            )}
-
-            {abaRanking === 'geral' && (
-              <p className="texto-ajuda">Ranking consolidado de todas as partidas registradas.</p>
-            )}
+            </section>
           </div>
         )}
       </section>
@@ -747,6 +812,8 @@ function AtletaPodioCard({ item, destaque, onClick }) {
 }
 
 function AtletaRankingLinha({ item, exibirRegiao, onClick }) {
+  const status = obterStatusVisual(item);
+
   return (
     <button
       type="button"
@@ -758,6 +825,7 @@ function AtletaRankingLinha({ item, exibirRegiao, onClick }) {
       <AvatarAtleta item={item} />
       <span className="ranking-linha-info">
         <strong>{obterNomeExibicaoAtleta(item)}</strong>
+        <span className={`ranking-status-dot ${status.classe}`}>{status.texto}</span>
         {exibirRegiao && formatarRegiaoAtleta(item) && <small>{formatarRegiaoAtleta(item)}</small>}
         <small>{item.jogos} jogos • {item.vitorias} vitórias • {item.derrotas} derrotas</small>
       </span>

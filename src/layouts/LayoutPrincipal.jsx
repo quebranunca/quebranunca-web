@@ -26,6 +26,7 @@ export function LayoutPrincipal() {
   const loginPublico = !autenticado && location.pathname === '/login';
   const homeDashboardApp = autenticado && location.pathname === '/app';
   const gruposDashboardApp = autenticado && location.pathname === '/grupos';
+  const rankingSemTopoApp = autenticado && location.pathname === '/ranking';
   const itensMenu = autenticado
     ? obterItensNavegacao(usuario, estadoAcesso)
     : obterItensNavegacaoPublica();
@@ -66,45 +67,51 @@ export function LayoutPrincipal() {
         homeDashboardApp ? ' layout-home-dashboard-app' : ''
       }${
         gruposDashboardApp ? ' layout-grupos-dashboard-app' : ''
+      }${
+        rankingSemTopoApp ? ' layout-ranking-sem-topo' : ''
       }`}
     >
-      <AppHeader
-        autenticado={autenticado}
-        usuario={usuario}
-        estadoAcesso={estadoAcesso}
-        mostrarNotificacoes={!homeDashboardApp && !gruposDashboardApp}
-        menuAberto={menuAberto}
-        aoAlternarMenu={() => setMenuAberto((aberto) => !aberto)}
-        aoSair={aoSair}
-      />
+      {!rankingSemTopoApp && (
+        <AppHeader
+          autenticado={autenticado}
+          usuario={usuario}
+          estadoAcesso={estadoAcesso}
+          mostrarNotificacoes={!homeDashboardApp && !gruposDashboardApp}
+          menuAberto={menuAberto}
+          aoAlternarMenu={() => setMenuAberto((aberto) => !aberto)}
+          aoSair={aoSair}
+        />
+      )}
 
-      <nav
-        id="menu-principal-app"
-        className={`menu-principal ${menuAberto ? 'aberto' : ''}`}
-        aria-label="Navegação principal"
-      >
-        {itensMenu.map((item) => (
-          item.externo ? (
-            <a
-              key={item.caminho}
-              href={item.caminho}
-              className="item-menu"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {item.nome}
-            </a>
-          ) : (
-            <NavLink
-              key={item.caminho}
-              to={item.caminho}
-              className={({ isActive }) => `item-menu ${isActive ? 'ativo' : ''}`}
-            >
-              {item.nome}
-            </NavLink>
-          )
-        ))}
-      </nav>
+      {!rankingSemTopoApp && (
+        <nav
+          id="menu-principal-app"
+          className={`menu-principal ${menuAberto ? 'aberto' : ''}`}
+          aria-label="Navegação principal"
+        >
+          {itensMenu.map((item) => (
+            item.externo ? (
+              <a
+                key={item.caminho}
+                href={item.caminho}
+                className="item-menu"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {item.nome}
+              </a>
+            ) : (
+              <NavLink
+                key={item.caminho}
+                to={item.caminho}
+                className={({ isActive }) => `item-menu ${isActive ? 'ativo' : ''}`}
+              >
+                {item.nome}
+              </NavLink>
+            )
+          ))}
+        </nav>
+      )}
 
       <main className="conteudo-principal">
         <Outlet />
