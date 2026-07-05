@@ -31,9 +31,10 @@ export function baixarArquivo(blob, nomeArquivo) {
   URL.revokeObjectURL(url);
 }
 
-export async function gerarImagemCompartilhamento(elemento) {
+export async function gerarImagemCompartilhamento(elemento, opcoes = {}) {
   await aguardarRenderizacaoCompartilhamento();
   const alvo = typeof elemento === 'function' ? elemento() : elemento;
+  const pixelRatio = opcoes.pixelRatio ?? 2;
 
   if (!alvo) {
     throw new Error('Não foi possível preparar a arte de compartilhamento.');
@@ -41,7 +42,7 @@ export async function gerarImagemCompartilhamento(elemento) {
 
   const blob = await toBlob(alvo, {
     cacheBust: true,
-    pixelRatio: 2,
+    pixelRatio,
     backgroundColor: '#08090b'
   });
 
@@ -57,9 +58,10 @@ export async function compartilharImagem({
   nomeArquivo,
   titulo,
   texto,
-  url
+  url,
+  pixelRatio
 }) {
-  const blob = await gerarImagemCompartilhamento(elemento);
+  const blob = await gerarImagemCompartilhamento(elemento, { pixelRatio });
   const arquivo = new File([blob], nomeArquivo, { type: 'image/png' });
   const link = obterUrlAbsoluta(url);
 

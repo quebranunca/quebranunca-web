@@ -5931,6 +5931,226 @@ code {
   font-size: 42px;
 }
 
+.arte-compartilhamento-partida-story {
+  isolation: isolate;
+  gap: 0;
+  padding: 86px 86px 76px;
+  border-radius: 0;
+  background:
+    radial-gradient(circle at 18% 10%, rgba(255, 179, 0, 0.18), transparent 28%),
+    radial-gradient(circle at 84% 28%, rgba(57, 217, 138, 0.08), transparent 24%),
+    linear-gradient(180deg, #121316 0%, #07080a 58%, #050505 100%);
+  color: #f8f8f8;
+}
+
+.arte-story-areia {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 0;
+  height: 520px;
+  opacity: 0.82;
+  background:
+    radial-gradient(circle at 8% 72%, rgba(224, 178, 91, 0.16) 0 2px, transparent 2.8px),
+    radial-gradient(circle at 22% 84%, rgba(255, 213, 132, 0.13) 0 1.5px, transparent 2.4px),
+    radial-gradient(circle at 46% 78%, rgba(194, 142, 64, 0.12) 0 2px, transparent 3px),
+    radial-gradient(circle at 68% 90%, rgba(255, 222, 151, 0.1) 0 1.8px, transparent 2.8px),
+    radial-gradient(circle at 88% 76%, rgba(224, 178, 91, 0.14) 0 2px, transparent 3px),
+    linear-gradient(180deg, rgba(5, 5, 5, 0) 0%, rgba(44, 34, 17, 0.24) 56%, rgba(78, 55, 24, 0.2) 100%);
+  background-size: 180px 160px, 150px 130px, 220px 180px, 170px 150px, 190px 170px, 100% 100%;
+  pointer-events: none;
+}
+
+.arte-story-topo,
+.arte-story-conteudo,
+.arte-story-rodape {
+  position: relative;
+  z-index: 1;
+}
+
+.arte-story-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 36px;
+}
+
+.arte-story-logo {
+  width: 130px;
+  height: 130px;
+}
+
+.arte-story-topo span,
+.arte-story-label span {
+  color: #ffb300;
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: 0;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.arte-story-rodape span {
+  color: #ffb300;
+  font-size: 34px;
+  font-weight: 900;
+  letter-spacing: 0;
+  line-height: 1.08;
+}
+
+.arte-story-conteudo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 86px 0 74px;
+  text-align: center;
+}
+
+.arte-story-vencedores,
+.arte-story-adversarios {
+  display: grid;
+  justify-items: center;
+  width: 100%;
+  min-width: 0;
+}
+
+.arte-story-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-bottom: 34px;
+  color: #ffb300;
+}
+
+.arte-story-label svg {
+  width: 30px;
+  height: 30px;
+}
+
+.arte-story-lista {
+  display: grid;
+  justify-items: center;
+  gap: 16px;
+  width: 100%;
+  min-width: 0;
+}
+
+.arte-story-atleta {
+  display: -webkit-box;
+  max-width: 900px;
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.84);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 54px;
+  font-weight: 900;
+  letter-spacing: 0;
+  line-height: 1.04;
+  overflow-wrap: anywhere;
+  text-align: center;
+  text-wrap: balance;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.arte-story-atleta-destaque {
+  max-width: 930px;
+  color: #39d98a;
+  font-size: 84px;
+  line-height: 1.02;
+  text-shadow: 0 0 34px rgba(57, 217, 138, 0.16);
+}
+
+.arte-story-placar {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 34px;
+  margin: 76px 0 34px;
+  color: #fff;
+  font-family: 'Space Grotesk', sans-serif;
+  letter-spacing: 0;
+  line-height: 0.92;
+}
+
+.arte-story-placar strong {
+  color: #f8f8f8;
+  font-size: 132px;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+.arte-story-placar span {
+  color: #ffb300;
+  font-size: 54px;
+  font-weight: 900;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.arte-story-versus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  width: min(100%, 520px);
+  margin: 0 0 38px;
+  color: rgba(255, 255, 255, 0.48);
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+.arte-story-versus::before,
+.arte-story-versus::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.arte-story-rodape {
+  display: grid;
+  gap: 30px;
+  margin-top: auto;
+}
+
+.arte-story-rodape div {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.arte-story-rodape span,
+.arte-story-rodape strong,
+.arte-story-rodape p {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.arte-story-rodape strong {
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.arte-story-rodape p {
+  max-width: 820px;
+  padding-top: 28px;
+  border-top: 1px solid rgba(255, 179, 0, 0.28);
+  color: #fff;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 42px;
+  font-weight: 900;
+  letter-spacing: 0;
+  line-height: 1.04;
+}
+
 .arte-compartilhamento-card {
   gap: 42px;
 }

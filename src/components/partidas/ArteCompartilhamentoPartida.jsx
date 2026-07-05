@@ -1,144 +1,143 @@
 import { forwardRef } from 'react';
-import { AvatarUsuario, obterFotoPerfilAvatar } from '../AvatarUsuario';
+import { FaTrophy } from 'react-icons/fa';
 import { LogoQNF } from '../branding/LogoQNF';
-import { formatarData } from '../../utils/formatacao';
-import { obterNomeExibicaoAtleta } from '../../utils/atletaUtils';
+import { obterNomeExibicaoAtletaPerfil } from '../../utils/atletaUtils';
+import { formatarDataHoraCurta } from '../../utils/formatacao';
+import { obterNomeGrupoPartidaExibicao } from '../../utils/partidas';
 
-function formatarPontos(valor) {
-  const numero = Number(valor);
-  if (!Number.isFinite(numero)) {
-    return '0 pts';
+function obterNomeAtleta(atleta) {
+  return obterNomeExibicaoAtletaPerfil(atleta) || 'Atleta';
+}
+
+function obterAtletasDupla(atletas) {
+  return (Array.isArray(atletas) ? atletas : [])
+    .map((atleta, indice) => ({
+      id: atleta?.atletaId || atleta?.id || `${obterNomeAtleta(atleta)}-${indice}`,
+      nome: obterNomeAtleta(atleta)
+    }))
+    .slice(0, 2);
+}
+
+function obterNumeroDuplaVencedora(dados) {
+  const valor = dados?.duplaVencedora;
+
+  if (Number(valor) === 1 || String(valor).toLowerCase() === 'dupla1') {
+    return 1;
   }
 
-  const texto = Number.isInteger(numero)
-    ? String(numero)
-    : numero.toFixed(1).replace('.', ',');
+  if (Number(valor) === 2 || String(valor).toLowerCase() === 'dupla2') {
+    return 2;
+  }
 
-  return `${texto} pts`;
+  const placar1 = Number(dados?.placarDupla1);
+  const placar2 = Number(dados?.placarDupla2);
+
+  if (Number.isFinite(placar1) && Number.isFinite(placar2) && placar1 !== placar2) {
+    return placar1 > placar2 ? 1 : 2;
+  }
+
+  return 1;
 }
 
-function FotoAtleta({ atleta }) {
-  const nome = obterNomeExibicaoAtleta(atleta) || 'Atleta';
-
-  return (
-    <AvatarUsuario
-      nome={nome}
-      fotoPerfilUrl={obterFotoPerfilAvatar(atleta)}
-      tamanho="lg"
-      className="arte-partida-foto"
-      crossOrigin="anonymous"
-    />
-  );
+function ehApenasResultado(tipo) {
+  return Number(tipo) === 2 || String(tipo || '').toLowerCase() === 'apenasresultado';
 }
 
-function DuplaArte({ titulo, atletas }) {
-  return (
-    <div className="arte-partida-dupla">
-      <span>{titulo}</span>
-      <div className="arte-partida-fotos">
-        {(atletas || []).map((atleta) => (
-          <div key={atleta.atletaId} className="arte-partida-atleta">
-            <FotoAtleta atleta={atleta} />
-            <strong>{obterNomeExibicaoAtleta(atleta) || 'Atleta'}</strong>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+function placarFoiInformado(valor) {
+  return valor !== null && valor !== undefined && valor !== '' && Number.isFinite(Number(valor));
 }
 
-function LinhaRanking({ rotulo, atleta, destaque }) {
-  if (!atleta) {
+function obterPlacar(dados) {
+  if (ehApenasResultado(dados?.tipoRegistroResultado)) {
     return null;
   }
 
+  if (!placarFoiInformado(dados?.placarDupla1) || !placarFoiInformado(dados?.placarDupla2)) {
+    return null;
+  }
+
+  const placar1 = Number(dados.placarDupla1);
+  const placar2 = Number(dados.placarDupla2);
+
+  if (placar1 === 0 && placar2 === 0) {
+    return null;
+  }
+
+  return { dupla1: placar1, dupla2: placar2 };
+}
+
+function LinhaAtletaStory({ atleta, destaque = false }) {
   return (
-    <div className={`arte-ranking-linha arte-partida-ranking-linha ${destaque ? 'arte-ranking-linha-destaque' : ''}`}>
-      <span>{rotulo}</span>
-      <AvatarUsuario
-        nome={obterNomeExibicaoAtleta(atleta)}
-        fotoPerfilUrl={obterFotoPerfilAvatar(atleta)}
-        tamanho="sm"
-        className="arte-partida-ranking-avatar"
-        crossOrigin="anonymous"
-      />
-      <strong>#{atleta.posicao} {obterNomeExibicaoAtleta(atleta)}</strong>
-      <small>{formatarPontos(atleta.pontos)}</small>
-    </div>
+    <strong className={`arte-story-atleta ${destaque ? 'arte-story-atleta-destaque' : ''}`}>
+      {atleta.nome}
+    </strong>
   );
 }
 
-function obterTextoResultado(resultado, vitoria) {
-  if (resultado === 'Vitoria' || resultado === 'Derrota') {
-    return vitoria ? 'Vitória' : 'Derrota';
-  }
-
-  return 'Partida registrada';
+function ListaAtletasStory({ atletas, destaque = false }) {
+  return (
+    <div className={destaque ? 'arte-story-lista arte-story-lista-vencedores' : 'arte-story-lista'}>
+      {atletas.map((atleta) => (
+        <LinhaAtletaStory key={atleta.id} atleta={atleta} destaque={destaque} />
+      ))}
+    </div>
+  );
 }
 
 export const ArteCompartilhamentoPartida = forwardRef(function ArteCompartilhamentoPartida(
   { dados },
   ref
 ) {
-  const ranking = dados?.rankingGrupo;
-  const resultadoVitoria = dados?.resultadoAtletaLogado === 'Vitoria';
-  const possuiResultadoAtleta = dados?.resultadoAtletaLogado === 'Vitoria' || dados?.resultadoAtletaLogado === 'Derrota';
-  const grupoNome = dados?.grupoNome || 'Partida registrada';
+  const dupla1 = obterAtletasDupla(dados?.dupla1);
+  const dupla2 = obterAtletasDupla(dados?.dupla2);
+  const duplaVencedora = obterNumeroDuplaVencedora(dados);
+  const vencedores = duplaVencedora === 2 ? dupla2 : dupla1;
+  const adversarios = duplaVencedora === 2 ? dupla1 : dupla2;
+  const placar = obterPlacar(dados);
+  const placarVencedores = duplaVencedora === 2 ? placar?.dupla2 : placar?.dupla1;
+  const placarAdversarios = duplaVencedora === 2 ? placar?.dupla1 : placar?.dupla2;
+  const grupoNome = obterNomeGrupoPartidaExibicao(dados?.grupoNome);
+  const dataHora = dados?.dataPartida ? formatarDataHoraCurta(dados.dataPartida) : 'Data a definir';
 
   return (
-    <article ref={ref} className="arte-compartilhamento-partida">
-      <div className="arte-partida-brilho" />
+    <article ref={ref} className="arte-compartilhamento-partida arte-compartilhamento-partida-story">
+      <div className="arte-story-areia" aria-hidden="true" />
 
-      <header className="arte-partida-topo">
-        <LogoQNF variante="light" className="arte-partida-logo" />
-        <div>
-          <span>PARTIDA REGISTRADA</span>
-          <strong>QuebraNunca Futevôlei</strong>
-        </div>
+      <header className="arte-story-topo">
+        <LogoQNF variante="light" className="arte-story-logo" />
+        <span>PARTIDA REGISTRADA</span>
       </header>
 
-      <section className="arte-partida-grupo">
-        <span>{grupoNome}</span>
-        <strong>{dados?.dataPartida ? formatarData(dados.dataPartida) : 'Data a definir'}</strong>
-      </section>
-
-      <section className="arte-partida-confronto">
-        <DuplaArte titulo="Dupla 1" atletas={dados?.dupla1 || []} />
-
-        <div className="arte-partida-placar">
-          <strong>{dados?.placarDupla1 ?? 0}</strong>
-          <span>x</span>
-          <strong>{dados?.placarDupla2 ?? 0}</strong>
-        </div>
-
-        <DuplaArte titulo="Dupla 2" atletas={dados?.dupla2 || []} />
-      </section>
-
-      <section className={`arte-partida-resultado ${resultadoVitoria ? 'vitoria' : 'derrota'}`}>
-        <span>{possuiResultadoAtleta ? 'Seu resultado' : 'Resultado'}</span>
-        <strong>{obterTextoResultado(dados?.resultadoAtletaLogado, resultadoVitoria)}</strong>
-      </section>
-
-      {ranking && (
-        <section className="arte-ranking">
-          <h2>RANKING DO GRUPO</h2>
-          <LinhaRanking rotulo="Acima de você" atleta={ranking.atletaAcima} />
-          <LinhaRanking
-            rotulo="Você"
-            destaque
-            atleta={{
-              posicao: ranking.posicao,
-              apelido: ranking.apelido,
-              pontos: ranking.pontos
-            }}
-          />
-          <LinhaRanking rotulo="Logo atrás" atleta={ranking.atletaAbaixo} />
+      <main className="arte-story-conteudo">
+        <section className="arte-story-vencedores" aria-label="Vencedores da partida">
+          <div className="arte-story-label">
+            <FaTrophy aria-hidden="true" />
+            <span>VENCEDORES</span>
+          </div>
+          <ListaAtletasStory atletas={vencedores} destaque />
         </section>
-      )}
 
-      <footer className="arte-partida-rodape">
-        <strong>Mais um jogo na conta.</strong>
-        <span>@quebranuncaftv · quebranunca.com.br</span>
+        {placar && (
+          <div className="arte-story-placar" aria-label="Placar da partida">
+            <strong>{placarVencedores}</strong>
+            <span>x</span>
+            <strong>{placarAdversarios}</strong>
+          </div>
+        )}
+
+        <div className="arte-story-versus">VS</div>
+
+        <section className="arte-story-adversarios" aria-label="Adversários da partida">
+          <ListaAtletasStory atletas={adversarios} />
+        </section>
+      </main>
+
+      <footer className="arte-story-rodape">
+        <div>
+          <span>{grupoNome}</span>
+          <strong>{dataHora}</strong>
+        </div>
+        <p>O FUTEVÔLEI NÃO ACABA NA AREIA.</p>
       </footer>
     </article>
   );

@@ -63,7 +63,8 @@ export function CompartilharPartidaBotao({
         nomeArquivo,
         titulo: 'Partida registrada no QuebraNunca',
         texto: 'Partida registrada no QuebraNunca Futevôlei',
-        url: obterUrlPartida(partidaId, url)
+        url: obterUrlPartida(partidaId, url),
+        pixelRatio: 1
       });
       await registrarPontuacaoCompartilhamento(partidaId);
 
