@@ -254,10 +254,10 @@ function ComoGanharPontosQN() {
 
       <section className="pontosqn-regras-grid">
         <article className="cartao pontosqn-regras-card">
-          <h3>Quanto vale?</h3>
+          <h3>Como usar?</h3>
           <div className="pontosqn-economia-destaque">
-            <strong>100 QN = R$ 1</strong>
-            <span>1000 QN = R$ 10 de referência em benefícios</span>
+            <strong>Benefícios promocionais</strong>
+            <span>Use seus Pontos QN para desbloquear benefícios da comunidade.</span>
           </div>
           <p>Cada benefício pode ter regra, validade, limite e disponibilidade própria.</p>
         </article>

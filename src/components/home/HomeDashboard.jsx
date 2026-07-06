@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   FaBell,
@@ -24,6 +24,7 @@ import { obterNomeGrupoPartidaExibicao } from '../../utils/partidas';
 import { formatarData } from '../../utils/formatacao';
 import { AvatarUsuario, obterFotoPerfilAvatar } from '../AvatarUsuario';
 import { Avatar } from '../ui/Avatar';
+import { HomeSectionType, homeSectionsConfig } from './homeSectionsConfig';
 
 const HOME_NAVIGATION = Object.freeze({
   meusJogos: '/minhas-partidas',
@@ -33,7 +34,8 @@ const HOME_NAVIGATION = Object.freeze({
   editarPerfil: '/app/perfil?aba=perfil&editar=1',
   configuracoes: '/app/perfil?aba=configuracoes',
   pendencias: '/app/pendencias',
-  scouts: '/app/scouts'
+  scouts: '/app/scouts',
+  pontosQN: '/app/pontos-qn'
 });
 
 function obterEstadoModulo(modulos, chave, dadosPadrao = null) {
@@ -83,6 +85,10 @@ function obterApelidoPerfil(perfil, usuario, nomeCompleto) {
 function formatarPercentual(valor) {
   const numero = Number(valor ?? 0);
   return `${Number.isInteger(numero) ? numero : numero.toFixed(1)}%`;
+}
+
+function formatarPontosQN(valor) {
+  return Number(valor || 0).toLocaleString('pt-BR');
 }
 
 function formatarDataAtividade(data) {
@@ -197,6 +203,7 @@ export function HomeDashboard({
   const perfilModulo = obterEstadoModulo(modulos, 'perfil', dashboard?.perfil || null);
   const resumoModulo = obterEstadoModulo(modulos, 'resumo', dashboard?.resumo || null);
   const pendenciasModulo = obterEstadoModulo(modulos, 'pendencias', null);
+  const gamificacaoModulo = obterEstadoModulo(modulos, 'gamificacao', dashboard?.gamificacao || null);
   const ultimasPartidasModulo = obterEstadoModulo(modulos, 'ultimasPartidas', dashboard?.ultimasPartidas || []);
 
   const perfil = obterDadosModulo(perfilModulo, {}) || {};
@@ -243,8 +250,8 @@ export function HomeDashboard({
     }
   ];
 
-  return (
-    <section className="pagina home-dashboard">
+  const renderizadoresSecao = {
+    [HomeSectionType.Identity]: () => (
       <HomeIdentidadeUsuario
         nomeCompleto={nomeCompleto}
         apelido={apelido}
@@ -254,9 +261,8 @@ export function HomeDashboard({
           navigate('/', { replace: true });
         }}
       />
-
-      <HomeDesempenho scouts={scouts} erro={resumoModulo.erro} />
-
+    ),
+    [HomeSectionType.PendingConfirmation]: () => (
       <HomeConfirmarPartidaCard
         pendencia={pendenciaConfirmacaoPartida}
         confirmando={confirmandoPendenciaId === pendenciaConfirmacaoPartida?.id}
@@ -264,21 +270,37 @@ export function HomeDashboard({
         onConfirmar={onConfirmarPendenciaPartida}
         onNaoReconhecer={onNaoReconhecerPendenciaPartida}
       />
-
-      <HomeAcoesPrincipais />
-
-      {deveCriarSenhaConta && (
-        <Link to={HOME_NAVIGATION.perfil} className="home-dashboard-alerta-senha">
-          <span><FaEdit aria-hidden="true" /></span>
-          <strong>Crie sua senha para continuar acessando sua conta com segurança.</strong>
-          <em>Criar senha agora</em>
-        </Link>
-      )}
-
+    ),
+    [HomeSectionType.Gamification]: () => <HomeGamificacaoCard modulo={gamificacaoModulo} />,
+    [HomeSectionType.Performance]: () => <HomeDesempenho scouts={scouts} erro={resumoModulo.erro} />,
+    [HomeSectionType.PrimaryAction]: () => (
+      <>
+        <HomeAcoesPrincipais />
+        {deveCriarSenhaConta && (
+          <Link to={HOME_NAVIGATION.perfil} className="home-dashboard-alerta-senha">
+            <span><FaEdit aria-hidden="true" /></span>
+            <strong>Crie sua senha para continuar acessando sua conta com segurança.</strong>
+            <em>Criar senha agora</em>
+          </Link>
+        )}
+      </>
+    ),
+    [HomeSectionType.RecentMatches]: () => (
       <HomeUltimosJogos
         ultimasPartidas={ultimasPartidas}
         erro={ultimasPartidasModulo.erro}
       />
+    )
+  };
+
+  return (
+    <section className="pagina home-dashboard">
+      {homeSectionsConfig
+        .filter((secao) => secao.enabled)
+        .map((secao) => {
+          const renderizar = renderizadoresSecao[secao.type];
+          return renderizar ? <Fragment key={secao.type}>{renderizar()}</Fragment> : null;
+        })}
     </section>
   );
 }
@@ -462,6 +484,78 @@ function HomeDesempenho({ scouts, erro }) {
           })}
         </div>
       )}
+    </section>
+  );
+}
+
+function HomeGamificacaoCard({ modulo }) {
+  if (modulo?.erro) {
+    return null;
+  }
+
+  const carregando = Boolean(modulo?.carregando);
+  const dados = obterDadosModulo(modulo, null);
+  const pontuacao = dados?.pontuacao || {};
+  const nivel = dados?.nivel || {};
+  const saldoAtual = Number(pontuacao.saldoAtual ?? 0);
+  const totalAcumulado = Number(pontuacao.totalAcumulado ?? 0);
+  const pontosMinimos = Number(nivel.pontosMinimos ?? 0);
+  const pontosProximaFaixa = nivel.pontosProximaFaixa === null || nivel.pontosProximaFaixa === undefined
+    ? null
+    : Number(nivel.pontosProximaFaixa);
+  const pontosRestantes = Number(nivel.pontosRestantes ?? 0);
+  const progressoPercentual = Math.max(0, Math.min(100, Number(nivel.progressoPercentual ?? 0)));
+  const nivelNome = carregando && !dados ? 'Carregando' : obterTextoLimpo(nivel.nome, 'Bronze');
+  const progressoAtual = pontosProximaFaixa
+    ? Math.max(0, totalAcumulado - pontosMinimos)
+    : totalAcumulado;
+  const progressoMeta = pontosProximaFaixa
+    ? Math.max(0, pontosProximaFaixa - pontosMinimos)
+    : totalAcumulado;
+  const textoProgresso = pontosProximaFaixa
+    ? `${formatarPontosQN(progressoAtual)} / ${formatarPontosQN(progressoMeta)}`
+    : `${formatarPontosQN(totalAcumulado)} acumulados`;
+  const textoProximaFaixa = pontuacao.temAtletaVinculado === false
+    ? 'Vincule seu atleta para acompanhar sua evolução QN.'
+    : pontosProximaFaixa
+      ? `Faltam ${formatarPontosQN(pontosRestantes)} para a próxima faixa`
+      : dados
+        ? 'Faixa máxima alcançada'
+        : 'Comece registrando ou confirmando partidas para evoluir.';
+
+  return (
+    <section className="home-dashboard-gamificacao" aria-labelledby="home-gamificacao-titulo">
+      <div className="home-dashboard-gamificacao-topo">
+        <div>
+          <span className="home-dashboard-gamificacao-selo">Pontos QN</span>
+          <h2 id="home-gamificacao-titulo">Evolução QN</h2>
+          <p>Participe da comunidade e desbloqueie benefícios.</p>
+        </div>
+        <Link to={HOME_NAVIGATION.pontosQN} className="home-dashboard-gamificacao-cta">
+          Ver benefícios
+          <FaChevronRight aria-hidden="true" />
+        </Link>
+      </div>
+
+      <div className="home-dashboard-gamificacao-resumo">
+        <div>
+          <span>Nível atual</span>
+          <strong>{nivelNome}</strong>
+        </div>
+        <div>
+          <span>Saldo promocional</span>
+          <strong>{formatarPontosQN(saldoAtual)} Pontos QN</strong>
+        </div>
+      </div>
+
+      <div className="home-dashboard-gamificacao-progresso" aria-hidden="true">
+        <span style={{ width: `${progressoPercentual}%` }} />
+      </div>
+
+      <footer className="home-dashboard-gamificacao-rodape">
+        <strong>{textoProgresso}</strong>
+        <span>{textoProximaFaixa}</span>
+      </footer>
     </section>
   );
 }

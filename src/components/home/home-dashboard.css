@@ -420,6 +420,142 @@
   line-height: 1.06;
 }
 
+.home-dashboard-gamificacao {
+  display: grid;
+  gap: 0.68rem;
+  padding: clamp(0.78rem, 3vw, 0.95rem);
+  border: 1px solid rgba(255, 179, 0, 0.26);
+  border-radius: 20px;
+  background:
+    linear-gradient(145deg, rgba(255, 179, 0, 0.095), rgba(255, 255, 255, 0.024)),
+    rgba(14, 15, 18, 0.97);
+  box-shadow: 0 0 22px rgba(255, 179, 0, 0.07), 0 16px 34px rgba(0, 0, 0, 0.24);
+}
+
+.home-dashboard-gamificacao-topo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 0.72rem;
+}
+
+.home-dashboard-gamificacao-topo > div {
+  min-width: 0;
+  display: grid;
+  gap: 0.18rem;
+}
+
+.home-dashboard-gamificacao-selo {
+  width: max-content;
+  min-height: 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.24rem 0.52rem;
+  border: 1px solid rgba(255, 179, 0, 0.28);
+  border-radius: 999px;
+  background: rgba(255, 179, 0, 0.1);
+  color: var(--cor-primaria);
+  font-size: 0.7rem;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.home-dashboard-gamificacao h2 {
+  color: var(--cor-texto);
+  font-size: clamp(1.06rem, 4.4vw, 1.35rem);
+  line-height: 1.04;
+}
+
+.home-dashboard-gamificacao p {
+  margin: 0;
+  color: var(--cor-texto-suave);
+  font-size: 0.84rem;
+  font-weight: 750;
+  line-height: 1.22;
+}
+
+.home-dashboard-gamificacao-cta {
+  min-height: 2.15rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.24rem;
+  color: var(--cor-primaria);
+  font-size: 0.8rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.home-dashboard-gamificacao-cta svg {
+  width: 0.72rem;
+  height: 0.72rem;
+}
+
+.home-dashboard-gamificacao-resumo {
+  display: grid;
+  grid-template-columns: minmax(0, 0.78fr) minmax(0, 1fr);
+  gap: 0.52rem;
+}
+
+.home-dashboard-gamificacao-resumo > div {
+  min-width: 0;
+  display: grid;
+  gap: 0.18rem;
+  padding: 0.62rem 0.68rem;
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.042);
+}
+
+.home-dashboard-gamificacao-resumo span,
+.home-dashboard-gamificacao-rodape span {
+  color: var(--cor-texto-suave);
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1.12;
+}
+
+.home-dashboard-gamificacao-resumo strong,
+.home-dashboard-gamificacao-rodape strong {
+  min-width: 0;
+  color: var(--cor-texto);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(0.98rem, 4.2vw, 1.18rem);
+  line-height: 1.04;
+  overflow-wrap: anywhere;
+}
+
+.home-dashboard-gamificacao-resumo > div:last-child strong,
+.home-dashboard-gamificacao-rodape strong {
+  color: #ffd56a;
+}
+
+.home-dashboard-gamificacao-progresso {
+  height: 0.48rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.095);
+}
+
+.home-dashboard-gamificacao-progresso span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--cor-primaria), #ffd56a);
+  box-shadow: 0 0 16px rgba(255, 179, 0, 0.22);
+}
+
+.home-dashboard-gamificacao-rodape {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.home-dashboard-gamificacao-rodape span {
+  text-align: right;
+}
+
 .home-dashboard-jornada {
   display: grid;
   gap: 0.9rem;
@@ -1318,6 +1454,26 @@
     justify-content: flex-start;
   }
 
+  .home-dashboard-gamificacao-topo,
+  .home-dashboard-gamificacao-resumo {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .home-dashboard-gamificacao-cta {
+    justify-content: flex-start;
+    width: max-content;
+  }
+
+  .home-dashboard-gamificacao-rodape {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.28rem;
+  }
+
+  .home-dashboard-gamificacao-rodape span {
+    text-align: left;
+  }
+
   .home-dashboard-timeline-item {
     grid-template-columns: auto minmax(0, 1fr) auto;
   }
@@ -1452,6 +1608,7 @@
 
   .home-dashboard-identidade-card,
   .home-dashboard-confirmacao,
+  .home-dashboard-gamificacao,
   .home-dashboard-alerta-senha,
   .home-dashboard-acoes-principais,
   .home-dashboard-scouts,

@@ -1,6 +1,7 @@
 export const HomeSectionType = Object.freeze({
   Identity: 'identity',
   PendingConfirmation: 'pendingConfirmation',
+  Gamification: 'gamification',
   PrimaryAction: 'primaryAction',
   SecondaryAction: 'secondaryAction',
   Performance: 'performance',
@@ -9,9 +10,9 @@ export const HomeSectionType = Object.freeze({
 
 export const homeSectionsConfig = [
   { type: HomeSectionType.Identity, enabled: true },
-  { type: HomeSectionType.Performance, enabled: true },
   { type: HomeSectionType.PendingConfirmation, enabled: true },
+  { type: HomeSectionType.Gamification, enabled: true },
+  { type: HomeSectionType.Performance, enabled: true },
   { type: HomeSectionType.PrimaryAction, enabled: true },
-  { type: HomeSectionType.SecondaryAction, enabled: true },
   { type: HomeSectionType.RecentMatches, enabled: true }
 ];

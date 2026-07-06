@@ -55,6 +55,25 @@ function criarPartida(overrides = {}) {
   };
 }
 
+function criarGamificacao(overrides = {}) {
+  return {
+    pontuacao: {
+      saldoAtual: 2470,
+      totalAcumulado: 370,
+      totalResgatado: 0,
+      temAtletaVinculado: true
+    },
+    nivel: {
+      nome: 'Bronze',
+      pontosMinimos: 0,
+      pontosProximaFaixa: 500,
+      progressoPercentual: 74,
+      pontosRestantes: 130
+    },
+    ...overrides
+  };
+}
+
 function criarModulos(overrides = {}) {
   return {
     perfil: criarModulo({
@@ -72,11 +91,7 @@ function criarModulos(overrides = {}) {
       aproveitamento: 58,
       sequenciaAtual: 2
     }),
-    gamificacao: criarModulo({
-      nivel: {
-        nome: 'Bronze'
-      }
-    }),
+    gamificacao: criarModulo(criarGamificacao()),
     pendencias: criarModulo({
       total: 0,
       altaPrioridade: 0
@@ -93,6 +108,12 @@ function criarModulos(overrides = {}) {
 function LocalizacaoAtual() {
   const location = useLocation();
   return <span data-testid="rota-atual">{location.pathname}</span>;
+}
+
+function esperarAntes(elementoAnterior, elementoPosterior) {
+  expect(
+    elementoAnterior.compareDocumentPosition(elementoPosterior) & Node.DOCUMENT_POSITION_FOLLOWING
+  ).toBeTruthy();
 }
 
 function renderizarHome({
@@ -229,6 +250,57 @@ describe('HomeDashboard nova experiencia', () => {
     expect(screen.queryByRole('region', { name: /Confirmar partida/i })).not.toBeInTheDocument();
   });
 
+  it('renderiza card de Evolucao QN com nivel, progresso, saldo e CTA', () => {
+    renderizarHome();
+
+    const card = screen.getByRole('region', { name: /Evolução QN/i });
+
+    expect(within(card).getByText('Pontos QN')).toBeInTheDocument();
+    expect(within(card).getByText('Bronze')).toBeInTheDocument();
+    expect(within(card).getByText('370 / 500')).toBeInTheDocument();
+    expect(within(card).getByText('Faltam 130 para a próxima faixa')).toBeInTheDocument();
+    expect(within(card).getByText('2.470 Pontos QN')).toBeInTheDocument();
+    expect(within(card).getByRole('link', { name: /Ver benefícios/i })).toHaveAttribute('href', '/app/pontos-qn');
+  });
+
+  it('mantem gamificacao separada de metricas esportivas', () => {
+    renderizarHome();
+
+    const card = screen.getByRole('region', { name: /Evolução QN/i });
+
+    expect(within(card).queryByText(/Vitórias/i)).not.toBeInTheDocument();
+    expect(within(card).queryByText(/Derrotas/i)).not.toBeInTheDocument();
+    expect(within(card).queryByText(/Aproveitamento/i)).not.toBeInTheDocument();
+    expect(within(card).queryByText(/Ranking/i)).not.toBeInTheDocument();
+    expect(within(card).queryByText(/Scout/i)).not.toBeInTheDocument();
+  });
+
+  it('continua renderizando a Home quando gamificacao esta ausente', () => {
+    renderizarHome({
+      modulos: criarModulos({
+        gamificacao: criarModulo(null)
+      })
+    });
+
+    expect(screen.getByRole('region', { name: /Identidade do usuário/i })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: /Evolução QN/i })).toBeInTheDocument();
+    expect(screen.getByText('Comece registrando ou confirmando partidas para evoluir.')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Registrar partida/i })).toBeInTheDocument();
+  });
+
+  it('oculta fallback agressivo quando gamificacao falha e mantem a Home utilizavel', () => {
+    renderizarHome({
+      modulos: criarModulos({
+        gamificacao: criarModulo(null, { erro: 'API indisponível' })
+      })
+    });
+
+    expect(screen.queryByRole('region', { name: /Evolução QN/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('region', { name: /Identidade do usuário/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Registrar partida/i })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: /Seu desempenho/i })).toBeInTheDocument();
+  });
+
   it('mantem Registrar Partida e Criar Grupo com o mesmo componente visual principal', async () => {
     const usuario = userEvent.setup();
     renderizarHome();
@@ -300,6 +372,46 @@ describe('HomeDashboard nova experiencia', () => {
     expect(screen.getByText('Registre sua primeira partida para iniciar seu histórico.')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Registrar agora/i })).toBeInTheDocument();
   });
+
+  it('respeita a ordem identidade, pendencias, gamificacao, desempenho, acoes e ultimos jogos', () => {
+    const pendencia = {
+      id: 'pendencia-ordem',
+      tipo: 3,
+      partidaId: 'partida-ordem',
+      nomeGrupo: 'Beach Friends',
+      dataPartida: new Date().toISOString(),
+      nomeDuplaAAtleta1: 'Primo',
+      nomeDuplaAAtleta2: 'Gustavo',
+      nomeDuplaBAtleta1: 'Paulo',
+      nomeDuplaBAtleta2: 'Renato',
+      placarDuplaA: 21,
+      placarDuplaB: 18,
+      nomeCriadoPorUsuario: 'Bruno'
+    };
+
+    renderizarHome({
+      modulos: criarModulos({
+        pendencias: criarModulo({
+          total: 1,
+          altaPrioridade: 1,
+          confirmacaoPartidaMaisRecente: pendencia
+        })
+      })
+    });
+
+    const identidade = screen.getByRole('region', { name: /Identidade do usuário/i });
+    const pendencias = screen.getByRole('region', { name: /Confirmar partida/i });
+    const gamificacao = screen.getByRole('region', { name: /Evolução QN/i });
+    const desempenho = screen.getByRole('region', { name: /Seu desempenho/i });
+    const acoes = screen.getByRole('region', { name: /Ações principais/i });
+    const ultimosJogos = screen.getByRole('region', { name: /Últimos jogos/i });
+
+    esperarAntes(identidade, pendencias);
+    esperarAntes(pendencias, gamificacao);
+    esperarAntes(gamificacao, desempenho);
+    esperarAntes(desempenho, acoes);
+    esperarAntes(acoes, ultimosJogos);
+  });
 });
 
 describe('homeSectionsConfig', () => {
@@ -310,10 +422,10 @@ describe('homeSectionsConfig', () => {
 
     expect(secoesAtivas).toEqual([
       HomeSectionType.Identity,
-      HomeSectionType.Performance,
       HomeSectionType.PendingConfirmation,
+      HomeSectionType.Gamification,
+      HomeSectionType.Performance,
       HomeSectionType.PrimaryAction,
-      HomeSectionType.SecondaryAction,
       HomeSectionType.RecentMatches
     ]);
   });

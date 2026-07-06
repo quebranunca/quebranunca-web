@@ -123,8 +123,10 @@ describe('PaginaPontosQN - regras oficiais', () => {
 
     expect(await screen.findByRole('heading', { name: /Como ganhar Pontos QN/i })).toBeInTheDocument();
     expect(screen.getByText(/Pontos QN são pontos promocionais/i)).toBeInTheDocument();
-    expect(screen.getAllByText(/100 QN = R\$ 1/i)).not.toHaveLength(0);
-    expect(screen.getByText(/1000 QN = R\$ 10/i)).toBeInTheDocument();
+    expect(screen.getByText(/Benefícios promocionais/i)).toBeInTheDocument();
+    expect(screen.getByText(/Use seus Pontos QN para desbloquear benefícios da comunidade/i)).toBeInTheDocument();
+    expect(screen.queryByText(/100 QN = R\$ 1/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/1000 QN = R\$ 10/i)).not.toBeInTheDocument();
   });
 
   it('lista formas ativas de ganhar Pontos QN', async () => {
