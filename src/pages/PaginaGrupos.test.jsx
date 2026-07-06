@@ -71,15 +71,18 @@ function criarGrupo(sobrescritas = {}) {
   };
 }
 
-function configurarDashboard(grupos) {
+function configurarDashboard(grupos, extras = {}) {
   gruposServico.obterDashboard.mockResolvedValue({
+    ...extras,
     totais: {
       quantidadeGrupos: grupos.length,
       quantidadeAtletas: 18,
       quantidadePartidas: 29,
-      pendenciasGrupos: 2
+      pendenciasGrupos: 2,
+      ...(extras.totais || {})
     },
-    grupos
+    grupos,
+    gruposPublicos: extras.gruposPublicos || []
   });
 }
 
@@ -175,6 +178,43 @@ describe('PaginaGrupos - home de grupos', () => {
     expect(screen.getByText('Nenhuma atividade recente')).toBeInTheDocument();
     expect(screen.queryByText('Geral')).not.toBeInTheDocument();
     expect(screen.queryByText('Partidas avulsas')).not.toBeInTheDocument();
+  });
+
+  it('lista grupos públicos disponíveis sem misturar com meus grupos', async () => {
+    const usuario = userEvent.setup();
+    configurarDashboard([
+      criarGrupo({
+        grupoId: 'grupo-principal',
+        nome: 'Fechadinho De Quinta'
+      })
+    ], {
+      gruposPublicos: [
+        criarGrupo({
+          grupoId: 'publico-1',
+          nome: 'Arena Forte',
+          privacidade: 'Publico',
+          descricao: 'Grupo focado em diversão e partidas no fim de semana.',
+          quantidadeAtletas: 12,
+          quantidadePartidas: 32,
+          pendencias: 0
+        })
+      ]
+    });
+
+    renderizarPagina();
+
+    const publico = await screen.findByText('Arena Forte');
+    const card = publico.closest('.grupos-home-publico-card');
+
+    expect(card).not.toBeNull();
+    expect(within(card).getByText('A')).toBeInTheDocument();
+    expect(within(card).queryByText('AF')).not.toBeInTheDocument();
+    expect(within(card).getByText('Público')).toBeInTheDocument();
+    expect(within(card).getByText(/Grupo focado em diversão/i)).toBeInTheDocument();
+
+    await usuario.click(within(card).getByRole('button', { name: 'Entrar' }));
+
+    expect(screen.getByTestId('rota-atual')).toHaveTextContent('/grupos/publico-1');
   });
 
   it('cria grupo pelo wizard e abre o grupo criado automaticamente', async () => {

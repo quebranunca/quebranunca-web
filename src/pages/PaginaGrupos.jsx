@@ -60,7 +60,8 @@ const dashboardVazio = {
     quantidadePartidas: 0,
     pendenciasGrupos: 0
   },
-  grupos: []
+  grupos: [],
+  gruposPublicos: []
 };
 
 function formatarUltimaAtividade(data) {
@@ -78,6 +79,34 @@ function obterIdGrupo(grupo) {
 function obterQuantidade(valor) {
   const numero = Number(valor);
   return Number.isFinite(numero) ? numero : 0;
+}
+
+function textoSemAcento(valor) {
+  return String(valor || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
+
+function ehPrivacidadePublica(privacidade) {
+  if (privacidade === true) {
+    return true;
+  }
+
+  return textoSemAcento(privacidade).includes('public');
+}
+
+function ehGrupoPublico(grupo) {
+  return grupo?.publico === true ||
+    grupo?.ehPublico === true ||
+    grupo?.isPublic === true ||
+    ehPrivacidadePublica(grupo?.privacidade);
+}
+
+function obterPendenciasGrupo(grupo) {
+  return obterQuantidade(
+    grupo?.pendencias ??
+    grupo?.quantidadePendencias ??
+    grupo?.pendenciasAbertas ??
+    grupo?.totalPendencias
+  );
 }
 
 function pluralizar(quantidade, singular, plural = `${singular}s`) {
@@ -173,6 +202,24 @@ function obterQuantidadeConvites(dashboard) {
   );
 }
 
+function obterListaDashboard(dashboard, chaves) {
+  const lista = chaves
+    .map((chave) => dashboard?.[chave])
+    .find((valor) => Array.isArray(valor));
+
+  return Array.isArray(lista) ? lista : [];
+}
+
+function obterDescricaoGrupo(grupo) {
+  return normalizarNome(
+    grupo?.descricao ||
+    grupo?.resumo ||
+    grupo?.sobre ||
+    grupo?.mensagem ||
+    ''
+  );
+}
+
 function montarAtividadesRecentes(grupos) {
   return (grupos || []).slice(0, 4).flatMap((grupo) => {
     const grupoId = obterIdGrupo(grupo);
@@ -182,21 +229,21 @@ function montarAtividadesRecentes(grupos) {
       atividades.push({
         id: `${grupoId}-atividade`,
         grupoId,
-        icone: FaGamepad,
-        titulo: obterQuantidade(grupo.quantidadePartidas) > 0 ? 'Partida registrada' : 'Grupo atualizado',
-        descricao: grupo.nome,
+        grupo,
+        grupoNome: grupo.nome,
+        descricao: obterQuantidade(grupo.quantidadePartidas) > 0 ? 'Nova partida registrada' : 'Grupo atualizado',
         data: grupo.ultimaAtividade,
         status: 'Ativo'
       });
     }
 
-    if (obterQuantidade(grupo.pendencias) > 0) {
+    if (obterPendenciasGrupo(grupo) > 0) {
       atividades.push({
         id: `${grupoId}-pendencia`,
         grupoId,
-        icone: FaExclamationTriangle,
-        titulo: 'Pendência aberta',
-        descricao: `${grupo.nome} · ${obterQuantidade(grupo.pendencias)} ${pluralizar(obterQuantidade(grupo.pendencias), 'pendência')}`,
+        grupo,
+        grupoNome: grupo.nome,
+        descricao: `${obterPendenciasGrupo(grupo)} ${pluralizar(obterPendenciasGrupo(grupo), 'pendência')} aberta`,
         data: obterDataGrupo(grupo),
         status: 'Pendente'
       });
@@ -206,9 +253,9 @@ function montarAtividadesRecentes(grupos) {
       atividades.push({
         id: `${grupoId}-grupo`,
         grupoId,
-        icone: FaUsers,
-        titulo: 'Grupo ativo',
-        descricao: grupo.nome,
+        grupo,
+        grupoNome: grupo.nome,
+        descricao: 'Grupo atualizado',
         data: obterDataGrupo(grupo),
         status: 'Grupo'
       });
@@ -282,7 +329,7 @@ function GruposHomeSecaoTitulo({ id, titulo, destaque, acao, onAcao }) {
 }
 
 function GrupoPrivacidadeBadge({ privacidade }) {
-  const publico = String(privacidade || '').toLowerCase().includes('públic');
+  const publico = ehPrivacidadePublica(privacidade);
   const Icone = publico ? FaGlobeAmericas : FaLock;
 
   return (
@@ -298,7 +345,7 @@ function GrupoHomeMetricas({ grupo, compacto = false }) {
     { id: 'atletas', rotulo: 'Atletas', valor: obterQuantidade(grupo?.quantidadeAtletas), icone: FaUsers },
     { id: 'partidas', rotulo: 'Partidas', valor: obterQuantidade(grupo?.quantidadePartidas), icone: FaGamepad }
   ];
-  const pendencias = obterQuantidade(grupo?.pendencias);
+  const pendencias = obterPendenciasGrupo(grupo);
 
   if (pendencias > 0) {
     metricas.push({ id: 'pendencias', rotulo: 'Pendências', valor: pendencias, icone: FaExclamationTriangle });
@@ -306,7 +353,7 @@ function GrupoHomeMetricas({ grupo, compacto = false }) {
 
   return (
     <div
-      className={`grupos-home-metricas ${compacto ? 'grupos-home-metricas-compactas' : ''} ${metricas.length === 2 ? 'grupos-home-metricas-duas' : ''}`}
+      className={`grupos-home-metricas grupos-home-metricas-${metricas.length} ${compacto ? 'grupos-home-metricas-compactas' : ''} ${metricas.length === 2 ? 'grupos-home-metricas-duas' : ''}`}
       aria-label="Indicadores do grupo"
     >
       {metricas.map((metrica) => {
@@ -465,7 +512,6 @@ function GruposHomeAtividadeRecente({ atividades, onAbrirGrupo }) {
 
       <div className="grupos-home-atividade-lista">
         {atividades.length > 0 ? atividades.map((atividade) => {
-          const Icone = atividade.icone;
           return (
             <button
               type="button"
@@ -473,12 +519,15 @@ function GruposHomeAtividadeRecente({ atividades, onAbrirGrupo }) {
               className="grupos-home-atividade-item"
               onClick={() => onAbrirGrupo?.(atividade.grupoId)}
             >
-              <span className="grupos-home-atividade-icone" aria-hidden="true">
-                <Icone />
-              </span>
+              <AvatarGrupo
+                grupo={atividade.grupo}
+                nome={atividade.grupoNome}
+                tamanho="sm"
+                className="grupos-home-atividade-avatar"
+              />
               <span>
-                <strong>{atividade.descricao}</strong>
-                <small>{atividade.titulo}</small>
+                <strong>{atividade.grupoNome}</strong>
+                <small>{atividade.descricao}</small>
               </span>
               <time>{formatarUltimaAtividade(atividade.data)}</time>
               <FaChevronRight aria-hidden="true" />
@@ -507,25 +556,31 @@ function GruposHomePublicos({ grupos, onAbrir }) {
       ) : (
         <div className="grupos-home-publicos-lista">
           {grupos.map((grupo) => {
-          const conteudo = (
-            <>
-              <AvatarGrupo grupo={grupo} nome={grupo.nome} tamanho="md" />
-              <strong>{grupo.nome}</strong>
-              <span>{obterQuantidade(grupo.quantidadeAtletas)} atletas</span>
-              <span>{obterQuantidade(grupo.quantidadePartidas)} partidas</span>
-            </>
-          );
+            const grupoId = obterIdGrupo(grupo);
+            const descricao = obterDescricaoGrupo(grupo) || 'Grupo público aberto para novos atletas.';
 
-          return (
-            <button
-              type="button"
-              key={obterIdGrupo(grupo)}
-              className="grupos-home-publico-card"
-              onClick={() => onAbrir(obterIdGrupo(grupo))}
-            >
-              {conteudo}
-            </button>
-          );
+            return (
+              <article key={grupoId} className="grupos-home-publico-card">
+                <div className="grupos-home-publico-topo">
+                  <AvatarGrupo grupo={grupo} nome={grupo.nome} tamanho="md" />
+                  <div>
+                    <strong>{grupo.nome}</strong>
+                    <GrupoPrivacidadeBadge privacidade="Público" />
+                  </div>
+                </div>
+                <p>{descricao}</p>
+                <div className="grupos-home-publico-metricas" aria-label="Indicadores do grupo público">
+                  <span><FaUsers aria-hidden="true" /> {obterQuantidade(grupo.quantidadeAtletas)}</span>
+                  <span><FaGamepad aria-hidden="true" /> {obterQuantidade(grupo.quantidadePartidas)}</span>
+                  {obterPendenciasGrupo(grupo) > 0 && (
+                    <span><FaExclamationTriangle aria-hidden="true" /> {obterPendenciasGrupo(grupo)}</span>
+                  )}
+                </div>
+                <button type="button" className="grupos-home-publico-entrar" onClick={() => onAbrir(grupoId)}>
+                  Entrar
+                </button>
+              </article>
+            );
           })}
         </div>
       )}
@@ -651,8 +706,10 @@ export function PaginaGrupos() {
 
       const dados = await gruposServico.obterDashboard();
       setDashboard({
+        ...dados,
         totais: dados?.totais || dashboardVazio.totais,
-        grupos: Array.isArray(dados?.grupos) ? dados.grupos : []
+        grupos: Array.isArray(dados?.grupos) ? dados.grupos : [],
+        gruposPublicos: obterListaDashboard(dados, ['gruposPublicos', 'publicos', 'gruposDisponiveis', 'gruposParaExplorar'])
       });
     } catch (error) {
       setDashboard(dashboardVazio);
@@ -988,8 +1045,10 @@ export function PaginaGrupos() {
   const grupoAtual = gruposOrdenados[0] || null;
   const grupoAtualId = grupoAtual ? obterIdGrupo(grupoAtual) : null;
   const outrosGrupos = grupoAtualId ? gruposOrdenados.filter((grupo) => obterIdGrupo(grupo) !== grupoAtualId) : [];
-  const gruposPublicos = gruposOrdenados
-    .filter((grupo) => String(grupo?.privacidade || '').toLowerCase().includes('públic'))
+  const idsMeusGrupos = new Set(gruposOrdenados.map(obterIdGrupo).filter(Boolean));
+  const gruposPublicos = ordenarGruposPorRelevancia(dashboard.gruposPublicos)
+    .filter((grupo) => ehGrupoPublico({ privacidade: 'Público', ...grupo }))
+    .filter((grupo) => !idsMeusGrupos.has(obterIdGrupo(grupo)))
     .slice(0, 6);
   const convitesPendentes = obterQuantidadeConvites(dashboard);
   const atividadesRecentes = montarAtividadesRecentes(gruposOrdenados);

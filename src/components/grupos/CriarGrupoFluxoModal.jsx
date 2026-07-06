@@ -463,7 +463,7 @@ export function CriarGrupoFluxoModal({
           <div className="criar-grupo-etapa-titulo">
             <span>Criar grupo</span>
             <h3>Escolha uma imagem para seu grupo</h3>
-            <p className="criar-grupo-etapa-subtitulo">A imagem é opcional. Você pode manter o avatar padrão com as iniciais.</p>
+            <p className="criar-grupo-etapa-subtitulo">A imagem é opcional. Sem foto, o grupo usa o avatar automático com uma letra.</p>
           </div>
 
           <section className="criar-grupo-foto">
@@ -475,7 +475,7 @@ export function CriarGrupoFluxoModal({
             />
             <div>
               <strong>{previewImagemGrupo ? 'Imagem selecionada' : 'Avatar padrão'}</strong>
-              <span>{previewImagemGrupo ? 'A foto será enviada após a criação do grupo.' : 'Será exibido um avatar com as iniciais do grupo.'}</span>
+              <span>{previewImagemGrupo ? 'A foto será enviada após a criação do grupo.' : 'Será exibido um avatar com uma letra do grupo.'}</span>
               <div className="criar-grupo-foto-acoes">
                 <input
                   ref={inputImagemGrupoRef}
@@ -524,7 +524,7 @@ export function CriarGrupoFluxoModal({
             </div>
             <div className="criar-grupo-resumo-linha">
               <span>Imagem</span>
-              <strong>{previewImagemGrupo ? 'Imagem personalizada' : 'Avatar padrão com iniciais'}</strong>
+              <strong>{previewImagemGrupo ? 'Imagem personalizada' : 'Avatar automático'}</strong>
             </div>
           </div>
         </section>
@@ -594,7 +594,6 @@ export function CriarGrupoFluxoModal({
             title={etapa === 0 ? 'Cancelar' : 'Voltar'}
           >
             <FaChevronLeft aria-hidden="true" />
-            <span>{etapa === 0 ? 'Cancelar' : 'Voltar'}</span>
           </button>
           <div>
             <strong id="criar-grupo-titulo">Criar grupo</strong>
@@ -616,7 +615,6 @@ export function CriarGrupoFluxoModal({
             aria-label="Fechar"
             title="Fechar"
           >
-            <span>Fechar</span>
             <FaTimes aria-hidden="true" />
           </button>
         </header>
