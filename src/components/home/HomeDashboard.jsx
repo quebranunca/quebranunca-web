@@ -23,6 +23,7 @@ import { useAutenticacao } from '../../hooks/useAutenticacao';
 import { obterNomeGrupoPartidaExibicao } from '../../utils/partidas';
 import { formatarData } from '../../utils/formatacao';
 import { AvatarUsuario, obterFotoPerfilAvatar } from '../AvatarUsuario';
+import { Avatar } from '../ui/Avatar';
 
 const HOME_NAVIGATION = Object.freeze({
   meusJogos: '/minhas-partidas',
@@ -520,9 +521,13 @@ function HomeUltimosJogos({ ultimasPartidas, erro }) {
                 to={partida.id ? `${HOME_NAVIGATION.meusJogos}?partidaId=${partida.id}` : HOME_NAVIGATION.meusJogos}
                 className="home-dashboard-timeline-item"
               >
-                <span className="home-dashboard-jogo-avatar" aria-hidden="true">
-                  {obterIniciaisContexto(contexto)}
-                </span>
+                <Avatar
+                  name={contexto}
+                  size="sm"
+                  type="group"
+                  className="home-dashboard-jogo-avatar"
+                  title={contexto}
+                />
                 <div className="home-dashboard-timeline-conteudo">
                   <div>
                     <strong>{contexto}</strong>
@@ -546,23 +551,6 @@ function HomeUltimosJogos({ ultimasPartidas, erro }) {
       )}
     </section>
   );
-}
-
-function obterIniciaisContexto(contexto) {
-  const partes = String(contexto || '')
-    .replace(/^partida avulsa$/i, 'PA')
-    .split(/\s+/)
-    .filter(Boolean);
-
-  if (!partes.length) {
-    return 'QN';
-  }
-
-  return partes
-    .slice(0, 2)
-    .map((parte) => Array.from(parte)[0])
-    .join('')
-    .toLocaleUpperCase('pt-BR');
 }
 
 function HomeDashboardSkeleton() {

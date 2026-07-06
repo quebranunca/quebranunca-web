@@ -1,5 +1,6 @@
 import { FaChevronRight, FaTimes } from 'react-icons/fa';
 import { AvatarGrupo } from '../grupos/AvatarGrupo';
+import { Avatar } from '../ui/Avatar';
 import { obterNomeGrupoPartidaExibicao } from '../../utils/partidas';
 
 function formatarQuantidadeAtletas(valor) {
@@ -66,9 +67,13 @@ export function SeletorGrupoPartida({
               className={`seletor-grupo-partida-item ${!grupoSelecionadoId ? 'ativo' : ''}`}
               onClick={onRemoverGrupo}
             >
-              <span className="seletor-grupo-partida-avatar">
-                <FaTimes aria-hidden="true" />
-              </span>
+              <Avatar
+                name="Partidas avulsas"
+                size="md"
+                type="default"
+                className="seletor-grupo-partida-avatar"
+                title="Partidas avulsas"
+              />
               <span>
                 <strong>Partidas avulsas</strong>
                 <small>Registrar sem grupo</small>

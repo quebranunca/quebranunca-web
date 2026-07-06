@@ -16,6 +16,7 @@ import {
 import { useNavigate, useParams } from 'react-router-dom';
 import { AvatarUsuario, obterFotoPerfilAvatar } from '../components/AvatarUsuario';
 import { AvatarGrupo } from '../components/grupos/AvatarGrupo';
+import { AvatarGroup } from '../components/ui/AvatarGroup';
 import { RegistrarPartidaNovoContainer } from '../containers/partidas/RegistrarPartidaNovoContainer';
 import { useNotification } from '../contexts/NotificationContext';
 import { useAutenticacao } from '../hooks/useAutenticacao';
@@ -154,16 +155,6 @@ function obterPrivacidadeGrupo(privacidade) {
   };
 }
 
-function nomeParaAvatarGrupo(nome) {
-  const conectores = new Set(['de', 'da', 'do', 'das', 'dos', 'e']);
-  const partes = String(nome || '')
-    .trim()
-    .split(/\s+/)
-    .filter((parte) => parte && !conectores.has(parte.toLowerCase()));
-
-  return partes.length > 0 ? partes.join(' ') : nome;
-}
-
 function obterChaveDupla(dupla) {
   return (dupla || [])
     .map((atleta) => atleta?.atletaId || atleta?.id)
@@ -225,19 +216,20 @@ function calcularDuplaDoMomento(partidas = []) {
 }
 
 function AvatarDupla({ atletas }) {
-  const dupla = atletas || [];
+  const dupla = (atletas || []).slice(0, 2).map((atleta) => ({
+    id: atleta.atletaId || atleta.id || nomeAtleta(atleta),
+    name: nomeAtleta(atleta),
+    src: obterFotoPerfilAvatar(atleta),
+    type: 'athlete'
+  }));
 
   return (
-    <div className="grupo-dashboard-dupla-avatares" aria-hidden="true">
-      {dupla.slice(0, 2).map((atleta) => (
-        <AvatarUsuario
-          key={atleta.atletaId || atleta.id || nomeAtleta(atleta)}
-          nome={nomeAtleta(atleta)}
-          fotoPerfilUrl={obterFotoPerfilAvatar(atleta)}
-          tamanho="md"
-        />
-      ))}
-    </div>
+    <AvatarGroup
+      avatars={dupla}
+      size="md"
+      className="grupo-dashboard-dupla-avatares"
+      ariaLabel={`Dupla ${dupla.map((atleta) => atleta.name).join(' e ') || 'sem atletas'}`}
+    />
   );
 }
 
@@ -390,7 +382,7 @@ export function PaginaGrupoDashboard() {
         <div className="grupo-dashboard-hero-topo">
           <AvatarGrupo
             grupo={grupo}
-            nome={nomeParaAvatarGrupo(grupo.nome)}
+            nome={grupo.nome}
             imagemUrl={grupo.imagemUrl}
             tamanho="xl"
             className="grupo-dashboard-hero-avatar"

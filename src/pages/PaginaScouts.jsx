@@ -12,6 +12,7 @@ import {
   FaUsers
 } from 'react-icons/fa';
 import { AvatarUsuario, obterFotoPerfilAvatar } from '../components/AvatarUsuario';
+import { Avatar } from '../components/ui/Avatar';
 import { dashboardServico } from '../services/dashboardServico';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { extrairMensagemErro } from '../utils/erros';
@@ -318,9 +319,13 @@ function ScoutHistory({ partidas }) {
                 to={partida.id ? `/minhas-partidas?partidaId=${partida.id}` : '/minhas-partidas'}
                 className="home-dashboard-timeline-item"
               >
-                <span className="home-dashboard-jogo-avatar" aria-hidden="true">
-                  {obterTextoLimpo(contexto).slice(0, 2).toLocaleUpperCase('pt-BR') || 'QN'}
-                </span>
+                <Avatar
+                  name={contexto}
+                  size="sm"
+                  type="group"
+                  className="home-dashboard-jogo-avatar"
+                  title={contexto}
+                />
                 <div className="home-dashboard-timeline-conteudo">
                   <div>
                     <strong>{contexto}</strong>

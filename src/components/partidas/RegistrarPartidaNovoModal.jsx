@@ -16,6 +16,8 @@ import {
 } from 'react-icons/fa';
 import { AvatarUsuario, obterFotoPerfilAvatar } from '../AvatarUsuario';
 import { AvatarGrupo } from '../grupos/AvatarGrupo';
+import { Avatar } from '../ui/Avatar';
+import { AvatarGroup } from '../ui/AvatarGroup';
 import { CompartilharPartidaBotao } from './CompartilharPartidaBotao';
 import { ConfirmarDuplicidadePartidaModal } from './ConfirmarDuplicidadePartidaModal';
 import { SeletorGrupoPartida } from './SeletorGrupoPartida';
@@ -299,9 +301,13 @@ function ehOpcaoPartidaAvulsa(grupo) {
 function GrupoOpcaoAvatar({ grupo, semGrupo = false }) {
   if (semGrupo) {
     return (
-      <span className="registrar-partida-novo-grupo-opcao-avatar" aria-hidden="true">
-        <FaTimes />
-      </span>
+      <Avatar
+        name="Partidas avulsas"
+        size="md"
+        type="default"
+        className="registrar-partida-novo-grupo-opcao-avatar"
+        title="Partidas avulsas"
+      />
     );
   }
 
@@ -868,17 +874,16 @@ function ResumoDuplasWizard({ dados, selecoes }) {
     return (
       <div className="registrar-partida-novo-dupla-resumo">
         <span>{rotulo}</span>
-        <div className="registrar-partida-novo-dupla-resumo-avatares" aria-hidden="true">
-          {atletas.map((atleta, indice) => (
-            <AvatarUsuario
-              key={`${rotulo}-avatar-${indice}`}
-              nome={atleta.nome}
-              fotoPerfilUrl={atleta.fotoPerfilUrl}
-              tamanho="sm"
-              className="registrar-partida-novo-dupla-resumo-avatar"
-            />
-          ))}
-        </div>
+        <AvatarGroup
+          avatars={atletas.map((atleta) => ({
+            name: atleta.nome,
+            src: atleta.fotoPerfilUrl,
+            type: 'athlete'
+          }))}
+          size="sm"
+          className="registrar-partida-novo-dupla-resumo-avatares"
+          ariaLabel={`${rotulo}: ${atletas.map((atleta) => atleta.nome).join(' e ') || 'sem atletas'}`}
+        />
         {atletas.map((atleta, indice) => (
           <strong key={`${rotulo}-nome-${indice}`}>{atleta.nome}</strong>
         ))}

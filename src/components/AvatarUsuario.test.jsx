@@ -8,13 +8,13 @@ afterEach(() => {
 
 describe('AvatarUsuario', () => {
   it.each([
-    ['Gustavo Drager', 'GD'],
+    ['Gustavo Drager', 'G'],
     ['Vanessa', 'V'],
-    ['Álvaro Núñez', 'ÁN'],
-    ['Maria de Souza', 'MS'],
-    ['', 'QN'],
-    [null, 'QN']
-  ])('gera iniciais estáveis para %s', (nome, esperado) => {
+    ['Álvaro Núñez', 'Á'],
+    ['Maria de Souza', 'M'],
+    ['', 'Q'],
+    [null, 'Q']
+  ])('gera fallback estável de uma letra para %s', (nome, esperado) => {
     expect(obterIniciaisAvatar(nome)).toBe(esperado);
   });
 
@@ -25,19 +25,19 @@ describe('AvatarUsuario', () => {
       'src',
       'https://cdn.quebranunca.test/foto.jpg'
     );
-    expect(screen.queryByText('GD')).not.toBeInTheDocument();
+    expect(screen.queryByText('G')).not.toBeInTheDocument();
   });
 
   it('exibe iniciais quando não há foto', () => {
     render(<AvatarUsuario nome="Gustavo Drager" />);
 
-    expect(screen.getByText('GD')).toBeInTheDocument();
+    expect(screen.getByText('G')).toBeInTheDocument();
   });
 
   it('exibe fallback padrão quando não há nome válido', () => {
     render(<AvatarUsuario nome="  " />);
 
-    expect(screen.getByText('QN')).toBeInTheDocument();
+    expect(screen.getByText('Q')).toBeInTheDocument();
   });
 
   it('volta para iniciais quando a foto falha ao carregar', () => {
@@ -45,6 +45,6 @@ describe('AvatarUsuario', () => {
 
     fireEvent.error(screen.getByAltText('Foto de Gustavo Drager'));
 
-    expect(screen.getByText('GD')).toBeInTheDocument();
+    expect(screen.getByText('G')).toBeInTheDocument();
   });
 });
