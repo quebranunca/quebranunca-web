@@ -27,6 +27,15 @@ export function LayoutPrincipal() {
   const homeDashboardApp = autenticado && location.pathname === '/app';
   const gruposDashboardApp = autenticado && location.pathname === '/grupos';
   const rankingSemTopoApp = autenticado && location.pathname === '/ranking';
+  const paginaComHeroProprioApp = autenticado && [
+    '/app',
+    '/app/pendencias',
+    '/app/perfil',
+    '/app/pontos-qn',
+    '/grupos',
+    '/minhas-partidas',
+    '/ranking'
+  ].includes(location.pathname);
   const itensMenu = autenticado
     ? obterItensNavegacao(usuario, estadoAcesso)
     : obterItensNavegacaoPublica();
@@ -67,6 +76,8 @@ export function LayoutPrincipal() {
         homeDashboardApp ? ' layout-home-dashboard-app' : ''
       }${
         gruposDashboardApp ? ' layout-grupos-dashboard-app' : ''
+      }${
+        paginaComHeroProprioApp ? ' layout-pagina-com-hero-proprio' : ''
       }${
         rankingSemTopoApp ? ' layout-ranking-sem-topo' : ''
       }`}

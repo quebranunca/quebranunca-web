@@ -161,6 +161,18 @@ textarea {
   display: none;
 }
 
+.layout-pagina-com-hero-proprio {
+  gap: 0;
+}
+
+.layout-pagina-com-hero-proprio > .topo-app {
+  display: none;
+}
+
+.layout-pagina-com-hero-proprio .conteudo-principal {
+  padding-top: 0;
+}
+
 .topo-app {
   flex: 0 0 auto;
   display: grid;
