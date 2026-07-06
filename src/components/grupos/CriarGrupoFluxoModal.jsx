@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   FaCheck,
   FaChevronLeft,
@@ -84,6 +85,7 @@ export function CriarGrupoFluxoModal({
   const [modalConfirmacaoSaidaAberto, setModalConfirmacaoSaidaAberto] = useState(false);
   const inputImagemGrupoRef = useRef(null);
   const modalRef = useRef(null);
+  const alturaViewportBaseRef = useRef(0);
   const nomeNormalizado = normalizarNome(formulario.nome);
   const temDadosPreenchidos = Boolean(
     nomeNormalizado ||
@@ -126,10 +128,20 @@ export function CriarGrupoFluxoModal({
 
       window.cancelAnimationFrame(rafId);
       rafId = window.requestAnimationFrame(() => {
+        const alturaVisual = viewport?.height || window.innerHeight;
+        alturaViewportBaseRef.current = Math.max(
+          alturaViewportBaseRef.current,
+          window.innerHeight,
+          alturaVisual
+        );
         const offset = viewport
           ? Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop)
           : 0;
-        const tecladoAberto = offset > 90;
+        const reducaoViewport = Math.max(0, alturaViewportBaseRef.current - alturaVisual);
+        const ativo = document.activeElement;
+        const editavelFocado = campoEditavel(ativo) && modal.contains(ativo);
+        const tecladoAberto = editavelFocado && (offset > 90 || reducaoViewport > 120);
+        modal.style.setProperty('--criar-grupo-viewport-height', `${Math.round(alturaVisual)}px`);
         modal.dataset.tecladoAberto = tecladoAberto ? 'true' : 'false';
       });
     }
@@ -148,6 +160,8 @@ export function CriarGrupoFluxoModal({
       window.removeEventListener('orientationchange', atualizarViewport);
       document.removeEventListener('focusin', atualizarViewport);
       document.removeEventListener('focusout', atualizarViewport);
+      modal?.style.removeProperty('--criar-grupo-viewport-height');
+      modal?.removeAttribute('data-teclado-aberto');
     };
   }, [aberto]);
 
@@ -184,8 +198,26 @@ export function CriarGrupoFluxoModal({
   function rolarCampoParaVisivel(evento) {
     const campo = evento.currentTarget;
     window.setTimeout(() => {
+      const container = corpoRef.current;
+
+      if (container?.contains(campo)) {
+        const areaUtil = container.getBoundingClientRect();
+        const campoBounds = campo.getBoundingClientRect();
+        const destino = container.scrollTop + campoBounds.top - areaUtil.top - 12;
+
+        if (typeof container.scrollTo === 'function') {
+          container.scrollTo({
+            top: Math.max(0, destino),
+            behavior: 'smooth'
+          });
+        } else {
+          container.scrollTop = Math.max(0, destino);
+        }
+        return;
+      }
+
       if (typeof campo?.scrollIntoView === 'function') {
-        campo.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'smooth' });
+        campo.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
       }
     }, 120);
   }
@@ -410,7 +442,7 @@ export function CriarGrupoFluxoModal({
               maxLength="50"
             />
             <small className="criar-grupo-contador">
-              {formulario.nome.length} de 50 caracteres
+              {formulario.nome.length}/50
             </small>
           </label>
         </section>
@@ -580,8 +612,9 @@ export function CriarGrupoFluxoModal({
   }
 
   const botaoPrimarioDesabilitado = salvando || verificando || (etapa === 0 && !nomeNormalizado);
+  const tituloModal = etapa === 3 ? 'Confirmar grupo' : 'Criar grupo';
 
-  return (
+  const conteudoModal = (
     <div className="modal-sobreposicao criar-grupo-sobreposicao" role="presentation">
       <div ref={modalRef} className="criar-grupo-modal" role="dialog" aria-modal="true" aria-labelledby="criar-grupo-titulo">
         <header className="criar-grupo-header">
@@ -596,7 +629,7 @@ export function CriarGrupoFluxoModal({
             <FaChevronLeft aria-hidden="true" />
           </button>
           <div>
-            <strong id="criar-grupo-titulo">Criar grupo</strong>
+            <strong id="criar-grupo-titulo">{tituloModal}</strong>
             <span>{etapasCriacaoGrupo[etapa]?.titulo || 'Grupo'}</span>
             <div className="criar-grupo-progresso" aria-label={`Etapa ${etapa + 1} de ${etapasCriacaoGrupo.length}`}>
               <div className="criar-grupo-pontos" aria-hidden="true">
@@ -604,7 +637,7 @@ export function CriarGrupoFluxoModal({
                   <span key={item.id} className={indice <= etapa ? 'ativo' : ''} />
                 ))}
               </div>
-              <small>{etapa + 1} de {etapasCriacaoGrupo.length}</small>
+              <small>Etapa {etapa + 1} de {etapasCriacaoGrupo.length}</small>
             </div>
           </div>
           <button
@@ -721,4 +754,6 @@ export function CriarGrupoFluxoModal({
       </div>
     </div>
   );
+
+  return createPortal(conteudoModal, document.body);
 }
