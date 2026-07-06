@@ -15353,19 +15353,39 @@ a.botao-terciario:active {
 
 @media (max-width: 719px) {
   body.criar-grupo-wizard-aberto .modal-sobreposicao.criar-grupo-sobreposicao {
+    position: fixed;
+    top: env(safe-area-inset-top, 0px);
+    left: 0;
+    right: 0;
+    bottom: 0;
     align-items: flex-start;
-    justify-content: center;
-    padding: calc(0.46rem + env(safe-area-inset-top, 0px)) max(0.5rem, env(safe-area-inset-right, 0px)) max(0.5rem, env(safe-area-inset-bottom, 0px)) max(0.5rem, env(safe-area-inset-left, 0px));
+    justify-content: flex-start;
+    min-height: 0;
+    padding: 0 max(0.5rem, env(safe-area-inset-right, 0px)) max(0.5rem, env(safe-area-inset-bottom, 0px)) max(0.5rem, env(safe-area-inset-left, 0px));
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
   }
 
   body.criar-grupo-wizard-aberto .criar-grupo-modal {
+    position: fixed;
+    top: env(safe-area-inset-top, 0px);
+    left: 0;
+    right: 0;
+    margin: 0 auto;
     width: min(100%, calc(100vw - 1rem));
     height: auto;
-    max-height: calc(var(--criar-grupo-viewport-height, 100dvh) - 1rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
-    margin-top: 0;
+    max-height: 100vh;
+    max-height: 100dvh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    transform: none;
   }
 
   body.criar-grupo-wizard-aberto .criar-grupo-modal[data-teclado-aberto="true"] {
-    max-height: calc(var(--criar-grupo-viewport-height, 100dvh) - 0.72rem - env(safe-area-inset-top, 0px));
+    max-height: 100vh;
+    max-height: 100dvh;
   }
 }

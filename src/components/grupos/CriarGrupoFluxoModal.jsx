@@ -120,6 +120,7 @@ export function CriarGrupoFluxoModal({
     const viewport = window.visualViewport;
     const modal = modalRef.current;
     let rafId = 0;
+    let timeoutScrollId = 0;
 
     function atualizarViewport() {
       if (!modal) {
@@ -141,8 +142,14 @@ export function CriarGrupoFluxoModal({
         const ativo = document.activeElement;
         const editavelFocado = campoEditavel(ativo) && modal.contains(ativo);
         const tecladoAberto = editavelFocado && (offset > 90 || reducaoViewport > 120);
-        modal.style.setProperty('--criar-grupo-viewport-height', `${Math.round(alturaVisual)}px`);
         modal.dataset.tecladoAberto = tecladoAberto ? 'true' : 'false';
+
+        if (tecladoAberto && typeof ativo?.scrollIntoView === 'function') {
+          window.clearTimeout(timeoutScrollId);
+          timeoutScrollId = window.setTimeout(() => {
+            ativo.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'smooth' });
+          }, 160);
+        }
       });
     }
 
@@ -155,12 +162,12 @@ export function CriarGrupoFluxoModal({
 
     return () => {
       window.cancelAnimationFrame(rafId);
+      window.clearTimeout(timeoutScrollId);
       viewport?.removeEventListener('resize', atualizarViewport);
       viewport?.removeEventListener('scroll', atualizarViewport);
       window.removeEventListener('orientationchange', atualizarViewport);
       document.removeEventListener('focusin', atualizarViewport);
       document.removeEventListener('focusout', atualizarViewport);
-      modal?.style.removeProperty('--criar-grupo-viewport-height');
       modal?.removeAttribute('data-teclado-aberto');
     };
   }, [aberto]);
@@ -197,29 +204,39 @@ export function CriarGrupoFluxoModal({
 
   function rolarCampoParaVisivel(evento) {
     const campo = evento.currentTarget;
-    window.setTimeout(() => {
+
+    function alinharCampo(comportamento = 'smooth') {
+      if (!campo || !modalRef.current?.contains(campo)) {
+        return;
+      }
+
+      if (typeof campo.scrollIntoView === 'function') {
+        campo.scrollIntoView({ block: 'center', inline: 'nearest', behavior: comportamento });
+      }
+
       const container = corpoRef.current;
 
       if (container?.contains(campo)) {
         const areaUtil = container.getBoundingClientRect();
         const campoBounds = campo.getBoundingClientRect();
-        const destino = container.scrollTop + campoBounds.top - areaUtil.top - 12;
+        const centroCampo = campoBounds.top + campoBounds.height / 2;
+        const centroArea = areaUtil.top + areaUtil.height / 2;
+        const deslocamento = centroCampo - centroArea;
 
-        if (typeof container.scrollTo === 'function') {
-          container.scrollTo({
-            top: Math.max(0, destino),
-            behavior: 'smooth'
-          });
-        } else {
-          container.scrollTop = Math.max(0, destino);
+        if (Math.abs(deslocamento) < 8) {
+          return;
         }
-        return;
-      }
 
-      if (typeof campo?.scrollIntoView === 'function') {
-        campo.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+        if (typeof container.scrollBy === 'function') {
+          container.scrollBy({ top: deslocamento, behavior: comportamento });
+        } else {
+          container.scrollTop += deslocamento;
+        }
       }
-    }, 120);
+    }
+
+    window.setTimeout(() => alinharCampo('smooth'), 120);
+    window.setTimeout(() => alinharCampo('auto'), 320);
   }
 
   async function fecharTecladoAntesDaAcao() {

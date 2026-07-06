@@ -26,19 +26,20 @@ body.criar-grupo-wizard-aberto .layout-com-bottom-nav {
     rgba(8, 9, 11, 0.82);
   backdrop-filter: blur(12px);
   overflow: hidden;
+  overscroll-behavior: contain;
   min-height: 100vh;
   min-height: 100dvh;
 }
 
 .criar-grupo-modal {
-  --criar-grupo-viewport-height: 100dvh;
   position: relative;
   width: min(100%, 430px);
   height: auto;
-  max-height: calc(var(--criar-grupo-viewport-height, 100dvh) - 1.2rem);
+  max-height: calc(100dvh - 1.2rem);
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  overscroll-behavior: contain;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 0.95rem;
   background: linear-gradient(180deg, rgba(27, 29, 33, 0.98), rgba(11, 12, 14, 0.99));
@@ -761,27 +762,53 @@ body.criar-grupo-wizard-aberto .layout-com-bottom-nav {
 
 @media (max-width: 719px) {
   .criar-grupo-sobreposicao {
+    position: fixed;
+    top: env(safe-area-inset-top, 0px);
+    left: 0;
+    right: 0;
+    bottom: 0;
     align-items: flex-start;
-    justify-content: center;
-    padding: calc(0.46rem + env(safe-area-inset-top, 0px)) max(0.5rem, env(safe-area-inset-right, 0px)) max(0.5rem, env(safe-area-inset-bottom, 0px)) max(0.5rem, env(safe-area-inset-left, 0px));
+    justify-content: flex-start;
+    min-height: 0;
+    padding: 0 max(0.5rem, env(safe-area-inset-right, 0px)) max(0.5rem, env(safe-area-inset-bottom, 0px)) max(0.5rem, env(safe-area-inset-left, 0px));
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
   }
 
   .criar-grupo-modal {
+    position: fixed;
+    top: env(safe-area-inset-top, 0px);
+    left: 0;
+    right: 0;
+    margin: 0 auto;
     width: min(100%, calc(100vw - 1rem));
     min-height: 0;
     height: auto;
-    max-height: calc(var(--criar-grupo-viewport-height, 100dvh) - 1rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    max-height: 100vh;
+    max-height: 100dvh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    transform: none;
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 0.9rem;
   }
 
   .criar-grupo-modal[data-teclado-aberto="true"] {
-    max-height: calc(var(--criar-grupo-viewport-height, 100dvh) - 0.72rem - env(safe-area-inset-top, 0px));
+    max-height: 100vh;
+    max-height: 100dvh;
   }
 
   .criar-grupo-header {
     grid-template-columns: 2.32rem minmax(0, 1fr) 2.32rem;
+    padding-top: 0.42rem;
     padding-inline: max(0.68rem, env(safe-area-inset-left, 0px)) max(0.68rem, env(safe-area-inset-right, 0px));
+  }
+
+  .criar-grupo-modal[data-teclado-aberto="true"] .criar-grupo-header {
+    padding-top: 0.32rem;
   }
 
   .criar-grupo-header-acao {
