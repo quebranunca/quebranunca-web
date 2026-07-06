@@ -1369,6 +1369,7 @@ function TelaSucesso({ sucesso, grupo, onFechar }) {
               texto="Compartilhar resultado"
               ariaLabel="Compartilhar resultado"
               title="Compartilhar resultado"
+              registradoPor={partida?.nomeCriadoPorUsuario || resumo?.registradoPor || resumo?.nomeCriadoPorUsuario}
             />
           </div>
         )}

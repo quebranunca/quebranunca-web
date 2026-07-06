@@ -1094,7 +1094,10 @@ export function PaginaPartidasCampeonato() {
                 </div>
                 {partida.status === 2 && (
                   <div className="acoes-item">
-                    <CompartilharPartidaBotao partidaId={partida.id} />
+                    <CompartilharPartidaBotao
+                      partidaId={partida.id}
+                      registradoPor={partida.nomeCriadoPorUsuario}
+                    />
                   </div>
                 )}
               </article>

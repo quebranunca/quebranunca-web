@@ -34,6 +34,8 @@ async function registrarPontuacaoCompartilhamento(partidaId) {
 export function CompartilharPartidaBotao({
   partidaId,
   url,
+  registradoPor,
+  dadosComplementares,
   className = 'botao-compartilhar-partida botao-compacto',
   texto = 'Compartilhar',
   ariaLabel = 'Compartilhar partida',
@@ -55,7 +57,11 @@ export function CompartilharPartidaBotao({
 
     try {
       const dadosCompartilhamento = await partidasServico.obterCompartilhamento(partidaId);
-      setDados(dadosCompartilhamento);
+      setDados({
+        ...(dadosComplementares || {}),
+        ...(registradoPor ? { registradoPor } : {}),
+        ...dadosCompartilhamento
+      });
 
       const nomeArquivo = `quebranunca-partida-${partidaId}.png`;
       const resultado = await compartilharImagem({

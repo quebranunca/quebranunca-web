@@ -202,7 +202,11 @@ export function FeedPartidaCard({ partida, variante = 'padrao' }) {
         </div>
 
         <div className="feed-partida-acoes">
-          <CompartilharPartidaBotao partidaId={partida.partidaId} url={`/feed?partida=${partida.partidaId}`} />
+          <CompartilharPartidaBotao
+            partidaId={partida.partidaId}
+            url={`/feed?partida=${partida.partidaId}`}
+            registradoPor={partida.nomeCriadoPorUsuario || partida.registradoPor}
+          />
           <Link to="/partidas/consulta" className="botao-secundario botao-compacto">
             Detalhes
             <FaChevronRight aria-hidden="true" />

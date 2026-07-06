@@ -260,6 +260,7 @@ export function PaginaConsultaPartidas() {
                       <CompartilharPartidaBotao
                         partidaId={partida.id}
                         url={`/partidas/consulta?grupoId=${partida.grupoId || grupoId}`}
+                        registradoPor={partida.nomeCriadoPorUsuario}
                       />
                     )}
                     {podeEditarPartida(partida, usuario) && (

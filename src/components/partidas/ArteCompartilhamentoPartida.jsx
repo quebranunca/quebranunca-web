@@ -1,8 +1,7 @@
 import { forwardRef } from 'react';
-import { FaTrophy } from 'react-icons/fa';
+import { FaCalendarAlt, FaMapMarkerAlt, FaTrophy, FaUser } from 'react-icons/fa';
 import { LogoQNF } from '../branding/LogoQNF';
 import { obterNomeExibicaoAtletaPerfil } from '../../utils/atletaUtils';
-import { formatarDataHoraCurta } from '../../utils/formatacao';
 import { obterNomeGrupoPartidaExibicao } from '../../utils/partidas';
 
 function obterNomeAtleta(atleta) {
@@ -66,6 +65,52 @@ function obterPlacar(dados) {
   return { dupla1: placar1, dupla2: placar2 };
 }
 
+function obterTextoLimpo(...valores) {
+  return valores
+    .map((valor) => String(valor || '').trim())
+    .find(Boolean) || '';
+}
+
+function formatarDataStory(data) {
+  if (!data) {
+    return 'Data a definir';
+  }
+
+  const referencia = new Date(data);
+  if (Number.isNaN(referencia.getTime())) {
+    return 'Data a definir';
+  }
+
+  const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+  const dia = String(referencia.getDate()).padStart(2, '0');
+  const mes = meses[referencia.getMonth()] || '';
+  const ano = referencia.getFullYear();
+  const hora = String(referencia.getHours()).padStart(2, '0');
+  const minuto = String(referencia.getMinutes()).padStart(2, '0');
+
+  return `${dia} ${mes} ${ano} • ${hora}:${minuto}`;
+}
+
+function obterNomeRegistrador(dados) {
+  return obterTextoLimpo(
+    dados?.registradoPor,
+    dados?.registradoPorNome,
+    dados?.nomeRegistrador,
+    dados?.nomeCriadoPorUsuario,
+    dados?.criadoPorNome,
+    dados?.usuarioCriadorNome
+  );
+}
+
+function obterQrCodeSrc(dados) {
+  return obterTextoLimpo(
+    dados?.qrCodeDataUrl,
+    dados?.qrCodeUrl,
+    dados?.qrCodeImagemUrl,
+    dados?.qrCode
+  );
+}
+
 function LinhaAtletaStory({ atleta, destaque = false }) {
   return (
     <strong className={`arte-story-atleta ${destaque ? 'arte-story-atleta-destaque' : ''}`}>
@@ -84,6 +129,22 @@ function ListaAtletasStory({ atletas, destaque = false }) {
   );
 }
 
+function MetaStory({ icone: Icone, rotulo, valor }) {
+  if (!valor) {
+    return null;
+  }
+
+  return (
+    <span className="arte-story-meta-item">
+      <Icone aria-hidden="true" />
+      <span>
+        <em>{rotulo}</em>
+        <strong>{valor}</strong>
+      </span>
+    </span>
+  );
+}
+
 export const ArteCompartilhamentoPartida = forwardRef(function ArteCompartilhamentoPartida(
   { dados },
   ref
@@ -97,15 +158,18 @@ export const ArteCompartilhamentoPartida = forwardRef(function ArteCompartilhame
   const placarVencedores = duplaVencedora === 2 ? placar?.dupla2 : placar?.dupla1;
   const placarAdversarios = duplaVencedora === 2 ? placar?.dupla1 : placar?.dupla2;
   const grupoNome = obterNomeGrupoPartidaExibicao(dados?.grupoNome);
-  const dataHora = dados?.dataPartida ? formatarDataHoraCurta(dados.dataPartida) : 'Data a definir';
+  const dataHora = formatarDataStory(dados?.dataPartida);
+  const registrador = obterNomeRegistrador(dados);
+  const qrCodeSrc = obterQrCodeSrc(dados);
 
   return (
     <article ref={ref} className="arte-compartilhamento-partida arte-compartilhamento-partida-story">
+      <div className="arte-story-linhas-quadra" aria-hidden="true" />
       <div className="arte-story-areia" aria-hidden="true" />
 
       <header className="arte-story-topo">
         <LogoQNF variante="light" className="arte-story-logo" />
-        <span>PARTIDA REGISTRADA</span>
+        <span><i aria-hidden="true" />PARTIDA REGISTRADA</span>
       </header>
 
       <main className="arte-story-conteudo">
@@ -117,15 +181,17 @@ export const ArteCompartilhamentoPartida = forwardRef(function ArteCompartilhame
           <ListaAtletasStory atletas={vencedores} destaque />
         </section>
 
-        {placar && (
+        {placar ? (
           <div className="arte-story-placar" aria-label="Placar da partida">
             <strong>{placarVencedores}</strong>
             <span>x</span>
             <strong>{placarAdversarios}</strong>
           </div>
+        ) : (
+          <div className="arte-story-versus arte-story-versus-sem-placar">VS</div>
         )}
 
-        <div className="arte-story-versus">VS</div>
+        {placar && <div className="arte-story-versus">VS</div>}
 
         <section className="arte-story-adversarios" aria-label="Adversários da partida">
           <ListaAtletasStory atletas={adversarios} />
@@ -133,11 +199,26 @@ export const ArteCompartilhamentoPartida = forwardRef(function ArteCompartilhame
       </main>
 
       <footer className="arte-story-rodape">
-        <div>
-          <span>{grupoNome}</span>
-          <strong>{dataHora}</strong>
+        <div className="arte-story-metadados" aria-label="Dados da partida">
+          <MetaStory icone={FaMapMarkerAlt} rotulo="Grupo" valor={grupoNome} />
+          <MetaStory icone={FaCalendarAlt} rotulo="Data" valor={dataHora} />
+          <MetaStory icone={FaUser} rotulo="Registrado por" valor={registrador} />
         </div>
-        <p>O FUTEVÔLEI NÃO ACABA NA AREIA.</p>
+
+        <div className="arte-story-assinatura">
+          {qrCodeSrc && (
+            <img
+              className="arte-story-qr"
+              src={qrCodeSrc}
+              alt=""
+              aria-hidden="true"
+            />
+          )}
+          <div>
+            <p>O FUTEVÔLEI NÃO ACABA NA AREIA.</p>
+            <span>app.quebranunca.com.br</span>
+          </div>
+        </div>
       </footer>
     </article>
   );

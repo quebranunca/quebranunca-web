@@ -898,7 +898,12 @@ function CardMinhaPartida({ partida, atletaLogadoId, filtroAtivo, onDetalhes, on
               Editar
             </button>
           )}
-          {podeCompartilhar && <CompartilharPartidaBotao partidaId={partida.id} />}
+          {podeCompartilhar && (
+            <CompartilharPartidaBotao
+              partidaId={partida.id}
+              registradoPor={partida.nomeCriadoPorUsuario}
+            />
+          )}
         </>
       }
       onDetalhes={onDetalhes}
@@ -991,7 +996,13 @@ function DetalhesPartidaModal({ partida, atletaLogadoId, onFechar, onEditar, onE
               Editar
             </button>
           )}
-          {podeCompartilhar && <CompartilharPartidaBotao partidaId={partida.id} className="botao-secundario botao-compartilhar-partida" />}
+          {podeCompartilhar && (
+            <CompartilharPartidaBotao
+              partidaId={partida.id}
+              className="botao-secundario botao-compartilhar-partida"
+              registradoPor={partida.nomeCriadoPorUsuario}
+            />
+          )}
           {onExcluir && (
             <button
               type="button"
