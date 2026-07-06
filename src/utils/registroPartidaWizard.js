@@ -37,7 +37,48 @@ function obterNomeAtletaRegistro(atleta) {
   );
 }
 
-export function obterAtletaConsolidadoRegistro(dados, selecoes, campo, { exigirSelecao = true } = {}) {
+function obterNomesPossiveisAtletaRegistro(atleta, nomeDigitado) {
+  const nomes = [
+    nomeDigitado,
+    atleta?.apelido,
+    atleta?.apelidoAtleta,
+    atleta?.nome,
+    atleta?.nomeAtleta,
+    atleta?.atletaNome,
+    atleta?.nomeCompleto
+  ];
+  const vistos = new Set();
+
+  return nomes
+    .map(limparTextoRegistro)
+    .filter(Boolean)
+    .filter((nome) => {
+      const chave = normalizarTexto(nome);
+      if (!chave || vistos.has(chave)) {
+        return false;
+      }
+
+      vistos.add(chave);
+      return true;
+    });
+}
+
+function existeNomeAtletaRepetido(atletas) {
+  const vistos = new Set();
+
+  return atletas.some((atleta) => {
+    const nomes = Array.isArray(atleta?.nomesNormalizados) && atleta.nomesNormalizados.length > 0
+      ? atleta.nomesNormalizados
+      : [normalizarTexto(atleta?.nome)];
+    const nomesValidos = nomes.filter(Boolean);
+    const repetido = nomesValidos.some((nome) => vistos.has(nome));
+
+    nomesValidos.forEach((nome) => vistos.add(nome));
+    return repetido;
+  });
+}
+
+export function obterAtletaConsolidadoRegistro(dados, selecoes, campo, { exigirSelecao = false } = {}) {
   const selecao = selecoes?.[campo] || null;
   const id = obterIdAtletaRegistro(selecao);
   const nomeSelecao = obterNomeAtletaRegistro(selecao);
@@ -55,6 +96,7 @@ export function obterAtletaConsolidadoRegistro(dados, selecoes, campo, { exigirS
   return {
     id,
     nome,
+    nomesNormalizados: obterNomesPossiveisAtletaRegistro(selecao, nomeDigitado).map(normalizarTexto),
     fotoPerfilUrl: selecao?.fotoPerfilUrl || selecao?.avatarUrl || '',
     selecao
   };
@@ -90,8 +132,7 @@ export function validarDuplaConsolidada(dados, selecoes, prefixo, rotulo, opcoes
     return `Não é permitido repetir atleta na ${rotulo}.`;
   }
 
-  const nomes = atletas.map((atleta) => normalizarTexto(atleta.nome));
-  if (new Set(nomes).size !== nomes.length) {
+  if (existeNomeAtletaRepetido(atletas)) {
     return `Não é permitido repetir atleta na ${rotulo}.`;
   }
 
@@ -117,8 +158,7 @@ export function validarAtletasConsolidados(dados, selecoes, opcoes = {}) {
     return 'Não é permitido repetir atleta na mesma partida.';
   }
 
-  const nomes = atletas.todos.map((atleta) => normalizarTexto(atleta.nome));
-  if (new Set(nomes).size !== nomes.length) {
+  if (existeNomeAtletaRepetido(atletas.todos)) {
     return 'Não é permitido repetir atleta na mesma partida.';
   }
 
@@ -197,7 +237,7 @@ export function validarRevisaoPartida({
   regraPartida = null,
   contexto = {},
   grupo = null,
-  exigirSelecaoAtletas = true
+  exigirSelecaoAtletas = false
 }) {
   return validarContextoRevisaoPartida({ contexto, grupo })
     || validarAtletasConsolidados(dados, selecoes, { exigirSelecao: exigirSelecaoAtletas })

@@ -14,13 +14,13 @@ const etapas = [
 const dadosInvalidos = {
   dupla1: {
     atletaDireita: 'Primo',
-    atletaEsquerda: 'gusta',
+    atletaEsquerda: '   ',
     pontos: '18'
   },
   dupla2: {
     atletaDireita: 'Bruno',
     atletaEsquerda: 'Caio',
-    pontos: ''
+    pontos: '16'
   },
   resultado: {
     modo: 'PlacarDetalhado',
@@ -59,6 +59,30 @@ const selecoesValidas = {
   'dupla2.atletaEsquerda': { id: 'a4', nome: 'Caio' }
 };
 
+const dadosComManualValido = {
+  dupla1: {
+    atletaDireita: 'Primo',
+    atletaEsquerda: 'Ale 05',
+    pontos: '18'
+  },
+  dupla2: {
+    atletaDireita: 'Bruno',
+    atletaEsquerda: 'Ze 07',
+    pontos: '16'
+  },
+  resultado: {
+    modo: 'PlacarDetalhado',
+    duplaVencedora: ''
+  }
+};
+
+const selecoesComManualValido = {
+  'dupla1.atletaDireita': { id: 'a1', nome: 'Primo' },
+  'dupla1.atletaEsquerda': null,
+  'dupla2.atletaDireita': { id: 'a3', nome: 'Bruno' },
+  'dupla2.atletaEsquerda': null
+};
+
 beforeAll(() => {
   window.matchMedia = window.matchMedia || vi.fn().mockImplementation(() => ({
     matches: false,
@@ -85,9 +109,9 @@ function renderizarModal(props = {}) {
       dados={dadosInvalidos}
       selecoes={selecoesParciais}
       resumo={{
-        dupla1: ['Primo', 'gusta'],
+        dupla1: ['Primo', ''],
         dupla2: ['Bruno', 'Caio'],
-        placar: { dupla1: '18', dupla2: '' },
+        placar: { dupla1: '18', dupla2: '16' },
         tipoRegistroResultado: 'PlacarDetalhado',
         duplaVencedora: '',
         data: new Date('2026-07-05T12:00:00.000Z'),
@@ -129,7 +153,7 @@ function renderizarModal(props = {}) {
 }
 
 describe('RegistrarPartidaNovoModal - revisão', () => {
-  it('não renderiza resumo parcial e mostra ação clara quando há atleta sem seleção consolidada', () => {
+  it('não renderiza resumo parcial e mostra ação clara quando falta atleta preenchido', () => {
     const onIrParaEtapa = vi.fn();
 
     renderizarModal({ onIrParaEtapa });
@@ -147,7 +171,30 @@ describe('RegistrarPartidaNovoModal - revisão', () => {
     expect(onIrParaEtapa).toHaveBeenCalledWith('dupla1');
   });
 
-  it('bloqueia continuar na Dupla 1 quando há apenas texto digitado', () => {
+  it('renderiza revisão com participantes manuais e habilita registrar', () => {
+    renderizarModal({
+      dados: dadosComManualValido,
+      selecoes: selecoesComManualValido,
+      resumo: {
+        dupla1: ['Primo', 'Ale 05'],
+        dupla2: ['Bruno', 'Ze 07'],
+        placar: { dupla1: '18', dupla2: '16' },
+        tipoRegistroResultado: 'PlacarDetalhado',
+        duplaVencedora: '',
+        data: new Date('2026-07-05T12:00:00.000Z'),
+        contexto: { grupoId: null }
+      }
+    });
+
+    expect(screen.queryByText('Volte e informe os quatro atletas da partida.')).not.toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(screen.getByText('VENCEDORES')).toBeInTheDocument();
+    expect(screen.getByText('Ale 05')).toBeInTheDocument();
+    expect(screen.getByText('Ze 07')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Registrar partida' })).toBeEnabled();
+  });
+
+  it('habilita continuar na Dupla 1 quando há texto manual preenchido', () => {
     renderizarModal({
       etapaAtual: etapas[1],
       indiceEtapa: 1,
@@ -156,6 +203,27 @@ describe('RegistrarPartidaNovoModal - revisão', () => {
         dupla1: {
           ...dadosValidos.dupla1,
           atletaEsquerda: 'gusta'
+        }
+      },
+      selecoes: {
+        ...selecoesValidas,
+        'dupla1.atletaEsquerda': null
+      }
+    });
+
+    expect(screen.getByRole('heading', { name: 'Quem jogou na Dupla 1?' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Continuar' })).toBeEnabled();
+  });
+
+  it('bloqueia continuar na Dupla 1 quando texto manual repete participante', () => {
+    renderizarModal({
+      etapaAtual: etapas[1],
+      indiceEtapa: 1,
+      dados: {
+        ...dadosValidos,
+        dupla1: {
+          ...dadosValidos.dupla1,
+          atletaEsquerda: 'primo'
         }
       },
       selecoes: {
