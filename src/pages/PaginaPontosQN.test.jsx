@@ -145,7 +145,7 @@ describe('PaginaPontosQN - regras oficiais', () => {
     expect(screen.getByText('+2 QN')).toBeInTheDocument();
   });
 
-  it('mostra benefícios iniciais de desconto por QN', async () => {
+  it('mostra benefícios de referência sem equivalência financeira', async () => {
     configurarApisComSucesso();
     renderizarPagina('/app/pontos-qn?aba=como-ganhar');
 
@@ -154,18 +154,20 @@ describe('PaginaPontosQN - regras oficiais', () => {
     expect(beneficios).not.toBeNull();
 
     expect(within(beneficios).getByText('500 QN')).toBeInTheDocument();
-    expect(within(beneficios).getByText('R$ 5 off')).toBeInTheDocument();
+    expect(within(beneficios).getByText('Condição especial em campanha')).toBeInTheDocument();
     expect(within(beneficios).getByText('1.000 QN')).toBeInTheDocument();
-    expect(within(beneficios).getByText('R$ 10 off')).toBeInTheDocument();
+    expect(within(beneficios).getByText('Benefício promocional QN')).toBeInTheDocument();
     expect(within(beneficios).getAllByText('2.000 QN').length).toBeGreaterThan(0);
     expect(within(beneficios).getByText('Chaveiro QuebraNunca')).toBeInTheDocument();
     expect(within(beneficios).getByText('5.000 QN')).toBeInTheDocument();
-    expect(within(beneficios).getByText('R$ 50 off')).toBeInTheDocument();
+    expect(within(beneficios).getByText('Condição especial QuebraNunca')).toBeInTheDocument();
     expect(within(beneficios).getByText('8.000 QN')).toBeInTheDocument();
     expect(within(beneficios).getByText('Boné QuebraNunca')).toBeInTheDocument();
+    expect(within(beneficios).queryByText(/R\$/i)).not.toBeInTheDocument();
+    expect(within(beneficios).queryByText(/100 QN = R\$ 1/i)).not.toBeInTheDocument();
   });
 
-  it('mostra produtos físicos com imagem e custo na aba de benefícios', async () => {
+  it('mostra produtos físicos com imagem e pontos necessários na aba de benefícios', async () => {
     configurarApisComSucesso();
     renderizarPagina('/app/pontos-qn?aba=beneficios');
 
@@ -185,15 +187,32 @@ describe('PaginaPontosQN - regras oficiais', () => {
     const boneCard = within(destaque).getByText('Boné QuebraNunca').closest('article');
     expect(within(chaveiroCard).getAllByText('2.000 QN')).toHaveLength(1);
     expect(within(boneCard).getAllByText('8.000 QN')).toHaveLength(1);
-    expect(within(chaveiroCard).getAllByText('Saldo insuficiente')).toHaveLength(1);
-    expect(within(boneCard).getAllByText('Saldo insuficiente')).toHaveLength(1);
+    expect(within(chaveiroCard).getAllByText('Pontos insuficientes')).toHaveLength(1);
+    expect(within(boneCard).getAllByText('Pontos insuficientes')).toHaveLength(1);
 
-    expect(screen.getAllByText('R$ 5 off na loja').length).toBeGreaterThan(0);
-    expect(screen.getByText('R$ 50 off na loja')).toBeInTheDocument();
+    expect(screen.getByText('Condição especial em campanha')).toBeInTheDocument();
+    expect(screen.getByText('Condição especial QuebraNunca')).toBeInTheDocument();
+    expect(screen.queryByText('R$ 5 off na loja')).not.toBeInTheDocument();
+    expect(screen.queryByText('R$ 50 off na loja')).not.toBeInTheDocument();
+    expect(screen.queryByText(/R\$/i)).not.toBeInTheDocument();
     const listaBeneficios = document.querySelector('.pontosqn-beneficios-grid');
     expect(listaBeneficios.querySelectorAll('.pontosqn-beneficio-card')).toHaveLength(5);
     expect(screen.queryByText(/Seu saldo/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/Faltam 2\.000/i)).not.toBeInTheDocument();
+  });
+
+  it('não apresenta Pontos QN como dinheiro, cashback ou carteira financeira', async () => {
+    configurarApisComSucesso();
+    renderizarPagina('/app/pontos-qn?aba=beneficios');
+
+    await screen.findByRole('heading', { name: /Benefícios/i });
+
+    expect(screen.getByText(/Benefícios por campanha/i)).toBeInTheDocument();
+    expect(screen.queryByText(/100 QN = R\$ 1/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/cashback/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/carteira/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/saldo financeiro/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/crédito financeiro/i)).not.toBeInTheDocument();
   });
 
   it('remove métricas esportivas da aba Pontos QN', async () => {
@@ -209,7 +228,7 @@ describe('PaginaPontosQN - regras oficiais', () => {
     expect(screen.getByRole('heading', { name: /Como ganhar mais pontos/i })).toBeInTheDocument();
   });
 
-  it('mantém o filtro Produtos funcionando sem repetir custo no card', async () => {
+  it('mantém o filtro Produtos funcionando sem repetir pontos necessários no card', async () => {
     configurarApisComSucesso();
     const usuario = userEvent.setup();
     renderizarPagina('/app/pontos-qn?aba=beneficios');
@@ -233,7 +252,7 @@ describe('PaginaPontosQN - regras oficiais', () => {
 
     expect(screen.getByText(/Partidas duplicadas ou inválidas não geram pontos/i)).toBeInTheDocument();
     expect(screen.getByText(/QN não pode ser convertido em dinheiro/i)).toBeInTheDocument();
-    expect(screen.getByText(/Cupom com QN cobre até 30% do pedido/i)).toBeInTheDocument();
+    expect(screen.getByText(/Campanhas com QN têm limite e regras próprias/i)).toBeInTheDocument();
   });
 
   it('mantém a aba informativa acessível quando a API está indisponível', async () => {

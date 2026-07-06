@@ -61,17 +61,28 @@ const regrasGanhoPontosQN = [
 ];
 
 const beneficiosReferenciaPontosQN = [
-  { pontos: 500, beneficio: 'R$ 5 off', tipo: 'Desconto' },
-  { pontos: 1000, beneficio: 'R$ 10 off', tipo: 'Desconto' },
+  { pontos: 500, beneficio: 'Condição especial em campanha', tipo: 'Campanha' },
+  { pontos: 1000, beneficio: 'Benefício promocional QN', tipo: 'Campanha' },
   { pontos: 2000, beneficio: 'Chaveiro QuebraNunca', tipo: 'Produto' },
-  { pontos: 2000, beneficio: 'R$ 20 off', tipo: 'Desconto' },
-  { pontos: 3000, beneficio: 'R$ 30 off', tipo: 'Desconto' },
-  { pontos: 5000, beneficio: 'R$ 50 off', tipo: 'Desconto' },
+  { pontos: 2000, beneficio: 'Desconto promocional em produto QN', tipo: 'Campanha' },
+  { pontos: 3000, beneficio: 'Benefício em produto parceiro', tipo: 'Campanha' },
+  { pontos: 5000, beneficio: 'Condição especial QuebraNunca', tipo: 'Campanha' },
   { pontos: 8000, beneficio: 'Boné QuebraNunca', tipo: 'Produto' }
 ];
 
 const abasDisponiveis = new Set(ABAS.map((item) => item.id));
 const ordemProdutosDestaque = ['chaveiro', 'boné', 'bone'];
+const padroesCopyFinanceiraBeneficio = [
+  /r\$\s*\d+/i,
+  /\b\d+\s*reais?\b/i,
+  /\boff\b/i,
+  /cashback/i,
+  /saldo financeiro/i,
+  /carteira/i,
+  /cr[eé]dito financeiro/i,
+  /convers[aã]o monet[aá]ria/i,
+  /converter pontos em dinheiro/i
+];
 
 function obterAbaQuery(searchParams) {
   const aba = searchParams.get('aba');
@@ -142,6 +153,72 @@ function obterImagemBeneficio(beneficio) {
   return imagensBeneficiosPontosQN[beneficio.imagemUrl] || beneficio.imagemUrl;
 }
 
+function contemCopyFinanceiraBeneficio(texto) {
+  return padroesCopyFinanceiraBeneficio.some((padrao) => padrao.test(texto || ''));
+}
+
+function obterTituloBeneficioSeguro(beneficio) {
+  const titulo = beneficio?.titulo?.trim();
+  if (titulo && !contemCopyFinanceiraBeneficio(titulo)) {
+    return titulo;
+  }
+
+  const tipo = Number(beneficio?.tipo);
+  const pontosNecessarios = Number(beneficio?.pontosNecessarios || 0);
+
+  if (tipo === 4) {
+    return 'Produto em campanha QuebraNunca';
+  }
+
+  if (tipo === 3) {
+    return 'Experiência QuebraNunca';
+  }
+
+  if (tipo === 2) {
+    return 'Brinde QuebraNunca';
+  }
+
+  if (pontosNecessarios >= 5000) {
+    return 'Condição especial QuebraNunca';
+  }
+
+  if (pontosNecessarios >= 3000) {
+    return 'Benefício em produto parceiro';
+  }
+
+  if (pontosNecessarios >= 2000) {
+    return 'Desconto promocional em produto QN';
+  }
+
+  if (pontosNecessarios >= 1000) {
+    return 'Benefício promocional QN';
+  }
+
+  return 'Condição especial em campanha';
+}
+
+function obterDescricaoBeneficioSegura(beneficio) {
+  const descricao = beneficio?.descricao?.trim();
+  if (descricao && !contemCopyFinanceiraBeneficio(descricao)) {
+    return descricao;
+  }
+
+  return 'Benefício disponível por campanha QuebraNunca, sujeito à disponibilidade e validação.';
+}
+
+function obterTipoBeneficioSeguro(beneficio, produtoFisico) {
+  if (produtoFisico) {
+    return 'Produto físico';
+  }
+
+  const tipoNome = beneficio?.tipoNome?.trim();
+  if (tipoNome && !contemCopyFinanceiraBeneficio(tipoNome)) {
+    return tipoNome;
+  }
+
+  return 'Benefício promocional';
+}
+
 function obterStatusResgate(resgates, beneficioId) {
   return resgates.find((resgate) =>
     resgate.beneficioId === beneficioId &&
@@ -172,30 +249,33 @@ function BeneficioCard({ beneficio, resgateSolicitado, resgatando, onResgatar })
   const saldoSuficiente = Boolean(beneficio.saldoSuficiente);
   const imagemBeneficio = obterImagemBeneficio(beneficio);
   const produtoFisico = ehProdutoFisicoDestaque(beneficio);
+  const tituloBeneficio = obterTituloBeneficioSeguro(beneficio);
+  const descricaoBeneficio = obterDescricaoBeneficioSegura(beneficio);
+  const tipoBeneficio = obterTipoBeneficioSeguro(beneficio, produtoFisico);
   const estado = resgateSolicitado
     ? 'Solicitado'
     : saldoSuficiente
       ? 'Disponível'
-      : 'Saldo insuficiente';
+      : 'Pontos insuficientes';
 
   return (
     <article className={`pontosqn-beneficio-card ${produtoFisico ? 'produto-fisico' : ''} ${beneficio.destaque ? 'destaque' : ''} ${imagemBeneficio ? 'com-imagem' : ''}`}>
       {imagemBeneficio && (
         <div className="pontosqn-beneficio-imagem">
-          <img src={imagemBeneficio} alt={beneficio.titulo} loading="lazy" />
+          <img src={imagemBeneficio} alt={tituloBeneficio} loading="lazy" />
         </div>
       )}
       <div className="pontosqn-beneficio-meta">
         <span className="pontosqn-beneficio-topo">
           <FaGift aria-hidden="true" />
-          {produtoFisico ? 'Produto físico' : beneficio.tipoNome}
+          {tipoBeneficio}
         </span>
       </div>
-      <h3>{beneficio.titulo}</h3>
-      <p>{beneficio.descricao}</p>
+      <h3>{tituloBeneficio}</h3>
+      <p>{descricaoBeneficio}</p>
       <div className="pontosqn-beneficio-rodape">
         <div className="pontosqn-beneficio-custo">
-          <span>Custo</span>
+          <span>Pontos necessários</span>
           <strong>{formatarPontos(beneficio.pontosNecessarios)} QN</strong>
         </div>
         {saldoSuficiente && !resgateSolicitado ? (
@@ -265,9 +345,9 @@ function ComoGanharPontosQN() {
         <article className="cartao pontosqn-regras-card">
           <h3>Proteções do MVP</h3>
           <ul className="pontosqn-regras-lista">
-            <li>Cupom com QN cobre até 30% do pedido.</li>
-            <li>Frete não entra no desconto, salvo campanha específica.</li>
-            <li>Produto grátis é campanha limitada, não regra padrão.</li>
+            <li>Campanhas com QN têm limite e regras próprias.</li>
+            <li>Frete ou logística só entram quando a campanha informar.</li>
+            <li>Brindes são campanhas limitadas, não regra padrão.</li>
           </ul>
         </article>
       </section>
@@ -390,7 +470,8 @@ export function PaginaPontosQN() {
   const mediaSemanal = Math.round((resumo?.pontuacao?.totalAcumulado || 0) / 4);
 
   async function solicitarResgate(beneficio) {
-    if (!beneficio?.id || !window.confirm(`Solicitar resgate de ${beneficio.titulo} por ${beneficio.pontosNecessarios} Pontos QN?`)) {
+    const tituloBeneficio = obterTituloBeneficioSeguro(beneficio);
+    if (!beneficio?.id || !window.confirm(`Solicitar resgate de ${tituloBeneficio} por ${beneficio.pontosNecessarios} Pontos QN?`)) {
       return;
     }
 
@@ -447,7 +528,7 @@ export function PaginaPontosQN() {
         </div>
         <div className="pontosqn-saldo-card">
           <div className="pontosqn-saldo-topo">
-            <span>Saldo atual</span>
+            <span>Pontos disponíveis</span>
             <small>{nivel?.nome || 'Bronze'}</small>
           </div>
           <strong>{formatarPontos(saldo)}</strong>
@@ -532,9 +613,9 @@ export function PaginaPontosQN() {
         <section className="pontosqn-secao">
           <div className="pontosqn-vitrine-topo">
             <div>
-              <span className="pontosqn-selo"><FaShoppingBag aria-hidden="true" /> Vitrine de recompensas</span>
+              <span className="pontosqn-selo"><FaShoppingBag aria-hidden="true" /> Benefícios disponíveis</span>
               <h2>Benefícios</h2>
-              <p>Produtos físicos primeiro, descontos depois. Custo e estado aparecem uma vez em cada card.</p>
+              <p>Benefícios por campanha, com pontos necessários e disponibilidade indicados em cada card.</p>
             </div>
           </div>
 
