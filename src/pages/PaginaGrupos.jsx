@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  FaCalendarCheck,
   FaChevronLeft,
   FaChevronRight,
   FaClock,
@@ -13,21 +12,15 @@ import {
   FaStar,
   FaTimes,
   FaTrash,
-  FaTrophy,
   FaUpload,
-  FaUserPlus,
   FaUsers
 } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
-import heroFutevolei from '../assets/home-futevolei-hero.jpg';
-import { LogoQNF } from '../components/branding/LogoQNF';
-import { AvatarGrupo, obterImagemGrupoAvatar } from '../components/grupos/AvatarGrupo';
+import { AvatarGrupo } from '../components/grupos/AvatarGrupo';
 import { CriarGrupoFluxoModal } from '../components/grupos/CriarGrupoFluxoModal';
-import { NotificacoesBotao } from '../components/NotificacoesBotao';
 import { useNotification } from '../contexts/NotificationContext';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { gruposServico } from '../services/gruposServico';
-import { resolverUrlRecurso } from '../services/http';
 import { ESTADOS_ACESSO } from '../utils/acesso';
 import { comprimirImagemParaUpload, ehImagemNaoSuportada, ehImagemPermitida } from '../utils/compressaoImagem';
 import { extrairMensagemErro } from '../utils/erros';
@@ -70,33 +63,6 @@ const dashboardVazio = {
   grupos: []
 };
 
-const gruposPopularesPlaceholder = [
-  {
-    id: 'popular-praia-central',
-    nome: 'Praia Central',
-    quantidadeAtletas: 32,
-    quantidadePartidas: 118,
-    privacidade: 'Público',
-    placeholder: true
-  },
-  {
-    id: 'popular-sol-e-rede',
-    nome: 'Sol e Rede',
-    quantidadeAtletas: 24,
-    quantidadePartidas: 86,
-    privacidade: 'Público',
-    placeholder: true
-  },
-  {
-    id: 'popular-quebra-areia',
-    nome: 'Quebra Areia',
-    quantidadeAtletas: 18,
-    quantidadePartidas: 54,
-    privacidade: 'Público',
-    placeholder: true
-  }
-];
-
 function formatarUltimaAtividade(data) {
   if (!data) {
     return 'Sem atividade';
@@ -116,10 +82,6 @@ function obterQuantidade(valor) {
 
 function pluralizar(quantidade, singular, plural = `${singular}s`) {
   return quantidade === 1 ? singular : plural;
-}
-
-function obterPerfilNoGrupo(grupo, podeGerenciarGrupo) {
-  return grupo?.perfilUsuarioNoGrupo || grupo?.perfilNoGrupo || grupo?.papelUsuario || (podeGerenciarGrupo ? 'Administrador' : 'Membro');
 }
 
 function obterDataGrupo(grupo) {
@@ -192,6 +154,16 @@ function obterTextoUltimaPartida(grupo) {
   return formatarUltimaAtividade(data);
 }
 
+function obterTextoUltimaAtividadeGrupo(grupo) {
+  const data = grupo?.ultimaAtividade || grupo?.ultimaPartidaEm || grupo?.dataAtualizacao || grupo?.criadoEm || grupo?.dataCriacao;
+
+  if (!data) {
+    return 'Sem atividade recente';
+  }
+
+  return formatarUltimaAtividade(data);
+}
+
 function obterQuantidadeConvites(dashboard) {
   return obterQuantidade(
     dashboard?.convitesPendentes ??
@@ -199,70 +171,6 @@ function obterQuantidadeConvites(dashboard) {
     dashboard?.totais?.convitesPendentes ??
     dashboard?.convites?.pendentes
   );
-}
-
-function obterUltimaPartidaGrupo(grupo) {
-  if (!grupo) {
-    return null;
-  }
-
-  const listas = [
-    grupo.ultimasPartidas,
-    grupo.partidasRecentes,
-    grupo.atividadeRecente
-  ];
-
-  const partidaEmLista = listas
-    .filter(Array.isArray)
-    .flat()
-    .find((item) => item?.tipo === undefined || String(item?.tipo || '').toLowerCase().includes('partida'));
-
-  return grupo.ultimaPartida || grupo.partidaRecente || partidaEmLista || null;
-}
-
-function obterPlacarPartida(partida) {
-  if (!partida) {
-    return 'Sem partida';
-  }
-
-  const placarA = partida.placarDupla1 ?? partida.placarTimeA ?? partida.placarEquipeA ?? partida.placarSuaDupla;
-  const placarB = partida.placarDupla2 ?? partida.placarTimeB ?? partida.placarEquipeB ?? partida.placarAdversarios;
-
-  if (placarA === null || placarA === undefined || placarB === null || placarB === undefined) {
-    return partida.resultadoTexto || partida.resultado || 'Resultado pendente';
-  }
-
-  return `${placarA} x ${placarB}`;
-}
-
-function obterResultadoPartida(partida) {
-  const resultado = String(partida?.resultado || partida?.status || '').trim();
-
-  if (resultado === 'W' || /vit[oó]ria/i.test(resultado)) {
-    return 'Vitória';
-  }
-
-  if (resultado === 'L' || /derrota/i.test(resultado)) {
-    return 'Derrota';
-  }
-
-  return resultado || 'Pendente';
-}
-
-function obterTimesPartida(partida) {
-  if (!partida) {
-    return 'Times a definir';
-  }
-
-  const dupla1 = partida.dupla1Nome || partida.dupla1 || partida.timeA || partida.equipeA || partida.suaDupla || 'Dupla 1';
-  const dupla2 = partida.dupla2Nome || partida.dupla2 || partida.timeB || partida.equipeB || partida.adversarios || 'Dupla 2';
-
-  return `${dupla1} x ${dupla2}`;
-}
-
-function criarEstiloImagemGrupo(grupo) {
-  const imagem = resolverUrlRecurso(obterImagemGrupoAvatar(grupo));
-  return { '--grupos-card-image': `url(${imagem || heroFutevolei})` };
 }
 
 function montarAtividadesRecentes(grupos) {
@@ -328,233 +236,7 @@ function aguardarRecalculoViewport() {
   });
 }
 
-function GruposHero({ autenticado, resumoPendencias }) {
-  return (
-    <header
-      className="grupos-dashboard-hero"
-      style={{ '--grupos-hero-image': `url(${heroFutevolei})` }}
-      role="region"
-      aria-label="Resumo de grupos"
-    >
-      <div className="grupos-dashboard-hero-acoes">
-        {autenticado && <NotificacoesBotao autenticado resumo={resumoPendencias} />}
-      </div>
-
-      <div className="grupos-dashboard-hero-identidade">
-        <span className="grupos-dashboard-hero-logo">
-          <LogoQNF variante="light" textoAlternativo="QuebraNunca" />
-        </span>
-        <div>
-          <span className="grupos-dashboard-hero-eyebrow">Sua galera no jogo</span>
-          <h1>Grupos</h1>
-          <p>Jogue com sua galera e acompanhe tudo em um só lugar.</p>
-        </div>
-      </div>
-    </header>
-  );
-}
-
-function GruposResumo({ totais }) {
-  const itens = [
-    { id: 'grupos', rotulo: 'Grupos', valor: obterQuantidade(totais.quantidadeGrupos), icone: FaUsers },
-    { id: 'atletas', rotulo: 'Atletas', valor: obterQuantidade(totais.quantidadeAtletas), icone: FaUserPlus },
-    { id: 'partidas', rotulo: 'Partidas', valor: obterQuantidade(totais.quantidadePartidas), icone: FaGamepad },
-    { id: 'pendencias', rotulo: 'Pendências', valor: obterQuantidade(totais.pendenciasGrupos), icone: FaExclamationTriangle }
-  ];
-
-  return (
-    <section className="grupos-dashboard-resumo" aria-label="Resumo dos grupos">
-      <div className="grupos-dashboard-resumo-grid">
-        {itens.map((item) => {
-          const Icone = item.icone;
-          return (
-            <article key={item.id} className="grupos-dashboard-total">
-              <Icone aria-hidden="true" />
-              <strong>{item.valor}</strong>
-              <span className="grupos-dashboard-total-rotulo">{item.rotulo}</span>
-            </article>
-          );
-        })}
-      </div>
-    </section>
-  );
-}
-
-function GrupoPrimeiroCard({ onCriarGrupo }) {
-  return (
-    <article className="grupos-dashboard-primeiro-card">
-      <div>
-        <span className="grupos-dashboard-card-icone"><FaUsers aria-hidden="true" /></span>
-        <h2>Crie seu primeiro grupo</h2>
-        <p>Organize sua turma. Acompanhe rankings, histórico, scouts e ranking de duplas.</p>
-      </div>
-      <div className="grupos-dashboard-primeiro-visual" aria-hidden="true">
-        <span />
-        <span />
-        <span />
-      </div>
-      <button type="button" className="grupos-dashboard-cta grupos-dashboard-cta-principal" onClick={onCriarGrupo}>
-        <span className="grupos-dashboard-cta-icone"><FaPlus aria-hidden="true" /></span>
-        <span>
-          <strong>Criar grupo</strong>
-          <small>Comece com sua galera agora.</small>
-        </span>
-        <FaChevronRight aria-hidden="true" />
-      </button>
-    </article>
-  );
-}
-
-function GruposAcoesVazio({ onCriarGrupo, onRegistrarAvulsa }) {
-  return (
-    <section className="grupos-dashboard-acoes-vazio" aria-label="Ações de grupos">
-      <button type="button" className="grupos-dashboard-cta grupos-dashboard-cta-principal" onClick={onCriarGrupo}>
-        <span className="grupos-dashboard-cta-icone"><FaPlus aria-hidden="true" /></span>
-        <span>
-          <strong>Criar Grupo</strong>
-          <small>Ranking, histórico e scouts com sua turma.</small>
-        </span>
-        <FaChevronRight aria-hidden="true" />
-      </button>
-
-      <span className="grupos-dashboard-ou">OU</span>
-
-      <button type="button" className="grupos-dashboard-cta grupos-dashboard-cta-secundario" onClick={onRegistrarAvulsa}>
-        <span className="grupos-dashboard-cta-icone"><FaGamepad aria-hidden="true" /></span>
-        <span>
-          <strong>Registrar partida avulsa</strong>
-          <small>Salve um jogo mesmo sem grupo.</small>
-        </span>
-        <FaChevronRight aria-hidden="true" />
-      </button>
-    </section>
-  );
-}
-
-function GruposEmptyState() {
-  return (
-    <article className="grupos-dashboard-empty-premium" style={{ '--grupos-empty-image': `url(${heroFutevolei})` }}>
-      <div>
-        <span className="grupos-dashboard-card-icone"><FaStar aria-hidden="true" /></span>
-        <h2>Você ainda não participa de nenhum grupo.</h2>
-        <p>Criar um grupo permite:</p>
-        <ul>
-          <li>Ranking exclusivo</li>
-          <li>Histórico do grupo</li>
-          <li>Scouts dos atletas</li>
-          <li>Ranking de duplas</li>
-        </ul>
-      </div>
-    </article>
-  );
-}
-
-function GruposPopulares() {
-  return (
-    <section className="grupos-dashboard-populares" aria-labelledby="grupos-populares-titulo">
-      <div className="grupos-dashboard-section-title">
-        <h2 id="grupos-populares-titulo">Grupos populares</h2>
-        <button type="button">Ver todos <FaChevronRight aria-hidden="true" /></button>
-      </div>
-      <div className="grupos-dashboard-populares-lista">
-        {gruposPopularesPlaceholder.map((grupo) => (
-          <article key={grupo.id} className="grupos-dashboard-popular-card">
-            <AvatarGrupo nome={grupo.nome} tamanho="md" />
-            <strong>{grupo.nome}</strong>
-            <span>{grupo.quantidadeAtletas} atletas</span>
-            <span>{grupo.quantidadePartidas} partidas</span>
-          </article>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function GrupoAtualCard({ grupo, perfil, onAbrir }) {
-  return (
-    <article className="grupos-dashboard-grupo-atual" style={criarEstiloImagemGrupo(grupo)}>
-      <div className="grupos-dashboard-grupo-atual-conteudo">
-        <AvatarGrupo grupo={grupo} tamanho="xl" className="grupos-dashboard-grupo-atual-avatar" />
-        <div>
-          <span className="grupos-dashboard-privacidade">{grupo.privacidade || 'Grupo'}</span>
-          <h2>{grupo.nome}</h2>
-          <div className="grupos-dashboard-grupo-atual-meta">
-            <span>{obterQuantidade(grupo.quantidadeAtletas)} atletas</span>
-            <span>{obterQuantidade(grupo.quantidadePartidas)} partidas</span>
-            <span>{perfil}</span>
-          </div>
-        </div>
-      </div>
-      <button type="button" className="grupos-dashboard-card-link" onClick={onAbrir}>
-        Abrir grupo
-        <FaChevronRight aria-hidden="true" />
-      </button>
-    </article>
-  );
-}
-
-function GruposUltimaPartida({ grupo }) {
-  const partida = obterUltimaPartidaGrupo(grupo);
-  const resultado = obterResultadoPartida(partida);
-  const classeResultado = resultado === 'Vitória' ? 'vitoria' : resultado === 'Derrota' ? 'derrota' : '';
-
-  return (
-    <section className="grupos-dashboard-ultima-partida" aria-labelledby="grupos-ultima-partida-titulo">
-      <div className="grupos-dashboard-section-title">
-        <h2 id="grupos-ultima-partida-titulo">Última partida</h2>
-      </div>
-      {partida ? (
-        <article className="grupos-dashboard-partida-card">
-          <span><FaClock aria-hidden="true" /> {formatarUltimaAtividade(partida.data || partida.dataPartida || partida.criadoEm)}</span>
-          <strong>{obterTimesPartida(partida)}</strong>
-          <div>
-            <b>{obterPlacarPartida(partida)}</b>
-            <em className={classeResultado}>{resultado}</em>
-          </div>
-        </article>
-      ) : (
-        <article className="grupos-dashboard-partida-card grupos-dashboard-partida-vazia">
-          <span><FaClock aria-hidden="true" /> Sem partida recente</span>
-          <strong>Registre um jogo para iniciar o histórico do grupo.</strong>
-          <div>
-            <b>0 x 0</b>
-            <em>Pendente</em>
-          </div>
-        </article>
-      )}
-    </section>
-  );
-}
-
-function GruposRegistrarPartidaCTA({ onRegistrar }) {
-  return (
-    <button type="button" className="grupos-dashboard-cta grupos-dashboard-cta-principal" onClick={onRegistrar}>
-      <span className="grupos-dashboard-cta-icone"><FaPlus aria-hidden="true" /></span>
-      <span>
-        <strong>Registrar partida</strong>
-        <small>Registre um novo jogo do grupo.</small>
-      </span>
-      <FaChevronRight aria-hidden="true" />
-    </button>
-  );
-}
-
-function GruposAcoesRapidas({ grupoId, navegar }) {
-  return (
-    <section className="grupos-dashboard-acoes-rapidas" aria-label="Ações rápidas">
-      <button type="button" onClick={() => navegar(`/ranking?tipo=grupos&grupoId=${grupoId}`)}>
-        <span><FaTrophy aria-hidden="true" /> Ver Ranking</span>
-        <FaChevronRight aria-hidden="true" />
-      </button>
-      <button type="button" onClick={() => navegar(`/grupos/${grupoId}/atletas`)}>
-        <span><FaUsers aria-hidden="true" /> Ver Atletas</span>
-        <FaChevronRight aria-hidden="true" />
-      </button>
-    </section>
-  );
-}
-
-function GruposHomeHeader({ autenticado, podeCriarGrupo, resumoPendencias, onCriarGrupo }) {
+function GruposHomeHeader({ autenticado, podeCriarGrupo, onCriarGrupo }) {
   return (
     <header className="grupos-home-header">
       <div className="grupos-home-header-titulo">
@@ -568,12 +250,12 @@ function GruposHomeHeader({ autenticado, podeCriarGrupo, resumoPendencias, onCri
       </div>
 
       <div className="grupos-home-header-acoes">
-        {autenticado && <NotificacoesBotao autenticado resumo={resumoPendencias} />}
         <button
           type="button"
           className="grupos-home-novo-botao"
           onClick={onCriarGrupo}
           disabled={!podeCriarGrupo && autenticado}
+          aria-label="+ Novo grupo"
         >
           <FaPlus aria-hidden="true" />
           <span>Novo grupo</span>
@@ -667,8 +349,8 @@ function GrupoPrincipalHomeCard({ grupo, onAbrir }) {
             <FaClock />
           </span>
           <span>
-            <small>Última partida</small>
-            <strong>{obterTextoUltimaPartida(grupo)}</strong>
+            <small>Última atividade</small>
+            <strong>{obterTextoUltimaAtividadeGrupo(grupo)}</strong>
           </span>
           <span className="grupos-home-abrir-cta">
             Abrir grupo
@@ -699,15 +381,15 @@ function GrupoPrincipalVazioCard({ onCriarGrupo }) {
   );
 }
 
-function MeusGruposHomeLista({ grupos, onAbrir, onVerTodos }) {
+function MeusGruposHomeLista({ grupos, temGrupoPrincipal = false, onAbrir, onVerTodos }) {
   return (
     <section className="grupos-home-meus" aria-labelledby="grupos-home-meus-titulo">
       <GruposHomeSecaoTitulo id="grupos-home-meus-titulo" titulo="Meus grupos" acao={grupos.length > 2 ? 'Ver todos' : null} onAcao={onVerTodos} />
 
       {grupos.length === 0 ? (
         <article className="grupos-home-card-vazio">
-          <strong>Você ainda tem só o grupo principal.</strong>
-          <p>Quando participar de outros grupos, eles aparecerão aqui.</p>
+          <strong>{temGrupoPrincipal ? 'Você ainda tem só o grupo principal.' : 'Você ainda não participa de grupos.'}</strong>
+          <p>{temGrupoPrincipal ? 'Quando participar de outros grupos, eles aparecerão aqui.' : 'Crie um grupo ou explore grupos públicos para começar.'}</p>
         </article>
       ) : (
         <div className="grupos-home-meus-lista" id="grupos-home-meus-lista">
@@ -750,7 +432,7 @@ function MeusGruposHomeLista({ grupos, onAbrir, onVerTodos }) {
 function GruposHomeAcoesRapidas({ convitesPendentes, onCriarGrupo, onExplorarPublicos, onAbrirConvites }) {
   const acoes = [
     { id: 'criar', titulo: 'Criar grupo', icone: FaPlus, onClick: onCriarGrupo },
-    { id: 'explorar', titulo: 'Explorar grupos', detalhe: 'Públicos', icone: FaGlobeAmericas, onClick: onExplorarPublicos },
+    { id: 'explorar', titulo: 'Explorar públicos', detalhe: 'Grupos públicos', icone: FaGlobeAmericas, onClick: onExplorarPublicos },
     { id: 'convites', titulo: 'Convites', icone: FaEnvelope, badge: convitesPendentes, onClick: onAbrirConvites }
   ];
 
@@ -814,13 +496,17 @@ function GruposHomeAtividadeRecente({ atividades, onAbrirGrupo }) {
 }
 
 function GruposHomePublicos({ grupos, onAbrir }) {
-  const gruposPublicos = grupos.length > 0 ? grupos : gruposPopularesPlaceholder;
-
   return (
     <section className="grupos-home-publicos" id="grupos-publicos" aria-labelledby="grupos-publicos-titulo">
       <GruposHomeSecaoTitulo id="grupos-publicos-titulo" titulo="Explorar públicos" />
-      <div className="grupos-home-publicos-lista">
-        {gruposPublicos.map((grupo) => {
+      {grupos.length === 0 ? (
+        <article className="grupos-home-card-vazio">
+          <strong>Nenhum grupo público disponível agora.</strong>
+          <p>Quando houver grupos públicos disponíveis para você, eles aparecerão aqui.</p>
+        </article>
+      ) : (
+        <div className="grupos-home-publicos-lista">
+          {grupos.map((grupo) => {
           const conteudo = (
             <>
               <AvatarGrupo grupo={grupo} nome={grupo.nome} tamanho="md" />
@@ -829,14 +515,6 @@ function GruposHomePublicos({ grupos, onAbrir }) {
               <span>{obterQuantidade(grupo.quantidadePartidas)} partidas</span>
             </>
           );
-
-          if (grupo.placeholder) {
-            return (
-              <article key={grupo.id} className="grupos-home-publico-card" aria-label={grupo.nome}>
-                {conteudo}
-              </article>
-            );
-          }
 
           return (
             <button
@@ -848,83 +526,9 @@ function GruposHomePublicos({ grupos, onAbrir }) {
               {conteudo}
             </button>
           );
-        })}
-      </div>
-    </section>
-  );
-}
-
-function GruposAtividadeRecente({ atividades }) {
-  return (
-    <section className="grupos-dashboard-atividade-recente" aria-labelledby="grupos-atividade-titulo">
-      <div className="grupos-dashboard-section-title">
-        <h2 id="grupos-atividade-titulo">Atividade recente</h2>
-      </div>
-      <div className="grupos-dashboard-timeline">
-        {atividades.length > 0 ? atividades.map((atividade) => {
-          const Icone = atividade.icone;
-          return (
-            <article key={atividade.id} className="grupos-dashboard-timeline-item">
-              <span className="grupos-dashboard-timeline-icone"><Icone aria-hidden="true" /></span>
-              <div>
-                <strong>{atividade.titulo}</strong>
-                <p>{atividade.descricao}</p>
-                <small>{formatarUltimaAtividade(atividade.data)}</small>
-              </div>
-              <em>{atividade.status}</em>
-            </article>
-          );
-        }) : (
-          <article className="grupos-dashboard-timeline-item">
-            <span className="grupos-dashboard-timeline-icone"><FaCalendarCheck aria-hidden="true" /></span>
-            <div>
-              <strong>Nenhuma atividade recente</strong>
-              <p>As movimentações do grupo aparecerão aqui.</p>
-              <small>Agora</small>
-            </div>
-            <em>Novo</em>
-          </article>
-        )}
-      </div>
-    </section>
-  );
-}
-
-function MeusGruposLista({ grupos, usuarioPodeGerenciar, onAbrir, onRegistrar, onEditar, onRemover }) {
-  return (
-    <section className="grupos-dashboard-meus-grupos" aria-labelledby="grupos-meus-grupos-titulo">
-      <div className="grupos-dashboard-section-title">
-        <h2 id="grupos-meus-grupos-titulo">Meus grupos</h2>
-      </div>
-      <div className="grupos-dashboard-meus-grupos-lista">
-        {grupos.map((grupo) => {
-          const grupoId = obterIdGrupo(grupo);
-          const podeGerenciarGrupo = usuarioPodeGerenciar(grupo);
-          return (
-            <article key={grupoId} className="grupos-dashboard-meu-grupo-card">
-              <button type="button" onClick={() => onAbrir(grupoId)}>
-                <AvatarGrupo grupo={grupo} tamanho="md" />
-                <span>
-                  <strong>{grupo.nome}</strong>
-                  <small>
-                    {obterQuantidade(grupo.quantidadeAtletas)} atletas · {obterQuantidade(grupo.quantidadePartidas)} partidas · {obterPerfilNoGrupo(grupo, podeGerenciarGrupo)}
-                  </small>
-                </span>
-                <FaChevronRight aria-hidden="true" />
-              </button>
-              <div className="grupos-dashboard-meu-grupo-acoes">
-                <button type="button" onClick={() => onRegistrar(grupoId)}>Registrar</button>
-                {podeGerenciarGrupo && (
-                  <>
-                    <button type="button" onClick={() => onEditar(grupo)}>Editar</button>
-                    <button type="button" onClick={() => onRemover(grupoId)}>Remover</button>
-                  </>
-                )}
-              </div>
-            </article>
-          );
-        })}
-      </div>
+          })}
+        </div>
+      )}
     </section>
   );
 }
@@ -1155,8 +759,21 @@ export function PaginaGrupos() {
     }
   }
 
-  async function aoCriarGrupoFluxo() {
+  async function aoCriarGrupoFluxo(grupo) {
     await carregarDados();
+    const grupoId = obterIdGrupo(grupo || {});
+
+    showNotification({
+      type: 'success',
+      title: 'Grupo criado',
+      message: 'O grupo foi criado com sucesso.'
+    });
+
+    setFluxoCriarAberto(false);
+
+    if (grupoId) {
+      navegar(`/grupos/${grupoId}`);
+    }
   }
 
   function limparFormulario() {
@@ -1367,7 +984,6 @@ export function PaginaGrupos() {
 
   const totais = dashboard.totais || dashboardVazio.totais;
   const autenticado = Boolean(token);
-  const resumoPendencias = { total: obterQuantidade(totais.pendenciasGrupos) };
   const possuiGrupos = gruposOrdenados.length > 0;
   const grupoAtual = gruposOrdenados[0] || null;
   const grupoAtualId = grupoAtual ? obterIdGrupo(grupoAtual) : null;
@@ -1383,7 +999,6 @@ export function PaginaGrupos() {
       <GruposHomeHeader
         autenticado={autenticado}
         podeCriarGrupo={podeCriarGrupo}
-        resumoPendencias={resumoPendencias}
         onCriarGrupo={iniciarCriacaoGrupo}
       />
 
@@ -1589,6 +1204,12 @@ export function PaginaGrupos() {
       ) : !possuiGrupos ? (
         <>
           <GrupoPrincipalVazioCard onCriarGrupo={iniciarCriacaoGrupo} />
+          <MeusGruposHomeLista
+            grupos={[]}
+            temGrupoPrincipal={false}
+            onAbrir={(grupoId) => navegar(`/grupos/${grupoId}`)}
+            onVerTodos={rolarParaMeusGrupos}
+          />
           <GruposHomeAcoesRapidas
             convitesPendentes={convitesPendentes}
             onCriarGrupo={iniciarCriacaoGrupo}
@@ -1606,6 +1227,7 @@ export function PaginaGrupos() {
           />
           <MeusGruposHomeLista
             grupos={outrosGrupos}
+            temGrupoPrincipal={Boolean(grupoAtual)}
             onAbrir={(grupoId) => navegar(`/grupos/${grupoId}`)}
             onVerTodos={rolarParaMeusGrupos}
           />
@@ -1627,14 +1249,6 @@ export function PaginaGrupos() {
         aberto={fluxoCriarAberto}
         onFechar={() => setFluxoCriarAberto(false)}
         onCriado={aoCriarGrupoFluxo}
-        onAdicionarAtletas={(grupo) => {
-          setFluxoCriarAberto(false);
-          navegar(`/grupos/${grupo.id}/atletas`);
-        }}
-        onEntrarGrupo={(grupo) => {
-          setFluxoCriarAberto(false);
-          navegar(`/grupos/${grupo.id}/atletas`);
-        }}
       />
     </section>
   );

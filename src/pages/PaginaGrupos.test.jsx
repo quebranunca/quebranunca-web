@@ -29,6 +29,7 @@ vi.mock('../services/gruposServico', () => ({
   gruposServico: {
     obterDashboard: vi.fn(),
     obterPorId: vi.fn(),
+    verificarNome: vi.fn(),
     atualizar: vi.fn(),
     atualizarImagem: vi.fn(),
     removerImagem: vi.fn(),
@@ -131,7 +132,7 @@ describe('PaginaGrupos - home de grupos', () => {
     expect(screen.getByRole('button', { name: /Abrir grupo Beach Friends/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Ações rápidas' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Criar grupo/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Explorar grupos/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Explorar públicos/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Convites/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Atividade recente' })).toBeInTheDocument();
 
@@ -174,5 +175,46 @@ describe('PaginaGrupos - home de grupos', () => {
     expect(screen.getByText('Nenhuma atividade recente')).toBeInTheDocument();
     expect(screen.queryByText('Geral')).not.toBeInTheDocument();
     expect(screen.queryByText('Partidas avulsas')).not.toBeInTheDocument();
+  });
+
+  it('cria grupo pelo wizard e abre o grupo criado automaticamente', async () => {
+    const usuario = userEvent.setup();
+    configurarDashboard([]);
+    gruposServico.verificarNome.mockResolvedValue({ similares: [] });
+    gruposServico.criar.mockResolvedValue({
+      id: 'grupo-novo',
+      nome: 'Fechadinho de Quinta',
+      privacidade: 'Público'
+    });
+
+    renderizarPagina();
+
+    await usuario.click(await screen.findByRole('button', { name: /\+ Novo grupo/i }));
+
+    expect(screen.getByRole('dialog', { name: /Criar grupo/i })).toBeInTheDocument();
+    expect(screen.getByText('Como seu grupo se chama?')).toBeInTheDocument();
+
+    await usuario.type(screen.getByLabelText(/Nome do grupo/i), 'Fechadinho de Quinta');
+    await usuario.click(screen.getByRole('button', { name: 'Continuar' }));
+
+    expect(await screen.findByText('Quem poderá encontrar este grupo?')).toBeInTheDocument();
+    const modal = screen.getByRole('dialog', { name: /Criar grupo/i });
+    await usuario.click(within(modal).getByRole('button', { name: /Público/i }));
+    await usuario.click(within(modal).getByRole('button', { name: 'Continuar' }));
+
+    expect(await screen.findByText('Escolha uma imagem para seu grupo')).toBeInTheDocument();
+    await usuario.click(within(modal).getByRole('button', { name: 'Pular' }));
+
+    expect(await screen.findByText('Confirme as informações')).toBeInTheDocument();
+    await usuario.click(within(modal).getByRole('button', { name: 'Criar grupo' }));
+
+    expect(await screen.findByTestId('rota-atual')).toHaveTextContent('/grupos/grupo-novo');
+    expect(gruposServico.verificarNome).toHaveBeenCalledWith('Fechadinho de Quinta');
+    expect(gruposServico.criar).toHaveBeenCalledWith(expect.objectContaining({
+      nome: 'Fechadinho de Quinta',
+      privacidade: 'Público',
+      localPrincipal: null,
+      diasDaSemana: []
+    }));
   });
 });
