@@ -554,10 +554,6 @@ export function CriarGrupoFluxoModal({
               <span>Tipo</span>
               <strong>{formulario.privacidade}</strong>
             </div>
-            <div className="criar-grupo-resumo-linha">
-              <span>Imagem</span>
-              <strong>{previewImagemGrupo ? 'Imagem personalizada' : 'Avatar automático'}</strong>
-            </div>
           </div>
         </section>
       </section>
