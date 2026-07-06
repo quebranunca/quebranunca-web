@@ -32,6 +32,7 @@ export function LayoutPrincipal() {
     '/app/pendencias',
     '/app/perfil',
     '/app/pontos-qn',
+    '/app/scouts',
     '/grupos',
     '/minhas-partidas',
     '/ranking'

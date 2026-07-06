@@ -6,6 +6,7 @@ import { HomeDashboard } from './HomeDashboard';
 import { HomeSectionType, homeSectionsConfig } from './homeSectionsConfig';
 
 const autenticacaoMock = vi.hoisted(() => ({
+  sair: vi.fn(),
   usuario: {
     id: 'usuario-1',
     nome: 'Gustavo Henrique Almeida Souza',
@@ -17,7 +18,8 @@ const autenticacaoMock = vi.hoisted(() => ({
 
 vi.mock('../../hooks/useAutenticacao', () => ({
   useAutenticacao: () => ({
-    usuario: autenticacaoMock.usuario
+    usuario: autenticacaoMock.usuario,
+    sair: autenticacaoMock.sair
   })
 }));
 
@@ -123,20 +125,32 @@ function renderizarHome({
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
+  autenticacaoMock.sair.mockReset();
   autenticacaoMock.usuario = criarUsuarioPadrao();
 });
 
 describe('HomeDashboard nova experiencia', () => {
-  it('renderiza identidade com nome completo, apelido e acoes de topo', () => {
+  it('renderiza identidade com nome completo, apelido e menu no avatar', async () => {
+    const usuario = userEvent.setup();
     renderizarHome();
 
     const identidade = screen.getByRole('region', { name: /Identidade do usuário/i });
 
     expect(within(identidade).getByText('Gustavo Henrique Almeida Souza')).toBeInTheDocument();
     expect(within(identidade).getByText('Primo')).toBeInTheDocument();
-    expect(within(identidade).getByRole('link', { name: /Editar perfil/i })).toBeInTheDocument();
-    expect(within(identidade).getByRole('button', { name: /Abrir pendências/i })).toBeInTheDocument();
+    expect(within(identidade).queryByRole('link', { name: /Editar perfil/i })).not.toBeInTheDocument();
+    expect(within(identidade).queryByRole('button', { name: /Abrir pendências/i })).not.toBeInTheDocument();
     expect(screen.queryByText(/Boa tarde|Bom dia|Boa noite|Continue evoluindo/i)).not.toBeInTheDocument();
+
+    await usuario.click(within(identidade).getByRole('button', { name: /Abrir menu do perfil/i }));
+
+    expect(within(identidade).getByRole('link', { name: /Meu Perfil/i })).toBeInTheDocument();
+    expect(within(identidade).getByRole('link', { name: /Editar Perfil/i })).toBeInTheDocument();
+    expect(within(identidade).getByRole('link', { name: /Configurações/i })).toBeInTheDocument();
+    expect(within(identidade).getByRole('link', { name: /Notificações/i })).toBeInTheDocument();
+    expect(within(identidade).getByRole('link', { name: /Ajuda/i })).toBeInTheDocument();
+    expect(within(identidade).getByRole('link', { name: /Sobre/i })).toBeInTheDocument();
+    expect(within(identidade).getByRole('button', { name: /Sair/i })).toBeInTheDocument();
   });
 
   it('nao exibe linha vazia de apelido quando apelido nao existe', () => {
@@ -200,10 +214,10 @@ describe('HomeDashboard nova experiencia', () => {
     expect(within(card).getByText('Paulo / Renato')).toBeInTheDocument();
     expect(within(card).getByText('21 x 18')).toBeInTheDocument();
     expect(within(card).getByText('Registrado por Bruno')).toBeInTheDocument();
-    expect(within(card).getByRole('link', { name: /Ver todas pendências/i })).toHaveAttribute('href', '/app/pendencias');
+    expect(within(card).getByRole('link', { name: /Ver todas/i })).toHaveAttribute('href', '/app/pendencias');
 
-    await usuario.click(within(card).getByRole('button', { name: /^Confirmar$/i }));
     await usuario.click(within(card).getByRole('button', { name: /Não fui eu/i }));
+    await usuario.click(within(card).getByRole('button', { name: /^Confirmar partida$/i }));
 
     expect(onConfirmar).toHaveBeenCalledWith('pendencia-1');
     expect(onNaoReconhecer).toHaveBeenCalledWith('pendencia-1');
@@ -215,18 +229,17 @@ describe('HomeDashboard nova experiencia', () => {
     expect(screen.queryByRole('region', { name: /Confirmar partida/i })).not.toBeInTheDocument();
   });
 
-  it('prioriza Registrar Partida e mantem Criar Grupo como acao secundaria', async () => {
+  it('mantem Registrar Partida e Criar Grupo com o mesmo componente visual principal', async () => {
     const usuario = userEvent.setup();
     renderizarHome();
 
     const registrar = screen.getByRole('link', { name: /Registrar partida/i });
-    const criarGrupo = screen.getByRole('link', { name: /Ainda joga sem grupo/i });
+    const criarGrupo = screen.getByRole('link', { name: /Criar grupo/i });
 
     expect(registrar).toHaveClass('home-dashboard-cta-principal');
-    expect(criarGrupo).toHaveClass('home-dashboard-cta-secundario');
+    expect(criarGrupo).toHaveClass('home-dashboard-cta-principal');
     expect(screen.getByText('Salve seu jogo e atualize sua evolução.')).toBeInTheDocument();
     expect(screen.getByText('Crie um grupo e acompanhe ranking, histórico e scouts com sua galera.')).toBeInTheDocument();
-    expect(within(criarGrupo).getByText('Criar grupo')).toBeInTheDocument();
 
     await usuario.click(registrar);
     expect(screen.getByTestId('rota-atual')).toHaveTextContent('/partidas/registrar');
@@ -237,7 +250,7 @@ describe('HomeDashboard nova experiencia', () => {
 
     const desempenho = screen.getByRole('region', { name: /Seu desempenho/i });
 
-    expect(within(desempenho).getByRole('link', { name: /Ver mais/i })).toBeInTheDocument();
+    expect(within(desempenho).getByRole('link', { name: /Ver detalhes/i })).toHaveAttribute('href', '/app/scouts');
     expect(within(desempenho).getByText('Partidas')).toBeInTheDocument();
     expect(within(desempenho).getByText('12')).toBeInTheDocument();
     expect(within(desempenho).getByText('Vitórias')).toBeInTheDocument();
@@ -297,10 +310,10 @@ describe('homeSectionsConfig', () => {
 
     expect(secoesAtivas).toEqual([
       HomeSectionType.Identity,
+      HomeSectionType.Performance,
       HomeSectionType.PendingConfirmation,
       HomeSectionType.PrimaryAction,
       HomeSectionType.SecondaryAction,
-      HomeSectionType.Performance,
       HomeSectionType.RecentMatches
     ]);
   });

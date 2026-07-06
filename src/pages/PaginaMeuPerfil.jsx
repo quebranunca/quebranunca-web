@@ -17,7 +17,7 @@ import {
   FaTrophy,
   FaUserEdit
 } from 'react-icons/fa';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { obterFotoPerfilAvatar } from '../components/AvatarUsuario';
 import { FotoPerfilUpload } from '../components/FotoPerfilUpload';
@@ -322,6 +322,7 @@ export function PaginaMeuPerfil() {
   } = useAutenticacao();
 
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { showNotification, closeNotification } = useNotification();
   const [usuarioDetalhe, setUsuarioDetalhe] = useState(null);
   const [formularioUsuario, setFormularioUsuario] = useState({ nome: '' });
@@ -352,6 +353,17 @@ export function PaginaMeuPerfil() {
   useEffect(() => {
     carregarPerfil();
   }, [usuario?.id]);
+
+  useEffect(() => {
+    const abaUrl = searchParams.get('aba');
+    if (abasPerfil.some((aba) => aba.id === abaUrl)) {
+      setAbaAtiva(abaUrl);
+    }
+
+    if (abaUrl === 'perfil' && searchParams.get('editar') === '1') {
+      setEditandoPerfil(true);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (!formularioAtleta.estado) {

@@ -1,29 +1,38 @@
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import {
+  FaBell,
   FaCalendarAlt,
   FaChartLine,
   FaChevronRight,
   FaClipboardCheck,
+  FaCog,
   FaEdit,
   FaFire,
   FaFutbol,
+  FaInfoCircle,
   FaPlus,
+  FaQuestionCircle,
+  FaSignOutAlt,
   FaTimes,
   FaTrophy,
+  FaUser,
   FaUsers
 } from 'react-icons/fa';
 import { useAutenticacao } from '../../hooks/useAutenticacao';
-import { montarRotaPerfilAtleta } from '../../utils/perfilAtleta';
 import { obterNomeGrupoPartidaExibicao } from '../../utils/partidas';
 import { formatarData } from '../../utils/formatacao';
 import { AvatarUsuario, obterFotoPerfilAvatar } from '../AvatarUsuario';
-import { NotificacoesBotao } from '../NotificacoesBotao';
 
 const HOME_NAVIGATION = Object.freeze({
   meusJogos: '/minhas-partidas',
   registrarPartida: '/partidas/registrar',
   grupos: '/grupos',
-  perfil: '/app/perfil'
+  perfil: '/app/perfil',
+  editarPerfil: '/app/perfil?aba=perfil&editar=1',
+  configuracoes: '/app/perfil?aba=configuracoes',
+  pendencias: '/app/pendencias',
+  scouts: '/app/scouts'
 });
 
 function obterEstadoModulo(modulos, chave, dadosPadrao = null) {
@@ -169,7 +178,8 @@ export function HomeDashboard({
   confirmandoPendenciaId,
   contestandoPendenciaId
 }) {
-  const { usuario } = useAutenticacao();
+  const { usuario, sair } = useAutenticacao();
+  const navigate = useNavigate();
 
   if (carregando) {
     return <HomeDashboardSkeleton />;
@@ -196,7 +206,6 @@ export function HomeDashboard({
   const nomeCompleto = obterNomeCompletoPerfil(perfil, usuario);
   const apelido = obterApelidoPerfil(perfil, usuario, nomeCompleto);
   const fotoPerfilUrl = obterFotoPerfilAvatar(perfil) || obterFotoPerfilAvatar(usuario);
-  const perfilDestino = montarRotaPerfilAtleta(perfil.atletaId || usuario?.atletaId, usuario) || HOME_NAVIGATION.perfil;
   const totalPartidas = Number(resumo.totalPartidas ?? 0);
   const totalVitorias = Number(resumo.vitorias ?? 0);
   const pendenciaCriarSenha = Array.isArray(usuario?.pendenciasConta)
@@ -239,9 +248,13 @@ export function HomeDashboard({
         nomeCompleto={nomeCompleto}
         apelido={apelido}
         fotoPerfilUrl={fotoPerfilUrl}
-        perfilDestino={perfilDestino}
-        resumoPendencias={resumoPendencias}
+        onSair={() => {
+          sair();
+          navigate('/', { replace: true });
+        }}
       />
+
+      <HomeDesempenho scouts={scouts} erro={resumoModulo.erro} />
 
       <HomeConfirmarPartidaCard
         pendencia={pendenciaConfirmacaoPartida}
@@ -261,8 +274,6 @@ export function HomeDashboard({
         </Link>
       )}
 
-      <HomeDesempenho scouts={scouts} erro={resumoModulo.erro} />
-
       <HomeUltimosJogos
         ultimasPartidas={ultimasPartidas}
         erro={ultimasPartidasModulo.erro}
@@ -271,30 +282,61 @@ export function HomeDashboard({
   );
 }
 
-function HomeIdentidadeUsuario({ nomeCompleto, apelido, fotoPerfilUrl, perfilDestino, resumoPendencias }) {
+function HomeIdentidadeUsuario({ nomeCompleto, apelido, fotoPerfilUrl, onSair }) {
+  const [menuAberto, setMenuAberto] = useState(false);
+  const itensMenu = [
+    { rotulo: 'Meu Perfil', to: HOME_NAVIGATION.perfil, icone: FaUser },
+    { rotulo: 'Editar Perfil', to: HOME_NAVIGATION.editarPerfil, icone: FaEdit },
+    { rotulo: 'Configurações', to: HOME_NAVIGATION.configuracoes, icone: FaCog },
+    { rotulo: 'Notificações', to: HOME_NAVIGATION.pendencias, icone: FaBell },
+    { rotulo: 'Ajuda', to: HOME_NAVIGATION.configuracoes, icone: FaQuestionCircle },
+    { rotulo: 'Sobre', to: HOME_NAVIGATION.configuracoes, icone: FaInfoCircle }
+  ];
+
   return (
     <header
       className="home-dashboard-identidade-card"
       role="region"
       aria-label="Identidade do usuário"
     >
-      <AvatarUsuario
-        nome={nomeCompleto}
-        fotoPerfilUrl={fotoPerfilUrl}
-        tamanho="xl"
-        className="home-dashboard-avatar"
-      />
+      <div className="home-dashboard-avatar-menu">
+        <button
+          type="button"
+          className="home-dashboard-avatar-botao"
+          aria-label="Abrir menu do perfil"
+          aria-expanded={menuAberto}
+          onClick={() => setMenuAberto((aberto) => !aberto)}
+        >
+          <AvatarUsuario
+            nome={nomeCompleto}
+            fotoPerfilUrl={fotoPerfilUrl}
+            tamanho="xl"
+            className="home-dashboard-avatar"
+          />
+        </button>
+
+        {menuAberto && (
+          <nav className="home-dashboard-menu-perfil" aria-label="Menu do perfil">
+            {itensMenu.map((item) => {
+              const Icone = item.icone;
+              return (
+                <Link key={item.rotulo} to={item.to} onClick={() => setMenuAberto(false)}>
+                  <Icone aria-hidden="true" />
+                  <span>{item.rotulo}</span>
+                </Link>
+              );
+            })}
+            <button type="button" onClick={onSair}>
+              <FaSignOutAlt aria-hidden="true" />
+              <span>Sair</span>
+            </button>
+          </nav>
+        )}
+      </div>
 
       <div className="home-dashboard-identidade-texto">
         <h1>{nomeCompleto}</h1>
         {apelido && <p>{apelido}</p>}
-      </div>
-
-      <div className="home-dashboard-identidade-acoes">
-        <NotificacoesBotao autenticado resumo={resumoPendencias} />
-        <Link to={perfilDestino} className="home-dashboard-icone-redondo" aria-label="Editar perfil">
-          <FaEdit aria-hidden="true" />
-        </Link>
       </div>
     </header>
   );
@@ -342,14 +384,6 @@ function HomeConfirmarPartidaCard({ pendencia, confirmando, contestando, onConfi
         <div className="home-dashboard-confirmacao-acoes">
           <button
             type="button"
-            className="botao-primario"
-            onClick={() => onConfirmar?.(pendencia.id)}
-            disabled={processando}
-          >
-            {confirmando ? 'Confirmando...' : 'Confirmar'}
-          </button>
-          <button
-            type="button"
             className="botao-terciario"
             onClick={() => onNaoReconhecer?.(pendencia.id)}
             disabled={processando || !onNaoReconhecer}
@@ -357,9 +391,17 @@ function HomeConfirmarPartidaCard({ pendencia, confirmando, contestando, onConfi
             <FaTimes aria-hidden="true" />
             {contestando ? 'Enviando...' : 'Não fui eu'}
           </button>
+          <button
+            type="button"
+            className="botao-primario"
+            onClick={() => onConfirmar?.(pendencia.id)}
+            disabled={processando}
+          >
+            {confirmando ? 'Confirmando...' : 'Confirmar partida'}
+          </button>
         </div>
         <Link to="/app/pendencias" className="home-dashboard-confirmacao-link">
-          Ver todas pendências
+          Ver todas
           <FaChevronRight aria-hidden="true" />
         </Link>
       </footer>
@@ -397,8 +439,8 @@ function HomeDesempenho({ scouts, erro }) {
     <section className="home-dashboard-scouts" aria-labelledby="home-desempenho-titulo">
       <div className="home-dashboard-section-title">
         <h2 id="home-desempenho-titulo">Seu desempenho</h2>
-        <Link to={HOME_NAVIGATION.meusJogos}>
-          Ver mais
+        <Link to={HOME_NAVIGATION.scouts}>
+          Ver detalhes
           <FaChevronRight aria-hidden="true" />
         </Link>
       </div>
@@ -435,12 +477,11 @@ function HomeAcoesPrincipais() {
         <FaChevronRight aria-hidden="true" />
       </Link>
 
-      <Link to={HOME_NAVIGATION.grupos} className="home-dashboard-cta home-dashboard-cta-secundario">
+      <Link to={HOME_NAVIGATION.grupos} className="home-dashboard-cta home-dashboard-cta-principal home-dashboard-cta-grupo">
         <span className="home-dashboard-cta-icone"><FaUsers aria-hidden="true" /></span>
         <span>
-          <strong>Ainda joga sem grupo?</strong>
+          <strong>Criar grupo</strong>
           <small>Crie um grupo e acompanhe ranking, histórico e scouts com sua galera.</small>
-          <em>Criar grupo</em>
         </span>
         <FaChevronRight aria-hidden="true" />
       </Link>

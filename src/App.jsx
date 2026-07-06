@@ -28,6 +28,7 @@ import { PaginaPartidasCampeonato } from './pages/PaginaPartidasCampeonato';
 import { PaginaMinhasPartidas } from './pages/PaginaMinhasPartidas';
 import { PaginaMeuPerfil } from './pages/PaginaMeuPerfil';
 import { PaginaPontosQN } from './pages/PaginaPontosQN';
+import { PaginaScouts } from './pages/PaginaScouts';
 import { PaginaArenas } from './pages/PaginaArenas';
 import { PaginaArenaPublica } from './pages/PaginaArenaPublica';
 import { MinhasArenasPage } from './pages/arena/MinhasArenasPage';
@@ -107,6 +108,17 @@ export default function App() {
               estadosPermitidos={[ESTADOS_ACESSO.ativo]}
             >
               <PaginaPontosQN />
+            </RotaProtegida>
+          }
+        />
+        <Route
+          path="/app/scouts"
+          element={
+            <RotaProtegida
+              perfisPermitidos={[PERFIS_USUARIO.administrador, PERFIS_USUARIO.organizador, PERFIS_USUARIO.atleta]}
+              estadosPermitidos={[ESTADOS_ACESSO.ativo]}
+            >
+              <PaginaScouts />
             </RotaProtegida>
           }
         />

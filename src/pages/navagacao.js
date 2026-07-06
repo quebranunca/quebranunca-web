@@ -46,6 +46,12 @@ const ITENS_NAVEGACAO = [
     visivel: ({ estadoAtivo }) => estadoAtivo
   },
   {
+    caminho: '/app/scouts',
+    nome: 'Scouts',
+    descricao: 'Acompanhe seu desempenho individual, duplas, histórico e relações de jogo.',
+    visivel: ({ estadoAtivo, atleta }) => estadoAtivo && atleta
+  },
+  {
     caminho: '/app/organizacao',
     nome: 'Painel',
     mostrarNoDashboard: false,
@@ -256,6 +262,7 @@ export const ROTAS_APP_HEADER = [
   { path: '/dashboard', title: 'Painel', tipoTela: TIPOS_TELA.raiz },
   { path: '/app/perfil', title: 'Meu Perfil', tipoTela: TIPOS_TELA.raiz },
   { path: '/app/pontos-qn', title: 'Pontos QN', tipoTela: TIPOS_TELA.raiz },
+  { path: '/app/scouts', title: 'Scouts', tipoTela: TIPOS_TELA.raiz },
   { path: '/minhas-partidas', title: 'Minhas Partidas', tipoTela: TIPOS_TELA.acao },
   { path: '/app/meus-jogos', title: 'Minhas Partidas', tipoTela: TIPOS_TELA.acao },
   { path: '/app/minhas-partidas', title: 'Minhas Partidas', tipoTela: TIPOS_TELA.acao },
