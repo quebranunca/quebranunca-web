@@ -26,7 +26,9 @@ import { formatarDataHoraCurta } from '../../utils/formatacao';
 import {
   obterAtletasConsolidadosPartida,
   obterNumeroRegraPartida,
-  placarDetalhadoEstaValidoRegistro,
+  validarAtletasConsolidados,
+  validarDuplaConsolidada,
+  validarResultadoRegistro,
   validarRevisaoPartida
 } from '../../utils/registroPartidaWizard';
 import {
@@ -128,10 +130,6 @@ function montarValidacoesPlacar(dados, regraPartida) {
       ok: temPlacar && Math.abs(placarA - placarB) >= diferencaMinima
     }
   ].filter(Boolean);
-}
-
-function placarDetalhadoEstaValido(dados, regraPartida) {
-  return placarDetalhadoEstaValidoRegistro(dados, regraPartida);
 }
 
 function limparTexto(valor) {
@@ -1229,11 +1227,15 @@ function RevisaoRapida({
   salvando,
   duplicidade,
   onCancelarDuplicidade,
-  onConfirmarDuplicidade
+  onConfirmarDuplicidade,
+  onIrParaEtapa
 }) {
   const vencedora = obterVencedora(dados);
   const exibindoDuplicidade = Boolean(duplicidade);
   const mensagemBloqueio = !exibindoDuplicidade ? (mensagemValidacao || erro) : '';
+  const bloqueioAtletas = /atleta|quatro|repetir/i.test(mensagemBloqueio);
+  const bloqueioResultado = /resultado|pontos|empate|diferença|vencedora/i.test(mensagemBloqueio);
+  const bloqueioGrupo = /grupo/i.test(mensagemBloqueio);
   const apenasResultado = resumo.tipoRegistroResultado === 'ApenasResultado' || dados.resultado?.modo === 'ApenasResultado';
   const atletasConsolidados = obterAtletasConsolidadosPartida(dados, selecoes);
   const atletasDupla1 = atletasConsolidados.dupla1;
@@ -1250,9 +1252,38 @@ function RevisaoRapida({
     <section className="registrar-partida-novo-revisao" aria-label="Revisão rápida da partida">
       <div className="registrar-partida-novo-sheet">
         {mensagemBloqueio ? (
-          <p className="texto-erro registrar-partida-novo-erro" role="alert">
-            {mensagemBloqueio}
-          </p>
+          <div className="registrar-partida-novo-estado-pendente">
+            <strong>
+              {bloqueioAtletas
+                ? 'Volte e informe os quatro atletas da partida.'
+                : 'Revise os dados antes de registrar.'}
+            </strong>
+            <p className="texto-erro registrar-partida-novo-erro" role="alert">
+              {mensagemBloqueio}
+            </p>
+            <div className="registrar-partida-novo-acoes">
+              {bloqueioAtletas && (
+                <>
+                  <button type="button" className="botao-secundario" onClick={() => onIrParaEtapa?.('dupla1')}>
+                    Voltar para Dupla 1
+                  </button>
+                  <button type="button" className="botao-secundario" onClick={() => onIrParaEtapa?.('dupla2')}>
+                    Voltar para Dupla 2
+                  </button>
+                </>
+              )}
+              {bloqueioResultado && !bloqueioAtletas && (
+                <button type="button" className="botao-secundario" onClick={() => onIrParaEtapa?.('resultado')}>
+                  Voltar para Resultado
+                </button>
+              )}
+              {bloqueioGrupo && !bloqueioAtletas && !bloqueioResultado && (
+                <button type="button" className="botao-secundario" onClick={() => onIrParaEtapa?.('grupo')}>
+                  Voltar para Grupo
+                </button>
+              )}
+            </div>
+          </div>
         ) : (
           <>
             <div className="registrar-partida-novo-intro">
@@ -1451,48 +1482,22 @@ function obterRotuloAcao(etapaAtual, salvando) {
   return 'Registrar partida';
 }
 
-function obterNomesAtletasWizard(dados) {
-  return [
-    limparTexto(dados.dupla1.atletaDireita),
-    limparTexto(dados.dupla1.atletaEsquerda),
-    limparTexto(dados.dupla2.atletaDireita),
-    limparTexto(dados.dupla2.atletaEsquerda)
-  ];
+function duplaEstaConsolidada(dados, selecoes, prefixo) {
+  return !validarDuplaConsolidada(dados, selecoes, prefixo, prefixo === 'dupla1' ? 'Dupla 1' : 'Dupla 2');
 }
 
-function duplaEstaPreenchida(dados, prefixo) {
-  const atleta1 = limparTexto(dados[prefixo].atletaDireita);
-  const atleta2 = limparTexto(dados[prefixo].atletaEsquerda);
-
-  return Boolean(atleta1 && atleta2 && atleta1.toLowerCase() !== atleta2.toLowerCase());
-}
-
-function atletasEstaoValidosParaWizard(dados) {
-  const nomes = obterNomesAtletasWizard(dados);
-  const nomesNormalizados = nomes.map((nome) => nome.toLowerCase()).filter(Boolean);
-
-  return nomes.every(Boolean) && new Set(nomesNormalizados).size === nomesNormalizados.length;
+function atletasEstaoValidosParaWizard(dados, selecoes) {
+  return !validarAtletasConsolidados(dados, selecoes);
 }
 
 function resultadoEstaPreenchido(dados, regraPartida) {
-  const modo = dados.resultado?.modo || '';
-
-  if (modo === 'ApenasResultado') {
-    return Boolean(dados.resultado?.duplaVencedora);
-  }
-
-  if (modo === 'PlacarDetalhado') {
-    return placarDetalhadoEstaValido(dados, regraPartida) &&
-      montarValidacoesPlacar(dados, regraPartida).every((validacao) => validacao.ok);
-  }
-
-  return false;
+  return !validarResultadoRegistro(dados, regraPartida);
 }
 
 function obterAcaoPrincipalDesabilitada({
   etapaAtual,
   dados,
-  grupo,
+  selecoes,
   regraPartida,
   salvando,
   duplicidade,
@@ -1507,19 +1512,20 @@ function obterAcaoPrincipalDesabilitada({
   }
 
   if (etapaAtual?.id === 'dupla1') {
-    return !duplaEstaPreenchida(dados, 'dupla1');
+    return !duplaEstaConsolidada(dados, selecoes, 'dupla1');
   }
 
   if (etapaAtual?.id === 'dupla2') {
-    return !duplaEstaPreenchida(dados, 'dupla2') || !atletasEstaoValidosParaWizard(dados);
+    return !duplaEstaConsolidada(dados, selecoes, 'dupla2') || !atletasEstaoValidosParaWizard(dados, selecoes);
   }
 
   if (etapaAtual?.id === 'tipo') {
-    return dados.resultado?.modo !== 'PlacarDetalhado' && dados.resultado?.modo !== 'ApenasResultado';
+    return !atletasEstaoValidosParaWizard(dados, selecoes) ||
+      (dados.resultado?.modo !== 'PlacarDetalhado' && dados.resultado?.modo !== 'ApenasResultado');
   }
 
   if (etapaAtual?.id === 'resultado') {
-    return !resultadoEstaPreenchido(dados, regraPartida);
+    return !atletasEstaoValidosParaWizard(dados, selecoes) || !resultadoEstaPreenchido(dados, regraPartida);
   }
 
   return revisaoInvalida;
@@ -1589,6 +1595,7 @@ function ConteudoEtapa({
   onConcluirEtapa,
   onCancelarDuplicidade,
   onConfirmarDuplicidade,
+  onIrParaEtapa,
   fluxoSimplificado = false
 }) {
   const propsRegistro = {
@@ -1637,10 +1644,32 @@ function ConteudoEtapa({
   }
 
   if (etapaAtual.id === 'tipo') {
+    if (!atletasEstaoValidosParaWizard(dados, selecoes)) {
+      return (
+        <div className="registrar-partida-novo-estado-pendente">
+          <strong>Volte e informe os quatro atletas da partida.</strong>
+          <button type="button" className="botao-secundario" onClick={() => onIrParaEtapa?.('dupla1')}>
+            Voltar para Dupla 1
+          </button>
+        </div>
+      );
+    }
+
     return <EtapaTipoRegistro dados={dados} selecoes={selecoes} onAlterarCampo={onAlterarCampo} />;
   }
 
   if (etapaAtual.id === 'resultado') {
+    if (!atletasEstaoValidosParaWizard(dados, selecoes)) {
+      return (
+        <div className="registrar-partida-novo-estado-pendente">
+          <strong>Volte e informe os quatro atletas da partida.</strong>
+          <button type="button" className="botao-secundario" onClick={() => onIrParaEtapa?.('dupla1')}>
+            Voltar para Dupla 1
+          </button>
+        </div>
+      );
+    }
+
     return <EtapaResultado {...propsRegistro} />;
   }
 
@@ -1656,6 +1685,7 @@ function ConteudoEtapa({
       duplicidade={duplicidade}
       onCancelarDuplicidade={onCancelarDuplicidade}
       onConfirmarDuplicidade={onConfirmarDuplicidade}
+      onIrParaEtapa={onIrParaEtapa}
     />
   );
 }
@@ -1694,6 +1724,7 @@ export function RegistrarPartidaNovoModal({
   onLimparSelecao,
   onConfirmarEtapa,
   onVoltar,
+  onIrParaEtapa,
   onCancelarDuplicidade,
   onConfirmarDuplicidade,
   onFechar,
@@ -1744,7 +1775,7 @@ export function RegistrarPartidaNovoModal({
     : obterAcaoPrincipalDesabilitada({
         etapaAtual,
         dados,
-        grupo,
+        selecoes,
         regraPartida,
         salvando,
         duplicidade,
@@ -2147,6 +2178,7 @@ export function RegistrarPartidaNovoModal({
                 onConcluirEtapa={() => formRef.current?.requestSubmit()}
                 onCancelarDuplicidade={onCancelarDuplicidade}
                 onConfirmarDuplicidade={onConfirmarDuplicidade}
+                onIrParaEtapa={onIrParaEtapa}
               />
             </main>
 

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   obterAtletasConsolidadosPartida,
   placarDetalhadoEstaValidoRegistro,
+  validarDuplaConsolidada,
   validarRevisaoPartida
 } from './registroPartidaWizard';
 
@@ -30,6 +31,26 @@ const selecoesBase = {
 };
 
 describe('registroPartidaWizard', () => {
+  it('valida a dupla somente com dois atletas selecionados', () => {
+    expect(validarDuplaConsolidada(dadosBase, selecoesBase, 'dupla1', 'Dupla 1')).toBe('');
+
+    expect(validarDuplaConsolidada(
+      {
+        ...dadosBase,
+        dupla1: {
+          ...dadosBase.dupla1,
+          atletaEsquerda: 'gusta'
+        }
+      },
+      {
+        ...selecoesBase,
+        'dupla1.atletaEsquerda': null
+      },
+      'dupla1',
+      'Dupla 1'
+    )).toBe('Informe os dois atletas da Dupla 1.');
+  });
+
   it('bloqueia revisão com atleta digitado sem seleção consolidada', () => {
     const selecoes = {
       ...selecoesBase,

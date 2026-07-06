@@ -5,6 +5,11 @@ export const CAMPOS_ATLETAS_PARTIDA = [
   'dupla2.atletaEsquerda'
 ];
 
+const CAMPOS_ATLETAS_POR_DUPLA = {
+  dupla1: ['dupla1.atletaDireita', 'dupla1.atletaEsquerda'],
+  dupla2: ['dupla2.atletaDireita', 'dupla2.atletaEsquerda']
+};
+
 export function limparTextoRegistro(valor) {
   return String(valor || '').trim().replace(/\s+/g, ' ');
 }
@@ -72,7 +77,35 @@ export function obterAtletasConsolidadosPartida(dados, selecoes, opcoes = {}) {
   };
 }
 
+export function validarDuplaConsolidada(dados, selecoes, prefixo, rotulo, opcoes = {}) {
+  const campos = CAMPOS_ATLETAS_POR_DUPLA[prefixo] || [];
+  const atletas = campos.map((campo) => obterAtletaConsolidadoRegistro(dados, selecoes, campo, opcoes));
+
+  if (campos.length !== 2 || atletas.some((atleta) => !atleta)) {
+    return `Informe os dois atletas da ${rotulo}.`;
+  }
+
+  const ids = atletas.map((atleta) => atleta.id).filter(Boolean).map(String);
+  if (ids.length > 0 && new Set(ids).size !== ids.length) {
+    return `Não é permitido repetir atleta na ${rotulo}.`;
+  }
+
+  const nomes = atletas.map((atleta) => normalizarTexto(atleta.nome));
+  if (new Set(nomes).size !== nomes.length) {
+    return `Não é permitido repetir atleta na ${rotulo}.`;
+  }
+
+  return '';
+}
+
 export function validarAtletasConsolidados(dados, selecoes, opcoes = {}) {
+  const erroDupla1 = validarDuplaConsolidada(dados, selecoes, 'dupla1', 'Dupla 1', opcoes);
+  const erroDupla2 = validarDuplaConsolidada(dados, selecoes, 'dupla2', 'Dupla 2', opcoes);
+
+  if (erroDupla1 || erroDupla2) {
+    return 'Informe os quatro atletas da partida.';
+  }
+
   const atletas = obterAtletasConsolidadosPartida(dados, selecoes, opcoes);
 
   if (atletas.dupla1.length !== 2 || atletas.dupla2.length !== 2 || atletas.todos.length !== 4) {

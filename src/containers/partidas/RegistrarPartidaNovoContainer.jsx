@@ -24,6 +24,7 @@ import {
   limparTextoRegistro,
   obterValorCampoRegistro,
   validarAtletasConsolidados,
+  validarDuplaConsolidada,
   validarResultadoRegistro,
   validarRevisaoPartida
 } from '../../utils/registroPartidaWizard';
@@ -179,6 +180,24 @@ function criarDadosComAtletaUsuario(dados, usuario, atletaUsuario) {
   const campoAtletaUsuario = obterCampoAtletaUsuario(obterAtletaUsuarioLado(usuario, atletaUsuario));
 
   return atualizarValorCampo(dados, campoAtletaUsuario, atletaUsuarioNome);
+}
+
+function limparResultadoDependente(dados) {
+  return {
+    ...dados,
+    dupla1: {
+      ...dados.dupla1,
+      pontos: ''
+    },
+    dupla2: {
+      ...dados.dupla2,
+      pontos: ''
+    },
+    resultado: {
+      ...dados.resultado,
+      duplaVencedora: ''
+    }
+  };
 }
 
 function criarSelecoesComAtletaUsuario(usuario, atletaUsuario) {
@@ -349,50 +368,46 @@ function criarPayloadEdicao(partida, dados, selecoes, contextoPartida) {
   };
 }
 
-function validarAtletas(dados) {
-  return validarAtletasConsolidados(dados, null, { exigirSelecao: false });
+function validarAtletas(dados, selecoes) {
+  return validarAtletasConsolidados(dados, selecoes);
 }
 
-function validarDupla(dados, prefixo, rotulo) {
-  const atleta1 = limparTexto(dados[prefixo].atletaDireita);
-  const atleta2 = limparTexto(dados[prefixo].atletaEsquerda);
-
-  if (!atleta1 || !atleta2) {
-    return `Informe os dois atletas da ${rotulo}.`;
-  }
-
-  if (atleta1.toLowerCase() === atleta2.toLowerCase()) {
-    return `Não é permitido repetir atleta na ${rotulo}.`;
-  }
-
-  return '';
+function validarDupla(dados, selecoes, prefixo, rotulo) {
+  return validarDuplaConsolidada(dados, selecoes, prefixo, rotulo);
 }
 
-function validarEtapaAtual(idEtapa, dados, regraPartida, contextoPartida = {}) {
+function validarEtapaAtual(idEtapa, dados, selecoes, regraPartida, contextoPartida = {}, grupo = null) {
   if (idEtapa === 'grupo') {
     return '';
   }
 
   if (idEtapa === 'dupla1') {
-    return validarDupla(dados, 'dupla1', 'Dupla 1');
+    return validarDupla(dados, selecoes, 'dupla1', 'Dupla 1');
   }
 
   if (idEtapa === 'dupla2') {
-    return validarDupla(dados, 'dupla2', 'Dupla 2') || validarAtletas(dados);
+    return validarDupla(dados, selecoes, 'dupla2', 'Dupla 2') || validarAtletas(dados, selecoes);
   }
 
   if (idEtapa === 'tipo') {
-    return dados.resultado?.modo === 'PlacarDetalhado' || dados.resultado?.modo === 'ApenasResultado'
+    return validarAtletas(dados, selecoes)
+      || (dados.resultado?.modo === 'PlacarDetalhado' || dados.resultado?.modo === 'ApenasResultado'
       ? ''
-      : 'Escolha como deseja registrar o resultado.';
+      : 'Escolha como deseja registrar o resultado.');
   }
 
   if (idEtapa === 'resultado') {
-    return validarPlacar(dados, regraPartida);
+    return validarAtletas(dados, selecoes) || validarPlacar(dados, regraPartida);
   }
 
   if (idEtapa === 'revisao') {
-    return validarAtletas(dados) || validarPlacar(dados, regraPartida);
+    return validarRevisaoPartida({
+      dados,
+      selecoes,
+      regraPartida,
+      contexto: contextoPartida,
+      grupo
+    });
   }
 
   return '';
@@ -450,6 +465,23 @@ function obterGrupoId(grupo) {
 
 function normalizarNomeSugestao(valor) {
   return limparTexto(valor).toLowerCase();
+}
+
+function atletaJaSelecionado(selecoes, campoAtual, atletaSelecionado) {
+  const id = atletaSelecionado?.id ? String(atletaSelecionado.id) : '';
+  const nome = normalizarNomeSugestao(atletaSelecionado?.nome);
+
+  return CAMPOS_ATLETAS.some((campo) => {
+    if (campo === campoAtual) {
+      return false;
+    }
+
+    const selecao = selecoes[campo];
+    const selecaoId = selecao?.id ? String(selecao.id) : '';
+    const selecaoNome = normalizarNomeSugestao(selecao?.nome);
+
+    return Boolean((id && selecaoId && id === selecaoId) || (nome && selecaoNome && nome === selecaoNome));
+  });
 }
 
 function normalizarGrupoContexto(grupo, quantidadeAtletas) {
@@ -943,7 +975,10 @@ export function RegistrarPartidaNovoContainer({
     const proximoValor = campo.endsWith('.pontos')
       ? String(valor || '').replace(/\D/g, '').slice(0, 2)
       : valor;
-    setDados((anterior) => atualizarValorCampo(anterior, campo, proximoValor));
+    setDados((anterior) => {
+      const atualizado = atualizarValorCampo(anterior, campo, proximoValor);
+      return CAMPOS_ATLETAS.includes(campo) ? limparResultadoDependente(atualizado) : atualizado;
+    });
 
     if (CAMPOS_ATLETAS.includes(campo)) {
       setSelecoes((anterior) => ({ ...anterior, [campo]: null }));
@@ -1050,14 +1085,21 @@ export function RegistrarPartidaNovoContainer({
       return;
     }
 
+    if (atletaJaSelecionado(selecoes, campo, atletaSelecionado)) {
+      setErro('Não é permitido repetir atleta na mesma partida.');
+      setDuplicidade(null);
+      setPayloadPendente(null);
+      return;
+    }
+
     setErro('');
     setDuplicidade(null);
     setPayloadPendente(null);
-    setDados((anterior) => atualizarValorCampo(
+    setDados((anterior) => limparResultadoDependente(atualizarValorCampo(
       anterior,
       campo,
       obterTextoExibicaoSelecaoAtleta(atletaSelecionado)
-    ));
+    )));
     setSelecoes((anterior) => ({ ...anterior, [campo]: atletaSelecionado }));
     setSugestoes((anterior) => ({ ...anterior, [campo]: [] }));
     avancarAposSelecao(campo);
@@ -1072,7 +1114,7 @@ export function RegistrarPartidaNovoContainer({
     setErro('');
     setDuplicidade(null);
     setPayloadPendente(null);
-    setDados((anterior) => atualizarValorCampo(anterior, campo, ''));
+    setDados((anterior) => limparResultadoDependente(atualizarValorCampo(anterior, campo, '')));
     setSelecoes((anterior) => ({ ...anterior, [campo]: null }));
     setSugestoes((anterior) => ({ ...anterior, [campo]: [] }));
   }
@@ -1182,7 +1224,7 @@ export function RegistrarPartidaNovoContainer({
       return;
     }
 
-    const erroValidacao = validarEtapaAtual(etapaAtual.id, dados, regraPartida, contextoPartida);
+    const erroValidacao = validarEtapaAtual(etapaAtual.id, dados, selecoes, regraPartida, contextoPartida, grupoContexto);
 
     if (erroValidacao) {
       setErro(erroValidacao);
@@ -1257,6 +1299,18 @@ export function RegistrarPartidaNovoContainer({
 
   function fecharSeletorGrupo() {
     setSeletorGrupoAberto(false);
+  }
+
+  function irParaEtapa(idEtapa) {
+    const indice = etapas.findIndex((etapa) => etapa.id === idEtapa);
+    if (indice < 0 || salvando) {
+      return;
+    }
+
+    setErro('');
+    setDuplicidade(null);
+    setPayloadPendente(null);
+    setIndiceEtapa(indice);
   }
 
   function removerGrupo() {
@@ -1401,6 +1455,7 @@ export function RegistrarPartidaNovoContainer({
         onLimparSelecao={limparSelecaoAtleta}
         onConfirmarEtapa={confirmarEtapa}
         onVoltar={voltar}
+        onIrParaEtapa={irParaEtapa}
         onCancelarDuplicidade={cancelarDuplicidade}
         onConfirmarDuplicidade={confirmarDuplicidade}
         onVerPartida={verPartidaDuplicada}

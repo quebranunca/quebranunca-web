@@ -35,6 +35,30 @@ const selecoesParciais = {
   'dupla2.atletaEsquerda': { id: 'a4', nome: 'Caio' }
 };
 
+const dadosValidos = {
+  dupla1: {
+    atletaDireita: 'Primo',
+    atletaEsquerda: 'Gustavo',
+    pontos: '18'
+  },
+  dupla2: {
+    atletaDireita: 'Bruno',
+    atletaEsquerda: 'Caio',
+    pontos: '16'
+  },
+  resultado: {
+    modo: 'PlacarDetalhado',
+    duplaVencedora: ''
+  }
+};
+
+const selecoesValidas = {
+  'dupla1.atletaDireita': { id: 'a1', nome: 'Primo' },
+  'dupla1.atletaEsquerda': { id: 'a2', nome: 'Gustavo' },
+  'dupla2.atletaDireita': { id: 'a3', nome: 'Bruno' },
+  'dupla2.atletaEsquerda': { id: 'a4', nome: 'Caio' }
+};
+
 beforeAll(() => {
   window.matchMedia = window.matchMedia || vi.fn().mockImplementation(() => ({
     matches: false,
@@ -95,6 +119,7 @@ function renderizarModal(props = {}) {
       onLimparSelecao={vi.fn()}
       onConfirmarEtapa={vi.fn((evento) => evento.preventDefault())}
       onVoltar={vi.fn()}
+      onIrParaEtapa={vi.fn()}
       onCancelarDuplicidade={vi.fn()}
       onConfirmarDuplicidade={vi.fn()}
       onFechar={vi.fn()}
@@ -104,14 +129,68 @@ function renderizarModal(props = {}) {
 }
 
 describe('RegistrarPartidaNovoModal - revisão', () => {
-  it('não renderiza resumo parcial quando há atleta sem seleção consolidada', () => {
-    renderizarModal();
+  it('não renderiza resumo parcial e mostra ação clara quando há atleta sem seleção consolidada', () => {
+    const onIrParaEtapa = vi.fn();
 
+    renderizarModal({ onIrParaEtapa });
+
+    expect(screen.getByText('Volte e informe os quatro atletas da partida.')).toBeInTheDocument();
     expect(screen.getByRole('alert')).toHaveTextContent('Informe os quatro atletas da partida.');
+    expect(screen.getByRole('button', { name: 'Voltar para Dupla 1' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Voltar para Dupla 2' })).toBeInTheDocument();
     expect(screen.queryByText('VENCEDORES')).not.toBeInTheDocument();
     expect(screen.queryByText('DATA E HORA')).not.toBeInTheDocument();
     expect(screen.queryByText('18')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Registrar partida' })).toBeDisabled();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Voltar para Dupla 1' }));
+    expect(onIrParaEtapa).toHaveBeenCalledWith('dupla1');
+  });
+
+  it('bloqueia continuar na Dupla 1 quando há apenas texto digitado', () => {
+    renderizarModal({
+      etapaAtual: etapas[1],
+      indiceEtapa: 1,
+      dados: {
+        ...dadosValidos,
+        dupla1: {
+          ...dadosValidos.dupla1,
+          atletaEsquerda: 'gusta'
+        }
+      },
+      selecoes: {
+        ...selecoesValidas,
+        'dupla1.atletaEsquerda': null
+      }
+    });
+
+    expect(screen.getByRole('heading', { name: 'Quem jogou na Dupla 1?' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Continuar' })).toBeDisabled();
+  });
+
+  it('habilita continuar na Dupla 1 somente com dois atletas selecionados', () => {
+    renderizarModal({
+      etapaAtual: etapas[1],
+      indiceEtapa: 1,
+      dados: dadosValidos,
+      selecoes: selecoesValidas
+    });
+
+    expect(screen.getByRole('heading', { name: 'Quem jogou na Dupla 1?' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Continuar' })).toBeEnabled();
+  });
+
+  it('bloqueia Resultado com duplas incompletas sem renderizar vencedor parcial', () => {
+    renderizarModal({
+      etapaAtual: etapas[4],
+      indiceEtapa: 4
+    });
+
+    expect(screen.getByText('Volte e informe os quatro atletas da partida.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Voltar para Dupla 1' })).toBeInTheDocument();
+    expect(screen.queryByText('Atleta pendente')).not.toBeInTheDocument();
+    expect(screen.queryByText('Quem venceu?')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Continuar' })).toBeDisabled();
   });
 });
 
