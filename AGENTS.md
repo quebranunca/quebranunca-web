@@ -17,15 +17,13 @@ Este é um projeto existente; não tratar como app novo. Reutilizar padrões atu
 - Enquanto não houver produção, essa credencial técnica de app pode ser documentada/versionada; não hardcodar secrets de infraestrutura no frontend
 - Não versionar connection string, senha do Railway, `DATABASE_URL`, `Jwt:Chave`, API keys, `.env.local` ou credenciais de serviços externos
 - Antes de ajustar integração, conferir primeiro `src/services/http.js`, `vite.config.js` e os arquivos `.env*` para não mascarar problema de ambiente com mudança de código
-- Toda feature criada ou alterada deve avaliar se `AGENTS.md`, `AGENTS.override.md` ou `.ai` precisam registrar uma decisão recorrente
+- Toda feature criada ou alterada deve avaliar se `AGENTS.md`, `AGENTS.override.md` ou `ai/` precisam registrar uma decisão recorrente
 
 ## Fase atual do produto
 
-- A fase atual é partida/grupo/ranking/scout-first, não campeonato-first
-- Registro rápido de partida é fluxo crítico; baixo atrito é prioridade
-- Não exigir campeonato, categoria ou liga no registro comum de grupo
-- Ranking individual, ranking de duplas, scout individual e scout de duplas são visões principais
-- Campeonatos, categorias, eventos e ligas devem ser tratados como fluxos específicos/futuros quando solicitados, sem antecipar complexidade no registro comum
+- A fase atual compartilhada fica em `ai/Contextos/FaseAtualProduto.md`
+- Registro rápido de partida, grupos, rankings, scouts e histórico são prioridades da fase atual
+- Campeonato, categoria, evento e liga são fluxos específicos/futuros; não antecipar complexidade no registro comum de grupo
 - Frontend pode antecipar validações simples, mas backend é a fonte final das regras de domínio
 - Não duplicar regra complexa de domínio no frontend
 - Rodar build quando possível e validar manualmente o fluxo alterado quando não houver teste automatizado
@@ -53,7 +51,8 @@ Este é um projeto existente; não tratar como app novo. Reutilizar padrões atu
 - `Usuários` existe apenas para administrador; esconder rota e menu fora desse perfil
 - `Partidas` de competição deve exibir tabela de jogos da categoria; partida comum de grupo não depende de campeonato/categoria/liga
 - `Partidas` em grupo deve permitir fluxo único: frontend coleta nomes completos ou seleção de atletas existentes, e a API reaproveita ou cria atleta, dupla e vínculo ao grupo no próprio registro da partida. O usuário autenticado que registra precisa pertencer ao grupo; atletas informados não precisam estar previamente no grupo e a API vincula automaticamente os ausentes ao salvar.
-- Registro de partida deve usar uma tela única, rápida e sem wizard por etapas, com modo padrão "Apenas vencedor", placar completo como opção avançada e compartilhamento como próxima ação após salvar.
+- Registro de partida deve ser mobile-first, rápido e de baixo atrito; pode usar wizard/modal progressivo em etapas quando isso reduzir complexidade visual, mantendo modo "Apenas vencedor", placar completo como opção avançada e compartilhamento como próxima ação após salvar.
+- Criação de grupo deve seguir a mesma lógica de baixo atrito do registro de partida: campos simples, progressivos e sem formulário grande quando o wizard/modal existente atender melhor ao fluxo.
 - Autocomplete de atleta deve preencher o campo visível ao selecionar; sugestões e busca devem manter estado consistente
 - Foco em campo no mobile deve preservar boa visualização, sem teclado cobrir ação principal ou opções relevantes
 - Compartilhamento de resultado deve funcionar com placar completo ou apenas vencedor e não depender de dados de campeonato
