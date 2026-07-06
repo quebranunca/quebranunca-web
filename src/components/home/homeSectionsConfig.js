@@ -1,21 +1,17 @@
 export const HomeSectionType = Object.freeze({
-  Hero: 'hero',
-  Stats: 'stats',
-  Journey: 'journey',
+  Identity: 'identity',
+  PendingConfirmation: 'pendingConfirmation',
   PrimaryAction: 'primaryAction',
   SecondaryAction: 'secondaryAction',
-  Highlights: 'highlights',
-  RecentActivity: 'recentActivity',
-  QuickTip: 'quickTip'
+  Performance: 'performance',
+  RecentMatches: 'recentMatches'
 });
 
 export const homeSectionsConfig = [
-  { type: HomeSectionType.Hero, enabled: true },
-  { type: HomeSectionType.Stats, enabled: true },
+  { type: HomeSectionType.Identity, enabled: true },
+  { type: HomeSectionType.PendingConfirmation, enabled: true },
   { type: HomeSectionType.PrimaryAction, enabled: true },
   { type: HomeSectionType.SecondaryAction, enabled: true },
-  { type: HomeSectionType.Journey, enabled: true },
-  { type: HomeSectionType.Highlights, enabled: true },
-  { type: HomeSectionType.RecentActivity, enabled: true },
-  { type: HomeSectionType.QuickTip, enabled: true }
+  { type: HomeSectionType.Performance, enabled: true },
+  { type: HomeSectionType.RecentMatches, enabled: true }
 ];

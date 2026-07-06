@@ -979,6 +979,328 @@
   }
 }
 
+.home-dashboard-identidade-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: clamp(0.62rem, 2.6vw, 0.9rem);
+  padding: calc(0.72rem + env(safe-area-inset-top, 0px)) clamp(0.82rem, 3.5vw, 1.05rem) 0.78rem;
+  border: 1px solid rgba(255, 179, 0, 0.2);
+  border-radius: 20px;
+  background:
+    linear-gradient(145deg, rgba(255, 179, 0, 0.08), rgba(255, 255, 255, 0.026)),
+    rgba(14, 15, 18, 0.98);
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.24);
+}
+
+.home-dashboard-identidade-card .home-dashboard-avatar {
+  --avatar-size: clamp(3.15rem, 13vw, 4rem);
+  border: 2px solid rgba(255, 179, 0, 0.64);
+  box-shadow: 0 0 0 4px rgba(255, 179, 0, 0.1), 0 12px 26px rgba(0, 0, 0, 0.36);
+}
+
+.home-dashboard-identidade-texto {
+  min-width: 0;
+  display: grid;
+  gap: 0.18rem;
+}
+
+.home-dashboard-identidade-texto h1 {
+  overflow: hidden;
+  color: var(--cor-texto);
+  font-size: clamp(1.15rem, 5.2vw, 1.75rem);
+  line-height: 1.04;
+  letter-spacing: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-dashboard-identidade-texto p {
+  margin: 0;
+  overflow: hidden;
+  color: var(--cor-texto-suave);
+  font-size: 0.86rem;
+  font-weight: 800;
+  line-height: 1.16;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-dashboard-identidade-acoes {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.42rem;
+}
+
+.home-dashboard-icone-redondo,
+.home-dashboard-identidade-acoes .botao-notificacoes-topo {
+  width: 2.35rem;
+  min-width: 2.35rem;
+  height: 2.35rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.055);
+  color: var(--cor-texto);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.22);
+  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+}
+
+.home-dashboard-icone-redondo:hover,
+.home-dashboard-icone-redondo:focus-visible,
+.home-dashboard-identidade-acoes .botao-notificacoes-topo:hover,
+.home-dashboard-identidade-acoes .botao-notificacoes-topo:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(255, 179, 0, 0.54);
+  background: rgba(255, 179, 0, 0.12);
+}
+
+.home-dashboard-confirmacao-topo {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+.home-dashboard-confirmacao-topo strong {
+  display: block;
+  margin-top: 0.16rem;
+  color: var(--cor-texto);
+  font-size: 0.9rem;
+  line-height: 1.15;
+}
+
+.home-dashboard-confirmacao-topo em {
+  align-self: start;
+  min-height: 1.45rem;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.24rem 0.5rem;
+  border: 1px solid rgba(255, 179, 0, 0.42);
+  border-radius: 999px;
+  background: rgba(255, 179, 0, 0.13);
+  color: var(--cor-primaria);
+  font-size: 0.64rem;
+  font-style: normal;
+  font-weight: 950;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.home-dashboard-confirmacao-meta {
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 0.44rem;
+}
+
+.home-dashboard-confirmacao-meta span {
+  min-height: 1.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.34rem;
+  padding: 0.34rem 0.56rem;
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.045);
+  color: rgba(255, 255, 255, 0.86);
+  line-height: 1;
+}
+
+.home-dashboard-confirmacao-jogo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.48rem;
+}
+
+.home-dashboard-confirmacao-jogo span {
+  min-width: 0;
+  min-height: 2.7rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 0.58rem 0.62rem;
+  border: 1px solid rgba(255, 255, 255, 0.085);
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.045);
+  color: var(--cor-texto);
+  font-size: 0.84rem;
+  font-weight: 850;
+  line-height: 1.08;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-dashboard-confirmacao-jogo strong {
+  min-width: 4.2rem;
+  min-height: 2.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.46rem 0.55rem;
+  border: 1px solid rgba(255, 179, 0, 0.36);
+  border-radius: 14px;
+  background: rgba(255, 179, 0, 0.12);
+  color: var(--cor-primaria);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.98rem;
+  line-height: 1.06;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.home-dashboard-confirmacao-registrador {
+  display: block;
+  margin-top: -0.12rem;
+}
+
+.home-dashboard-confirmacao-rodape {
+  align-items: flex-end;
+}
+
+.home-dashboard-confirmacao-link {
+  min-height: 2.18rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.24rem;
+  color: var(--cor-primaria);
+  font-size: 0.78rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.home-dashboard-confirmacao-acoes .botao-terciario {
+  color: var(--cor-texto);
+}
+
+.home-dashboard-confirmacao-acoes .botao-terciario svg {
+  color: var(--cor-erro);
+}
+
+.home-dashboard-timeline-item {
+  grid-template-columns: auto minmax(0, 1fr) auto auto auto;
+  align-items: center;
+  gap: 0.54rem;
+  padding: 0.72rem 0.78rem;
+}
+
+.home-dashboard-jogo-avatar {
+  width: 2.28rem;
+  height: 2.28rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 179, 0, 0.32);
+  border-radius: 999px;
+  background: var(--qn-avatar-bg);
+  color: var(--qn-avatar-color);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 900;
+  box-shadow: var(--qn-avatar-shadow);
+}
+
+.home-dashboard-timeline-item > em {
+  min-height: 1.72rem;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.32rem 0.54rem;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-style: normal;
+  font-weight: 900;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.home-dashboard-timeline-item > em.vitoria {
+  background: var(--qn-success-soft);
+  color: var(--cor-sucesso);
+}
+
+.home-dashboard-timeline-item > em.derrota {
+  background: var(--qn-danger-soft);
+  color: var(--cor-erro);
+}
+
+.home-dashboard-jogo-placar {
+  color: var(--cor-texto);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.86rem;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.home-dashboard-timeline-item > svg {
+  width: 0.82rem;
+  height: 0.82rem;
+  color: var(--cor-texto-suave);
+}
+
+@media (max-width: 420px) {
+  .home-dashboard-identidade-card {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .home-dashboard-identidade-acoes {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+
+  .home-dashboard-confirmacao-topo {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .home-dashboard-confirmacao-topo em {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .home-dashboard-confirmacao-jogo {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .home-dashboard-confirmacao-jogo strong {
+    width: 100%;
+  }
+
+  .home-dashboard-confirmacao-rodape {
+    display: grid;
+    align-items: stretch;
+  }
+
+  .home-dashboard-confirmacao-acoes {
+    justify-content: stretch;
+  }
+
+  .home-dashboard-confirmacao-acoes .botao-primario,
+  .home-dashboard-confirmacao-acoes .botao-terciario {
+    flex: 1 1 8.5rem;
+  }
+
+  .home-dashboard-confirmacao-link {
+    justify-content: flex-start;
+  }
+
+  .home-dashboard-timeline-item {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .home-dashboard-timeline-item > em,
+  .home-dashboard-jogo-placar {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .home-dashboard-timeline-item > svg {
+    grid-column: 3;
+    grid-row: 1 / span 3;
+  }
+}
+
 @media (max-width: 380px) {
   .home-dashboard-hero-identidade {
     grid-template-columns: minmax(0, 1fr);
@@ -1087,5 +1409,25 @@
 
   .home-dashboard-dica {
     grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 1040px) {
+  .pagina.home-dashboard {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .home-dashboard-identidade-card,
+  .home-dashboard-confirmacao,
+  .home-dashboard-alerta-senha,
+  .home-dashboard-acoes-principais,
+  .home-dashboard-scouts,
+  .home-dashboard-atividade {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .home-dashboard-acoes-principais {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

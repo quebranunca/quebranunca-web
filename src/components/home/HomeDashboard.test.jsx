@@ -5,14 +5,19 @@ import { MemoryRouter, useLocation } from 'react-router-dom';
 import { HomeDashboard } from './HomeDashboard';
 import { HomeSectionType, homeSectionsConfig } from './homeSectionsConfig';
 
+const autenticacaoMock = vi.hoisted(() => ({
+  usuario: {
+    id: 'usuario-1',
+    nome: 'Gustavo Henrique Almeida Souza',
+    apelido: 'Primo',
+    atletaId: 'atleta-1',
+    perfil: 3
+  }
+}));
+
 vi.mock('../../hooks/useAutenticacao', () => ({
   useAutenticacao: () => ({
-    usuario: {
-      id: 'usuario-1',
-      nome: 'Primo',
-      atletaId: 'atleta-1',
-      perfil: 3
-    }
+    usuario: autenticacaoMock.usuario
   })
 }));
 
@@ -25,14 +30,23 @@ function criarModulo(dados, overrides = {}) {
   };
 }
 
+function criarUsuarioPadrao(overrides = {}) {
+  return {
+    id: 'usuario-1',
+    nome: 'Gustavo Henrique Almeida Souza',
+    apelido: 'Primo',
+    atletaId: 'atleta-1',
+    perfil: 3,
+    ...overrides
+  };
+}
+
 function criarPartida(overrides = {}) {
   return {
     id: 'partida-1',
     resultado: 'W',
     dataPartida: new Date().toISOString(),
     grupo: 'Grupo Praia',
-    parceiro: 'Duda',
-    adversarios: 'Rafa e Leo',
     placarSuaDupla: 21,
     placarAdversarios: 18,
     ...overrides
@@ -43,7 +57,9 @@ function criarModulos(overrides = {}) {
   return {
     perfil: criarModulo({
       atletaId: 'atleta-1',
-      nome: 'Primo',
+      nomeCompleto: 'Gustavo Henrique Almeida Souza',
+      nome: 'Gustavo Henrique Almeida Souza',
+      apelido: 'Primo',
       categoriaPrincipal: 'Intermediario',
       posicaoRanking: 4
     }),
@@ -65,16 +81,7 @@ function criarModulos(overrides = {}) {
     }),
     ultimasPartidas: criarModulo([criarPartida()]),
     conexoes: criarModulo({
-      melhoresParceiros: [
-        {
-          atletaId: 'atleta-2',
-          nome: 'Duda',
-          partidas: 6,
-          vitorias: 4,
-          derrotas: 2,
-          aproveitamento: 66
-        }
-      ],
+      melhoresParceiros: [],
       parceirosRecentes: []
     }),
     ...overrides
@@ -90,7 +97,9 @@ function renderizarHome({
   modulos = criarModulos(),
   rota = '/app',
   onConfirmarPendenciaPartida,
-  confirmandoPendenciaId
+  onNaoReconhecerPendenciaPartida,
+  confirmandoPendenciaId,
+  contestandoPendenciaId
 } = {}) {
   return render(
     <MemoryRouter
@@ -102,7 +111,9 @@ function renderizarHome({
         carregando={false}
         erro=""
         onConfirmarPendenciaPartida={onConfirmarPendenciaPartida}
+        onNaoReconhecerPendenciaPartida={onNaoReconhecerPendenciaPartida}
         confirmandoPendenciaId={confirmandoPendenciaId}
+        contestandoPendenciaId={contestandoPendenciaId}
       />
       <LocalizacaoAtual />
     </MemoryRouter>
@@ -112,81 +123,46 @@ function renderizarHome({
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
+  autenticacaoMock.usuario = criarUsuarioPadrao();
 });
 
-describe('HomeDashboard redesenhada', () => {
-  it('renderiza Hero integrado sem saudação antiga', () => {
+describe('HomeDashboard nova experiencia', () => {
+  it('renderiza identidade com nome completo, apelido e acoes de topo', () => {
     renderizarHome();
 
-    const hero = screen.getByRole('region', { name: /resumo principal da home/i });
+    const identidade = screen.getByRole('region', { name: /Identidade do usuário/i });
 
-    expect(within(hero).getByText('Primo')).toBeInTheDocument();
-    expect(within(hero).getByText('Grupo Praia')).toBeInTheDocument();
-    expect(within(hero).getByText('Faixa Bronze')).toBeInTheDocument();
-    expect(within(hero).getByText('Você já registrou 12 partidas e 7 vitórias.')).toBeInTheDocument();
-    expect(within(hero).getByText('Continue evoluindo no Grupo Praia.')).toBeInTheDocument();
-    expect(within(hero).getByRole('link', { name: /editar perfil/i })).toBeInTheDocument();
-    expect(screen.queryByText(/Boa tarde|Bom dia|Boa noite/i)).not.toBeInTheDocument();
+    expect(within(identidade).getByText('Gustavo Henrique Almeida Souza')).toBeInTheDocument();
+    expect(within(identidade).getByText('Primo')).toBeInTheDocument();
+    expect(within(identidade).getByRole('link', { name: /Editar perfil/i })).toBeInTheDocument();
+    expect(within(identidade).getByRole('button', { name: /Abrir pendências/i })).toBeInTheDocument();
+    expect(screen.queryByText(/Boa tarde|Bom dia|Boa noite|Continue evoluindo/i)).not.toBeInTheDocument();
   });
 
-  it('mostra os quatro scouts principais em um único card', () => {
-    renderizarHome();
+  it('nao exibe linha vazia de apelido quando apelido nao existe', () => {
+    autenticacaoMock.usuario = criarUsuarioPadrao({ apelido: '' });
 
-    const scouts = screen.getByRole('region', { name: /Meus principais scouts/i });
-
-    expect(within(scouts).getByText('Partidas')).toBeInTheDocument();
-    expect(within(scouts).getByText('12')).toBeInTheDocument();
-    expect(within(scouts).getByText('Vitórias')).toBeInTheDocument();
-    expect(within(scouts).getByText('7')).toBeInTheDocument();
-    expect(within(scouts).getByText('Aproveitamento')).toBeInTheDocument();
-    expect(within(scouts).getByText('58%')).toBeInTheDocument();
-    expect(within(scouts).getByText('Sequência')).toBeInTheDocument();
-    expect(within(scouts).getByText('2')).toBeInTheDocument();
-  });
-
-  it('mostra resumo de primeiro passo no Hero quando não há partidas', () => {
     renderizarHome({
       modulos: criarModulos({
-        resumo: criarModulo({
-          totalPartidas: 0,
-          vitorias: 0,
-          derrotas: 0,
-          aproveitamento: 0,
-          sequenciaAtual: 0
-        }),
-        ultimasPartidas: criarModulo([])
+        perfil: criarModulo({
+          atletaId: 'atleta-1',
+          nomeCompleto: 'Gustavo Henrique Almeida Souza',
+          nome: 'Gustavo Henrique Almeida Souza',
+          apelido: ''
+        })
       })
     });
 
-    const hero = screen.getByRole('region', { name: /resumo principal da home/i });
+    const identidade = screen.getByRole('region', { name: /Identidade do usuário/i });
 
-    expect(within(hero).getByText('Você ainda não registrou sua primeira partida.')).toBeInTheDocument();
-    expect(within(hero).getByText('Que tal começar hoje?')).toBeInTheDocument();
+    expect(within(identidade).getByText('Gustavo Henrique Almeida Souza')).toBeInTheDocument();
+    expect(within(identidade).queryByText('Primo')).not.toBeInTheDocument();
   });
 
-  it('prioriza Registrar Partida e mantém Criar Grupo como ação secundária', async () => {
-    const usuario = userEvent.setup();
-    renderizarHome();
-
-    const registrar = screen.getByRole('link', { name: /Registrar Partida/i });
-    const criarGrupo = screen.getByRole('link', { name: /Criar Grupo/i });
-    const jornada = screen.getByRole('region', { name: /Sua jornada/i });
-
-    expect(registrar).toHaveClass('home-dashboard-cta-principal');
-    expect(criarGrupo).toHaveClass('home-dashboard-cta-secundario');
-    expect(screen.getByText('Ainda joga sem grupo?')).toBeInTheDocument();
-    expect(screen.getByText('Crie um grupo e acompanhe ranking, histórico e scouts com sua galera.')).toBeInTheDocument();
-    expect(
-      criarGrupo.compareDocumentPosition(jornada) & Node.DOCUMENT_POSITION_FOLLOWING
-    ).toBeTruthy();
-
-    await usuario.click(registrar);
-    expect(screen.getByTestId('rota-atual')).toHaveTextContent('/partidas/registrar');
-  });
-
-  it('mostra card de confirmação de partida e dispara confirmação', async () => {
+  it('mostra card de confirmacao de partida e dispara confirmar e nao fui eu', async () => {
     const usuario = userEvent.setup();
     const onConfirmar = vi.fn();
+    const onNaoReconhecer = vi.fn();
     const pendencia = {
       id: 'pendencia-1',
       tipo: 3,
@@ -204,6 +180,7 @@ describe('HomeDashboard redesenhada', () => {
 
     renderizarHome({
       onConfirmarPendenciaPartida: onConfirmar,
+      onNaoReconhecerPendenciaPartida: onNaoReconhecer,
       modulos: criarModulos({
         pendencias: criarModulo({
           total: 1,
@@ -215,78 +192,91 @@ describe('HomeDashboard redesenhada', () => {
 
     const card = screen.getByRole('region', { name: /Confirmar partida/i });
 
-    expect(within(card).getByText('Você participou desta partida?')).toBeInTheDocument();
+    expect(within(card).getByText('PENDENTE')).toBeInTheDocument();
+    expect(within(card).getByText('Você participou deste jogo?')).toBeInTheDocument();
+    expect(within(card).getByText('Ajude a validar os dados e fortalecer o ranking da comunidade.')).toBeInTheDocument();
     expect(within(card).getByText('Beach Friends')).toBeInTheDocument();
     expect(within(card).getByText('Primo / Gustavo')).toBeInTheDocument();
     expect(within(card).getByText('Paulo / Renato')).toBeInTheDocument();
     expect(within(card).getByText('21 x 18')).toBeInTheDocument();
-    expect(within(card).getByRole('link', { name: /Ver detalhes/i })).toHaveAttribute(
-      'href',
-      '/minhas-partidas?partidaId=partida-duplicada'
-    );
+    expect(within(card).getByText('Registrado por Bruno')).toBeInTheDocument();
+    expect(within(card).getByRole('link', { name: /Ver todas pendências/i })).toHaveAttribute('href', '/app/pendencias');
 
-    await usuario.click(within(card).getByRole('button', { name: /Confirmar/i }));
+    await usuario.click(within(card).getByRole('button', { name: /^Confirmar$/i }));
+    await usuario.click(within(card).getByRole('button', { name: /Não fui eu/i }));
 
     expect(onConfirmar).toHaveBeenCalledWith('pendencia-1');
+    expect(onNaoReconhecer).toHaveBeenCalledWith('pendencia-1');
   });
 
-  it('renderiza apenas os destaques iniciais com ação de ver todos', () => {
+  it('nao renderiza card de pendencia quando nao ha confirmacao pendente', () => {
     renderizarHome();
 
-    expect(screen.getByRole('heading', { name: /Em destaque para você/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Ver todos/i })).toBeInTheDocument();
-    expect(screen.getByText('Ranking pessoal')).toBeInTheDocument();
-    expect(screen.getByText('#4')).toBeInTheDocument();
-    expect(screen.getByText('Dupla do momento')).toBeInTheDocument();
-    expect(screen.getByText('Duda')).toBeInTheDocument();
-    expect(screen.queryByText('Parceiros frequentes')).not.toBeInTheDocument();
-    expect(screen.queryByText('Últimos jogos')).not.toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: /Confirmar partida/i })).not.toBeInTheDocument();
   });
 
-  it('mostra a jornada visual do atleta com progresso atual', () => {
+  it('prioriza Registrar Partida e mantem Criar Grupo como acao secundaria', async () => {
+    const usuario = userEvent.setup();
+    renderizarHome();
+
+    const registrar = screen.getByRole('link', { name: /Registrar partida/i });
+    const criarGrupo = screen.getByRole('link', { name: /Ainda joga sem grupo/i });
+
+    expect(registrar).toHaveClass('home-dashboard-cta-principal');
+    expect(criarGrupo).toHaveClass('home-dashboard-cta-secundario');
+    expect(screen.getByText('Salve seu jogo e atualize sua evolução.')).toBeInTheDocument();
+    expect(screen.getByText('Crie um grupo e acompanhe ranking, histórico e scouts com sua galera.')).toBeInTheDocument();
+    expect(within(criarGrupo).getByText('Criar grupo')).toBeInTheDocument();
+
+    await usuario.click(registrar);
+    expect(screen.getByTestId('rota-atual')).toHaveTextContent('/partidas/registrar');
+  });
+
+  it('mostra Seu desempenho com as quatro metricas principais', () => {
+    renderizarHome();
+
+    const desempenho = screen.getByRole('region', { name: /Seu desempenho/i });
+
+    expect(within(desempenho).getByRole('link', { name: /Ver mais/i })).toBeInTheDocument();
+    expect(within(desempenho).getByText('Partidas')).toBeInTheDocument();
+    expect(within(desempenho).getByText('12')).toBeInTheDocument();
+    expect(within(desempenho).getByText('Vitórias')).toBeInTheDocument();
+    expect(within(desempenho).getByText('7')).toBeInTheDocument();
+    expect(within(desempenho).getByText('Aproveitamento')).toBeInTheDocument();
+    expect(within(desempenho).getByText('58%')).toBeInTheDocument();
+    expect(within(desempenho).getByText('Sequência')).toBeInTheDocument();
+    expect(within(desempenho).getByText('2')).toBeInTheDocument();
+  });
+
+  it('mostra ultimos jogos sem placar pendente ou 0 x 0 artificial', () => {
     renderizarHome({
       modulos: criarModulos({
-        resumo: criarModulo({
-          totalPartidas: 0,
-          vitorias: 0,
-          derrotas: 0,
-          aproveitamento: 0,
-          sequenciaAtual: 0
-        }),
-        ultimasPartidas: criarModulo([]),
-        perfil: criarModulo({
-          atletaId: 'atleta-1',
-          nome: 'Primo',
-          categoriaPrincipal: 'Intermediario',
-          posicaoRanking: null
-        })
+        ultimasPartidas: criarModulo([
+          criarPartida(),
+          criarPartida({
+            id: 'partida-2',
+            resultado: 'L',
+            grupo: '',
+            placarSuaDupla: null,
+            placarAdversarios: null
+          })
+        ])
       })
     });
 
-    const jornada = screen.getByRole('region', { name: /Sua jornada/i });
+    const ultimosJogos = screen.getByRole('region', { name: /Últimos jogos/i });
 
-    expect(within(jornada).getByText('0%')).toBeInTheDocument();
-    expect(within(jornada).getByText('Primeiro passo')).toBeInTheDocument();
-    expect(within(jornada).getByText('Registre sua primeira partida para começar sua evolução.')).toBeInTheDocument();
-    expect(within(jornada).getByText('Primeira partida')).toBeInTheDocument();
-    expect(within(jornada).getByText('Primeira vitória')).toBeInTheDocument();
-    expect(within(jornada).getByText('Entrar em um grupo')).toBeInTheDocument();
-    expect(within(jornada).getByText('Top Ranking')).toBeInTheDocument();
+    expect(within(ultimosJogos).getByRole('link', { name: /Ver histórico/i })).toBeInTheDocument();
+    expect(within(ultimosJogos).getByText('Grupo Praia')).toBeInTheDocument();
+    expect(within(ultimosJogos).getByText('Partida avulsa')).toBeInTheDocument();
+    expect(within(ultimosJogos).getByText('21 x 18')).toBeInTheDocument();
+    expect(within(ultimosJogos).getByText('Vitória')).toBeInTheDocument();
+    expect(within(ultimosJogos).getByText('Derrota')).toBeInTheDocument();
+    expect(within(ultimosJogos).queryByText('0 x 0')).not.toBeInTheDocument();
+    expect(within(ultimosJogos).queryByText('Placar pendente')).not.toBeInTheDocument();
   });
 
-  it('mostra atividade recente em timeline quando há partidas', () => {
-    renderizarHome();
-
-    const atividade = screen.getByRole('heading', { name: /Atividade recente/i }).closest('section');
-
-    expect(atividade).toBeInTheDocument();
-    expect(within(atividade).getByText('Você registrou uma partida')).toBeInTheDocument();
-    expect(within(atividade).getByText('Hoje')).toBeInTheDocument();
-    expect(within(atividade).getByText('21 x 18')).toBeInTheDocument();
-    expect(within(atividade).getByText('Vitória')).toBeInTheDocument();
-  });
-
-  it('mostra empty state bonito quando não há partidas', () => {
+  it('mostra estado vazio simples quando nao ha ultimos jogos', () => {
     renderizarHome({
       modulos: criarModulos({
         ultimasPartidas: criarModulo([])
@@ -297,33 +287,21 @@ describe('HomeDashboard redesenhada', () => {
     expect(screen.getByText('Registre sua primeira partida para iniciar seu histórico.')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Registrar agora/i })).toBeInTheDocument();
   });
-
-  it('mostra dica rápida sobre modos de registro de partida', () => {
-    renderizarHome();
-
-    const dica = screen.getByRole('region', { name: /Dica rápida/i });
-
-    expect(within(dica).getByText('Você pode registrar partidas informando apenas o vencedor ou o placar completo.')).toBeInTheDocument();
-    expect(within(dica).getByText('Ambos contam para sua evolução.')).toBeInTheDocument();
-    expect(within(dica).getByRole('link', { name: /Saiba mais/i })).toBeInTheDocument();
-  });
 });
 
 describe('homeSectionsConfig', () => {
-  it('reflete a nova prioridade da Home autenticada', () => {
+  it('reflete a prioridade da nova Home autenticada', () => {
     const secoesAtivas = homeSectionsConfig
       .filter((secao) => secao.enabled)
       .map((secao) => secao.type);
 
     expect(secoesAtivas).toEqual([
-      HomeSectionType.Hero,
-      HomeSectionType.Stats,
+      HomeSectionType.Identity,
+      HomeSectionType.PendingConfirmation,
       HomeSectionType.PrimaryAction,
       HomeSectionType.SecondaryAction,
-      HomeSectionType.Journey,
-      HomeSectionType.Highlights,
-      HomeSectionType.RecentActivity,
-      HomeSectionType.QuickTip
+      HomeSectionType.Performance,
+      HomeSectionType.RecentMatches
     ]);
   });
 });

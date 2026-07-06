@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { dashboardServico } from '../../services/dashboardServico';
-import { gamificacaoServico } from '../../services/gamificacaoServico';
 import { EVENTO_PENDENCIAS_ATUALIZADAS, pendenciasServico } from '../../services/pendenciasServico';
 import { HomeDashboard } from '../../components/home/HomeDashboard';
 import { useNotification } from '../../contexts/NotificationContext';
@@ -18,17 +17,14 @@ function criarEstadoInicialModulos() {
     perfil: { ...estadoInicialModulo },
     pendencias: { ...estadoInicialModulo },
     resumo: { ...estadoInicialModulo },
-    gamificacao: { ...estadoInicialModulo },
-    insights: { ...estadoInicialModulo },
-    ultimasPartidas: { ...estadoInicialModulo },
-    conexoes: { ...estadoInicialModulo },
-    frequencia: { ...estadoInicialModulo }
+    ultimasPartidas: { ...estadoInicialModulo }
   };
 }
 
 export function HomeDashboardContainer() {
   const [modulos, setModulos] = useState(criarEstadoInicialModulos);
   const [confirmandoPendenciaId, setConfirmandoPendenciaId] = useState(null);
+  const [contestandoPendenciaId, setContestandoPendenciaId] = useState(null);
   const { showNotification } = useNotification();
 
   async function carregarModulo(chave, carregador, estaAtivo = () => true) {
@@ -68,11 +64,7 @@ export function HomeDashboardContainer() {
       carregarModulo('perfil', dashboardServico.obterPerfilAtleta, estaAtivo),
       carregarModulo('pendencias', pendenciasServico.obterResumo, estaAtivo),
       carregarModulo('resumo', dashboardServico.obterResumoAtleta, estaAtivo),
-      carregarModulo('gamificacao', gamificacaoServico.obterResumo, estaAtivo),
-      carregarModulo('insights', dashboardServico.obterInsightsAtleta, estaAtivo),
-      carregarModulo('ultimasPartidas', dashboardServico.listarUltimasPartidasAtleta, estaAtivo),
-      carregarModulo('conexoes', dashboardServico.obterConexoesAtleta, estaAtivo),
-      carregarModulo('frequencia', dashboardServico.obterFrequenciaAtleta, estaAtivo)
+      carregarModulo('ultimasPartidas', dashboardServico.listarUltimasPartidasAtleta, estaAtivo)
     ];
 
     return Promise.allSettled(carregamentos);
@@ -97,7 +89,7 @@ export function HomeDashboardContainer() {
   }, []);
 
   async function confirmarPendenciaPartida(pendenciaId) {
-    if (!pendenciaId || confirmandoPendenciaId) {
+    if (!pendenciaId || confirmandoPendenciaId || contestandoPendenciaId) {
       return;
     }
 
@@ -121,12 +113,39 @@ export function HomeDashboardContainer() {
     }
   }
 
+  async function naoReconhecerPendenciaPartida(pendenciaId) {
+    if (!pendenciaId || confirmandoPendenciaId || contestandoPendenciaId) {
+      return;
+    }
+
+    setContestandoPendenciaId(pendenciaId);
+    try {
+      await pendenciasServico.contestarPartida(pendenciaId);
+      showNotification({
+        type: 'success',
+        title: 'Partida não reconhecida',
+        message: 'A partida saiu das suas pendências.'
+      });
+      await carregarModulo('pendencias', pendenciasServico.obterResumo);
+    } catch (falha) {
+      showNotification({
+        type: 'error',
+        title: 'Erro ao responder partida',
+        message: extrairMensagemErro(falha)
+      });
+    } finally {
+      setContestandoPendenciaId(null);
+    }
+  }
+
   return (
     <HomeDashboard
       modulos={modulos}
       onAtualizar={carregarModulos}
       onConfirmarPendenciaPartida={confirmarPendenciaPartida}
+      onNaoReconhecerPendenciaPartida={naoReconhecerPendenciaPartida}
       confirmandoPendenciaId={confirmandoPendenciaId}
+      contestandoPendenciaId={contestandoPendenciaId}
     />
   );
 }
