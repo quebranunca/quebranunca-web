@@ -1,34 +1,28 @@
 import {
-  NavLink,
+  Link,
   matchPath,
   useLocation
 } from 'react-router-dom';
 
-import { ConteudoBotao } from './ConteudoBotao';
+import { useEffect, useRef, useState } from 'react';
+import { FaCog, FaSignOutAlt, FaUser } from 'react-icons/fa';
 import { HeaderBackButton } from './BotaoVoltar';
 import { NotificacoesBotao } from './NotificacoesBotao';
 import { AvatarUsuario, obterFotoPerfilAvatar } from './AvatarUsuario';
-
-import logoLiga from '../assets/logo-liga.svg';
 
 import {
   ROTAS_APP_HEADER,
   TIPOS_TELA
 } from '../pages/navagacao';
 
-import { nomePerfil } from '../utils/perfis';
-import { nomeEstadoAcesso } from '../utils/acesso';
-
 const ROTA_HOME_APP = '/app';
 const ROTAS_PRINCIPAIS_SEM_VOLTAR = new Set([
-  '/',
   '/app',
+  '/admin',
+  '/minhas-partidas',
   '/ranking',
   '/grupos',
-  '/app/perfil'
-]);
-const ROTAS_COM_AVATAR_USUARIO_EM_DESTAQUE = new Set([
-  '/app'
+  '/mais'
 ]);
 
 function obterConfiguracaoHeader(pathname) {
@@ -52,10 +46,12 @@ function obterConfiguracaoHeader(pathname) {
 export function AppHeader({
   autenticado,
   usuario,
-  estadoAcesso,
-  mostrarNotificacoes = true
+  mostrarNotificacoes = true,
+  aoSair
 }) {
   const location = useLocation();
+  const [menuContaAberto, setMenuContaAberto] = useState(false);
+  const contaRef = useRef(null);
 
   const configuracao =
     obterConfiguracaoHeader(location.pathname);
@@ -69,12 +65,40 @@ export function AppHeader({
       ? ROTA_HOME_APP
       : '/';
 
-  const tituloMobile =
-    configuracao.title === 'Home'
-      ? 'QuebraNunca'
-      : configuracao.title;
-  const esconderAvatarUsuario =
-    autenticado && ROTAS_COM_AVATAR_USUARIO_EM_DESTAQUE.has(location.pathname);
+  useEffect(() => {
+    setMenuContaAberto(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (!menuContaAberto) {
+      return undefined;
+    }
+
+    function aoClicarFora(evento) {
+      if (!contaRef.current?.contains(evento.target)) {
+        setMenuContaAberto(false);
+      }
+    }
+
+    function aoPressionarTecla(evento) {
+      if (evento.key === 'Escape') {
+        setMenuContaAberto(false);
+      }
+    }
+
+    document.addEventListener('mousedown', aoClicarFora);
+    window.addEventListener('keydown', aoPressionarTecla);
+
+    return () => {
+      document.removeEventListener('mousedown', aoClicarFora);
+      window.removeEventListener('keydown', aoPressionarTecla);
+    };
+  }, [menuContaAberto]);
+
+  function sairDaConta() {
+    setMenuContaAberto(false);
+    aoSair?.();
+  }
 
   return (
     <header className={`topo-app ${telaInterna ? 'topo-app-interno' : 'topo-app-principal'}`}>
@@ -86,110 +110,64 @@ export function AppHeader({
           />
 
           <div className="marca-texto">
-            <p className="marca-subtitulo">
-              Plataforma
-            </p>
-
-            <h1 className="marca-titulo">
+            <h1 className="marca-titulo" title={configuracao.title}>
               {configuracao.title}
             </h1>
           </div>
         </div>
       ) : (
-        <NavLink
-          to={rotaHome}
-          className="marca-topo"
-          aria-label="Ir para a home"
-        >
-          <img
-            className="logo-interno"
-            src={logoLiga}
-            alt="Liga"
-          />
-
+        <Link to={rotaHome} className="marca-topo" aria-label="Ir para a home">
           <div className="marca-texto">
-            <p className="marca-subtitulo">
-              Plataforma
-            </p>
-
-            <h1 className="marca-titulo">
-              <span className="marca-titulo-desktop">
-                QuebraNunca
-              </span>
-
-              <span className="marca-titulo-mobile">
-                {tituloMobile}
-              </span>
+            <h1 className="marca-titulo" title={configuracao.title}>
+              {configuracao.title}
             </h1>
           </div>
-        </NavLink>
+        </Link>
       )}
 
       <div className="usuario-topo">
-        <span className="usuario-identidade">
-          {autenticado ? (
-            <>
-              {!esconderAvatarUsuario && (
-                <NavLink
-                  to="/app/perfil"
-                  className="usuario-avatar-link"
-                  aria-label="Abrir meu perfil"
-                  title="Abrir meu perfil"
-                >
-                  <AvatarUsuario
-                    nome={usuario?.nome}
-                    fotoPerfilUrl={obterFotoPerfilAvatar(usuario)}
-                    tamanho="sm"
-                    className="usuario-avatar"
-                    alt=""
-                  />
-                </NavLink>
-              )}
-
-              <span className="usuario-nome">
-                {usuario?.nome}
-              </span>
-
-              <span className="usuario-perfil">
-                {nomePerfil(usuario?.perfil)}
-
-                {estadoAcesso
-                  ? ` · ${nomeEstadoAcesso(estadoAcesso)}`
-                  : ''}
-              </span>
-            </>
-          ) : (
-            <>
-              <span className="usuario-nome">
-                Acesso público
-              </span>
-
-              <span className="usuario-perfil">
-                Visitante
-              </span>
-            </>
-          )}
-        </span>
-
         {autenticado && mostrarNotificacoes && (
           <NotificacoesBotao
             autenticado={autenticado}
           />
         )}
 
-        {!autenticado && (
-          <NavLink
-            to="/login"
-            className="botao-terciario botao-topo-acao botao-entrar-topo"
-            aria-label="Entrar"
-            title="Entrar"
-          >
-            <ConteudoBotao
-              icone="entrar"
-              texto="Entrar"
-              somenteIconeNoMobile={false}
-            />
-          </NavLink>
+        {autenticado && (
+          <div className="app-header-conta" ref={contaRef}>
+            <button
+              type="button"
+              className="app-header-avatar-botao"
+              aria-label="Abrir menu da conta"
+              aria-haspopup="menu"
+              aria-expanded={menuContaAberto}
+              onClick={() => setMenuContaAberto((aberto) => !aberto)}
+            >
+              <AvatarUsuario
+                nome={usuario?.nome}
+                fotoPerfilUrl={obterFotoPerfilAvatar(usuario)}
+                tamanho="sm"
+                className="usuario-avatar"
+                alt=""
+              />
+            </button>
+
+            {menuContaAberto && (
+              <nav className="app-header-conta-menu" aria-label="Menu da conta">
+                <Link to="/app/perfil" onClick={() => setMenuContaAberto(false)}>
+                  <FaUser aria-hidden="true" />
+                  <span>Meu perfil</span>
+                </Link>
+                <Link to="/app/perfil?aba=configuracoes" onClick={() => setMenuContaAberto(false)}>
+                  <FaCog aria-hidden="true" />
+                  <span>Configurações</span>
+                </Link>
+                <button type="button" onClick={sairDaConta}>
+                  <FaSignOutAlt aria-hidden="true" />
+                  <span>Sair</span>
+                </button>
+              </nav>
+            )}
+          </div>
         )}
       </div>
     </header>

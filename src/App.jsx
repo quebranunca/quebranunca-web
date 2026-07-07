@@ -28,6 +28,7 @@ import { PaginaConsultaPartidas } from './pages/PaginaConsultaPartidas';
 import { PaginaPartidasCampeonato } from './pages/PaginaPartidasCampeonato';
 import { PaginaMinhasPartidas } from './pages/PaginaMinhasPartidas';
 import { PaginaMeuPerfil } from './pages/PaginaMeuPerfil';
+import { PaginaMais } from './pages/PaginaMais';
 import { PaginaPontosQN } from './pages/PaginaPontosQN';
 import { PaginaScouts } from './pages/PaginaScouts';
 import { PaginaArenas } from './pages/PaginaArenas';
@@ -87,6 +88,7 @@ export default function App() {
         }
       >
         <Route path="/app" element={<PaginaHome />} />
+        <Route path="/app/mais" element={<Navigate to="/mais" replace />} />
         <Route path="/app/feed" element={<FeedPartidasPage />} />
         <Route path="/app/registrar-partida" element={<Navigate to="/partidas/registrar" replace />} />
         <Route path="/app/meus-jogos" element={<Navigate to="/minhas-partidas" replace />} />
@@ -99,6 +101,17 @@ export default function App() {
               estadosPermitidos={[ESTADOS_ACESSO.ativo]}
             >
               <PaginaMinhasPartidas />
+            </RotaProtegida>
+          }
+        />
+        <Route
+          path="/mais"
+          element={
+            <RotaProtegida
+              perfisPermitidos={[PERFIS_USUARIO.administrador, PERFIS_USUARIO.organizador, PERFIS_USUARIO.atleta]}
+              estadosPermitidos={[ESTADOS_ACESSO.ativo]}
+            >
+              <PaginaMais />
             </RotaProtegida>
           }
         />

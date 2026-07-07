@@ -1,22 +1,16 @@
-import { Fragment, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Fragment } from 'react';
+import { Link } from 'react-router-dom';
 import {
-  FaBell,
   FaCalendarAlt,
   FaChartLine,
   FaChevronRight,
   FaClipboardCheck,
-  FaCog,
   FaEdit,
   FaFire,
   FaFutbol,
-  FaInfoCircle,
   FaPlus,
-  FaQuestionCircle,
-  FaSignOutAlt,
   FaTimes,
   FaTrophy,
-  FaUser,
   FaUsers
 } from 'react-icons/fa';
 import { useAutenticacao } from '../../hooks/useAutenticacao';
@@ -185,8 +179,7 @@ export function HomeDashboard({
   confirmandoPendenciaId,
   contestandoPendenciaId
 }) {
-  const { usuario, sair } = useAutenticacao();
-  const navigate = useNavigate();
+  const { usuario } = useAutenticacao();
 
   if (carregando) {
     return <HomeDashboardSkeleton />;
@@ -256,10 +249,6 @@ export function HomeDashboard({
         nomeCompleto={nomeCompleto}
         apelido={apelido}
         fotoPerfilUrl={fotoPerfilUrl}
-        onSair={() => {
-          sair();
-          navigate('/', { replace: true });
-        }}
       />
     ),
     [HomeSectionType.PendingConfirmation]: () => (
@@ -305,17 +294,7 @@ export function HomeDashboard({
   );
 }
 
-function HomeIdentidadeUsuario({ nomeCompleto, apelido, fotoPerfilUrl, onSair }) {
-  const [menuAberto, setMenuAberto] = useState(false);
-  const itensMenu = [
-    { rotulo: 'Meu Perfil', to: HOME_NAVIGATION.perfil, icone: FaUser },
-    { rotulo: 'Editar Perfil', to: HOME_NAVIGATION.editarPerfil, icone: FaEdit },
-    { rotulo: 'Configurações', to: HOME_NAVIGATION.configuracoes, icone: FaCog },
-    { rotulo: 'Notificações', to: HOME_NAVIGATION.pendencias, icone: FaBell },
-    { rotulo: 'Ajuda', to: HOME_NAVIGATION.configuracoes, icone: FaQuestionCircle },
-    { rotulo: 'Sobre', to: HOME_NAVIGATION.configuracoes, icone: FaInfoCircle }
-  ];
-
+function HomeIdentidadeUsuario({ nomeCompleto, apelido, fotoPerfilUrl }) {
   return (
     <header
       className="home-dashboard-identidade-card"
@@ -323,12 +302,10 @@ function HomeIdentidadeUsuario({ nomeCompleto, apelido, fotoPerfilUrl, onSair })
       aria-label="Identidade do usuário"
     >
       <div className="home-dashboard-avatar-menu">
-        <button
-          type="button"
+        <Link
+          to={HOME_NAVIGATION.perfil}
           className="home-dashboard-avatar-botao"
-          aria-label="Abrir menu do perfil"
-          aria-expanded={menuAberto}
-          onClick={() => setMenuAberto((aberto) => !aberto)}
+          aria-label="Abrir meu perfil"
         >
           <AvatarUsuario
             nome={nomeCompleto}
@@ -336,31 +313,13 @@ function HomeIdentidadeUsuario({ nomeCompleto, apelido, fotoPerfilUrl, onSair })
             tamanho="xl"
             className="home-dashboard-avatar"
           />
-        </button>
-
-        {menuAberto && (
-          <nav className="home-dashboard-menu-perfil" aria-label="Menu do perfil">
-            {itensMenu.map((item) => {
-              const Icone = item.icone;
-              return (
-                <Link key={item.rotulo} to={item.to} onClick={() => setMenuAberto(false)}>
-                  <Icone aria-hidden="true" />
-                  <span>{item.rotulo}</span>
-                </Link>
-              );
-            })}
-            <button type="button" onClick={onSair}>
-              <FaSignOutAlt aria-hidden="true" />
-              <span>Sair</span>
-            </button>
-          </nav>
-        )}
+        </Link>
       </div>
 
-      <div className="home-dashboard-identidade-texto">
+      <Link to={HOME_NAVIGATION.perfil} className="home-dashboard-identidade-texto" aria-label="Abrir meu perfil">
         <h1>{nomeCompleto}</h1>
         {apelido && <p>{apelido}</p>}
-      </div>
+      </Link>
     </header>
   );
 }

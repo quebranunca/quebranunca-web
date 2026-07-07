@@ -151,27 +151,19 @@ afterEach(() => {
 });
 
 describe('HomeDashboard nova experiencia', () => {
-  it('renderiza identidade com nome completo, apelido e menu no avatar', async () => {
-    const usuario = userEvent.setup();
+  it('renderiza identidade com nome completo, apelido e link para o perfil', () => {
     renderizarHome();
 
     const identidade = screen.getByRole('region', { name: /Identidade do usuário/i });
 
     expect(within(identidade).getByText('Gustavo Henrique Almeida Souza')).toBeInTheDocument();
     expect(within(identidade).getByText('Primo')).toBeInTheDocument();
+    expect(within(identidade).getAllByRole('link', { name: /Abrir meu perfil/i }).length).toBeGreaterThan(0);
     expect(within(identidade).queryByRole('link', { name: /Editar perfil/i })).not.toBeInTheDocument();
     expect(within(identidade).queryByRole('button', { name: /Abrir pendências/i })).not.toBeInTheDocument();
+    expect(within(identidade).queryByRole('button', { name: /Abrir menu do perfil/i })).not.toBeInTheDocument();
+    expect(within(identidade).queryByRole('button', { name: /Sair/i })).not.toBeInTheDocument();
     expect(screen.queryByText(/Boa tarde|Bom dia|Boa noite|Continue evoluindo/i)).not.toBeInTheDocument();
-
-    await usuario.click(within(identidade).getByRole('button', { name: /Abrir menu do perfil/i }));
-
-    expect(within(identidade).getByRole('link', { name: /Meu Perfil/i })).toBeInTheDocument();
-    expect(within(identidade).getByRole('link', { name: /Editar Perfil/i })).toBeInTheDocument();
-    expect(within(identidade).getByRole('link', { name: /Configurações/i })).toBeInTheDocument();
-    expect(within(identidade).getByRole('link', { name: /Notificações/i })).toBeInTheDocument();
-    expect(within(identidade).getByRole('link', { name: /Ajuda/i })).toBeInTheDocument();
-    expect(within(identidade).getByRole('link', { name: /Sobre/i })).toBeInTheDocument();
-    expect(within(identidade).getByRole('button', { name: /Sair/i })).toBeInTheDocument();
   });
 
   it('nao exibe linha vazia de apelido quando apelido nao existe', () => {

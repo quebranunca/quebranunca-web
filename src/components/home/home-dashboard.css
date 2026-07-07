@@ -1160,6 +1160,13 @@
   min-width: 0;
   display: grid;
   gap: 0.18rem;
+  text-decoration: none;
+}
+
+.home-dashboard-identidade-texto:focus-visible {
+  border-radius: 0.5rem;
+  outline: 2px solid rgba(255, 179, 0, 0.58);
+  outline-offset: 4px;
 }
 
 .home-dashboard-identidade-texto h1 {
