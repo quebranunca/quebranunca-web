@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render, screen, within } from '@testing-library/react';
+import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { PublicHeader } from './PublicHeader';
@@ -114,23 +114,65 @@ describe('PublicHome', () => {
 });
 
 describe('PublicHeader', () => {
-  it('mantém header compacto e drawer com navegação pública sem destacar campeonatos', async () => {
+  it('abre drawer isolado com navegação pública sem destacar campeonatos', async () => {
     const usuario = userEvent.setup();
-    renderizar(<PublicHeader />);
+    const { container } = renderizar(<PublicHeader />);
 
     expect(screen.getAllByLabelText('QuebraNunca').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByRole('link', { name: /Entrar/i })).toHaveAttribute('href', '/login');
 
-    await usuario.click(screen.getByRole('button', { name: /Abrir navegação/i }));
+    const botaoMenu = screen.getByRole('button', { name: /Abrir navegação/i });
+    expect(botaoMenu).toHaveAttribute('aria-controls', 'public-menu-drawer');
+    expect(botaoMenu).toHaveAttribute('aria-expanded', 'false');
 
-    const drawer = screen.getByRole('complementary', { hidden: true });
+    await usuario.click(botaoMenu);
+
+    const drawer = screen.getByRole('dialog', { name: /QuebraNunca/i });
     expect(drawer).toHaveClass('aberto');
+    expect(drawer.closest('.public-header')).toBeNull();
+    expect(container.querySelector('.public-header-drawer')).toBeNull();
+    expect(within(drawer).getByRole('button', { name: /Fechar menu/i })).toBeInTheDocument();
+    expect(document.body).toHaveClass('public-menu-open');
+    expect(botaoMenu).toHaveAttribute('aria-expanded', 'true');
     expect(within(drawer).getByText('Início')).toBeInTheDocument();
     expect(within(drawer).getByText('Rankings')).toBeInTheDocument();
     expect(within(drawer).getByText('Grupos')).toBeInTheDocument();
     expect(within(drawer).getByText('Arenas')).toBeInTheDocument();
     expect(within(drawer).getByText('Campeonatos')).toBeInTheDocument();
     expect(within(drawer).getByText('Em breve')).toBeInTheDocument();
-    expect(within(drawer).getByText('Criar conta grátis')).toBeInTheDocument();
+    expect(within(drawer).getByText('Futevôlei em tempo real')).toBeInTheDocument();
+    expect(within(drawer).getByRole('link', { name: /Entrar/i })).toHaveAttribute('href', '/login');
+    expect(within(drawer).getByRole('link', { name: /Criar conta grátis/i })).toHaveAttribute('href', '/login');
+
+    await waitFor(() => {
+      expect(document.activeElement).toBe(within(drawer).getByRole('button', { name: /Fechar menu/i }));
+    });
+  });
+
+  it('fecha o drawer pelo X, backdrop e tecla Escape', async () => {
+    const usuario = userEvent.setup();
+    renderizar(<PublicHeader />);
+
+    const botaoMenu = screen.getByRole('button', { name: /Abrir navegação/i });
+
+    await usuario.click(botaoMenu);
+    await usuario.click(within(screen.getByRole('dialog', { name: /QuebraNunca/i })).getByRole('button', { name: /Fechar menu/i }));
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: /QuebraNunca/i })).not.toBeInTheDocument();
+    });
+    expect(document.body).not.toHaveClass('public-menu-open');
+
+    await usuario.click(botaoMenu);
+    await usuario.click(document.querySelector('.public-header-backdrop'));
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: /QuebraNunca/i })).not.toBeInTheDocument();
+    });
+
+    await usuario.click(botaoMenu);
+    await usuario.keyboard('{Escape}');
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: /QuebraNunca/i })).not.toBeInTheDocument();
+    });
+    expect(document.body).not.toHaveClass('public-menu-open');
   });
 });
