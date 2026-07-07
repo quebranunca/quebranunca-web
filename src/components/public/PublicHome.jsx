@@ -2,39 +2,70 @@ import { Link } from 'react-router-dom';
 import {
   FaBolt,
   FaChartLine,
-  FaFire,
-  FaMapMarkerAlt,
+  FaClock,
+  FaHistory,
   FaMedal,
   FaPlay,
+  FaQuoteLeft,
   FaShieldAlt,
   FaTrophy,
   FaUsers
 } from 'react-icons/fa';
 import { AtletaPerfilLink } from '../AtletaPerfilLink';
 import { AvatarUsuario, obterFotoPerfilAvatar } from '../AvatarUsuario';
-import { PlacarDupla } from '../partidas/PlacarDupla';
 import { obterNomeExibicaoAtletaPerfil } from '../../utils/atletaUtils';
-import { obterNomeGrupoPartidaExibicao } from '../../utils/partidas';
+import heroFutevolei from '../../assets/home-futevolei-hero.jpg';
 
 const estadoCriarConta = {
   mensagem: 'Use seu e-mail para entrar ou criar sua conta grátis.',
   origem: { pathname: '/app' }
 };
 
+const estatisticasFallback = {
+  totalPartidas: 12,
+  totalAtletas: 12,
+  totalGrupos: 5
+};
+
+function textoSeguro(valor, fallback = '') {
+  if (valor === null || valor === undefined) {
+    return fallback;
+  }
+
+  const texto = String(valor).trim();
+  return texto ? texto : fallback;
+}
+
+function numeroSeguro(valor, fallback = 0) {
+  if (valor === null || valor === undefined || valor === '') {
+    return fallback;
+  }
+
+  const numero = Number(valor);
+  return Number.isFinite(numero) ? numero : fallback;
+}
+
+function formatarNumero(valor) {
+  return new Intl.NumberFormat('pt-BR').format(numeroSeguro(valor));
+}
+
+function obterNumeroResumo(resumo, campo, fallback) {
+  const valor = numeroSeguro(resumo?.[campo], 0);
+  return valor > 0 ? valor : fallback;
+}
+
 function formatarTempo(minutos) {
-  if (!Number.isFinite(Number(minutos))) {
+  const valor = numeroSeguro(minutos, NaN);
+
+  if (!Number.isFinite(valor) || valor < 1) {
     return 'agora';
   }
 
-  if (minutos < 1) {
-    return 'agora';
+  if (valor < 60) {
+    return `há ${Math.floor(valor)} min`;
   }
 
-  if (minutos < 60) {
-    return `há ${minutos} min`;
-  }
-
-  const horas = Math.floor(minutos / 60);
+  const horas = Math.floor(valor / 60);
   if (horas < 24) {
     return `há ${horas}h`;
   }
@@ -42,52 +73,37 @@ function formatarTempo(minutos) {
   return `há ${Math.floor(horas / 24)}d`;
 }
 
-function obterIcone(id) {
-  const icones = {
-    partidas: FaPlay,
-    atletas: FaUsers,
-    grupos: FaShieldAlt,
-    campeonatos: FaTrophy,
-    hoje: FaBolt,
-    online: FaFire,
-    cidades: FaMapMarkerAlt,
-    media: FaChartLine,
-    sequencia: FaFire,
-    disputada: FaMedal,
-    elastica: FaBolt
-  };
-
-  return icones[id] || FaChartLine;
-}
-
 function obterNomePublicoAtleta(atleta) {
-  return obterNomeExibicaoAtletaPerfil(atleta) || 'Atleta';
+  return textoSeguro(obterNomeExibicaoAtletaPerfil(atleta), 'Atleta');
 }
 
-function obterNumeroSeguro(valor, fallback = 0) {
-  const numero = Number(valor);
-  return Number.isFinite(numero) ? numero : fallback;
+function obterNomeGrupoPublico(partida) {
+  return textoSeguro(partida?.grupo, textoSeguro(partida?.campeonato, 'Partida avulsa'));
 }
 
-function PublicStatCard({ metrica }) {
-  const Icone = obterIcone(metrica.id);
+function obterTextoPlacar(partida) {
+  const pontosDupla1 = partida?.pontosDupla1;
+  const pontosDupla2 = partida?.pontosDupla2;
 
-  return (
-    <article className="public-stat-card">
-      <span className="public-stat-icon"><Icone /></span>
-      <strong>{metrica.valor}</strong>
-      <span>{metrica.rotulo}</span>
-      {metrica.complemento && <small>{metrica.complemento}</small>}
-    </article>
-  );
+  if (pontosDupla1 === null || pontosDupla1 === undefined || pontosDupla2 === null || pontosDupla2 === undefined) {
+    return 'Resultado registrado';
+  }
+
+  return `${numeroSeguro(pontosDupla1)} x ${numeroSeguro(pontosDupla2)}`;
 }
 
 function PublicHero() {
   return (
-    <section className="public-hero">
+    <section
+      className="public-hero"
+      style={{ '--public-hero-image': `url(${heroFutevolei})` }}
+    >
       <div className="public-hero-copy">
         <span className="public-kicker">FUTEVÔLEI EM TEMPO REAL</span>
-        <h1>Transforme suas partidas em ranking, scouts e história.</h1>
+        <h1>
+          Transforme suas partidas em{' '}
+          <span>ranking, scouts e história.</span>
+        </h1>
         <p>Registre partidas, acompanhe sua evolução e veja o desempenho do seu grupo em tempo real.</p>
 
         <div className="public-hero-actions">
@@ -100,18 +116,18 @@ function PublicHero() {
         </div>
       </div>
 
-      <div className="public-hero-live" aria-label="Movimento da plataforma">
-        <article className="public-floating-card public-floating-card-score">
+      <div className="public-hero-live" aria-label="Resumo ilustrativo da plataforma">
+        <article className="public-floating-card">
           <span>Última partida</span>
           <strong>18 x 16</strong>
           <small>Resultado registrado</small>
         </article>
-        <article className="public-floating-card public-floating-card-ranking">
-          <span>Ranking</span>
+        <article className="public-floating-card">
+          <span>Ranking do grupo</span>
           <strong>#1 do grupo</strong>
-          <small>Ranking atualizado automaticamente</small>
+          <small>Atualizado automaticamente</small>
         </article>
-        <article className="public-floating-card public-floating-card-community">
+        <article className="public-floating-card">
           <span>Scout</span>
           <strong>+12%</strong>
           <small>Evolução acompanhada em tempo real</small>
@@ -146,7 +162,7 @@ function PublicHowItWorks() {
   return (
     <section id="como-funciona" className="public-how-section" aria-labelledby="public-how-title">
       <div className="public-section-header public-how-header">
-        <span>Como funciona</span>
+        <span>COMO FUNCIONA</span>
         <h2 id="public-how-title">Do jogo ao ranking em três passos</h2>
       </div>
 
@@ -167,69 +183,45 @@ function PublicHowItWorks() {
   );
 }
 
-function PublicLiveMatches({ partidas }) {
+const destaquesPlataforma = [
+  {
+    titulo: 'Rankings individuais e de duplas',
+    texto: 'Compare seu desempenho com atletas do seu grupo.',
+    Icone: FaMedal
+  },
+  {
+    titulo: 'Scouts completos',
+    texto: 'Veja aproveitamento, sequência, parceiros e adversários.',
+    Icone: FaChartLine
+  },
+  {
+    titulo: 'Histórico de partidas',
+    texto: 'Todos os seus jogos registrados em um só lugar.',
+    Icone: FaHistory
+  },
+  {
+    titulo: 'Grupos e comunidade',
+    texto: 'Conecte-se com atletas e leve seu grupo para o próximo nível.',
+    Icone: FaUsers
+  }
+];
+
+function PublicPlatformHighlights() {
   return (
-    <section className="public-section public-live-section">
+    <section className="public-section public-feature-section" aria-labelledby="public-features-title">
       <div className="public-section-header">
-        <span>Ao vivo</span>
-        <h2>Últimas partidas registradas</h2>
+        <span>PLATAFORMA</span>
+        <h2 id="public-features-title">Tudo que o grupo precisa para evoluir</h2>
       </div>
 
-      <div className="public-live-list">
-        {(partidas || []).length === 0 ? (
-          <article className="public-empty-card">Nenhuma partida registrada ainda.</article>
-        ) : (
-          partidas.map((partida) => (
-            <article key={partida.id} className="public-live-card">
-              <div className="public-live-card-top">
-                <span>{obterNomeGrupoPartidaExibicao(partida.grupo, '') || partida.campeonato || 'Partidas avulsas'}</span>
-                <strong>{formatarTempo(partida.minutosAtras)}</strong>
-              </div>
-              <PlacarDupla
-                atletas={partida.dupla1}
-                placar={partida.pontosDupla1}
-                vencedor={partida.vencedor === partida.dupla1}
-              />
-              <PlacarDupla
-                atletas={partida.dupla2}
-                placar={partida.pontosDupla2}
-                vencedor={partida.vencedor === partida.dupla2}
-              />
-            </article>
-          ))
-        )}
-      </div>
-    </section>
-  );
-}
-
-function PublicRanking({ ranking }) {
-  return (
-    <section className="public-section">
-      <div className="public-section-header">
-        <span>Top 10</span>
-        <h2>Ranking geral</h2>
-      </div>
-
-      <div className="public-ranking-list">
-        {(ranking || []).map((atleta) => (
-          <article key={atleta.atletaId} className="public-ranking-row">
-            <strong className="public-ranking-position">{atleta.posicao}</strong>
-            <AtletaPerfilLink atleta={atleta} ariaLabel={`Abrir perfil de ${obterNomePublicoAtleta(atleta)}`}>
-              <AvatarUsuario
-                nome={obterNomePublicoAtleta(atleta)}
-                fotoPerfilUrl={obterFotoPerfilAvatar(atleta)}
-                tamanho="sm"
-                className="public-avatar"
-              />
-            </AtletaPerfilLink>
+      <div className="public-feature-list">
+        {destaquesPlataforma.map(({ titulo, texto, Icone }) => (
+          <article key={titulo} className="public-feature-card">
+            <span className="public-feature-icon"><Icone /></span>
             <div>
-              <AtletaPerfilLink atleta={atleta} className="atleta-nome-link">
-                <strong>{obterNomePublicoAtleta(atleta)}</strong>
-              </AtletaPerfilLink>
-              <span>{obterNumeroSeguro(atleta.vitorias)}V · {obterNumeroSeguro(atleta.derrotas)}D · {obterNumeroSeguro(atleta.aproveitamento)}%</span>
+              <strong>{titulo}</strong>
+              <p>{texto}</p>
             </div>
-            <em>{obterNumeroSeguro(atleta.sequenciaAtual) > 0 ? `${obterNumeroSeguro(atleta.sequenciaAtual)}W` : `${obterNumeroSeguro(atleta.pontos)} pts`}</em>
           </article>
         ))}
       </div>
@@ -237,145 +229,171 @@ function PublicRanking({ ranking }) {
   );
 }
 
-function PublicHorizontalCards({ id, titulo, marcador, itens, renderItem, vazio }) {
+function PublicCommunityNumbers({ resumo }) {
+  const estatisticas = [
+    {
+      valor: obterNumeroResumo(resumo, 'totalPartidas', estatisticasFallback.totalPartidas),
+      rotulo: 'partidas registradas'
+    },
+    {
+      valor: obterNumeroResumo(resumo, 'totalAtletas', estatisticasFallback.totalAtletas),
+      rotulo: 'atletas no ranking'
+    },
+    {
+      valor: obterNumeroResumo(resumo, 'totalGrupos', estatisticasFallback.totalGrupos),
+      rotulo: 'grupos ativos'
+    }
+  ];
+
   return (
-    <section id={id} className="public-section">
+    <section className="public-section public-numbers-section" aria-labelledby="public-numbers-title">
       <div className="public-section-header">
-        <span>{marcador}</span>
-        <h2>{titulo}</h2>
+        <span>COMUNIDADE</span>
+        <h2 id="public-numbers-title">Movimento que já está acontecendo</h2>
       </div>
-      <div className="public-horizontal-scroll">
-        {(itens || []).length === 0 ? (
-          <article className="public-empty-card">{vazio}</article>
-        ) : (
-          itens.map(renderItem)
-        )}
+
+      <div className="public-stats-grid" aria-label="Números da comunidade">
+        {estatisticas.map((estatistica) => (
+          <article key={estatistica.rotulo} className="public-stat-card">
+            <strong>{formatarNumero(estatistica.valor)}</strong>
+            <span>{estatistica.rotulo}</span>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function PublicLiveMatches({ partidas }) {
+  const partidasValidas = Array.isArray(partidas) ? partidas.slice(0, 3) : [];
+
+  return (
+    <section className="public-section public-live-section" aria-labelledby="public-live-title">
+      <div className="public-section-header">
+        <span>AO VIVO</span>
+        <h2 id="public-live-title">Últimas partidas registradas</h2>
+      </div>
+
+      {partidasValidas.length === 0 ? (
+        <article className="public-empty-card">As próximas partidas registradas pela comunidade aparecem aqui.</article>
+      ) : (
+        <div className="public-live-list">
+          {partidasValidas.map((partida, indice) => (
+            <article key={partida.id || `partida-${indice}`} className="public-live-card">
+              <div className="public-live-card-top">
+                <span>{obterNomeGrupoPublico(partida)}</span>
+                <strong><FaClock aria-hidden="true" /> {formatarTempo(partida.minutosAtras)}</strong>
+              </div>
+              <div className="public-live-score">
+                <span>{textoSeguro(partida.dupla1, 'Dupla A')}</span>
+                <strong>{obterTextoPlacar(partida)}</strong>
+                <span>{textoSeguro(partida.dupla2, 'Dupla B')}</span>
+              </div>
+              <small>{partida.vencedor ? `Vencedor: ${textoSeguro(partida.vencedor, 'informado')}` : 'Resultado confirmado'}</small>
+            </article>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function PublicRanking({ ranking }) {
+  const topRanking = Array.isArray(ranking) ? ranking.slice(0, 5) : [];
+
+  return (
+    <section className="public-section public-ranking-section" aria-labelledby="public-ranking-title">
+      <div className="public-section-header">
+        <span>TOP 5</span>
+        <h2 id="public-ranking-title">Ranking geral</h2>
+      </div>
+
+      {topRanking.length === 0 ? (
+        <article className="public-empty-card">O ranking aparece conforme os atletas registram partidas.</article>
+      ) : (
+        <div className="public-ranking-list">
+          {topRanking.map((atleta, indice) => {
+            const nomeAtleta = obterNomePublicoAtleta(atleta);
+            const pontos = numeroSeguro(atleta.pontos);
+
+            return (
+              <article key={atleta.atletaId || `${nomeAtleta}-${indice}`} className="public-ranking-row">
+                <strong className="public-ranking-position">#{numeroSeguro(atleta.posicao, indice + 1)}</strong>
+                <AtletaPerfilLink atleta={atleta} ariaLabel={`Abrir perfil de ${nomeAtleta}`}>
+                  <AvatarUsuario
+                    nome={nomeAtleta}
+                    fotoPerfilUrl={obterFotoPerfilAvatar(atleta)}
+                    tamanho="sm"
+                    className="public-avatar"
+                  />
+                </AtletaPerfilLink>
+                <div className="public-ranking-athlete">
+                  <AtletaPerfilLink atleta={atleta} className="atleta-nome-link">
+                    <strong>{nomeAtleta}</strong>
+                  </AtletaPerfilLink>
+                  <span>{numeroSeguro(atleta.jogos)} jogos registrados</span>
+                </div>
+                <em>{formatarNumero(pontos)} pts</em>
+              </article>
+            );
+          })}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function PublicCommunityInsight({ insights }) {
+  const insight = Array.isArray(insights) && insights.length > 0
+    ? textoSeguro(insights[0], 'Cada resultado registrado fortalece o histórico do atleta e dá mais clareza para o grupo evoluir junto.')
+    : 'Cada resultado registrado fortalece o histórico do atleta e dá mais clareza para o grupo evoluir junto.';
+
+  return (
+    <section className="public-insight-section" aria-label="Insight da comunidade">
+      <span className="public-insight-icon"><FaQuoteLeft aria-hidden="true" /></span>
+      <div>
+        <span>COMUNIDADE</span>
+        <p>{insight}</p>
+      </div>
+    </section>
+  );
+}
+
+function PublicFinalCTA() {
+  return (
+    <section className="public-community-section">
+      <div>
+        <span>ENTRE EM QUADRA</span>
+        <h2>Seu jogo já vale história.</h2>
+        <p>Registre partidas, acompanhe evolução, entre nos rankings e leve seu grupo para dentro do QNF.</p>
+      </div>
+      <div className="public-hero-actions">
+        <Link to="/login" state={estadoCriarConta} className="botao-primario">
+          Criar conta grátis
+        </Link>
+        <Link to="/login" className="botao-secundario">
+          Entrar
+        </Link>
       </div>
     </section>
   );
 }
 
 export function PublicHome({ dashboard, carregando, erro }) {
-  const metricas = dashboard?.metricas || [];
-
   return (
     <section className="public-home">
       <PublicHero />
       <PublicHowItWorks />
+      <PublicPlatformHighlights />
 
-      {erro && <div className="public-alert">{erro}</div>}
+      {erro && <div className="public-alert">Não foi possível carregar dados ao vivo agora. A página segue disponível.</div>}
       {carregando && <div className="public-alert">Carregando movimento da plataforma...</div>}
 
-      <section className="public-stats-grid" aria-label="Números da plataforma">
-        {metricas.slice(0, 7).map((metrica) => (
-          <PublicStatCard key={metrica.id} metrica={metrica} />
-        ))}
-      </section>
-
-      <PublicLiveMatches partidas={dashboard?.ultimasPartidas || []} />
-
-      <div className="public-two-columns">
-        <PublicRanking ranking={dashboard?.ranking || []} />
-
-        <PublicHorizontalCards
-          titulo="Atletas em destaque"
-          marcador="Destaques"
-          itens={dashboard?.atletasDestaque || []}
-          vazio="Os destaques aparecem conforme a comunidade registra partidas."
-          renderItem={(atleta) => (
-            <article key={`${atleta.atletaId}-${atleta.destaque}`} className="public-highlight-card">
-              <AtletaPerfilLink atleta={atleta} ariaLabel={`Abrir perfil de ${obterNomePublicoAtleta(atleta)}`}>
-                <AvatarUsuario
-                  nome={obterNomePublicoAtleta(atleta)}
-                  fotoPerfilUrl={obterFotoPerfilAvatar(atleta)}
-                  tamanho="sm"
-                  className="public-avatar"
-                />
-              </AtletaPerfilLink>
-              <AtletaPerfilLink atleta={atleta} className="atleta-nome-link">
-                <strong>{obterNomePublicoAtleta(atleta)}</strong>
-              </AtletaPerfilLink>
-              <small>{atleta.destaque}</small>
-              <em>{atleta.valor} {atleta.complemento}</em>
-            </article>
-          )}
-        />
-      </div>
-
-      <PublicHorizontalCards
-        id="grupos"
-        titulo="Grupos em destaque"
-        marcador="Comunidades"
-        itens={dashboard?.grupos || []}
-        vazio="Os grupos mais ativos aparecem aqui."
-        renderItem={(grupo) => (
-          <article key={grupo.grupoId} className="public-group-card">
-            <strong>{grupo.nome}</strong>
-            <span>{grupo.partidas} partidas</span>
-            <small>{grupo.atletas} atletas em jogos recentes</small>
-          </article>
-        )}
-      />
-
-      <PublicHorizontalCards
-        titulo="Campeonatos em andamento"
-        marcador="Eventos"
-        itens={dashboard?.campeonatos || []}
-        vazio="Os campeonatos cadastrados aparecem aqui."
-        renderItem={(campeonato) => (
-          <article key={campeonato.campeonatoId} className="public-championship-card">
-            <span>{campeonato.status}</span>
-            <strong>{campeonato.nome}</strong>
-            <small>{campeonato.local || 'Local a definir'}</small>
-            <em>{campeonato.partidas} partidas registradas</em>
-          </article>
-        )}
-      />
-
-      <div className="public-two-columns">
-        <section className="public-section">
-          <div className="public-section-header">
-            <span>Regiões</span>
-            <h2>Cidades mais ativas</h2>
-          </div>
-          <div className="public-region-list">
-            {(dashboard?.regioes || []).map((regiao) => (
-              <article key={`${regiao.cidade}-${regiao.estado || ''}`}>
-                <strong>{regiao.cidade}{regiao.estado ? `/${regiao.estado}` : ''}</strong>
-                <span>{regiao.partidas} partidas</span>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="public-section">
-          <div className="public-section-header">
-            <span>Insights</span>
-            <h2>Movimento da comunidade</h2>
-          </div>
-          <div className="public-insights-list">
-            {(dashboard?.insights || []).map((insight) => (
-              <article key={insight}>{insight}</article>
-            ))}
-          </div>
-        </section>
-      </div>
-
-      <section className="public-community-section">
-        <div>
-          <span>Comunidade</span>
-          <h2>Seu jogo já vale história.</h2>
-          <p>Registre partidas, acompanhe evolução, entre nos rankings e leve seu grupo para dentro do QNF.</p>
-        </div>
-        <div className="public-hero-actions">
-          <Link to="/login" state={estadoCriarConta} className="botao-primario">
-            Criar conta grátis
-          </Link>
-          <Link to="/login" className="botao-secundario">
-            Entrar
-          </Link>
-        </div>
-      </section>
+      <PublicCommunityNumbers resumo={dashboard?.resumo} />
+      <PublicLiveMatches partidas={dashboard?.ultimasPartidas} />
+      <PublicRanking ranking={dashboard?.ranking} />
+      <PublicCommunityInsight insights={dashboard?.insights} />
+      <PublicFinalCTA />
     </section>
   );
 }

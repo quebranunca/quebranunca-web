@@ -23,6 +23,7 @@ export function PublicFooter() {
           ))}
         </ul>
       </nav>
+      <p>© 2026 QuebraNunca</p>
     </footer>
   );
 }

@@ -14,6 +14,11 @@ const linksPrincipais = [
   { to: '/grupos', label: 'Grupos' }
 ];
 
+const linksDesktop = [
+  ...linksPrincipais,
+  { to: '/arenas', label: 'Arenas' }
+];
+
 const itensDrawer = [
   ...linksPrincipais,
   { to: '/arenas', label: 'Arenas' },
@@ -56,9 +61,20 @@ export function PublicHeader() {
         <span>QuebraNunca</span>
       </Link>
 
+      <nav className="public-header-nav" aria-label="Navegação pública">
+        {linksDesktop.map((item) => (
+          <NavLink key={item.to} to={item.to} onClick={fecharMenu}>
+            {item.label}
+          </NavLink>
+        ))}
+      </nav>
+
       <div className="public-header-actions">
         <Link to="/login" className="public-header-login">
           Entrar
+        </Link>
+        <Link to="/login" state={estadoCriarConta} className="public-header-create">
+          Criar conta grátis
         </Link>
         <button
           type="button"
@@ -141,7 +157,7 @@ export function PublicHeader() {
             className="public-drawer-create"
             onClick={fecharMenu}
           >
-            Criar conta
+            Criar conta grátis
           </Link>
         </div>
       </aside>
