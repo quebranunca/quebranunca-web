@@ -7,9 +7,7 @@ import {
   FaFire,
   FaGlobeAmericas,
   FaLock,
-  FaShareAlt,
   FaTrophy,
-  FaUserPlus,
   FaUsers,
   FaVolleyballBall
 } from 'react-icons/fa';
@@ -23,7 +21,6 @@ import { useAutenticacao } from '../hooks/useAutenticacao';
 import { gruposServico } from '../services/gruposServico';
 import { pendenciasServico } from '../services/pendenciasServico';
 import { obterNomeExibicaoAtleta } from '../utils/atletaUtils';
-import { compartilharLink } from '../utils/compartilhamento';
 import { extrairMensagemErro } from '../utils/erros';
 import { formatarData, formatarDataHora, formatarHora } from '../utils/formatacao';
 
@@ -330,34 +327,6 @@ export function PaginaGrupoDashboard() {
     }
   }
 
-  async function compartilharGrupo() {
-    try {
-      const resultado = await compartilharLink({
-        titulo: grupo.nome,
-        texto: `Veja o grupo ${grupo.nome} no QuebraNunca.`,
-        url: `/grupos/${grupo.id}`
-      });
-
-      showNotification({
-        type: 'success',
-        title: resultado === 'copiado' ? 'Link copiado' : 'Grupo compartilhado',
-        message: resultado === 'copiado'
-          ? 'O link do grupo foi copiado para a área de transferência.'
-          : 'O grupo foi enviado para compartilhamento.'
-      });
-    } catch (error) {
-      if (error?.name === 'AbortError') {
-        return;
-      }
-
-      showNotification({
-        type: 'error',
-        title: 'Erro ao compartilhar grupo',
-        message: extrairMensagemErro(error)
-      });
-    }
-  }
-
   if (carregando) {
     return <section className="pagina grupo-dashboard-pagina"><article className="cartao-lista">Carregando dashboard do grupo...</article></section>;
   }
@@ -408,25 +377,21 @@ export function PaginaGrupoDashboard() {
         </button>
       </header>
 
-      <section className="grupo-dashboard-acoes-rapidas" aria-label="Ações rápidas do grupo">
-        {grupo.podeEditar && (
-          <button type="button" className="grupo-dashboard-acao-rapida" onClick={() => navegar(`/grupos/${grupo.id}/atletas`)}>
-            <span><FaCog aria-hidden="true" /> Editar grupo</span>
-            <FaChevronRight aria-hidden="true" />
-          </button>
-        )}
+      <section className="grupo-dashboard-acoes-rapidas" aria-label="Ações do grupo">
         <button type="button" className="grupo-dashboard-acao-rapida" onClick={() => navegar(`/grupos/${grupo.id}/atletas`)}>
-          <span><FaUserPlus aria-hidden="true" /> Convidar atleta</span>
-          <FaChevronRight aria-hidden="true" />
-        </button>
-        <button type="button" className="grupo-dashboard-acao-rapida" onClick={compartilharGrupo}>
-          <span><FaShareAlt aria-hidden="true" /> Compartilhar grupo</span>
+          <span><FaUsers aria-hidden="true" /> Membros</span>
           <FaChevronRight aria-hidden="true" />
         </button>
         <button type="button" className="grupo-dashboard-acao-rapida" onClick={() => navegar(`/ranking?tipo=grupos&grupoId=${grupo.id}`)}>
-          <span><FaTrophy aria-hidden="true" /> Ver ranking</span>
+          <span><FaTrophy aria-hidden="true" /> Ranking</span>
           <FaChevronRight aria-hidden="true" />
         </button>
+        {grupo.podeEditar && (
+          <button type="button" className="grupo-dashboard-acao-rapida" onClick={() => navegar(`/grupos/${grupo.id}/configuracoes`)}>
+            <span><FaCog aria-hidden="true" /> Configurações</span>
+            <FaChevronRight aria-hidden="true" />
+          </button>
+        )}
       </section>
 
       <section className="grupo-dashboard-membros-card" aria-label="Membros do grupo">
@@ -476,7 +441,7 @@ export function PaginaGrupoDashboard() {
         </div>
 
         <button type="button" className="grupo-dashboard-membros-convite" onClick={() => navegar(`/grupos/${grupo.id}/atletas`)}>
-          <span><FaUserPlus aria-hidden="true" /> Convide atletas para o grupo</span>
+          <span><FaUsers aria-hidden="true" /> Ver membros do grupo</span>
           <FaChevronRight aria-hidden="true" />
         </button>
       </section>

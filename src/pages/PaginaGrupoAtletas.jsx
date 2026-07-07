@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { FaCheck, FaPlus, FaSearch, FaUserPlus } from 'react-icons/fa';
+import { useNavigate, useParams } from 'react-router-dom';
+import { FaCheck, FaChevronLeft, FaPlus, FaSearch, FaUserPlus } from 'react-icons/fa';
 import { AtletaPerfilLink } from '../components/AtletaPerfilLink';
 import { AvatarUsuario, obterFotoPerfilAvatar } from '../components/AvatarUsuario';
 import { EmailDomainSuggestions } from '../components/formularios/EmailDomainSuggestions';
@@ -32,6 +32,7 @@ const TEMPO_DEBOUNCE_BUSCA_ATLETA_MS = 300;
 export function PaginaGrupoAtletas() {
   const { grupoId, competicaoId } = useParams();
   const idGrupo = grupoId || competicaoId;
+  const navegar = useNavigate();
   const { usuario, estadoAcesso, atualizarUsuarioLocal } = useAutenticacao();
   const { showNotification, closeNotification } = useNotification();
   const usuarioAtleta = ehAtleta(usuario);
@@ -399,8 +400,15 @@ export function PaginaGrupoAtletas() {
 
   return (
     <section className="pagina">
-      <div className="cabecalho-pagina">
-        <h2>{grupo?.nome || 'Carregando grupo...'}</h2>  
+      <div className="cabecalho-pagina grupo-atletas-cabecalho">
+        <button type="button" className="botao-voltar" onClick={() => navegar(`/grupos/${idGrupo}`)}>
+          <span className="botao-voltar-icone"><FaChevronLeft aria-hidden="true" /></span>
+          Voltar
+        </button>
+        <div>
+          <h2>Membros</h2>
+          <p>{grupo?.nome || 'Carregando grupo...'}</p>
+        </div>
       </div>
 
       {carregando ? (

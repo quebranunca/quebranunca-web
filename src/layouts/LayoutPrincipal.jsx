@@ -13,7 +13,8 @@ const ROTAS_SEM_BOTTOM_NAV = [
   /^\/partidas\/campeonato$/,
   /^\/partidas\/consulta$/,
   /^\/campeonatos\//,
-  /^\/grupos\/[^/]+\/atletas$/
+  /^\/grupos\/[^/]+\/atletas$/,
+  /^\/grupos\/[^/]+\/configuracoes$/
 ];
  
 export function LayoutPrincipal() {
