@@ -16,6 +16,7 @@ import {
 import { useAutenticacao } from '../../hooks/useAutenticacao';
 import { obterNomeGrupoPartidaExibicao } from '../../utils/partidas';
 import { formatarData } from '../../utils/formatacao';
+import { MedalhaNivel } from '../gamificacao/MedalhaNivel';
 import { Avatar } from '../ui/Avatar';
 import { HomeSectionType, homeSectionsConfig } from './homeSectionsConfig';
 
@@ -382,7 +383,12 @@ function HomePontosQNCard({ gamificacaoModulo }) {
     <section className="home-dashboard-pontosqn-card" aria-labelledby="home-pontosqn-titulo">
       <div className="home-dashboard-card-topo">
         <div>
-          <span aria-hidden="true"><FaTrophy /></span>
+          <MedalhaNivel
+            nivel={nivelNome}
+            variant="badge"
+            size="sm"
+            className="home-dashboard-pontosqn-badge"
+          />
           <h2 id="home-pontosqn-titulo">Pontos QN</h2>
         </div>
         <Link to={HOME_NAVIGATION.pontosQN} className="home-dashboard-card-link">
@@ -392,6 +398,11 @@ function HomePontosQNCard({ gamificacaoModulo }) {
       </div>
 
       <div className="home-dashboard-qn-corpo">
+        <MedalhaNivel
+          nivel={nivelNome}
+          size="lg"
+          className="home-dashboard-qn-medalha"
+        />
         <div className="home-dashboard-qn-nivel">
           <strong>{nivelNome}</strong>
           {numeroNivel && <span>Nível {numeroNivel}</span>}

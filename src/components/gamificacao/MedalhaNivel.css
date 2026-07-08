@@ -1,0 +1,50 @@
+.medalha-nivel {
+  --medalha-nivel-size: 3rem;
+  width: var(--medalha-nivel-size);
+  height: var(--medalha-nivel-size);
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+  line-height: 1;
+}
+
+.medalha-nivel-sm {
+  --medalha-nivel-size: 1.5rem;
+}
+
+.medalha-nivel-md {
+  --medalha-nivel-size: 3rem;
+}
+
+.medalha-nivel-lg {
+  --medalha-nivel-size: 4.5rem;
+}
+
+.medalha-nivel img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.34));
+}
+
+.medalha-nivel-fallback {
+  width: 100%;
+  height: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 179, 0, 0.34);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 35% 20%, rgba(255, 255, 255, 0.24), transparent 32%),
+    linear-gradient(145deg, rgba(255, 179, 0, 0.28), rgba(255, 179, 0, 0.08)),
+    rgba(15, 16, 20, 0.96);
+  color: var(--cor-primaria);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: calc(var(--medalha-nivel-size) * 0.44);
+  font-weight: 950;
+  box-shadow: 0 0 18px rgba(255, 179, 0, 0.12), 0 10px 20px rgba(0, 0, 0, 0.24);
+}

@@ -233,6 +233,8 @@ describe('HomeDashboard nova experiencia', () => {
     const card = screen.getByRole('region', { name: /Pontos QN/i });
 
     expect(within(card).getAllByText('Pontos QN').length).toBeGreaterThan(0);
+    expect(within(card).getByRole('img', { name: 'Badge nível Bronze' })).toBeInTheDocument();
+    expect(within(card).getByRole('img', { name: 'Medalha nível Bronze' })).toBeInTheDocument();
     expect(within(card).getByText('Bronze')).toBeInTheDocument();
     expect(within(card).getByText('Nível 1')).toBeInTheDocument();
     expect(within(card).getByText('370 / 500 QN')).toBeInTheDocument();

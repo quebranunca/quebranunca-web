@@ -2422,6 +2422,16 @@
   color: var(--cor-primaria);
 }
 
+.home-dashboard-card-topo > div > .home-dashboard-pontosqn-badge {
+  width: 1.95rem;
+  height: 1.95rem;
+  background: transparent;
+}
+
+.home-dashboard-pontosqn-badge img {
+  filter: drop-shadow(0 4px 10px rgba(255, 179, 0, 0.16));
+}
+
 .home-dashboard-card-topo h2 {
   margin: 0;
   overflow: hidden;
@@ -2457,6 +2467,7 @@
 
 .home-dashboard-qn-corpo {
   align-items: end;
+  justify-content: flex-start;
 }
 
 .home-dashboard-qn-nivel,
@@ -2464,6 +2475,14 @@
   min-width: 0;
   display: grid;
   gap: 0.16rem;
+}
+
+.home-dashboard-qn-medalha {
+  --medalha-nivel-size: clamp(3.4rem, 15vw, 4.5rem);
+}
+
+.home-dashboard-qn-nivel {
+  flex: 1 1 auto;
 }
 
 .home-dashboard-qn-nivel strong,
@@ -2493,6 +2512,7 @@
 }
 
 .home-dashboard-qn-saldo {
+  margin-left: auto;
   justify-items: end;
   grid-template-columns: auto auto;
   align-items: baseline;
@@ -2690,6 +2710,11 @@
     border-radius: 11px;
   }
 
+  .home-dashboard-card-topo > div > .home-dashboard-pontosqn-badge {
+    width: 1.72rem;
+    height: 1.72rem;
+  }
+
   .home-dashboard-card-topo h2 {
     font-size: 0.96rem;
   }
@@ -2702,6 +2727,10 @@
 
   .home-dashboard-qn-nivel strong {
     font-size: 1.2rem;
+  }
+
+  .home-dashboard-qn-medalha {
+    --medalha-nivel-size: 3.15rem;
   }
 
   .home-dashboard-qn-saldo strong {
