@@ -15762,6 +15762,11 @@ a.botao-terciario:active {
 }
 
 /* Navegação autenticada 2026-07 */
+.layout-autenticado {
+  --app-header-offset-top: calc(env(safe-area-inset-top, 0px) + 0.5rem);
+  --app-header-content-gap: 0.68rem;
+}
+
 .layout-home-dashboard-app > .topo-app,
 .layout-pagina-com-hero-proprio > .topo-app,
 .layout-grupos-dashboard-app > .topo-app {
@@ -15785,6 +15790,24 @@ a.botao-terciario:active {
     0 10px 26px rgba(0, 0, 0, 0.26);
   backdrop-filter: blur(18px) saturate(1.08);
   -webkit-backdrop-filter: blur(18px) saturate(1.08);
+}
+
+@media (max-width: 720px) {
+  .layout-autenticado {
+    gap: var(--app-header-content-gap);
+    padding-top: 0;
+  }
+
+  .layout-autenticado .topo-app {
+    margin-top: var(--app-header-offset-top);
+    border-radius: var(--raio-lg);
+  }
+
+  .layout-home-dashboard-app,
+  .layout-pagina-com-hero-proprio,
+  .layout-grupos-dashboard-app {
+    gap: var(--app-header-content-gap);
+  }
 }
 
 .layout-autenticado .marca-topo {
