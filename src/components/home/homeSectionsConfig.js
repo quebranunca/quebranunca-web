@@ -10,7 +10,8 @@ export const HomeSectionType = Object.freeze({
 });
 
 export const homeSectionsConfig = [
-  { type: HomeSectionType.MainDashboard, enabled: true },
+  { type: HomeSectionType.Gamification, enabled: true },
+  { type: HomeSectionType.Performance, enabled: true },
   { type: HomeSectionType.PendingConfirmation, enabled: true },
   { type: HomeSectionType.PrimaryAction, enabled: true },
   { type: HomeSectionType.RecentMatches, enabled: true }

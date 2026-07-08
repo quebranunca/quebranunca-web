@@ -4,6 +4,7 @@ import { EVENTO_PENDENCIAS_ATUALIZADAS, pendenciasServico } from '../../services
 import { gamificacaoServico } from '../../services/gamificacaoServico';
 import { HomeDashboard } from '../../components/home/HomeDashboard';
 import { useNotification } from '../../contexts/NotificationContext';
+import { useAutenticacao } from '../../hooks/useAutenticacao';
 import { extrairMensagemErro } from '../../utils/erros';
 import '../../components/home/home-dashboard.css';
 
@@ -28,6 +29,7 @@ export function HomeDashboardContainer() {
   const [confirmandoPendenciaId, setConfirmandoPendenciaId] = useState(null);
   const [contestandoPendenciaId, setContestandoPendenciaId] = useState(null);
   const { showNotification } = useNotification();
+  const { usuario, atualizarUsuarioLocal } = useAutenticacao();
 
   async function carregarModulo(chave, carregador, estaAtivo = () => true) {
     setModulos((anteriores) => ({
@@ -90,6 +92,18 @@ export function HomeDashboardContainer() {
     window.addEventListener(EVENTO_PENDENCIAS_ATUALIZADAS, atualizarPendencias);
     return () => window.removeEventListener(EVENTO_PENDENCIAS_ATUALIZADAS, atualizarPendencias);
   }, []);
+
+  useEffect(() => {
+    const nivelNome = String(modulos.gamificacao.dados?.nivel?.nome || '').trim();
+    if (!nivelNome || !usuario || usuario.nivelNome === nivelNome) {
+      return;
+    }
+
+    atualizarUsuarioLocal({
+      ...usuario,
+      nivelNome
+    });
+  }, [atualizarUsuarioLocal, modulos.gamificacao.dados?.nivel?.nome, usuario]);
 
   async function confirmarPendenciaPartida(pendenciaId) {
     if (!pendenciaId || confirmandoPendenciaId || contestandoPendenciaId) {

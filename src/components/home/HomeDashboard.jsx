@@ -8,8 +8,8 @@ import {
   FaEdit,
   FaFire,
   FaFutbol,
+  FaGift,
   FaPlus,
-  FaTimes,
   FaTrophy,
   FaUsers
 } from 'react-icons/fa';
@@ -178,11 +178,7 @@ export function HomeDashboard({
   modulos,
   dashboard,
   carregando,
-  erro,
-  onConfirmarPendenciaPartida,
-  onNaoReconhecerPendenciaPartida,
-  confirmandoPendenciaId,
-  contestandoPendenciaId
+  erro
 }) {
   const { usuario } = useAutenticacao();
 
@@ -208,9 +204,13 @@ export function HomeDashboard({
   const resumo = obterDadosModulo(resumoModulo, {}) || {};
   const resumoPendencias = obterDadosModulo(pendenciasModulo, null);
   const pendenciaConfirmacaoPartida = resumoPendencias?.confirmacaoPartidaMaisRecente || null;
-  const ultimasPartidas = (obterDadosModulo(ultimasPartidasModulo, []) || []).slice(0, 3);
+  const totalPendencias = Number(resumoPendencias?.total || (pendenciaConfirmacaoPartida ? 1 : 0));
+  const ultimasPartidas = (obterDadosModulo(ultimasPartidasModulo, []) || []).slice(0, 1);
   const totalPartidas = Number(resumo.totalPartidas ?? 0);
   const totalVitorias = Number(resumo.vitorias ?? 0);
+  const aproveitamento = Number(resumo.aproveitamento ?? perfil.aproveitamento ?? 0);
+  const sequenciaAtual = Number(resumo.sequenciaAtual ?? perfil.sequenciaAtual ?? 0);
+  const temDadosDesempenho = totalPartidas > 0 || totalVitorias > 0 || aproveitamento > 0 || sequenciaAtual > 0;
   const pendenciaCriarSenha = Array.isArray(usuario?.pendenciasConta)
     ? usuario.pendenciasConta.find((pendencia) => pendencia?.tipo === 'CriarSenha')
     : null;
@@ -234,32 +234,34 @@ export function HomeDashboard({
     {
       id: 'aproveitamento',
       rotulo: 'Aproveitamento',
-      valor: formatarPercentual(resumo.aproveitamento ?? perfil.aproveitamento ?? 0),
+      valor: formatarPercentual(aproveitamento),
       icone: FaChartLine
     },
     {
       id: 'sequencia',
       rotulo: 'Sequência',
-      valor: resumo.sequenciaAtual ?? perfil.sequenciaAtual ?? 0,
+      valor: sequenciaAtual,
       icone: FaFire
     }
   ];
 
   const renderizadoresSecao = {
-    [HomeSectionType.MainDashboard]: () => (
-      <HomeCardPrincipal
+    [HomeSectionType.Gamification]: () => (
+      <HomePontosQNCard
         gamificacaoModulo={gamificacaoModulo}
+      />
+    ),
+    [HomeSectionType.Performance]: () => (
+      <HomeDesempenhoCard
         scouts={scouts}
         erroDesempenho={resumoModulo.erro}
+        temDados={temDadosDesempenho}
       />
     ),
     [HomeSectionType.PendingConfirmation]: () => (
       <HomeConfirmarPartidaCard
         pendencia={pendenciaConfirmacaoPartida}
-        confirmando={confirmandoPendenciaId === pendenciaConfirmacaoPartida?.id}
-        contestando={contestandoPendenciaId === pendenciaConfirmacaoPartida?.id}
-        onConfirmar={onConfirmarPendenciaPartida}
-        onNaoReconhecer={onNaoReconhecerPendenciaPartida}
+        totalPendencias={totalPendencias}
       />
     ),
     [HomeSectionType.PrimaryAction]: () => (
@@ -275,7 +277,7 @@ export function HomeDashboard({
       </>
     ),
     [HomeSectionType.RecentMatches]: () => (
-      <HomeUltimosJogos
+      <HomeUltimoJogo
         ultimasPartidas={ultimasPartidas}
         erro={ultimasPartidasModulo.erro}
       />
@@ -294,69 +296,36 @@ export function HomeDashboard({
   );
 }
 
-function HomeConfirmarPartidaCard({ pendencia, confirmando, contestando, onConfirmar, onNaoReconhecer }) {
+function HomeConfirmarPartidaCard({ pendencia, totalPendencias }) {
   if (!pendencia) {
     return null;
   }
 
   const grupo = obterNomeGrupoPartidaExibicao(pendencia.nomeGrupo, '') || 'Partidas avulsas';
   const duplaA = obterDuplaPendencia(pendencia, 'A');
-  const duplaB = obterDuplaPendencia(pendencia, 'B');
-  const resultado = obterResultadoDetalhadoPendencia(pendencia);
-  const processando = confirmando || contestando;
+  const quantidade = Number(totalPendencias || 1);
 
   return (
-    <section className="home-dashboard-confirmacao" aria-labelledby="home-confirmacao-titulo">
+    <section className="home-dashboard-pendencias" aria-labelledby="home-pendencias-titulo">
       <div className="home-dashboard-confirmacao-topo">
         <span aria-hidden="true"><FaClipboardCheck /></span>
         <div>
-          <h2 id="home-confirmacao-titulo">Confirmar partida</h2>
-          <strong>Você participou deste jogo?</strong>
-          <p>Ajude a validar os dados e fortalecer o ranking da comunidade.</p>
+          <h2 id="home-pendencias-titulo">Pendências</h2>
+          <strong>
+            Você possui {quantidade} {quantidade === 1 ? 'pendência' : 'pendências'}
+          </strong>
+          <p>{grupo} • {duplaA}</p>
         </div>
         <em>PENDENTE</em>
       </div>
 
-      <div className="home-dashboard-confirmacao-meta">
-        <span><FaUsers aria-hidden="true" />{grupo}</span>
+      <div className="home-dashboard-pendencias-rodape">
         <span><FaCalendarAlt aria-hidden="true" />{formatarDataHoraCurta(pendencia.dataPartida || pendencia.dataCriacao)}</span>
-      </div>
-
-      <div className="home-dashboard-confirmacao-jogo">
-        <span>{duplaA}</span>
-        <strong>{resultado}</strong>
-        <span>{duplaB}</span>
-      </div>
-
-      <small className="home-dashboard-confirmacao-registrador">
-        Registrado por {pendencia.nomeCriadoPorUsuario || 'Usuário QNF'}
-      </small>
-
-      <footer className="home-dashboard-confirmacao-rodape">
-        <div className="home-dashboard-confirmacao-acoes">
-          <button
-            type="button"
-            className="botao-terciario"
-            onClick={() => onNaoReconhecer?.(pendencia.id)}
-            disabled={processando || !onNaoReconhecer}
-          >
-            <FaTimes aria-hidden="true" />
-            {contestando ? 'Enviando...' : 'Não fui eu'}
-          </button>
-          <button
-            type="button"
-            className="botao-primario"
-            onClick={() => onConfirmar?.(pendencia.id)}
-            disabled={processando}
-          >
-            {confirmando ? 'Confirmando...' : 'Confirmar partida'}
-          </button>
-        </div>
         <Link to="/app/pendencias" className="home-dashboard-confirmacao-link">
           Ver todas
           <FaChevronRight aria-hidden="true" />
         </Link>
-      </footer>
+      </div>
     </section>
   );
 }
@@ -369,24 +338,7 @@ function obterDuplaPendencia(pendencia, lado) {
   return nome || [atleta1, atleta2].filter(Boolean).join(' / ') || 'Dupla a definir';
 }
 
-function obterResultadoDetalhadoPendencia(pendencia) {
-  if (pendencia?.placarDuplaA !== null && pendencia?.placarDuplaA !== undefined &&
-    pendencia?.placarDuplaB !== null && pendencia?.placarDuplaB !== undefined) {
-    return `${pendencia.placarDuplaA} x ${pendencia.placarDuplaB}`;
-  }
-
-  if (pendencia?.duplaVencedora === 1) {
-    return 'Venceu dupla 1';
-  }
-
-  if (pendencia?.duplaVencedora === 2) {
-    return 'Venceu dupla 2';
-  }
-
-  return 'Resultado informado';
-}
-
-function HomeCardPrincipal({ gamificacaoModulo, scouts, erroDesempenho }) {
+function HomePontosQNCard({ gamificacaoModulo }) {
   const modulo = gamificacaoModulo;
   const carregando = Boolean(modulo?.carregando);
   const dados = obterDadosModulo(modulo, null);
@@ -401,6 +353,7 @@ function HomeCardPrincipal({ gamificacaoModulo, scouts, erroDesempenho }) {
   const pontosRestantes = Number(nivel.pontosRestantes ?? 0);
   const progressoPercentual = Math.max(0, Math.min(100, Number(nivel.progressoPercentual ?? 0)));
   const nivelNome = carregando && !dados ? 'Carregando' : obterTextoLimpo(nivel.nome, 'Bronze');
+  const numeroNivel = obterTextoLimpo(nivel.numero, nivel.nivel, nivel.ordem, nivel.indice);
   const progressoAtual = pontosProximaFaixa
     ? Math.max(0, totalAcumulado - pontosMinimos)
     : totalAcumulado;
@@ -413,86 +366,99 @@ function HomeCardPrincipal({ gamificacaoModulo, scouts, erroDesempenho }) {
     : null;
   const recompensa = obterTituloBeneficioHome(proximoBeneficio);
   const textoProgresso = pontosProximaFaixa
-    ? `${formatarPontosQN(progressoAtual)} / ${formatarPontosQN(progressoMeta)}`
-    : `${formatarPontosQN(totalAcumulado)} acumulados`;
+    ? `${formatarPontosQN(progressoAtual)} / ${formatarPontosQN(progressoMeta)} QN`
+    : `${formatarPontosQN(totalAcumulado)} QN acumulados`;
   const textoProximaFaixa = pontuacao.temAtletaVinculado === false
     ? 'Vincule seu atleta para acompanhar sua evolução QN.'
     : modulo?.erro
       ? 'Pontos QN indisponíveis agora.'
       : pontosProximaFaixa
-        ? `Faltam ${formatarPontosQN(pontosRestantes)} Pontos QN para atingir ${proximaFaixaNome}.`
+        ? `Faltam ${formatarPontosQN(pontosRestantes)} QN para ${proximaFaixaNome}`
         : dados
           ? 'Faixa máxima alcançada'
           : 'Comece registrando ou confirmando partidas para evoluir.';
 
   return (
-    <section className="home-dashboard-principal" aria-labelledby="home-dashboard-principal-titulo">
-      <div className="home-dashboard-principal-area home-dashboard-principal-qn">
-        <div className="home-dashboard-principal-topo">
-          <div>
-            <span className="home-dashboard-principal-selo">Pontos QN</span>
-            <h2 id="home-dashboard-principal-titulo">Pontos QN</h2>
-          </div>
-          <Link to={HOME_NAVIGATION.pontosQN} className="home-dashboard-principal-link">
-            Ver benefícios
-            <FaChevronRight aria-hidden="true" />
-          </Link>
+    <section className="home-dashboard-pontosqn-card" aria-labelledby="home-pontosqn-titulo">
+      <div className="home-dashboard-card-topo">
+        <div>
+          <span aria-hidden="true"><FaTrophy /></span>
+          <h2 id="home-pontosqn-titulo">Pontos QN</h2>
+        </div>
+        <Link to={HOME_NAVIGATION.pontosQN} className="home-dashboard-card-link">
+          Ver benefícios
+          <FaChevronRight aria-hidden="true" />
+        </Link>
+      </div>
+
+      <div className="home-dashboard-qn-corpo">
+        <div className="home-dashboard-qn-nivel">
+          <strong>{nivelNome}</strong>
+          {numeroNivel && <span>Nível {numeroNivel}</span>}
         </div>
 
-        <div className="home-dashboard-qn-resumo">
-          <article>
-            <span>Nível atual</span>
-            <strong>{nivelNome}</strong>
-          </article>
-          <article>
-            <span>Pontos QN disponíveis</span>
-            <strong>{formatarPontosQN(saldoAtual)}</strong>
-          </article>
+        <div className="home-dashboard-qn-saldo">
+          <strong>{formatarPontosQN(saldoAtual)}</strong>
+          <span>QN</span>
         </div>
+      </div>
 
-        <div className="home-dashboard-qn-progresso-linha">
-          <div className="home-dashboard-qn-progresso" aria-hidden="true">
-            <span style={{ width: `${progressoPercentual}%` }} />
-          </div>
+      <div className="home-dashboard-qn-progresso-linha">
+        <div className="home-dashboard-qn-progresso" aria-hidden="true">
+          <span style={{ width: `${progressoPercentual}%` }} />
+        </div>
+        <div>
           <strong>{textoProgresso}</strong>
+          <span>{textoProximaFaixa}</span>
         </div>
+      </div>
 
-        <p className="home-dashboard-qn-faltam">{textoProximaFaixa}</p>
-
-        <div className="home-dashboard-qn-recompensa">
+      <Link to={HOME_NAVIGATION.pontosQN} className="home-dashboard-qn-recompensa">
+        <FaGift aria-hidden="true" />
+        <span>
           <span>Próxima recompensa</span>
           <strong>{recompensa}</strong>
+        </span>
+        <FaChevronRight aria-hidden="true" />
+      </Link>
+    </section>
+  );
+}
+
+function HomeDesempenhoCard({ scouts, erroDesempenho, temDados }) {
+  return (
+    <section className="home-dashboard-desempenho-card" aria-labelledby="home-desempenho-titulo">
+      <div className="home-dashboard-card-topo">
+        <div>
+          <span aria-hidden="true"><FaChartLine /></span>
+          <h2 id="home-desempenho-titulo">Seu desempenho</h2>
         </div>
+        <Link to={HOME_NAVIGATION.scouts} className="home-dashboard-card-link">
+          Ver detalhes
+          <FaChevronRight aria-hidden="true" />
+        </Link>
       </div>
 
-      <div className="home-dashboard-principal-divisor" aria-hidden="true" />
-
-      <div className="home-dashboard-principal-area home-dashboard-principal-desempenho">
-        <div className="home-dashboard-principal-topo">
-          <h2>Seu desempenho</h2>
-          <Link to={HOME_NAVIGATION.scouts} className="home-dashboard-principal-link">
-            Ver detalhes
-            <FaChevronRight aria-hidden="true" />
-          </Link>
+      {erroDesempenho ? (
+        <p className="home-dashboard-vazio home-dashboard-vazio-compacto">Não foi possível carregar seu desempenho agora.</p>
+      ) : temDados ? (
+        <div className="home-dashboard-desempenho-grid">
+          {scouts.map((item) => {
+            const Icone = item.icone;
+            return (
+              <article key={item.id} className="home-dashboard-desempenho-item">
+                <Icone aria-hidden="true" />
+                <strong>{item.valor}</strong>
+                <span>{item.rotulo}</span>
+              </article>
+            );
+          })}
         </div>
-
-        {erroDesempenho ? (
-          <p className="home-dashboard-vazio">Não foi possível carregar seu desempenho agora.</p>
-        ) : (
-          <div className="home-dashboard-desempenho-grid">
-            {scouts.map((item) => {
-              const Icone = item.icone;
-              return (
-                <article key={item.id} className="home-dashboard-desempenho-item">
-                  <Icone aria-hidden="true" />
-                  <strong>{item.valor}</strong>
-                  <span>{item.rotulo}</span>
-                </article>
-              );
-            })}
-          </div>
-        )}
-      </div>
+      ) : (
+        <p className="home-dashboard-vazio home-dashboard-vazio-compacto">
+          Ainda não há dados suficientes para exibir seu desempenho.
+        </p>
+      )}
     </section>
   );
 }
@@ -505,22 +471,23 @@ function HomeAcoesPrincipais() {
         icone={FaPlus}
         titulo="Registrar partida"
         descricao="Salve seu jogo e atualize sua evolução."
+        variante="principal"
       />
 
       <HomeAcaoPrincipal
         to={HOME_NAVIGATION.grupos}
         icone={FaUsers}
         titulo="Criar grupo"
-        descricao="Crie um grupo e acompanhe ranking, histórico e scouts com sua galera."
-        className="home-dashboard-cta-grupo"
+        descricao="Crie um grupo e acompanhe ranking, histórico e scouts."
+        variante="secundario"
       />
     </section>
   );
 }
 
-function HomeAcaoPrincipal({ to, icone: Icone, titulo, descricao, className = '' }) {
+function HomeAcaoPrincipal({ to, icone: Icone, titulo, descricao, variante = 'principal' }) {
   return (
-    <Link to={to} className={`home-dashboard-cta home-dashboard-cta-principal ${className}`.trim()}>
+    <Link to={to} className={`home-dashboard-cta home-dashboard-cta-${variante}`}>
       <span className="home-dashboard-cta-icone"><Icone aria-hidden="true" /></span>
       <span>
         <strong>{titulo}</strong>
@@ -531,11 +498,11 @@ function HomeAcaoPrincipal({ to, icone: Icone, titulo, descricao, className = ''
   );
 }
 
-function HomeUltimosJogos({ ultimasPartidas, erro }) {
+function HomeUltimoJogo({ ultimasPartidas, erro }) {
   return (
-    <section className="home-dashboard-atividade" aria-labelledby="home-atividade-titulo">
+    <section className="home-dashboard-atividade" aria-labelledby="home-ultimo-jogo-titulo">
       <div className="home-dashboard-section-title home-dashboard-section-title-com-acao">
-        <h2 id="home-atividade-titulo">Últimos jogos</h2>
+        <h2 id="home-ultimo-jogo-titulo">Último jogo</h2>
         <Link to={HOME_NAVIGATION.meusJogos}>
           Ver histórico
           <FaChevronRight aria-hidden="true" />
@@ -585,8 +552,7 @@ function HomeUltimosJogos({ ultimasPartidas, erro }) {
       ) : (
         <div className="home-dashboard-empty-state">
           <FaFutbol aria-hidden="true" />
-          <strong>Você ainda não possui atividades.</strong>
-          <p>Registre sua primeira partida para iniciar seu histórico.</p>
+          <strong>Você ainda não registrou nenhum jogo.</strong>
           <Link to={HOME_NAVIGATION.registrarPartida}>Registrar agora</Link>
         </div>
       )}
@@ -597,7 +563,8 @@ function HomeUltimosJogos({ ultimasPartidas, erro }) {
 function HomeDashboardSkeleton() {
   return (
     <section className="pagina home-dashboard home-dashboard-carregando" aria-busy="true">
-      <div className="home-dashboard-principal home-dashboard-skeleton-card" />
+      <div className="home-dashboard-pontosqn-card home-dashboard-skeleton-card" />
+      <div className="home-dashboard-desempenho-card home-dashboard-skeleton-card" />
       <div className="home-dashboard-cta home-dashboard-cta-principal home-dashboard-skeleton-card" />
       <div className="home-dashboard-cta home-dashboard-cta-principal home-dashboard-skeleton-card" />
     </section>

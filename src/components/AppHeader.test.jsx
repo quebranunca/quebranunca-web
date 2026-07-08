@@ -16,6 +16,7 @@ const usuarioPadrao = {
   id: 'usuario-1',
   nome: 'Primo QN',
   apelido: 'Primo',
+  nivelNome: 'Bronze',
   perfil: 3
 };
 
@@ -50,7 +51,7 @@ describe('AppHeader', () => {
     renderizarHeader('/app');
 
     expect(screen.getByRole('heading', { name: /Bom dia|Boa tarde|Boa noite/i })).toHaveTextContent(/Primo/i);
-    expect(screen.getByText('Primo')).toBeInTheDocument();
+    expect(screen.getByText('Primo • Bronze')).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Home' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Abrir pendências/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Abrir menu da conta/i })).toBeInTheDocument();

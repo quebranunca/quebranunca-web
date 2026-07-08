@@ -16388,6 +16388,9 @@ a.botao-terciario:active {
 }
 
 .mais-item-perigo {
+  margin-top: 0.28rem;
+  border-color: rgba(255, 99, 99, 0.18);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
   color: #ffb4a8;
 }
 

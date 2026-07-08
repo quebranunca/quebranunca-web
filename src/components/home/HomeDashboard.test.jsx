@@ -65,6 +65,7 @@ function criarGamificacao(overrides = {}) {
     },
     nivel: {
       nome: 'Bronze',
+      numero: 1,
       pontosMinimos: 0,
       pontosProximaFaixa: 500,
       progressoPercentual: 74,
@@ -185,10 +186,7 @@ describe('HomeDashboard nova experiencia', () => {
     expect(screen.getByRole('region', { name: /Pontos QN/i })).toBeInTheDocument();
   });
 
-  it('mostra card de confirmacao de partida e dispara confirmar e nao fui eu', async () => {
-    const usuario = userEvent.setup();
-    const onConfirmar = vi.fn();
-    const onNaoReconhecer = vi.fn();
+  it('mostra resumo compacto de pendencias com link para a lista completa', () => {
     const pendencia = {
       id: 'pendencia-1',
       tipo: 3,
@@ -205,40 +203,28 @@ describe('HomeDashboard nova experiencia', () => {
     };
 
     renderizarHome({
-      onConfirmarPendenciaPartida: onConfirmar,
-      onNaoReconhecerPendenciaPartida: onNaoReconhecer,
       modulos: criarModulos({
         pendencias: criarModulo({
-          total: 1,
+          total: 3,
           altaPrioridade: 1,
           confirmacaoPartidaMaisRecente: pendencia
         })
       })
     });
 
-    const card = screen.getByRole('region', { name: /Confirmar partida/i });
+    const card = screen.getByRole('region', { name: /Pendências/i });
 
     expect(within(card).getByText('PENDENTE')).toBeInTheDocument();
-    expect(within(card).getByText('Você participou deste jogo?')).toBeInTheDocument();
-    expect(within(card).getByText('Ajude a validar os dados e fortalecer o ranking da comunidade.')).toBeInTheDocument();
-    expect(within(card).getByText('Beach Friends')).toBeInTheDocument();
-    expect(within(card).getByText('Primo / Gustavo')).toBeInTheDocument();
-    expect(within(card).getByText('Paulo / Renato')).toBeInTheDocument();
-    expect(within(card).getByText('21 x 18')).toBeInTheDocument();
-    expect(within(card).getByText('Registrado por Bruno')).toBeInTheDocument();
+    expect(within(card).getByText('Você possui 3 pendências')).toBeInTheDocument();
+    expect(within(card).getByText('Beach Friends • Primo / Gustavo')).toBeInTheDocument();
     expect(within(card).getByRole('link', { name: /Ver todas/i })).toHaveAttribute('href', '/app/pendencias');
-
-    await usuario.click(within(card).getByRole('button', { name: /Não fui eu/i }));
-    await usuario.click(within(card).getByRole('button', { name: /^Confirmar partida$/i }));
-
-    expect(onConfirmar).toHaveBeenCalledWith('pendencia-1');
-    expect(onNaoReconhecer).toHaveBeenCalledWith('pendencia-1');
+    expect(within(card).queryByRole('button', { name: /Confirmar partida/i })).not.toBeInTheDocument();
   });
 
   it('nao renderiza card de pendencia quando nao ha confirmacao pendente', () => {
     renderizarHome();
 
-    expect(screen.queryByRole('region', { name: /Confirmar partida/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: /Pendências/i })).not.toBeInTheDocument();
   });
 
   it('renderiza card principal com Pontos QN, progresso, recompensa e CTA', () => {
@@ -247,11 +233,12 @@ describe('HomeDashboard nova experiencia', () => {
     const card = screen.getByRole('region', { name: /Pontos QN/i });
 
     expect(within(card).getAllByText('Pontos QN').length).toBeGreaterThan(0);
-    expect(within(card).getByText('Pontos QN disponíveis')).toBeInTheDocument();
     expect(within(card).getByText('Bronze')).toBeInTheDocument();
-    expect(within(card).getByText('370 / 500')).toBeInTheDocument();
-    expect(within(card).getByText('Faltam 130 Pontos QN para atingir Prata.')).toBeInTheDocument();
+    expect(within(card).getByText('Nível 1')).toBeInTheDocument();
+    expect(within(card).getByText('370 / 500 QN')).toBeInTheDocument();
+    expect(within(card).getByText('Faltam 130 QN para Prata')).toBeInTheDocument();
     expect(within(card).getByText('2.470')).toBeInTheDocument();
+    expect(within(card).getByText('QN')).toBeInTheDocument();
     expect(within(card).getByText('Próxima recompensa')).toBeInTheDocument();
     expect(within(card).getByText('Cupom Frete Grátis')).toBeInTheDocument();
     expect(within(card).getByRole('link', { name: /Ver benefícios/i })).toHaveAttribute('href', '/app/pontos-qn');
@@ -261,14 +248,12 @@ describe('HomeDashboard nova experiencia', () => {
     renderizarHome();
 
     const card = screen.getByRole('region', { name: /Pontos QN/i });
-    const areaPontos = card.querySelector('.home-dashboard-principal-qn');
 
-    expect(areaPontos).not.toBeNull();
-    expect(within(areaPontos).queryByText(/Vitórias/i)).not.toBeInTheDocument();
-    expect(within(areaPontos).queryByText(/Derrotas/i)).not.toBeInTheDocument();
-    expect(within(areaPontos).queryByText(/Aproveitamento/i)).not.toBeInTheDocument();
-    expect(within(areaPontos).queryByText(/Ranking/i)).not.toBeInTheDocument();
-    expect(within(areaPontos).queryByText(/Scout/i)).not.toBeInTheDocument();
+    expect(within(card).queryByText(/Vitórias/i)).not.toBeInTheDocument();
+    expect(within(card).queryByText(/Derrotas/i)).not.toBeInTheDocument();
+    expect(within(card).queryByText(/Aproveitamento/i)).not.toBeInTheDocument();
+    expect(within(card).queryByText(/Ranking/i)).not.toBeInTheDocument();
+    expect(within(card).queryByText(/Scout/i)).not.toBeInTheDocument();
   });
 
   it('continua renderizando a Home quando gamificacao esta ausente', () => {
@@ -296,7 +281,7 @@ describe('HomeDashboard nova experiencia', () => {
     expect(screen.getByText('Seu desempenho')).toBeInTheDocument();
   });
 
-  it('mantem Registrar Partida e Criar Grupo com o mesmo componente visual principal', async () => {
+  it('mantem Registrar Partida como CTA principal e Criar Grupo como acao secundaria', async () => {
     const usuario = userEvent.setup();
     renderizarHome();
 
@@ -304,9 +289,9 @@ describe('HomeDashboard nova experiencia', () => {
     const criarGrupo = screen.getByRole('link', { name: /Criar grupo/i });
 
     expect(registrar).toHaveClass('home-dashboard-cta-principal');
-    expect(criarGrupo).toHaveClass('home-dashboard-cta-principal');
+    expect(criarGrupo).toHaveClass('home-dashboard-cta-secundario');
     expect(screen.getByText('Salve seu jogo e atualize sua evolução.')).toBeInTheDocument();
-    expect(screen.getByText('Crie um grupo e acompanhe ranking, histórico e scouts com sua galera.')).toBeInTheDocument();
+    expect(screen.getByText('Crie um grupo e acompanhe ranking, histórico e scouts.')).toBeInTheDocument();
 
     await usuario.click(registrar);
     expect(screen.getByTestId('rota-atual')).toHaveTextContent('/partidas/registrar');
@@ -315,7 +300,7 @@ describe('HomeDashboard nova experiencia', () => {
   it('mostra Seu desempenho com as quatro metricas principais', () => {
     renderizarHome();
 
-    const desempenho = screen.getByRole('region', { name: /Pontos QN/i });
+    const desempenho = screen.getByRole('region', { name: /Seu desempenho/i });
 
     expect(within(desempenho).getByRole('link', { name: /Ver detalhes/i })).toHaveAttribute('href', '/app/scouts');
     expect(within(desempenho).getByText('Partidas')).toBeInTheDocument();
@@ -328,7 +313,7 @@ describe('HomeDashboard nova experiencia', () => {
     expect(within(desempenho).getByText('2')).toBeInTheDocument();
   });
 
-  it('mostra ultimos jogos sem placar pendente ou 0 x 0 artificial', () => {
+  it('mostra apenas o ultimo jogo sem placar pendente ou 0 x 0 artificial', () => {
     renderizarHome({
       modulos: criarModulos({
         ultimasPartidas: criarModulo([
@@ -344,16 +329,16 @@ describe('HomeDashboard nova experiencia', () => {
       })
     });
 
-    const ultimosJogos = screen.getByRole('region', { name: /Últimos jogos/i });
+    const ultimoJogo = screen.getByRole('region', { name: /Último jogo/i });
 
-    expect(within(ultimosJogos).getByRole('link', { name: /Ver histórico/i })).toBeInTheDocument();
-    expect(within(ultimosJogos).getByText('Grupo Praia')).toBeInTheDocument();
-    expect(within(ultimosJogos).getByText('Partida avulsa')).toBeInTheDocument();
-    expect(within(ultimosJogos).getByText('21 x 18')).toBeInTheDocument();
-    expect(within(ultimosJogos).getByText('Vitória')).toBeInTheDocument();
-    expect(within(ultimosJogos).getByText('Derrota')).toBeInTheDocument();
-    expect(within(ultimosJogos).queryByText('0 x 0')).not.toBeInTheDocument();
-    expect(within(ultimosJogos).queryByText('Placar pendente')).not.toBeInTheDocument();
+    expect(within(ultimoJogo).getByRole('link', { name: /Ver histórico/i })).toBeInTheDocument();
+    expect(within(ultimoJogo).getByText('Grupo Praia')).toBeInTheDocument();
+    expect(within(ultimoJogo).queryByText('Partida avulsa')).not.toBeInTheDocument();
+    expect(within(ultimoJogo).getByText('21 x 18')).toBeInTheDocument();
+    expect(within(ultimoJogo).getByText('Vitória')).toBeInTheDocument();
+    expect(within(ultimoJogo).queryByText('Derrota')).not.toBeInTheDocument();
+    expect(within(ultimoJogo).queryByText('0 x 0')).not.toBeInTheDocument();
+    expect(within(ultimoJogo).queryByText('Placar pendente')).not.toBeInTheDocument();
   });
 
   it('mostra estado vazio simples quando nao ha ultimos jogos', () => {
@@ -363,12 +348,11 @@ describe('HomeDashboard nova experiencia', () => {
       })
     });
 
-    expect(screen.getByText('Você ainda não possui atividades.')).toBeInTheDocument();
-    expect(screen.getByText('Registre sua primeira partida para iniciar seu histórico.')).toBeInTheDocument();
+    expect(screen.getByText('Você ainda não registrou nenhum jogo.')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Registrar agora/i })).toBeInTheDocument();
   });
 
-  it('respeita a ordem card principal, pendencias, acoes e ultimos jogos', () => {
+  it('respeita a ordem Pontos QN, desempenho, pendencias, acoes e ultimo jogo', () => {
     const pendencia = {
       id: 'pendencia-ordem',
       tipo: 3,
@@ -395,13 +379,15 @@ describe('HomeDashboard nova experiencia', () => {
     });
 
     const principal = screen.getByRole('region', { name: /Pontos QN/i });
-    const pendencias = screen.getByRole('region', { name: /Confirmar partida/i });
+    const desempenho = screen.getByRole('region', { name: /Seu desempenho/i });
+    const pendencias = screen.getByRole('region', { name: /Pendências/i });
     const acoes = screen.getByRole('region', { name: /Ações principais/i });
-    const ultimosJogos = screen.getByRole('region', { name: /Últimos jogos/i });
+    const ultimoJogo = screen.getByRole('region', { name: /Último jogo/i });
 
-    esperarAntes(principal, pendencias);
+    esperarAntes(principal, desempenho);
+    esperarAntes(desempenho, pendencias);
     esperarAntes(pendencias, acoes);
-    esperarAntes(acoes, ultimosJogos);
+    esperarAntes(acoes, ultimoJogo);
   });
 });
 
@@ -412,7 +398,8 @@ describe('homeSectionsConfig', () => {
       .map((secao) => secao.type);
 
     expect(secoesAtivas).toEqual([
-      HomeSectionType.MainDashboard,
+      HomeSectionType.Gamification,
+      HomeSectionType.Performance,
       HomeSectionType.PendingConfirmation,
       HomeSectionType.PrimaryAction,
       HomeSectionType.RecentMatches
