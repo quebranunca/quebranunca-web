@@ -13865,58 +13865,329 @@ a.botao-terciario:active {
 }
 
 .perfil-partida-item {
+  position: relative;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 0.65rem;
-  align-items: center;
+  gap: 0.62rem;
   width: 100%;
-  padding: 0.72rem;
+  min-width: 0;
+  overflow: hidden;
+  padding: 0.74rem 0.76rem 0.76rem 0.86rem;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.045);
+  border-radius: var(--qn-radius-card, 18px);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.06), rgba(255, 179, 0, 0.018)),
+    rgba(13, 15, 19, 0.9);
+  box-shadow: var(--qn-card-shadow-soft, 0 10px 26px rgba(0, 0, 0, 0.2));
   color: inherit;
   text-align: left;
   cursor: pointer;
-  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+  animation: perfilFadeIn 220ms ease both;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease;
 }
 
-.perfil-partida-item:hover {
+.perfil-partida-item:hover,
+.perfil-partida-item:focus-visible {
   transform: translateY(-1px);
   border-color: rgba(255, 209, 102, 0.28);
-  background: rgba(255, 255, 255, 0.07);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.076), rgba(255, 179, 0, 0.028)),
+    rgba(15, 18, 23, 0.95);
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.3);
+  outline: none;
 }
 
-.perfil-resultado {
-  display: grid;
-  place-items: center;
-  width: 2.2rem;
-  height: 2.2rem;
-  border-radius: 50%;
-  font-weight: 950;
+.perfil-partida-item:active {
+  transform: translateY(0) scale(0.992);
 }
 
-.perfil-resultado.vitoria {
-  background: rgba(110, 231, 168, 0.16);
-  color: #6ee7a8;
+.perfil-partida-borda {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: rgba(255, 179, 0, 0.56);
 }
 
-.perfil-resultado.derrota {
-  background: rgba(255, 209, 102, 0.12);
+.perfil-partida-card.vitoria .perfil-partida-borda {
+  background: #6ee7a8;
+}
+
+.perfil-partida-card.derrota .perfil-partida-borda {
+  background: #ff7b88;
+}
+
+.perfil-partida-card.empate .perfil-partida-borda {
+  background: #78b7ff;
+}
+
+.perfil-partida-topo,
+.perfil-partida-status-linha,
+.perfil-partida-rodape {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.perfil-partida-contexto,
+.perfil-partida-confirmacao,
+.perfil-partida-detalhes {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  gap: 0.34rem;
+}
+
+.perfil-partida-contexto {
+  color: var(--cor-texto);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.perfil-partida-contexto span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.perfil-partida-contexto svg {
+  flex: 0 0 auto;
   color: var(--color-primary);
 }
 
-.perfil-partida-item strong {
+.perfil-partida-topo time {
+  flex: 0 0 auto;
+  color: rgba(248, 244, 236, 0.62);
+  font-size: 0.72rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.perfil-partida-badge-resultado {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
+  min-height: 2rem;
+  padding: 0.34rem 0.62rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 950;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.perfil-partida-badge-resultado.vitoria {
+  border-color: rgba(110, 231, 168, 0.28);
+  background: rgba(110, 231, 168, 0.14);
+  color: #6ee7a8;
+}
+
+.perfil-partida-badge-resultado.derrota {
+  border-color: rgba(255, 123, 136, 0.28);
+  background: rgba(255, 123, 136, 0.13);
+  color: #ff9aa4;
+}
+
+.perfil-partida-badge-resultado.pendente {
+  border-color: rgba(255, 209, 102, 0.32);
+  background: rgba(255, 209, 102, 0.13);
+  color: var(--color-primary);
+}
+
+.perfil-partida-badge-resultado.empate {
+  border-color: rgba(120, 183, 255, 0.28);
+  background: rgba(120, 183, 255, 0.13);
+  color: #9fcbff;
+}
+
+.perfil-partida-pontos {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  min-width: 3.25rem;
+  min-height: 2.45rem;
+  padding: 0.28rem 0.52rem;
+  border: 1px solid rgba(255, 209, 102, 0.24);
+  border-radius: 14px;
+  background: rgba(255, 209, 102, 0.1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+.perfil-partida-pontos strong {
+  color: var(--color-primary);
+  font-size: 1.05rem;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.perfil-partida-pontos.neutro strong {
   color: var(--cor-texto);
 }
 
-.perfil-partida-item p,
-.perfil-partida-item small {
+.perfil-partida-pontos small {
+  margin-top: 0.08rem;
+  color: rgba(248, 244, 236, 0.62);
+  font-size: 0.62rem;
+  font-weight: 900;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.perfil-partida-confronto {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(4.7rem, auto) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(0.42rem, 2vw, 0.72rem);
+  min-width: 0;
+  padding-block: 0.08rem;
+}
+
+.perfil-partida-dupla {
+  min-width: 0;
+}
+
+.perfil-partida-atleta {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  max-width: 100%;
+  gap: 0.42rem;
+}
+
+.perfil-partida-dupla.adversaria .perfil-partida-atleta {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+.perfil-partida-atleta .avatar {
+  flex: 0 0 auto;
+}
+
+.perfil-partida-atleta span:not(.avatar):not(.avatar__fallback) {
+  min-width: 0;
+}
+
+.perfil-partida-atleta strong,
+.perfil-partida-atleta small {
   display: block;
   overflow: hidden;
-  margin: 0.08rem 0 0;
-  color: var(--cor-texto-suave);
+  max-width: 100%;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.perfil-partida-atleta strong {
+  color: var(--cor-texto);
+  font-size: 0.82rem;
+  font-weight: 950;
+  line-height: 1.08;
+}
+
+.perfil-partida-atleta small {
+  margin-top: 0.12rem;
+  color: rgba(248, 244, 236, 0.58);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.perfil-partida-centro {
+  display: grid;
+  place-items: center;
+  gap: 0.18rem;
+  min-width: 0;
+}
+
+.perfil-partida-vs {
+  color: rgba(248, 244, 236, 0.5);
+  font-size: 0.64rem;
+  font-weight: 950;
+  letter-spacing: 0.06em;
+}
+
+.perfil-partida-placar {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.28rem;
+  color: var(--cor-texto);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(1.08rem, 5vw, 1.46rem);
+  font-weight: 950;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.perfil-partida-placar em {
+  color: rgba(248, 244, 236, 0.46);
+  font-size: 0.78em;
+  font-style: normal;
+}
+
+.perfil-partida-placar .vencedor.vitoria {
+  color: #6ee7a8;
+}
+
+.perfil-partida-placar .vencedor.derrota {
+  color: #ff9aa4;
+}
+
+.perfil-partida-sem-placar {
+  display: inline-flex;
+  min-height: 1.55rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0.26rem 0.48rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.055);
+  color: rgba(248, 244, 236, 0.66);
+  font-size: 0.7rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.perfil-partida-rodape {
+  padding-top: 0.36rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.perfil-partida-confirmacao {
+  color: rgba(248, 244, 236, 0.68);
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.perfil-partida-confirmacao.confirmada {
+  color: #6ee7a8;
+}
+
+.perfil-partida-confirmacao.pendente,
+.perfil-partida-confirmacao.adversario {
+  color: var(--color-primary);
+}
+
+.perfil-partida-detalhes {
+  flex: 0 0 auto;
+  color: var(--color-primary);
+  font-size: 0.74rem;
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+.perfil-partida-detalhes svg {
+  width: 0.78rem;
+  height: 0.78rem;
+  transition: transform 180ms ease;
+}
+
+.perfil-partida-item:hover .perfil-partida-detalhes svg,
+.perfil-partida-item:focus-visible .perfil-partida-detalhes svg {
+  transform: translateX(2px);
 }
 
 .perfil-campo-edicao {

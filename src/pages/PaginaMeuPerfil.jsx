@@ -1,9 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
+  FaArrowRight,
   FaChartLine,
+  FaCheckCircle,
   FaCog,
   FaEnvelope,
   FaFire,
+  FaGlobeAmericas,
+  FaHourglassHalf,
   FaInstagram,
   FaLock,
   FaMapMarkerAlt,
@@ -12,14 +16,16 @@ import {
   FaSave,
   FaShieldAlt,
   FaSignOutAlt,
+  FaTimesCircle,
   FaSyncAlt,
   FaTrashAlt,
   FaTrophy,
-  FaUserEdit
+  FaUserEdit,
+  FaUsers
 } from 'react-icons/fa';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAutenticacao } from '../hooks/useAutenticacao';
-import { obterFotoPerfilAvatar } from '../components/AvatarUsuario';
+import { AvatarUsuario, obterFotoPerfilAvatar } from '../components/AvatarUsuario';
 import { FotoPerfilUpload } from '../components/FotoPerfilUpload';
 import { arenaService } from '../services/arenaService';
 import { atletasServico } from '../services/atletasServico';
@@ -31,6 +37,7 @@ import { extrairMensagemErro } from '../utils/erros';
 import {
   formatarCpfParaInput,
   formatarData,
+  formatarHora,
   formatarTelefoneParaInput,
   limparCpf,
   limparTelefone,
@@ -44,6 +51,14 @@ import { nomeEstadoAcesso } from '../utils/acesso';
 import { buscarCidadesPorEstado, estadosBrasil, normalizarEstadoParaUf } from '../utils/localidadesBrasil';
 import { rolarParaTopo } from '../utils/rolagem';
 import { scrollFocusedInputIntoView } from '../utils/tecladoMobile';
+import {
+  STATUS_APROVACAO_PARTIDA,
+  atletaEstaNaDuplaA,
+  atletaEstaNaDuplaB,
+  ehNomeGrupoGeralPartida,
+  obterDuplasDoAtleta
+} from '../utils/partidas';
+import { obterNomeExibicaoAtletaPerfil } from '../utils/atletaUtils';
 
 const estadoInicialAtleta = {
   nome: '',
@@ -126,6 +141,252 @@ const opcoesObjetivoAtual = [
 
 const tamanhosRoupa = ['PP', 'P', 'M', 'G', 'GG', 'XGG'];
 const tamanhosShort = ['36', '38', '40', '42', '44', '46', '48', '50'];
+const ROTULO_RANKING_GERAL = 'Ranking Geral';
+
+function normalizarTextoPerfil(valor) {
+  return typeof valor === 'string' ? valor.trim().replace(/\s+/g, ' ') : '';
+}
+
+function normalizarResultadoPerfil(valor) {
+  return normalizarTextoPerfil(valor)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLocaleLowerCase('pt-BR');
+}
+
+function valorNumericoValido(valor) {
+  const numero = Number(valor);
+  return Number.isFinite(numero) ? numero : null;
+}
+
+function partidaTemPlacarPerfil(partida) {
+  const placarSuaDupla = valorNumericoValido(partida?.placarSuaDupla);
+  const placarAdversarios = valorNumericoValido(partida?.placarAdversarios);
+
+  return placarSuaDupla !== null
+    && placarAdversarios !== null
+    && !(placarSuaDupla === 0 && placarAdversarios === 0);
+}
+
+function partidaEstaPendentePerfil(partida) {
+  const statusAprovacao = Number(partida?.statusAprovacao);
+  const statusTexto = normalizarResultadoPerfil(partida?.status);
+
+  return statusAprovacao === STATUS_APROVACAO_PARTIDA.pendente
+    || statusAprovacao === STATUS_APROVACAO_PARTIDA.pendenteDeVinculos
+    || statusTexto.includes('pendente');
+}
+
+function partidaFoiVitoriaPerfil(partida) {
+  const resultado = normalizarResultadoPerfil(partida?.resultado);
+  return resultado === 'w'
+    || resultado === 'v'
+    || resultado.includes('vitoria');
+}
+
+function partidaFoiDerrotaPerfil(partida) {
+  const resultado = normalizarResultadoPerfil(partida?.resultado);
+  return resultado === 'd'
+    || resultado.includes('derrota');
+}
+
+function partidaFoiEmpatePerfil(partida) {
+  const resultado = normalizarResultadoPerfil(partida?.resultado);
+  const placarSuaDupla = valorNumericoValido(partida?.placarSuaDupla);
+  const placarAdversarios = valorNumericoValido(partida?.placarAdversarios);
+
+  return resultado.includes('empate')
+    || (
+      placarSuaDupla !== null
+      && placarAdversarios !== null
+      && placarSuaDupla === placarAdversarios
+    );
+}
+
+function obterResultadoVisualPerfil(partida) {
+  const pendente = partidaEstaPendentePerfil(partida);
+
+  if (partidaFoiEmpatePerfil(partida)) {
+    return {
+      tipo: 'empate',
+      classe: 'empate',
+      texto: 'Empate',
+      icone: FaCheckCircle,
+      venceu: false,
+      pendente: false
+    };
+  }
+
+  if (pendente) {
+    return {
+      tipo: 'pendente',
+      classe: 'pendente',
+      texto: partidaFoiVitoriaPerfil(partida) ? 'Vitória pendente' : 'Pendente',
+      icone: FaHourglassHalf,
+      venceu: partidaFoiVitoriaPerfil(partida),
+      pendente: true
+    };
+  }
+
+  if (partidaFoiVitoriaPerfil(partida)) {
+    return {
+      tipo: 'vitoria',
+      classe: 'vitoria',
+      texto: 'Vitória',
+      icone: FaTrophy,
+      venceu: true,
+      pendente: false
+    };
+  }
+
+  if (partidaFoiDerrotaPerfil(partida)) {
+    return {
+      tipo: 'derrota',
+      classe: 'derrota',
+      texto: 'Derrota',
+      icone: FaTimesCircle,
+      venceu: false,
+      pendente: false
+    };
+  }
+
+  return {
+    tipo: 'pendente',
+    classe: 'pendente',
+    texto: 'Pendente',
+    icone: FaHourglassHalf,
+    venceu: false,
+    pendente: true
+  };
+}
+
+function obterPontosPartidaPerfil(partida, resultadoVisual) {
+  const pontosApi = [
+    partida?.pontosQN,
+    partida?.pontosQn,
+    partida?.pontos,
+    partida?.pontuacao,
+    partida?.pontosObtidos,
+    partida?.pontosGanhos
+  ].map(valorNumericoValido).find((valor) => valor !== null);
+
+  if (pontosApi !== undefined) {
+    return pontosApi;
+  }
+
+  return resultadoVisual.venceu ? 3 : 0;
+}
+
+function separarNomesDuplaPerfil(valor) {
+  return normalizarTextoPerfil(valor)
+    .split(/\s*(?:\/|\+|•|&|,|\be\b)\s*/i)
+    .map(normalizarTextoPerfil)
+    .filter(Boolean)
+    .slice(0, 2);
+}
+
+function criarAtletaHistoricoPerfil(item, fallback = 'Atleta') {
+  if (typeof item === 'string') {
+    return {
+      nome: normalizarTextoPerfil(item) || fallback,
+      fotoPerfilUrl: ''
+    };
+  }
+
+  const nome = obterNomeExibicaoAtletaPerfil(item)
+    || normalizarTextoPerfil(item?.nome)
+    || normalizarTextoPerfil(item?.nomeAtleta)
+    || fallback;
+
+  return {
+    nome,
+    fotoPerfilUrl: obterFotoPerfilAvatar(item)
+  };
+}
+
+function obterDuplasHistoricoPerfil(partida, atletaLogadoId, atletaLogado) {
+  const atletaBase = {
+    nome: atletaLogado.nome,
+    fotoPerfilUrl: atletaLogado.fotoPerfilUrl
+  };
+
+  if (
+    atletaLogadoId
+    && (atletaEstaNaDuplaA(partida, atletaLogadoId) || atletaEstaNaDuplaB(partida, atletaLogadoId))
+  ) {
+    const { minhaDupla, duplaAdversaria } = obterDuplasDoAtleta(partida, atletaLogadoId);
+    const atletaNaPartida = minhaDupla.find((atleta) => atleta.destaque);
+    const parceiro = minhaDupla.find((atleta) => !atleta.destaque);
+
+    return {
+      minhaDupla: [
+        {
+          ...criarAtletaHistoricoPerfil(atletaNaPartida, atletaBase.nome),
+          fotoPerfilUrl: atletaBase.fotoPerfilUrl || obterFotoPerfilAvatar(atletaNaPartida)
+        },
+        criarAtletaHistoricoPerfil(parceiro, partida?.parceiro || 'Parceiro')
+      ],
+      adversarios: duplaAdversaria.map((atleta, indice) => (
+        criarAtletaHistoricoPerfil(atleta, indice === 0 ? 'Adversário' : 'Parceiro')
+      ))
+    };
+  }
+
+  const adversarios = separarNomesDuplaPerfil(partida?.adversarios);
+
+  return {
+    minhaDupla: [
+      atletaBase,
+      criarAtletaHistoricoPerfil(partida?.parceiro, 'Parceiro')
+    ],
+    adversarios: [
+      criarAtletaHistoricoPerfil(adversarios[0], 'Adversário'),
+      criarAtletaHistoricoPerfil(adversarios[1], 'Parceiro')
+    ]
+  };
+}
+
+function obterContextoPartidaPerfil(partida) {
+  const grupo = normalizarTextoPerfil(partida?.grupo || partida?.grupoNome);
+
+  if (!grupo || ehNomeGrupoGeralPartida(grupo)) {
+    return {
+      texto: ROTULO_RANKING_GERAL,
+      icone: FaGlobeAmericas
+    };
+  }
+
+  return {
+    texto: grupo,
+    icone: FaMapMarkerAlt
+  };
+}
+
+function obterStatusRodapePerfil(partida) {
+  const statusAprovacao = Number(partida?.statusAprovacao);
+
+  if (statusAprovacao === STATUS_APROVACAO_PARTIDA.aprovada) {
+    return {
+      texto: 'Confirmada',
+      classe: 'confirmada',
+      icone: FaCheckCircle
+    };
+  }
+
+  if (statusAprovacao === STATUS_APROVACAO_PARTIDA.pendenteDeVinculos) {
+    return {
+      texto: 'Aguardando adversário',
+      classe: 'adversario',
+      icone: FaUsers
+    };
+  }
+
+  return {
+    texto: 'Aguardando confirmação',
+    classe: 'pendente',
+    icone: FaHourglassHalf
+  };
+}
 
 function obterDataMaximaNascimento() {
   return new Date().toISOString().slice(0, 10);
@@ -306,6 +567,132 @@ function InfoItem({ rotulo, valor, icone: Icone }) {
         <strong>{valor || 'Não informado'}</strong>
       </div>
     </article>
+  );
+}
+
+function HistoricoPartidaPerfilCard({
+  partida,
+  atletaLogadoId,
+  nomeAtleta,
+  fotoAtleta,
+  onAbrir
+}) {
+  const resultadoVisual = obterResultadoVisualPerfil(partida);
+  const ResultadoIcone = resultadoVisual.icone;
+  const contexto = obterContextoPartidaPerfil(partida);
+  const ContextoIcone = contexto.icone;
+  const statusRodape = obterStatusRodapePerfil(partida);
+  const StatusIcone = statusRodape.icone;
+  const pontos = obterPontosPartidaPerfil(partida, resultadoVisual);
+  const pontosTexto = pontos > 0 ? `+${pontos}` : `${pontos}`;
+  const temPlacar = partidaTemPlacarPerfil(partida);
+  const placarSuaDupla = valorNumericoValido(partida?.placarSuaDupla) ?? 0;
+  const placarAdversarios = valorNumericoValido(partida?.placarAdversarios) ?? 0;
+  const duplas = obterDuplasHistoricoPerfil(partida, atletaLogadoId, {
+    nome: nomeAtleta,
+    fotoPerfilUrl: fotoAtleta
+  });
+  const atletaPrincipal = duplas.minhaDupla[0];
+  const parceiro = duplas.minhaDupla[1];
+  const adversarioPrincipal = duplas.adversarios[0];
+  const adversarioParceiro = duplas.adversarios[1];
+  const classePlacarVencedor = resultadoVisual.tipo === 'derrota' ? 'derrota' : 'vitoria';
+  const dataTexto = partida?.dataPartida ? formatarData(partida.dataPartida) : 'Data a definir';
+  const horaTexto = partida?.dataPartida ? formatarHora(partida.dataPartida) : '';
+
+  return (
+    <button
+      type="button"
+      className={`perfil-partida-item perfil-partida-card ${resultadoVisual.classe}`}
+      onClick={onAbrir}
+      aria-label={`Abrir detalhes da partida: ${resultadoVisual.texto}`}
+    >
+      <span className="perfil-partida-borda" aria-hidden="true" />
+
+      <span className="perfil-partida-topo">
+        <span className="perfil-partida-contexto">
+          <ContextoIcone aria-hidden="true" />
+          <span>{contexto.texto}</span>
+        </span>
+
+        <time dateTime={partida?.dataPartida || undefined}>
+          {dataTexto}{horaTexto && ` • ${horaTexto}`}
+        </time>
+      </span>
+
+      <span className="perfil-partida-status-linha">
+        <span className={`perfil-partida-badge-resultado ${resultadoVisual.classe}`}>
+          <ResultadoIcone aria-hidden="true" />
+          <span>{resultadoVisual.texto}</span>
+        </span>
+
+        <span className={`perfil-partida-pontos ${pontos > 0 ? 'positivo' : 'neutro'}`}>
+          <strong>{pontosTexto}</strong>
+          <small>QN</small>
+        </span>
+      </span>
+
+      <span className="perfil-partida-confronto">
+        <span className="perfil-partida-dupla minha">
+          <span className="perfil-partida-atleta">
+            <AvatarUsuario
+              nome={atletaPrincipal.nome}
+              fotoPerfilUrl={atletaPrincipal.fotoPerfilUrl}
+              tamanho="sm"
+              alt=""
+            />
+            <span>
+              <strong>{atletaPrincipal.nome}</strong>
+              <small>{parceiro.nome}</small>
+            </span>
+          </span>
+        </span>
+
+        <span className="perfil-partida-centro">
+          <span className="perfil-partida-vs">VS</span>
+          {temPlacar ? (
+            <strong className="perfil-partida-placar" aria-label={`Placar ${placarSuaDupla} x ${placarAdversarios}`}>
+              <span className={resultadoVisual.venceu ? `vencedor ${classePlacarVencedor}` : ''}>
+                {placarSuaDupla}
+              </span>
+              <em>x</em>
+              <span className={resultadoVisual.tipo === 'derrota' ? `vencedor ${classePlacarVencedor}` : ''}>
+                {placarAdversarios}
+              </span>
+            </strong>
+          ) : (
+            <span className="perfil-partida-sem-placar">Sem placar</span>
+          )}
+        </span>
+
+        <span className="perfil-partida-dupla adversaria">
+          <span className="perfil-partida-atleta">
+            <AvatarUsuario
+              nome={adversarioPrincipal.nome}
+              fotoPerfilUrl={adversarioPrincipal.fotoPerfilUrl}
+              tamanho="sm"
+              alt=""
+            />
+            <span>
+              <strong>{adversarioPrincipal.nome}</strong>
+              <small>{adversarioParceiro.nome}</small>
+            </span>
+          </span>
+        </span>
+      </span>
+
+      <span className="perfil-partida-rodape">
+        <span className={`perfil-partida-confirmacao ${statusRodape.classe}`}>
+          <StatusIcone aria-hidden="true" />
+          <span>{statusRodape.texto}</span>
+        </span>
+
+        <span className="perfil-partida-detalhes">
+          <span>Ver detalhes</span>
+          <FaArrowRight aria-hidden="true" />
+        </span>
+      </span>
+    </button>
   );
 }
 
@@ -1183,21 +1570,14 @@ export function PaginaMeuPerfil() {
               )}
 
               {ultimasPartidas.slice(0, 5).map((partida) => (
-                <button
+                <HistoricoPartidaPerfilCard
                   key={partida.id}
-                  type="button"
-                  className="perfil-partida-item"
-                  onClick={() => navigate('/partidas')}
-                >
-                  <span className={partida.resultado === 'W' ? 'perfil-resultado vitoria' : 'perfil-resultado derrota'}>
-                    {partida.resultado === 'W' ? 'V' : 'D'}
-                  </span>
-                  <div>
-                    <strong>{partida.placarSuaDupla} x {partida.placarAdversarios}</strong>
-                    <p>Com {partida.parceiro} vs {partida.adversarios}</p>
-                    <small>{partida.dataPartida ? formatarData(partida.dataPartida) : 'Data a definir'}</small>
-                  </div>
-                </button>
+                  partida={partida}
+                  atletaLogadoId={perfilDashboard.atletaId}
+                  nomeAtleta={apelidoPerfil || nomePerfil}
+                  fotoAtleta={fotoPerfilUrl}
+                  onAbrir={() => navigate('/partidas')}
+                />
               ))}
             </div>
           </div>
