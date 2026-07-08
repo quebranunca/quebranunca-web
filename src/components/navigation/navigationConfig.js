@@ -1,23 +1,20 @@
 import {
   FaBell,
   FaChartBar,
-  FaClipboardList,
   FaCog,
   FaEllipsisH,
   FaGift,
   FaHistory,
   FaHome,
+  FaInfoCircle,
+  FaPlus,
   FaQuestionCircle,
   FaShieldAlt,
-  FaShoppingBag,
   FaSignOutAlt,
   FaTrophy,
   FaUser,
-  FaUserFriends,
   FaUsers
 } from 'react-icons/fa';
-import { ESTADOS_ACESSO } from '../../utils/acesso';
-import { ehAdministrador } from '../../utils/perfis';
 
 export const MAIN_NAVIGATION_ITEMS = [
   {
@@ -28,11 +25,19 @@ export const MAIN_NAVIGATION_ITEMS = [
     activePaths: ['/app']
   },
   {
-    id: 'partidas',
-    label: 'Partidas',
-    route: '/minhas-partidas',
-    icon: FaClipboardList,
-    activePaths: ['/minhas-partidas', '/partidas', '/partidas/*', '/feed', '/app/feed']
+    id: 'ranking',
+    label: 'Rankings',
+    route: '/ranking',
+    icon: FaTrophy,
+    activePaths: ['/ranking', '/ranking/*', '/app/ranking-liga']
+  },
+  {
+    id: 'registrar',
+    label: 'Registrar',
+    route: '/partidas/registrar',
+    icon: FaPlus,
+    activePaths: ['/partidas/registrar', '/app/registrar-partida'],
+    principal: true
   },
   {
     id: 'grupos',
@@ -40,13 +45,6 @@ export const MAIN_NAVIGATION_ITEMS = [
     route: '/grupos',
     icon: FaUsers,
     activePaths: ['/grupos', '/grupos/*']
-  },
-  {
-    id: 'ranking',
-    label: 'Ranking',
-    route: '/ranking',
-    icon: FaTrophy,
-    activePaths: ['/ranking', '/ranking/*', '/app/ranking-liga']
   },
   {
     id: 'mais',
@@ -59,6 +57,7 @@ export const MAIN_NAVIGATION_ITEMS = [
       '/app/pendencias',
       '/app/scouts',
       '/app/pontos-qn',
+      '/minhas-partidas',
       '/minhas-arenas',
       '/admin',
       '/admin/*'
@@ -80,29 +79,11 @@ const MORE_SECTIONS = [
         enabled: true
       },
       {
-        id: 'pendencias',
-        label: 'Minhas pendências',
-        description: 'Partidas e vínculos pendentes',
-        route: '/app/pendencias',
-        icon: FaClipboardList,
-        enabled: true,
-        badgeKey: 'pendencias'
-      },
-      {
         id: 'notificacoes',
         label: 'Notificações',
         description: 'Alertas e novidades',
         route: '/app/pendencias',
         icon: FaBell,
-        enabled: true,
-        badgeKey: 'pendencias'
-      },
-      {
-        id: 'convites',
-        label: 'Convites',
-        description: 'Grupos e eventos',
-        route: '/app/pendencias',
-        icon: FaUserFriends,
         enabled: true,
         badgeKey: 'pendencias'
       }
@@ -113,14 +94,6 @@ const MORE_SECTIONS = [
     title: 'Jogo',
     items: [
       {
-        id: 'historico',
-        label: 'Histórico',
-        description: 'Suas partidas e resultados',
-        route: '/minhas-partidas',
-        icon: FaHistory,
-        enabled: true
-      },
-      {
         id: 'scouts',
         label: 'Scouts',
         description: 'Atletas e duplas',
@@ -129,12 +102,12 @@ const MORE_SECTIONS = [
         enabled: true
       },
       {
-        id: 'duplas',
-        label: 'Minhas duplas',
-        description: 'Parcerias que mais jogou',
-        icon: FaUserFriends,
-        enabled: false,
-        isFuture: true
+        id: 'historico',
+        label: 'Histórico',
+        description: 'Suas partidas e resultados',
+        route: '/minhas-partidas',
+        icon: FaHistory,
+        enabled: true
       }
     ]
   },
@@ -154,15 +127,15 @@ const MORE_SECTIONS = [
         id: 'beneficios',
         label: 'Benefícios',
         description: 'Resgate benefícios da comunidade',
-        route: '/app/pontos-qn',
+        route: '/app/pontos-qn?aba=beneficios',
         icon: FaShieldAlt,
         enabled: true
       },
       {
-        id: 'loja',
-        label: 'Loja',
-        description: 'Produtos oficiais QuebraNunca',
-        icon: FaShoppingBag,
+        id: 'conquistas',
+        label: 'Conquistas',
+        description: 'Reconhecimentos da sua jornada',
+        icon: FaTrophy,
         enabled: false,
         isFuture: true
       }
@@ -189,13 +162,12 @@ const MORE_SECTIONS = [
         enabled: true
       },
       {
-        id: 'admin',
-        label: 'Administração',
-        description: 'Controles globais da plataforma',
-        route: '/admin',
-        icon: FaShieldAlt,
-        enabled: true,
-        visible: ({ usuario, estadoAcesso }) => ehAdministrador(usuario) && estadoAcesso === ESTADOS_ACESSO.ativo
+        id: 'sobre',
+        label: 'Sobre',
+        description: 'Informações sobre o QuebraNunca',
+        icon: FaInfoCircle,
+        enabled: false,
+        isFuture: true
       },
       {
         id: 'sair',
@@ -214,13 +186,13 @@ export function obterMainNavigationItems() {
   return MAIN_NAVIGATION_ITEMS;
 }
 
-export function obterMoreNavigationSections({ usuario, estadoAcesso } = {}) {
+export function obterMoreNavigationSections() {
   return MORE_SECTIONS
     .map((section) => ({
       ...section,
       items: section.items.filter((item) => (
         typeof item.visible === 'function'
-          ? item.visible({ usuario, estadoAcesso })
+          ? item.visible()
           : true
       ))
     }))

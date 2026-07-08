@@ -70,6 +70,13 @@ function criarGamificacao(overrides = {}) {
       progressoPercentual: 74,
       pontosRestantes: 130
     },
+    proximosBeneficios: [
+      {
+        id: 'beneficio-1',
+        titulo: 'Cupom Frete Grátis',
+        pontosNecessarios: 500
+      }
+    ],
     ...overrides
   };
 }
@@ -151,22 +158,16 @@ afterEach(() => {
 });
 
 describe('HomeDashboard nova experiencia', () => {
-  it('renderiza identidade com nome completo, apelido e link para o perfil', () => {
+  it('remove o card de perfil redundante da Home', () => {
     renderizarHome();
 
-    const identidade = screen.getByRole('region', { name: /Identidade do usuário/i });
-
-    expect(within(identidade).getByText('Gustavo Henrique Almeida Souza')).toBeInTheDocument();
-    expect(within(identidade).getByText('Primo')).toBeInTheDocument();
-    expect(within(identidade).getAllByRole('link', { name: /Abrir meu perfil/i }).length).toBeGreaterThan(0);
-    expect(within(identidade).queryByRole('link', { name: /Editar perfil/i })).not.toBeInTheDocument();
-    expect(within(identidade).queryByRole('button', { name: /Abrir pendências/i })).not.toBeInTheDocument();
-    expect(within(identidade).queryByRole('button', { name: /Abrir menu do perfil/i })).not.toBeInTheDocument();
-    expect(within(identidade).queryByRole('button', { name: /Sair/i })).not.toBeInTheDocument();
-    expect(screen.queryByText(/Boa tarde|Bom dia|Boa noite|Continue evoluindo/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: /Identidade do usuário/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /Abrir meu perfil/i })).not.toBeInTheDocument();
+    expect(screen.queryByText('Gustavo Henrique Almeida Souza')).not.toBeInTheDocument();
+    expect(screen.getByRole('region', { name: /Pontos QN/i })).toBeInTheDocument();
   });
 
-  it('nao exibe linha vazia de apelido quando apelido nao existe', () => {
+  it('continua renderizando o dashboard quando apelido nao existe', () => {
     autenticacaoMock.usuario = criarUsuarioPadrao({ apelido: '' });
 
     renderizarHome({
@@ -180,10 +181,8 @@ describe('HomeDashboard nova experiencia', () => {
       })
     });
 
-    const identidade = screen.getByRole('region', { name: /Identidade do usuário/i });
-
-    expect(within(identidade).getByText('Gustavo Henrique Almeida Souza')).toBeInTheDocument();
-    expect(within(identidade).queryByText('Primo')).not.toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: /Identidade do usuário/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('region', { name: /Pontos QN/i })).toBeInTheDocument();
   });
 
   it('mostra card de confirmacao de partida e dispara confirmar e nao fui eu', async () => {
@@ -242,29 +241,34 @@ describe('HomeDashboard nova experiencia', () => {
     expect(screen.queryByRole('region', { name: /Confirmar partida/i })).not.toBeInTheDocument();
   });
 
-  it('renderiza card de Evolucao QN com nivel, progresso, saldo e CTA', () => {
+  it('renderiza card principal com Pontos QN, progresso, recompensa e CTA', () => {
     renderizarHome();
 
-    const card = screen.getByRole('region', { name: /Evolução QN/i });
+    const card = screen.getByRole('region', { name: /Pontos QN/i });
 
-    expect(within(card).getByText('Pontos QN')).toBeInTheDocument();
+    expect(within(card).getAllByText('Pontos QN').length).toBeGreaterThan(0);
+    expect(within(card).getByText('Pontos QN disponíveis')).toBeInTheDocument();
     expect(within(card).getByText('Bronze')).toBeInTheDocument();
     expect(within(card).getByText('370 / 500')).toBeInTheDocument();
-    expect(within(card).getByText('Faltam 130 para a próxima faixa')).toBeInTheDocument();
-    expect(within(card).getByText('2.470 Pontos QN')).toBeInTheDocument();
+    expect(within(card).getByText('Faltam 130 Pontos QN para atingir Prata.')).toBeInTheDocument();
+    expect(within(card).getByText('2.470')).toBeInTheDocument();
+    expect(within(card).getByText('Próxima recompensa')).toBeInTheDocument();
+    expect(within(card).getByText('Cupom Frete Grátis')).toBeInTheDocument();
     expect(within(card).getByRole('link', { name: /Ver benefícios/i })).toHaveAttribute('href', '/app/pontos-qn');
   });
 
-  it('mantem gamificacao separada de metricas esportivas', () => {
+  it('mantem a area de Pontos QN separada das metricas esportivas', () => {
     renderizarHome();
 
-    const card = screen.getByRole('region', { name: /Evolução QN/i });
+    const card = screen.getByRole('region', { name: /Pontos QN/i });
+    const areaPontos = card.querySelector('.home-dashboard-principal-qn');
 
-    expect(within(card).queryByText(/Vitórias/i)).not.toBeInTheDocument();
-    expect(within(card).queryByText(/Derrotas/i)).not.toBeInTheDocument();
-    expect(within(card).queryByText(/Aproveitamento/i)).not.toBeInTheDocument();
-    expect(within(card).queryByText(/Ranking/i)).not.toBeInTheDocument();
-    expect(within(card).queryByText(/Scout/i)).not.toBeInTheDocument();
+    expect(areaPontos).not.toBeNull();
+    expect(within(areaPontos).queryByText(/Vitórias/i)).not.toBeInTheDocument();
+    expect(within(areaPontos).queryByText(/Derrotas/i)).not.toBeInTheDocument();
+    expect(within(areaPontos).queryByText(/Aproveitamento/i)).not.toBeInTheDocument();
+    expect(within(areaPontos).queryByText(/Ranking/i)).not.toBeInTheDocument();
+    expect(within(areaPontos).queryByText(/Scout/i)).not.toBeInTheDocument();
   });
 
   it('continua renderizando a Home quando gamificacao esta ausente', () => {
@@ -274,23 +278,22 @@ describe('HomeDashboard nova experiencia', () => {
       })
     });
 
-    expect(screen.getByRole('region', { name: /Identidade do usuário/i })).toBeInTheDocument();
-    expect(screen.getByRole('region', { name: /Evolução QN/i })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: /Pontos QN/i })).toBeInTheDocument();
     expect(screen.getByText('Comece registrando ou confirmando partidas para evoluir.')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Registrar partida/i })).toBeInTheDocument();
   });
 
-  it('oculta fallback agressivo quando gamificacao falha e mantem a Home utilizavel', () => {
+  it('mostra fallback discreto quando gamificacao falha e mantem a Home utilizavel', () => {
     renderizarHome({
       modulos: criarModulos({
         gamificacao: criarModulo(null, { erro: 'API indisponível' })
       })
     });
 
-    expect(screen.queryByRole('region', { name: /Evolução QN/i })).not.toBeInTheDocument();
-    expect(screen.getByRole('region', { name: /Identidade do usuário/i })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: /Pontos QN/i })).toBeInTheDocument();
+    expect(screen.getByText('Pontos QN indisponíveis agora.')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Registrar partida/i })).toBeInTheDocument();
-    expect(screen.getByRole('region', { name: /Seu desempenho/i })).toBeInTheDocument();
+    expect(screen.getByText('Seu desempenho')).toBeInTheDocument();
   });
 
   it('mantem Registrar Partida e Criar Grupo com o mesmo componente visual principal', async () => {
@@ -312,7 +315,7 @@ describe('HomeDashboard nova experiencia', () => {
   it('mostra Seu desempenho com as quatro metricas principais', () => {
     renderizarHome();
 
-    const desempenho = screen.getByRole('region', { name: /Seu desempenho/i });
+    const desempenho = screen.getByRole('region', { name: /Pontos QN/i });
 
     expect(within(desempenho).getByRole('link', { name: /Ver detalhes/i })).toHaveAttribute('href', '/app/scouts');
     expect(within(desempenho).getByText('Partidas')).toBeInTheDocument();
@@ -365,7 +368,7 @@ describe('HomeDashboard nova experiencia', () => {
     expect(screen.getByRole('link', { name: /Registrar agora/i })).toBeInTheDocument();
   });
 
-  it('respeita a ordem identidade, pendencias, gamificacao, desempenho, acoes e ultimos jogos', () => {
+  it('respeita a ordem card principal, pendencias, acoes e ultimos jogos', () => {
     const pendencia = {
       id: 'pendencia-ordem',
       tipo: 3,
@@ -391,17 +394,13 @@ describe('HomeDashboard nova experiencia', () => {
       })
     });
 
-    const identidade = screen.getByRole('region', { name: /Identidade do usuário/i });
+    const principal = screen.getByRole('region', { name: /Pontos QN/i });
     const pendencias = screen.getByRole('region', { name: /Confirmar partida/i });
-    const gamificacao = screen.getByRole('region', { name: /Evolução QN/i });
-    const desempenho = screen.getByRole('region', { name: /Seu desempenho/i });
     const acoes = screen.getByRole('region', { name: /Ações principais/i });
     const ultimosJogos = screen.getByRole('region', { name: /Últimos jogos/i });
 
-    esperarAntes(identidade, pendencias);
-    esperarAntes(pendencias, gamificacao);
-    esperarAntes(gamificacao, desempenho);
-    esperarAntes(desempenho, acoes);
+    esperarAntes(principal, pendencias);
+    esperarAntes(pendencias, acoes);
     esperarAntes(acoes, ultimosJogos);
   });
 });
@@ -413,10 +412,8 @@ describe('homeSectionsConfig', () => {
       .map((secao) => secao.type);
 
     expect(secoesAtivas).toEqual([
-      HomeSectionType.Identity,
+      HomeSectionType.MainDashboard,
       HomeSectionType.PendingConfirmation,
-      HomeSectionType.Gamification,
-      HomeSectionType.Performance,
       HomeSectionType.PrimaryAction,
       HomeSectionType.RecentMatches
     ]);

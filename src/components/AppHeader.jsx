@@ -25,6 +25,51 @@ const ROTAS_PRINCIPAIS_SEM_VOLTAR = new Set([
   '/mais'
 ]);
 
+function obterTextoLimpo(...valores) {
+  return valores
+    .map((valor) => String(valor || '').trim())
+    .find(Boolean) || '';
+}
+
+function obterPrimeiroNomeUsuario(usuario) {
+  return obterTextoLimpo(usuario?.nome, usuario?.nomeCompleto, usuario?.apelido, 'Atleta').split(/\s+/)[0];
+}
+
+function obterSaudacaoAtual() {
+  const hora = new Date().getHours();
+
+  if (hora < 12) {
+    return 'Bom dia';
+  }
+
+  if (hora < 18) {
+    return 'Boa tarde';
+  }
+
+  return 'Boa noite';
+}
+
+function obterApelidoUsuario(usuario) {
+  const nome = obterTextoLimpo(usuario?.nome, usuario?.nomeCompleto);
+  const apelido = obterTextoLimpo(
+    usuario?.apelido,
+    usuario?.apelidoAtleta,
+    usuario?.atleta?.apelido,
+    usuario?.atleta?.nomeExibicao
+  );
+
+  return apelido && apelido !== nome ? apelido : '';
+}
+
+function obterNivelUsuario(usuario) {
+  return obterTextoLimpo(
+    usuario?.nivelNome,
+    usuario?.nivel,
+    usuario?.atleta?.nivelNome,
+    usuario?.atleta?.nivel?.nome
+  );
+}
+
 function obterConfiguracaoHeader(pathname) {
   return (
     ROTAS_APP_HEADER.find((rota) => (
@@ -56,6 +101,7 @@ export function AppHeader({
   const configuracao =
     obterConfiguracaoHeader(location.pathname);
 
+  const telaHomeApp = autenticado && location.pathname === ROTA_HOME_APP;
   const telaInterna =
     autenticado &&
     !ROTAS_PRINCIPAIS_SEM_VOLTAR.has(location.pathname);
@@ -64,6 +110,12 @@ export function AppHeader({
     autenticado
       ? ROTA_HOME_APP
       : '/';
+  const tituloTopo = telaHomeApp
+    ? `${obterSaudacaoAtual()}, ${obterPrimeiroNomeUsuario(usuario)}`
+    : configuracao.title;
+  const apelidoTopo = telaHomeApp ? obterApelidoUsuario(usuario) : '';
+  const nivelTopo = telaHomeApp ? obterNivelUsuario(usuario) : '';
+  const subtituloTopo = [apelidoTopo, nivelTopo].filter(Boolean).join(' • ');
 
   useEffect(() => {
     setMenuContaAberto(false);
@@ -118,9 +170,10 @@ export function AppHeader({
       ) : (
         <Link to={rotaHome} className="marca-topo" aria-label="Ir para a home">
           <div className="marca-texto">
-            <h1 className="marca-titulo" title={configuracao.title}>
-              {configuracao.title}
+            <h1 className="marca-titulo" title={tituloTopo}>
+              {tituloTopo}
             </h1>
+            {subtituloTopo && <span className="marca-subtitulo-app">{subtituloTopo}</span>}
           </div>
         </Link>
       )}

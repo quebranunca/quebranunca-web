@@ -23,7 +23,8 @@ export function MobileBottomNavigation() {
             key={item.id}
             to={item.route}
             end={item.route === '/app'}
-            className={() => `mobile-bottom-item ${ativo ? 'ativo' : ''}`}
+            className={() => `mobile-bottom-item ${item.principal ? 'principal' : ''} ${ativo ? 'ativo' : ''}`.trim()}
+            aria-label={item.principal ? 'Registrar partida' : item.label}
           >
             <Icone aria-hidden="true" />
             <span>{item.label}</span>

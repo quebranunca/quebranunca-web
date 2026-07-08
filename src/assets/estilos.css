@@ -16107,6 +16107,19 @@ a.botao-terciario:active {
   white-space: nowrap;
 }
 
+.layout-autenticado .marca-subtitulo-app {
+  min-width: 0;
+  max-width: min(58vw, 22rem);
+  margin-top: 0.08rem;
+  overflow: hidden;
+  color: rgba(248, 244, 236, 0.68);
+  font-size: 0.72rem;
+  font-weight: 780;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .layout-autenticado .topo-app-interno .marca-titulo {
   max-width: min(50vw, 20rem);
 }
@@ -16235,6 +16248,35 @@ a.botao-terciario:active {
   background: rgba(255, 179, 0, 0.1);
   color: var(--cor-primaria);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+.layout-autenticado .mobile-bottom-item.principal {
+  flex: 1.14 1 0;
+  min-height: 3.28rem;
+  margin-top: -0.54rem;
+  border-color: rgba(255, 225, 128, 0.82);
+  border-radius: 1.18rem;
+  background:
+    radial-gradient(circle at 18% 8%, rgba(255, 255, 255, 0.42), transparent 32%),
+    linear-gradient(135deg, #ffd15a, var(--cor-primaria) 58%, #d99300);
+  color: #11100c;
+  box-shadow: 0 0 28px rgba(255, 179, 0, 0.28), 0 16px 30px rgba(0, 0, 0, 0.34);
+}
+
+.layout-autenticado .mobile-bottom-item.principal svg {
+  width: 1.22rem;
+  height: 1.22rem;
+}
+
+.layout-autenticado .mobile-bottom-item.principal.ativo,
+.layout-autenticado .mobile-bottom-item.principal:hover,
+.layout-autenticado .mobile-bottom-item.principal:focus-visible {
+  border-color: rgba(255, 239, 188, 0.94);
+  background:
+    radial-gradient(circle at 18% 8%, rgba(255, 255, 255, 0.46), transparent 32%),
+    linear-gradient(135deg, #ffdc78, var(--cor-primaria) 58%, #d99300);
+  color: #11100c;
+  box-shadow: 0 0 34px rgba(255, 179, 0, 0.34), 0 18px 34px rgba(0, 0, 0, 0.38);
 }
 
 .layout-autenticado .mobile-bottom-item:hover,
@@ -16432,7 +16474,12 @@ a.botao-terciario:active {
 
   .layout-autenticado .marca-titulo {
     max-width: 48vw;
-    font-size: 0.96rem;
+    font-size: 0.92rem;
+  }
+
+  .layout-autenticado .marca-subtitulo-app {
+    max-width: 48vw;
+    font-size: 0.68rem;
   }
 
   .layout-autenticado .topo-app-interno .marca-titulo {

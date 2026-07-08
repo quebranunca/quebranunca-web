@@ -54,9 +54,9 @@ export function PaginaMais() {
   return (
     <section className="pagina pagina-mais" aria-labelledby="mais-titulo">
       <header className="mais-hero">
-        <span>Central</span>
+        <span>Hub</span>
         <h1 id="mais-titulo">Mais</h1>
-        <p>Acesse sua área, histórico, scouts, Pontos QN e configurações sem poluir a navegação principal.</p>
+        <p>Acesse perfil, scouts, histórico, Pontos QN, benefícios, notificações e suporte em um só lugar.</p>
       </header>
 
       <div className="mais-secoes">

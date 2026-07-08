@@ -15,6 +15,7 @@ vi.mock('./NotificacoesBotao', () => ({
 const usuarioPadrao = {
   id: 'usuario-1',
   nome: 'Primo QN',
+  apelido: 'Primo',
   perfil: 3
 };
 
@@ -45,10 +46,12 @@ afterEach(() => {
 });
 
 describe('AppHeader', () => {
-  it('mostra topo principal com título, sino e avatar sem botão voltar', () => {
+  it('mostra topo principal com saudacao, apelido, sino e avatar sem botão voltar', () => {
     renderizarHeader('/app');
 
-    expect(screen.getByRole('heading', { name: 'Home' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Bom dia|Boa tarde|Boa noite/i })).toHaveTextContent(/Primo/i);
+    expect(screen.getByText('Primo')).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Home' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Abrir pendências/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Abrir menu da conta/i })).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /Voltar/i })).not.toBeInTheDocument();

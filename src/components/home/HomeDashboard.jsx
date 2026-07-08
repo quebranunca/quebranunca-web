@@ -16,7 +16,6 @@ import {
 import { useAutenticacao } from '../../hooks/useAutenticacao';
 import { obterNomeGrupoPartidaExibicao } from '../../utils/partidas';
 import { formatarData } from '../../utils/formatacao';
-import { AvatarUsuario, obterFotoPerfilAvatar } from '../AvatarUsuario';
 import { Avatar } from '../ui/Avatar';
 import { HomeSectionType, homeSectionsConfig } from './homeSectionsConfig';
 
@@ -50,32 +49,6 @@ function obterTextoLimpo(...valores) {
     .find(Boolean) || '';
 }
 
-function obterNomeCompletoPerfil(perfil, usuario) {
-  const apelido = obterTextoLimpo(perfil.apelido, usuario?.apelido);
-  const candidatos = [
-    perfil.nomeCompleto,
-    perfil.nome,
-    usuario?.nomeCompleto,
-    usuario?.nome
-  ]
-    .map((valor) => String(valor || '').trim())
-    .filter((texto) => texto && texto !== apelido);
-  const nomeComSobrenome = candidatos.find((texto) => texto.split(/\s+/).length > 1);
-
-  return obterTextoLimpo(
-    nomeComSobrenome,
-    ...candidatos,
-    perfil.apelido,
-    usuario?.apelido,
-    'Atleta QuebraNunca'
-  );
-}
-
-function obterApelidoPerfil(perfil, usuario, nomeCompleto) {
-  const apelido = obterTextoLimpo(perfil.apelido, usuario?.apelido);
-  return apelido && apelido !== nomeCompleto ? apelido : '';
-}
-
 function formatarPercentual(valor) {
   const numero = Number(valor ?? 0);
   return `${Number.isInteger(numero) ? numero : numero.toFixed(1)}%`;
@@ -83,6 +56,38 @@ function formatarPercentual(valor) {
 
 function formatarPontosQN(valor) {
   return Number(valor || 0).toLocaleString('pt-BR');
+}
+
+const PROXIMA_FAIXA_QN = Object.freeze({
+  bronze: 'Prata',
+  prata: 'Ouro',
+  ouro: 'Diamante'
+});
+
+const PADROES_COPY_FINANCEIRA_HOME = [
+  /r\$/i,
+  /\boff\b/i,
+  /cashback/i,
+  /dinheiro/i,
+  /saldo financeiro/i,
+  /carteira/i,
+  /100\s*qn/i,
+  /equivale/i,
+  /convers[aã]o/i,
+  /cr[eé]dito financeiro/i
+];
+
+function obterProximaFaixaNome(nivelNome) {
+  return PROXIMA_FAIXA_QN[String(nivelNome || '').trim().toLowerCase()] || 'próxima faixa';
+}
+
+function obterTituloBeneficioHome(beneficio) {
+  const titulo = obterTextoLimpo(beneficio?.titulo);
+  if (!titulo || PADROES_COPY_FINANCEIRA_HOME.some((padrao) => padrao.test(titulo))) {
+    return 'Benefício da comunidade';
+  }
+
+  return titulo;
 }
 
 function formatarDataAtividade(data) {
@@ -204,9 +209,6 @@ export function HomeDashboard({
   const resumoPendencias = obterDadosModulo(pendenciasModulo, null);
   const pendenciaConfirmacaoPartida = resumoPendencias?.confirmacaoPartidaMaisRecente || null;
   const ultimasPartidas = (obterDadosModulo(ultimasPartidasModulo, []) || []).slice(0, 3);
-  const nomeCompleto = obterNomeCompletoPerfil(perfil, usuario);
-  const apelido = obterApelidoPerfil(perfil, usuario, nomeCompleto);
-  const fotoPerfilUrl = obterFotoPerfilAvatar(perfil) || obterFotoPerfilAvatar(usuario);
   const totalPartidas = Number(resumo.totalPartidas ?? 0);
   const totalVitorias = Number(resumo.vitorias ?? 0);
   const pendenciaCriarSenha = Array.isArray(usuario?.pendenciasConta)
@@ -244,11 +246,11 @@ export function HomeDashboard({
   ];
 
   const renderizadoresSecao = {
-    [HomeSectionType.Identity]: () => (
-      <HomeIdentidadeUsuario
-        nomeCompleto={nomeCompleto}
-        apelido={apelido}
-        fotoPerfilUrl={fotoPerfilUrl}
+    [HomeSectionType.MainDashboard]: () => (
+      <HomeCardPrincipal
+        gamificacaoModulo={gamificacaoModulo}
+        scouts={scouts}
+        erroDesempenho={resumoModulo.erro}
       />
     ),
     [HomeSectionType.PendingConfirmation]: () => (
@@ -260,8 +262,6 @@ export function HomeDashboard({
         onNaoReconhecer={onNaoReconhecerPendenciaPartida}
       />
     ),
-    [HomeSectionType.Gamification]: () => <HomeGamificacaoCard modulo={gamificacaoModulo} />,
-    [HomeSectionType.Performance]: () => <HomeDesempenho scouts={scouts} erro={resumoModulo.erro} />,
     [HomeSectionType.PrimaryAction]: () => (
       <>
         <HomeAcoesPrincipais />
@@ -291,36 +291,6 @@ export function HomeDashboard({
           return renderizar ? <Fragment key={secao.type}>{renderizar()}</Fragment> : null;
         })}
     </section>
-  );
-}
-
-function HomeIdentidadeUsuario({ nomeCompleto, apelido, fotoPerfilUrl }) {
-  return (
-    <header
-      className="home-dashboard-identidade-card"
-      role="region"
-      aria-label="Identidade do usuário"
-    >
-      <div className="home-dashboard-avatar-menu">
-        <Link
-          to={HOME_NAVIGATION.perfil}
-          className="home-dashboard-avatar-botao"
-          aria-label="Abrir meu perfil"
-        >
-          <AvatarUsuario
-            nome={nomeCompleto}
-            fotoPerfilUrl={fotoPerfilUrl}
-            tamanho="xl"
-            className="home-dashboard-avatar"
-          />
-        </Link>
-      </div>
-
-      <Link to={HOME_NAVIGATION.perfil} className="home-dashboard-identidade-texto" aria-label="Abrir meu perfil">
-        <h1>{nomeCompleto}</h1>
-        {apelido && <p>{apelido}</p>}
-      </Link>
-    </header>
   );
 }
 
@@ -416,42 +386,8 @@ function obterResultadoDetalhadoPendencia(pendencia) {
   return 'Resultado informado';
 }
 
-function HomeDesempenho({ scouts, erro }) {
-  return (
-    <section className="home-dashboard-scouts" aria-labelledby="home-desempenho-titulo">
-      <div className="home-dashboard-section-title">
-        <h2 id="home-desempenho-titulo">Seu desempenho</h2>
-        <Link to={HOME_NAVIGATION.scouts}>
-          Ver detalhes
-          <FaChevronRight aria-hidden="true" />
-        </Link>
-      </div>
-
-      {erro ? (
-        <p className="home-dashboard-vazio">Não foi possível carregar seu desempenho agora.</p>
-      ) : (
-        <div className="home-dashboard-scouts-grid">
-          {scouts.map((item) => {
-            const Icone = item.icone;
-            return (
-              <article key={item.id} className="home-dashboard-scout-card">
-                <Icone aria-hidden="true" />
-                <strong>{item.valor}</strong>
-                <span>{item.rotulo}</span>
-              </article>
-            );
-          })}
-        </div>
-      )}
-    </section>
-  );
-}
-
-function HomeGamificacaoCard({ modulo }) {
-  if (modulo?.erro) {
-    return null;
-  }
-
+function HomeCardPrincipal({ gamificacaoModulo, scouts, erroDesempenho }) {
+  const modulo = gamificacaoModulo;
   const carregando = Boolean(modulo?.carregando);
   const dados = obterDadosModulo(modulo, null);
   const pontuacao = dados?.pontuacao || {};
@@ -471,50 +407,92 @@ function HomeGamificacaoCard({ modulo }) {
   const progressoMeta = pontosProximaFaixa
     ? Math.max(0, pontosProximaFaixa - pontosMinimos)
     : totalAcumulado;
+  const proximaFaixaNome = obterProximaFaixaNome(nivelNome);
+  const proximoBeneficio = Array.isArray(dados?.proximosBeneficios)
+    ? dados.proximosBeneficios[0]
+    : null;
+  const recompensa = obterTituloBeneficioHome(proximoBeneficio);
   const textoProgresso = pontosProximaFaixa
     ? `${formatarPontosQN(progressoAtual)} / ${formatarPontosQN(progressoMeta)}`
     : `${formatarPontosQN(totalAcumulado)} acumulados`;
   const textoProximaFaixa = pontuacao.temAtletaVinculado === false
     ? 'Vincule seu atleta para acompanhar sua evolução QN.'
-    : pontosProximaFaixa
-      ? `Faltam ${formatarPontosQN(pontosRestantes)} para a próxima faixa`
-      : dados
-        ? 'Faixa máxima alcançada'
-        : 'Comece registrando ou confirmando partidas para evoluir.';
+    : modulo?.erro
+      ? 'Pontos QN indisponíveis agora.'
+      : pontosProximaFaixa
+        ? `Faltam ${formatarPontosQN(pontosRestantes)} Pontos QN para atingir ${proximaFaixaNome}.`
+        : dados
+          ? 'Faixa máxima alcançada'
+          : 'Comece registrando ou confirmando partidas para evoluir.';
 
   return (
-    <section className="home-dashboard-gamificacao" aria-labelledby="home-gamificacao-titulo">
-      <div className="home-dashboard-gamificacao-topo">
-        <div>
-          <span className="home-dashboard-gamificacao-selo">Pontos QN</span>
-          <h2 id="home-gamificacao-titulo">Evolução QN</h2>
-          <p>Participe da comunidade e desbloqueie benefícios.</p>
+    <section className="home-dashboard-principal" aria-labelledby="home-dashboard-principal-titulo">
+      <div className="home-dashboard-principal-area home-dashboard-principal-qn">
+        <div className="home-dashboard-principal-topo">
+          <div>
+            <span className="home-dashboard-principal-selo">Pontos QN</span>
+            <h2 id="home-dashboard-principal-titulo">Pontos QN</h2>
+          </div>
+          <Link to={HOME_NAVIGATION.pontosQN} className="home-dashboard-principal-link">
+            Ver benefícios
+            <FaChevronRight aria-hidden="true" />
+          </Link>
         </div>
-        <Link to={HOME_NAVIGATION.pontosQN} className="home-dashboard-gamificacao-cta">
-          Ver benefícios
-          <FaChevronRight aria-hidden="true" />
-        </Link>
+
+        <div className="home-dashboard-qn-resumo">
+          <article>
+            <span>Nível atual</span>
+            <strong>{nivelNome}</strong>
+          </article>
+          <article>
+            <span>Pontos QN disponíveis</span>
+            <strong>{formatarPontosQN(saldoAtual)}</strong>
+          </article>
+        </div>
+
+        <div className="home-dashboard-qn-progresso-linha">
+          <div className="home-dashboard-qn-progresso" aria-hidden="true">
+            <span style={{ width: `${progressoPercentual}%` }} />
+          </div>
+          <strong>{textoProgresso}</strong>
+        </div>
+
+        <p className="home-dashboard-qn-faltam">{textoProximaFaixa}</p>
+
+        <div className="home-dashboard-qn-recompensa">
+          <span>Próxima recompensa</span>
+          <strong>{recompensa}</strong>
+        </div>
       </div>
 
-      <div className="home-dashboard-gamificacao-resumo">
-        <div>
-          <span>Nível atual</span>
-          <strong>{nivelNome}</strong>
-        </div>
-        <div>
-          <span>Saldo promocional</span>
-          <strong>{formatarPontosQN(saldoAtual)} Pontos QN</strong>
-        </div>
-      </div>
+      <div className="home-dashboard-principal-divisor" aria-hidden="true" />
 
-      <div className="home-dashboard-gamificacao-progresso" aria-hidden="true">
-        <span style={{ width: `${progressoPercentual}%` }} />
-      </div>
+      <div className="home-dashboard-principal-area home-dashboard-principal-desempenho">
+        <div className="home-dashboard-principal-topo">
+          <h2>Seu desempenho</h2>
+          <Link to={HOME_NAVIGATION.scouts} className="home-dashboard-principal-link">
+            Ver detalhes
+            <FaChevronRight aria-hidden="true" />
+          </Link>
+        </div>
 
-      <footer className="home-dashboard-gamificacao-rodape">
-        <strong>{textoProgresso}</strong>
-        <span>{textoProximaFaixa}</span>
-      </footer>
+        {erroDesempenho ? (
+          <p className="home-dashboard-vazio">Não foi possível carregar seu desempenho agora.</p>
+        ) : (
+          <div className="home-dashboard-desempenho-grid">
+            {scouts.map((item) => {
+              const Icone = item.icone;
+              return (
+                <article key={item.id} className="home-dashboard-desempenho-item">
+                  <Icone aria-hidden="true" />
+                  <strong>{item.valor}</strong>
+                  <span>{item.rotulo}</span>
+                </article>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </section>
   );
 }
@@ -522,24 +500,34 @@ function HomeGamificacaoCard({ modulo }) {
 function HomeAcoesPrincipais() {
   return (
     <section className="home-dashboard-acoes-principais" aria-label="Ações principais">
-      <Link to={HOME_NAVIGATION.registrarPartida} className="home-dashboard-cta home-dashboard-cta-principal">
-        <span className="home-dashboard-cta-icone"><FaPlus aria-hidden="true" /></span>
-        <span>
-          <strong>Registrar partida</strong>
-          <small>Salve seu jogo e atualize sua evolução.</small>
-        </span>
-        <FaChevronRight aria-hidden="true" />
-      </Link>
+      <HomeAcaoPrincipal
+        to={HOME_NAVIGATION.registrarPartida}
+        icone={FaPlus}
+        titulo="Registrar partida"
+        descricao="Salve seu jogo e atualize sua evolução."
+      />
 
-      <Link to={HOME_NAVIGATION.grupos} className="home-dashboard-cta home-dashboard-cta-principal home-dashboard-cta-grupo">
-        <span className="home-dashboard-cta-icone"><FaUsers aria-hidden="true" /></span>
-        <span>
-          <strong>Criar grupo</strong>
-          <small>Crie um grupo e acompanhe ranking, histórico e scouts com sua galera.</small>
-        </span>
-        <FaChevronRight aria-hidden="true" />
-      </Link>
+      <HomeAcaoPrincipal
+        to={HOME_NAVIGATION.grupos}
+        icone={FaUsers}
+        titulo="Criar grupo"
+        descricao="Crie um grupo e acompanhe ranking, histórico e scouts com sua galera."
+        className="home-dashboard-cta-grupo"
+      />
     </section>
+  );
+}
+
+function HomeAcaoPrincipal({ to, icone: Icone, titulo, descricao, className = '' }) {
+  return (
+    <Link to={to} className={`home-dashboard-cta home-dashboard-cta-principal ${className}`.trim()}>
+      <span className="home-dashboard-cta-icone"><Icone aria-hidden="true" /></span>
+      <span>
+        <strong>{titulo}</strong>
+        <small>{descricao}</small>
+      </span>
+      <FaChevronRight aria-hidden="true" />
+    </Link>
   );
 }
 
@@ -609,10 +597,9 @@ function HomeUltimosJogos({ ultimasPartidas, erro }) {
 function HomeDashboardSkeleton() {
   return (
     <section className="pagina home-dashboard home-dashboard-carregando" aria-busy="true">
-      <div className="home-dashboard-identidade-card home-dashboard-skeleton-card" />
-      <div className="home-dashboard-scouts home-dashboard-skeleton-card" />
+      <div className="home-dashboard-principal home-dashboard-skeleton-card" />
       <div className="home-dashboard-cta home-dashboard-cta-principal home-dashboard-skeleton-card" />
-      <div className="home-dashboard-cta home-dashboard-cta-secundario home-dashboard-skeleton-card" />
+      <div className="home-dashboard-cta home-dashboard-cta-principal home-dashboard-skeleton-card" />
     </section>
   );
 }
