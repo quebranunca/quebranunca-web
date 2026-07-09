@@ -345,14 +345,42 @@ describe('HomeDashboard nova experiencia', () => {
     expect(within(ultimoJogo).getByRole('link', { name: /Ver histórico/i })).toBeInTheDocument();
     expect(within(ultimoJogo).getAllByText('Grupo Praia').length).toBeGreaterThan(0);
     expect(within(ultimoJogo).queryByText('Partida avulsa')).not.toBeInTheDocument();
-    expect(within(ultimoJogo).getByText('21 x 18')).toBeInTheDocument();
+    expect(within(ultimoJogo).getByLabelText('Resultado com placar')).toBeInTheDocument();
+    expect(within(ultimoJogo).getByText('21')).toBeInTheDocument();
+    expect(within(ultimoJogo).getByText('x')).toBeInTheDocument();
+    expect(within(ultimoJogo).getByText('18')).toBeInTheDocument();
     expect(within(ultimoJogo).getByText('Primo / Gustavo')).toBeInTheDocument();
     expect(within(ultimoJogo).getByText('Rafa / Leo')).toBeInTheDocument();
     expect(within(ultimoJogo).getByText('Vitória')).toBeInTheDocument();
     expect(within(ultimoJogo).getByText('Confirmada')).toBeInTheDocument();
+    expect(within(ultimoJogo).getByText('4 atletas')).toBeInTheDocument();
     expect(within(ultimoJogo).queryByText('Derrota')).not.toBeInTheDocument();
     expect(within(ultimoJogo).queryByText('0 x 0')).not.toBeInTheDocument();
     expect(within(ultimoJogo).queryByText('Placar pendente')).not.toBeInTheDocument();
+  });
+
+  it('usa layout proprio para ultimo jogo sem placar e com vencedor', () => {
+    renderizarHome({
+      modulos: criarModulos({
+        ultimasPartidas: criarModulo([
+          criarPartida({
+            placarSuaDupla: null,
+            placarAdversarios: null
+          })
+        ])
+      })
+    });
+
+    const ultimoJogo = screen.getByRole('region', { name: /Último jogo/i });
+
+    expect(within(ultimoJogo).getByLabelText('Resultado sem placar')).toBeInTheDocument();
+    expect(within(ultimoJogo).getByText('Vitória sem placar')).toBeInTheDocument();
+    expect(within(ultimoJogo).getByText('Sem placar')).toBeInTheDocument();
+    expect(within(ultimoJogo).getByText('Primo / Gustavo')).toBeInTheDocument();
+    expect(within(ultimoJogo).getByText('Rafa / Leo')).toBeInTheDocument();
+    expect(within(ultimoJogo).getByLabelText('Dupla vencedora')).toBeInTheDocument();
+    expect(within(ultimoJogo).queryByText('0 x 0')).not.toBeInTheDocument();
+    expect(within(ultimoJogo).queryByLabelText('Resultado com placar')).not.toBeInTheDocument();
   });
 
   it('mostra estado vazio simples quando nao ha ultimos jogos', () => {

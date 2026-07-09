@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import {
   FaCalendarAlt,
   FaChartLine,
+  FaCheckCircle,
   FaChevronRight,
   FaClipboardCheck,
   FaEdit,
@@ -10,6 +11,7 @@ import {
   FaFutbol,
   FaGift,
   FaPlus,
+  FaTimes,
   FaTrophy,
   FaUsers
 } from 'react-icons/fa';
@@ -17,6 +19,7 @@ import { useAutenticacao } from '../../hooks/useAutenticacao';
 import { obterNomeGrupoPartidaExibicao } from '../../utils/partidas';
 import { formatarData } from '../../utils/formatacao';
 import { MedalhaNivel } from '../gamificacao/MedalhaNivel';
+import { Avatar } from '../ui/Avatar';
 import { HomeSectionType, homeSectionsConfig } from './homeSectionsConfig';
 
 const HOME_NAVIGATION = Object.freeze({
@@ -153,7 +156,7 @@ function obterResultadoPartida(partida) {
   return resultado || 'Pendente';
 }
 
-function obterPlacarPartida(partida) {
+function obterPlacarDetalhadoPartida(partida) {
   const placarSuaDuplaValor = partida?.placarSuaDupla;
   const placarAdversariosValor = partida?.placarAdversarios;
 
@@ -163,7 +166,7 @@ function obterPlacarPartida(partida) {
     placarAdversariosValor === null ||
     placarAdversariosValor === undefined
   ) {
-    return 'Sem placar';
+    return { temPlacar: false, suaDupla: null, adversarios: null };
   }
 
   const placarSuaDupla = Number(partida?.placarSuaDupla);
@@ -174,10 +177,14 @@ function obterPlacarPartida(partida) {
     !Number.isFinite(placarAdversarios) ||
     (placarSuaDupla === 0 && placarAdversarios === 0)
   ) {
-    return 'Sem placar';
+    return { temPlacar: false, suaDupla: null, adversarios: null };
   }
 
-  return `${placarSuaDupla} x ${placarAdversarios}`;
+  return {
+    temPlacar: true,
+    suaDupla: placarSuaDupla,
+    adversarios: placarAdversarios
+  };
 }
 
 function obterStatusPartida(partida) {
@@ -218,9 +225,72 @@ function formatarNomesDupla(nomes, fallback) {
   return formatarTextoDupla(fallback) || 'Dupla a definir';
 }
 
+function obterFotoAtletaPartida(partida, lado, indice) {
+  const ladoTitulo = lado === 'A' ? 'DuplaA' : 'DuplaB';
+  const ladoCamel = lado === 'A' ? 'duplaA' : 'duplaB';
+  const chaveAtleta = `${ladoCamel}Atleta${indice}`;
+  const chaveAtletaTitulo = `${ladoTitulo}Atleta${indice}`;
+
+  return obterTextoLimpo(
+    partida?.[`foto${chaveAtletaTitulo}`],
+    partida?.[`foto${chaveAtletaTitulo}Url`],
+    partida?.[`fotoPerfil${chaveAtletaTitulo}`],
+    partida?.[`fotoPerfil${chaveAtletaTitulo}Url`],
+    partida?.[`${chaveAtleta}FotoPerfilUrl`],
+    partida?.[`${chaveAtleta}AvatarUrl`],
+    partida?.[`avatar${chaveAtletaTitulo}`],
+    partida?.[`avatar${chaveAtletaTitulo}Url`]
+  );
+}
+
+function criarAtletaPartida(partida, lado, indice) {
+  const ladoTitulo = lado === 'A' ? 'DuplaA' : 'DuplaB';
+  const ladoCamel = lado === 'A' ? 'duplaA' : 'duplaB';
+
+  return {
+    id: obterTextoLimpo(partida?.[`${ladoCamel}Atleta${indice}Id`]),
+    nome: obterTextoLimpo(
+      partida?.[`nome${ladoTitulo}Atleta${indice}`],
+      partida?.[`${ladoCamel}Atleta${indice}Nome`]
+    ),
+    fotoPerfilUrl: obterFotoAtletaPartida(partida, lado, indice)
+  };
+}
+
+function criarAtletasPorTexto(texto, fallback) {
+  const nomes = formatarTextoDupla(texto)
+    .split('/')
+    .map((nome) => nome.trim())
+    .filter(Boolean);
+
+  if (nomes.length === 0 && fallback) {
+    return [{ id: '', nome: fallback, fotoPerfilUrl: '' }];
+  }
+
+  return nomes.slice(0, 2).map((nome) => ({
+    id: '',
+    nome,
+    fotoPerfilUrl: ''
+  }));
+}
+
+function criarDuplaDetalhada(partida, lado, fallbackTexto) {
+  const atletas = [criarAtletaPartida(partida, lado, 1), criarAtletaPartida(partida, lado, 2)]
+    .filter((atleta) => atleta.nome);
+  const nome = atletas.length > 0
+    ? formatarNomesDupla(atletas.map((atleta) => atleta.nome), fallbackTexto)
+    : formatarTextoDupla(fallbackTexto) || 'Dupla a definir';
+
+  return {
+    atletas,
+    nome,
+    temDados: atletas.length > 0
+  };
+}
+
 function obterDuplasUltimoJogo(partida, atletaId, nomeAtleta) {
-  const duplaA = [partida?.nomeDuplaAAtleta1, partida?.nomeDuplaAAtleta2].filter(Boolean);
-  const duplaB = [partida?.nomeDuplaBAtleta1, partida?.nomeDuplaBAtleta2].filter(Boolean);
+  const duplaA = criarDuplaDetalhada(partida, 'A', 'Dupla A');
+  const duplaB = criarDuplaDetalhada(partida, 'B', 'Dupla B');
   const atletaIdTexto = obterTextoLimpo(atletaId);
   const atletaEstaNaDuplaA = atletaIdTexto && [
     partida?.duplaAAtleta1Id,
@@ -233,22 +303,83 @@ function obterDuplasUltimoJogo(partida, atletaId, nomeAtleta) {
 
   if (atletaEstaNaDuplaA || atletaEstaNaDuplaB) {
     return {
-      suaDupla: formatarNomesDupla(atletaEstaNaDuplaA ? duplaA : duplaB, 'Sua dupla'),
-      adversarios: formatarNomesDupla(atletaEstaNaDuplaA ? duplaB : duplaA, 'Adversários')
+      suaDupla: atletaEstaNaDuplaA ? duplaA : duplaB,
+      adversarios: atletaEstaNaDuplaA ? duplaB : duplaA
     };
   }
 
-  if (duplaA.length > 0 || duplaB.length > 0) {
+  if (duplaA.temDados || duplaB.temDados) {
     return {
-      suaDupla: formatarNomesDupla(duplaA, 'Sua dupla'),
-      adversarios: formatarNomesDupla(duplaB, 'Adversários')
+      suaDupla: duplaA,
+      adversarios: duplaB
     };
   }
 
   return {
-    suaDupla: formatarNomesDupla([nomeAtleta, partida?.parceiro], 'Sua dupla'),
-    adversarios: formatarNomesDupla([], partida?.adversarios || 'Adversários')
+    suaDupla: {
+      atletas: criarAtletasPorTexto(formatarNomesDupla([nomeAtleta, partida?.parceiro], 'Sua dupla'), ''),
+      nome: formatarNomesDupla([nomeAtleta, partida?.parceiro], 'Sua dupla')
+    },
+    adversarios: {
+      atletas: criarAtletasPorTexto(partida?.adversarios, 'Adversários'),
+      nome: formatarTextoDupla(partida?.adversarios) || 'Adversários'
+    }
   };
+}
+
+function obterClasseResultado(resultado) {
+  if (resultado === 'Vitória') {
+    return 'vitoria';
+  }
+
+  if (resultado === 'Derrota') {
+    return 'derrota';
+  }
+
+  if (resultado === 'Empate') {
+    return 'empate';
+  }
+
+  return 'pendente';
+}
+
+function obterTituloPartida(partida, contexto) {
+  return obterTextoLimpo(
+    partida?.nome,
+    partida?.titulo,
+    partida?.nomePartida,
+    partida?.tipoPartida,
+    contexto === 'Partida avulsa' ? 'Partidas Avulsas' : contexto
+  );
+}
+
+function obterDataHoraAtividade(data) {
+  if (!data) {
+    return 'Data a confirmar';
+  }
+
+  const referencia = new Date(data);
+  if (Number.isNaN(referencia.getTime())) {
+    return 'Data a confirmar';
+  }
+
+  const hora = new Intl.DateTimeFormat('pt-BR', {
+    hour: '2-digit',
+    minute: '2-digit'
+  }).format(referencia);
+
+  return `${formatarDataAtividade(data)} ${hora}`;
+}
+
+function obterTotalAtletasDuplas(duplas) {
+  const nomes = [
+    ...(duplas?.suaDupla?.atletas || []),
+    ...(duplas?.adversarios?.atletas || [])
+  ]
+    .map((atleta) => obterTextoLimpo(atleta?.id, atleta?.nome))
+    .filter(Boolean);
+
+  return Math.max(0, new Set(nomes).size);
 }
 
 function HomeEstado({ titulo, mensagem }) {
@@ -609,21 +740,17 @@ function HomeUltimoJogo({ ultimasPartidas, erro, atletaId, nomeAtleta }) {
         <div className="home-dashboard-timeline">
           {ultimasPartidas.map((partida) => {
             const resultado = obterResultadoPartida(partida);
-            const classeResultado = resultado === 'Vitória'
-              ? 'vitoria'
-              : resultado === 'Derrota'
-                ? 'derrota'
-                : 'pendente';
+            const classeResultado = obterClasseResultado(resultado);
             const contexto = [
               obterNomeGrupoPartidaExibicao(partida.grupo, ''),
               partida.categoria,
               partida.competicao
             ].filter(Boolean)[0] || 'Partida avulsa';
-            const placar = obterPlacarPartida(partida);
-            const semPlacar = placar === 'Sem placar';
+            const placar = obterPlacarDetalhadoPartida(partida);
             const status = obterStatusPartida(partida);
             const duplas = obterDuplasUltimoJogo(partida, atletaId, nomeAtleta);
-            const tituloPartida = obterTextoLimpo(partida.nome, partida.titulo, partida.nomePartida, contexto);
+            const tituloPartida = obterTituloPartida(partida, contexto);
+            const totalAtletas = obterTotalAtletasDuplas(duplas) || 4;
 
             return (
               <Link
@@ -631,30 +758,47 @@ function HomeUltimoJogo({ ultimasPartidas, erro, atletaId, nomeAtleta }) {
                 to={partida.id ? `${HOME_NAVIGATION.meusJogos}?partidaId=${partida.id}` : HOME_NAVIGATION.meusJogos}
                 className="home-dashboard-timeline-item home-dashboard-ultimo-jogo-card"
               >
-                <div className={`home-dashboard-ultimo-jogo-resultado ${classeResultado}`} aria-hidden="true">
-                  {resultado === 'Vitória' ? 'V' : resultado === 'Derrota' ? 'D' : 'P'}
+                <div className="home-dashboard-ultimo-jogo-linha">
+                  <MatchStatusBadge resultado={resultado} classeResultado={classeResultado} />
+                  <span className="home-dashboard-ultimo-jogo-data">
+                    {formatarDataAtividade(partida.dataPartida)}
+                    <FaChevronRight aria-hidden="true" />
+                  </span>
                 </div>
 
-                <div className="home-dashboard-ultimo-jogo-conteudo">
-                  <div className="home-dashboard-ultimo-jogo-topo">
-                    <strong>{tituloPartida}</strong>
-                    <span>{formatarDataAtividade(partida.dataPartida)}</span>
-                  </div>
-
-                  <div className="home-dashboard-ultimo-jogo-placar">
-                    <span>{duplas.suaDupla}</span>
-                    <strong className={semPlacar ? 'sem-placar' : ''}>{placar}</strong>
-                    <span>{duplas.adversarios}</span>
-                  </div>
-
-                  <div className="home-dashboard-ultimo-jogo-meta">
-                    <span>{contexto}</span>
-                    <em className={classeResultado}>{resultado}</em>
-                    <span>{status}</span>
-                  </div>
+                <div className="home-dashboard-ultimo-jogo-contexto">
+                  <strong>{tituloPartida}</strong>
+                  <span>{contexto}</span>
                 </div>
 
-                <FaChevronRight aria-hidden="true" />
+                {placar.temPlacar ? (
+                  <MatchResultScore
+                    duplas={duplas}
+                    placar={placar}
+                    classeResultado={classeResultado}
+                  />
+                ) : (
+                  <MatchResultWinner
+                    duplas={duplas}
+                    resultado={resultado}
+                    classeResultado={classeResultado}
+                  />
+                )}
+
+                <div className="home-dashboard-ultimo-jogo-rodape">
+                  <span>
+                    {status === 'Confirmada' ? <FaCheckCircle aria-hidden="true" /> : <FaClipboardCheck aria-hidden="true" />}
+                    {status}
+                  </span>
+                  <span>
+                    <FaCalendarAlt aria-hidden="true" />
+                    {obterDataHoraAtividade(partida.dataPartida)}
+                  </span>
+                  <span>
+                    <FaUsers aria-hidden="true" />
+                    {totalAtletas} atletas
+                  </span>
+                </div>
               </Link>
             );
           })}
@@ -667,6 +811,83 @@ function HomeUltimoJogo({ ultimasPartidas, erro, atletaId, nomeAtleta }) {
         </div>
       )}
     </section>
+  );
+}
+
+function MatchStatusBadge({ resultado, classeResultado }) {
+  const Icone = resultado === 'Derrota'
+    ? FaTimes
+    : resultado === 'Vitória'
+      ? FaTrophy
+      : FaClipboardCheck;
+
+  return (
+    <span className={`home-dashboard-match-status ${classeResultado}`}>
+      <Icone aria-hidden="true" />
+      {resultado}
+    </span>
+  );
+}
+
+function MatchTeamPreview({ dupla, align = 'start', destaque = false }) {
+  const atletas = Array.isArray(dupla?.atletas) && dupla.atletas.length > 0
+    ? dupla.atletas
+    : criarAtletasPorTexto(dupla?.nome, 'Dupla');
+
+  return (
+    <div className={`home-dashboard-match-team home-dashboard-match-team-${align}${destaque ? ' is-highlighted' : ''}`}>
+      <div className="home-dashboard-match-avatars" aria-hidden="true">
+        {atletas.slice(0, 2).map((atleta, indice) => (
+          <Avatar
+            key={`${atleta.id || atleta.nome || 'atleta'}-${indice}`}
+            name={atleta.nome}
+            src={atleta.fotoPerfilUrl}
+            size="xs"
+            type="athlete"
+            className="home-dashboard-match-avatar"
+          />
+        ))}
+      </div>
+      <span>{dupla?.nome || 'Dupla a definir'}</span>
+    </div>
+  );
+}
+
+function MatchResultScore({ duplas, placar, classeResultado }) {
+  return (
+    <div className="home-dashboard-match-score" role="group" aria-label="Resultado com placar">
+      <MatchTeamPreview dupla={duplas.suaDupla} />
+      <div className={`home-dashboard-match-scoreboard ${classeResultado}`}>
+        <strong>{placar.suaDupla}</strong>
+        <span>x</span>
+        <strong>{placar.adversarios}</strong>
+      </div>
+      <MatchTeamPreview dupla={duplas.adversarios} align="end" />
+    </div>
+  );
+}
+
+function MatchResultWinner({ duplas, resultado, classeResultado }) {
+  const vencedor = resultado === 'Derrota' ? duplas.adversarios : duplas.suaDupla;
+  const derrotado = resultado === 'Derrota' ? duplas.suaDupla : duplas.adversarios;
+  const textoResultado = resultado === 'Vitória' || resultado === 'Derrota'
+    ? 'Vitória sem placar'
+    : 'Resultado por vencedor';
+
+  return (
+    <div className={`home-dashboard-match-winner ${classeResultado}`} role="group" aria-label="Resultado sem placar">
+      <div className="home-dashboard-match-winner-label">
+        <span>{textoResultado}</span>
+        <em>Sem placar</em>
+      </div>
+      <div className="home-dashboard-match-winner-grid">
+        <MatchTeamPreview dupla={vencedor} destaque />
+        <div className="home-dashboard-match-winner-icon" aria-label="Dupla vencedora" role="img">
+          <FaTrophy aria-hidden="true" />
+        </div>
+        <MatchTeamPreview dupla={derrotado} align="end" />
+      </div>
+    </div>
   );
 }
 

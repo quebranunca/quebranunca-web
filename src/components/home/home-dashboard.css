@@ -2696,150 +2696,313 @@
 }
 
 .home-dashboard-ultimo-jogo-card {
-  grid-template-columns: 2.45rem minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 0.62rem;
-  padding: 0.74rem 0.78rem;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: stretch;
+  gap: 0.54rem;
+  padding: 0.72rem 0.76rem;
+  border-left: 3px solid rgba(255, 179, 0, 0.38);
 }
 
-.home-dashboard-ultimo-jogo-resultado {
-  width: 2.35rem;
-  height: 2.35rem;
+.home-dashboard-ultimo-jogo-card:active {
+  transform: translateY(1px) scale(0.995);
+}
+
+.home-dashboard-ultimo-jogo-card:focus-visible {
+  outline: 2px solid rgba(255, 179, 0, 0.72);
+  outline-offset: 3px;
+}
+
+.home-dashboard-ultimo-jogo-card:has(.home-dashboard-match-status.vitoria) {
+  border-left-color: rgba(54, 211, 153, 0.82);
+}
+
+.home-dashboard-ultimo-jogo-card:has(.home-dashboard-match-status.derrota) {
+  border-left-color: rgba(248, 113, 113, 0.82);
+}
+
+.home-dashboard-ultimo-jogo-card:has(.home-dashboard-match-status.empate) {
+  border-left-color: rgba(96, 165, 250, 0.82);
+}
+
+.home-dashboard-ultimo-jogo-linha,
+.home-dashboard-ultimo-jogo-contexto,
+.home-dashboard-ultimo-jogo-rodape {
+  min-width: 0;
+  display: grid;
+}
+
+.home-dashboard-ultimo-jogo-linha {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.52rem;
+}
+
+.home-dashboard-match-status,
+.home-dashboard-ultimo-jogo-data,
+.home-dashboard-ultimo-jogo-contexto strong,
+.home-dashboard-ultimo-jogo-contexto span,
+.home-dashboard-ultimo-jogo-rodape span,
+.home-dashboard-match-team span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-dashboard-match-status {
+  width: fit-content;
+  max-width: 100%;
+  min-height: 1.42rem;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
+  gap: 0.3rem;
+  padding: 0.23rem 0.52rem;
   border-radius: 999px;
-  color: var(--cor-texto);
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 1rem;
+  font-size: 0.66rem;
   font-weight: 950;
+  letter-spacing: 0;
   line-height: 1;
 }
 
-.home-dashboard-ultimo-jogo-resultado.vitoria {
+.home-dashboard-match-status svg {
+  width: 0.64rem;
+  height: 0.64rem;
+  flex: 0 0 auto;
+}
+
+.home-dashboard-match-status.vitoria {
   background: var(--qn-success-soft);
   color: var(--cor-sucesso);
 }
 
-.home-dashboard-ultimo-jogo-resultado.derrota {
+.home-dashboard-match-status.derrota {
   background: var(--qn-danger-soft);
   color: var(--cor-erro);
 }
 
-.home-dashboard-ultimo-jogo-resultado.pendente {
+.home-dashboard-match-status.empate {
+  background: rgba(96, 165, 250, 0.16);
+  color: #93c5fd;
+}
+
+.home-dashboard-match-status.pendente {
   background: rgba(255, 179, 0, 0.13);
   color: var(--cor-primaria);
 }
 
-.home-dashboard-ultimo-jogo-conteudo {
-  min-width: 0;
-  display: grid;
-  gap: 0.36rem;
-}
-
-.home-dashboard-ultimo-jogo-topo,
-.home-dashboard-ultimo-jogo-meta {
-  min-width: 0;
-  display: flex;
+.home-dashboard-ultimo-jogo-data {
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-}
-
-.home-dashboard-ultimo-jogo-topo strong,
-.home-dashboard-ultimo-jogo-topo span,
-.home-dashboard-ultimo-jogo-meta span,
-.home-dashboard-ultimo-jogo-meta em {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.home-dashboard-ultimo-jogo-topo strong {
-  color: var(--cor-texto);
-  font-size: 0.88rem;
-  font-weight: 950;
-  line-height: 1.05;
-}
-
-.home-dashboard-ultimo-jogo-topo span,
-.home-dashboard-ultimo-jogo-meta span {
+  justify-content: flex-end;
+  gap: 0.24rem;
   color: var(--cor-texto-suave);
   font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.home-dashboard-ultimo-jogo-data svg {
+  width: 0.7rem;
+  height: 0.7rem;
+  color: var(--cor-primaria);
+}
+
+.home-dashboard-ultimo-jogo-contexto {
+  gap: 0.08rem;
+}
+
+.home-dashboard-ultimo-jogo-contexto strong {
+  color: var(--cor-texto);
+  font-size: 0.9rem;
+  font-weight: 950;
+  line-height: 1.08;
+}
+
+.home-dashboard-ultimo-jogo-contexto span {
+  color: var(--cor-texto-suave);
+  font-size: 0.66rem;
   font-weight: 800;
 }
 
-.home-dashboard-ultimo-jogo-placar {
+.home-dashboard-match-score {
   min-width: 0;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  gap: 0.46rem;
+  gap: 0.5rem;
+  padding: 0.1rem 0;
 }
 
-.home-dashboard-ultimo-jogo-placar span {
+.home-dashboard-match-team {
+  min-width: 0;
+  display: grid;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.home-dashboard-match-team-end {
+  text-align: right;
+  justify-items: end;
+}
+
+.home-dashboard-match-team span {
+  color: var(--cor-texto);
+  font-size: 0.7rem;
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+.home-dashboard-match-team.is-highlighted span {
+  color: var(--cor-texto);
+}
+
+.home-dashboard-match-avatars {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+.home-dashboard-match-team-end .home-dashboard-match-avatars {
+  justify-content: flex-end;
+}
+
+.home-dashboard-match-avatar {
+  border-color: rgba(255, 179, 0, 0.36);
+  box-shadow: 0 0 0 2px rgba(9, 9, 11, 0.84);
+}
+
+.home-dashboard-match-avatar + .home-dashboard-match-avatar {
+  margin-left: -0.34rem;
+}
+
+.home-dashboard-match-team-end .home-dashboard-match-avatar + .home-dashboard-match-avatar {
+  margin-left: -0.34rem;
+}
+
+.home-dashboard-match-scoreboard {
+  min-width: 4.8rem;
+  display: inline-grid;
+  grid-template-columns: auto auto auto;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.26rem;
+  padding: 0.3rem 0.44rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.home-dashboard-match-scoreboard strong {
+  color: var(--cor-texto);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(1.45rem, 7.6vw, 2rem);
+  font-weight: 950;
+  line-height: 0.92;
+}
+
+.home-dashboard-match-scoreboard span {
+  color: var(--cor-texto-suave);
+  font-size: 0.82rem;
+  font-weight: 950;
+  line-height: 1;
+  transform: translateY(-0.08rem);
+}
+
+.home-dashboard-match-scoreboard.vitoria strong:first-child,
+.home-dashboard-match-scoreboard.derrota strong:last-child {
+  color: var(--cor-sucesso);
+}
+
+.home-dashboard-match-scoreboard.empate strong {
+  color: #93c5fd;
+}
+
+.home-dashboard-match-winner {
+  min-width: 0;
+  display: grid;
+  gap: 0.34rem;
+  padding: 0.42rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.home-dashboard-match-winner-label,
+.home-dashboard-match-winner-grid {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.42rem;
+}
+
+.home-dashboard-match-winner-label span {
   min-width: 0;
   overflow: hidden;
   color: var(--cor-texto);
-  font-size: 0.76rem;
-  font-weight: 860;
-  line-height: 1.08;
+  font-size: 0.68rem;
+  font-weight: 950;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.home-dashboard-ultimo-jogo-placar span:last-child {
-  text-align: right;
-}
-
-.home-dashboard-ultimo-jogo-placar strong {
-  color: var(--cor-texto);
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: clamp(1.08rem, 4.8vw, 1.34rem);
-  font-weight: 950;
-  line-height: 0.96;
-  white-space: nowrap;
-}
-
-.home-dashboard-ultimo-jogo-placar strong.sem-placar {
-  min-height: 1.28rem;
+.home-dashboard-match-winner-label em {
+  min-height: 1.18rem;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  padding: 0.2rem 0.48rem;
+  padding: 0.18rem 0.42rem;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.07);
   color: var(--cor-texto-suave);
-  font-family: inherit;
-  font-size: 0.62rem;
-  font-weight: 900;
-}
-
-.home-dashboard-ultimo-jogo-meta em {
-  min-height: 1.28rem;
-  display: inline-flex;
-  align-items: center;
-  padding: 0.2rem 0.44rem;
-  border-radius: 999px;
-  font-size: 0.64rem;
+  font-size: 0.58rem;
   font-style: normal;
   font-weight: 950;
   line-height: 1;
+  white-space: nowrap;
 }
 
-.home-dashboard-ultimo-jogo-meta em.vitoria {
-  background: var(--qn-success-soft);
-  color: var(--cor-sucesso);
+.home-dashboard-match-winner-grid {
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
 }
 
-.home-dashboard-ultimo-jogo-meta em.derrota {
-  background: var(--qn-danger-soft);
-  color: var(--cor-erro);
+.home-dashboard-match-winner-icon {
+  width: 2.16rem;
+  height: 2.16rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 179, 0, 0.32);
+  border-radius: 999px;
+  background: rgba(255, 179, 0, 0.12);
+  color: var(--cor-primaria);
+  box-shadow: 0 0 18px rgba(255, 179, 0, 0.1);
 }
 
-.home-dashboard-ultimo-jogo-meta em.pendente {
-  background: rgba(255, 179, 0, 0.13);
+.home-dashboard-match-winner-icon svg {
+  width: 0.92rem;
+  height: 0.92rem;
+}
+
+.home-dashboard-ultimo-jogo-rodape {
+  grid-template-columns: repeat(3, minmax(0, auto));
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.38rem;
+  padding-top: 0.08rem;
+}
+
+.home-dashboard-ultimo-jogo-rodape span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.22rem;
+  color: var(--cor-texto-suave);
+  font-size: 0.62rem;
+  font-weight: 820;
+}
+
+.home-dashboard-ultimo-jogo-rodape svg {
+  width: 0.66rem;
+  height: 0.66rem;
+  flex: 0 0 auto;
   color: var(--cor-primaria);
 }
 
@@ -2997,52 +3160,70 @@
   }
 
   .home-dashboard-ultimo-jogo-card {
-    grid-template-columns: 2.06rem minmax(0, 1fr) auto;
     gap: 0.46rem;
     padding: 0.62rem;
   }
 
-  .home-dashboard-ultimo-jogo-resultado {
-    width: 1.96rem;
-    height: 1.96rem;
-    font-size: 0.86rem;
+  .home-dashboard-match-status {
+    min-height: 1.32rem;
+    padding-inline: 0.44rem;
+    font-size: 0.58rem;
   }
 
-  .home-dashboard-ultimo-jogo-conteudo {
-    gap: 0.28rem;
+  .home-dashboard-ultimo-jogo-data {
+    font-size: 0.58rem;
   }
 
-  .home-dashboard-ultimo-jogo-topo strong {
+  .home-dashboard-ultimo-jogo-contexto strong {
     font-size: 0.78rem;
   }
 
-  .home-dashboard-ultimo-jogo-topo span,
-  .home-dashboard-ultimo-jogo-meta span {
+  .home-dashboard-ultimo-jogo-contexto span,
+  .home-dashboard-match-team span {
     font-size: 0.6rem;
   }
 
-  .home-dashboard-ultimo-jogo-placar {
+  .home-dashboard-match-score {
     gap: 0.32rem;
   }
 
-  .home-dashboard-ultimo-jogo-placar span {
-    font-size: 0.66rem;
+  .home-dashboard-match-scoreboard {
+    min-width: 4.16rem;
+    padding: 0.26rem 0.34rem;
+    border-radius: 14px;
   }
 
-  .home-dashboard-ultimo-jogo-placar strong {
-    font-size: 1.02rem;
+  .home-dashboard-match-scoreboard strong {
+    font-size: 1.28rem;
   }
 
-  .home-dashboard-ultimo-jogo-placar strong.sem-placar {
-    min-height: 1.08rem;
-    padding-inline: 0.34rem;
-    font-size: 0.52rem;
+  .home-dashboard-match-scoreboard span {
+    font-size: 0.68rem;
   }
 
-  .home-dashboard-ultimo-jogo-meta em {
-    min-height: 1.12rem;
-    padding-inline: 0.34rem;
+  .home-dashboard-match-winner {
+    gap: 0.28rem;
+    padding: 0.34rem;
+    border-radius: 14px;
+  }
+
+  .home-dashboard-match-winner-label span,
+  .home-dashboard-match-winner-label em,
+  .home-dashboard-ultimo-jogo-rodape span {
     font-size: 0.56rem;
+  }
+
+  .home-dashboard-match-winner-icon {
+    width: 1.84rem;
+    height: 1.84rem;
+  }
+
+  .home-dashboard-ultimo-jogo-rodape {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .home-dashboard-ultimo-jogo-rodape span:nth-child(3) {
+    display: none;
   }
 }
 
