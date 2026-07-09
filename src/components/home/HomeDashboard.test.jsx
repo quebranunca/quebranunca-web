@@ -49,6 +49,15 @@ function criarPartida(overrides = {}) {
     resultado: 'W',
     dataPartida: new Date().toISOString(),
     grupo: 'Grupo Praia',
+    status: 'Encerrada',
+    duplaAAtleta1Id: 'atleta-1',
+    nomeDuplaAAtleta1: 'Primo',
+    duplaAAtleta2Id: 'atleta-2',
+    nomeDuplaAAtleta2: 'Gustavo',
+    duplaBAtleta1Id: 'atleta-3',
+    nomeDuplaBAtleta1: 'Rafa',
+    duplaBAtleta2Id: 'atleta-4',
+    nomeDuplaBAtleta2: 'Leo',
     placarSuaDupla: 21,
     placarAdversarios: 18,
     ...overrides
@@ -233,7 +242,7 @@ describe('HomeDashboard nova experiencia', () => {
     const card = screen.getByRole('region', { name: /Pontos QN/i });
 
     expect(within(card).getAllByText('Pontos QN').length).toBeGreaterThan(0);
-    expect(within(card).getByRole('img', { name: 'Badge nível Bronze' })).toBeInTheDocument();
+    expect(within(card).queryByRole('img', { name: 'Badge nível Bronze' })).not.toBeInTheDocument();
     expect(within(card).getByRole('img', { name: 'Medalha nível Bronze' })).toBeInTheDocument();
     expect(within(card).getByText('Bronze')).toBeInTheDocument();
     expect(within(card).getByText('Nível 1')).toBeInTheDocument();
@@ -293,7 +302,7 @@ describe('HomeDashboard nova experiencia', () => {
     expect(registrar).toHaveClass('home-dashboard-cta-principal');
     expect(criarGrupo).toHaveClass('home-dashboard-cta-secundario');
     expect(screen.getByText('Salve seu jogo e atualize sua evolução.')).toBeInTheDocument();
-    expect(screen.getByText('Crie um grupo e acompanhe ranking, histórico e scouts.')).toBeInTheDocument();
+    expect(screen.getByText('Ranking, histórico e scouts.')).toBeInTheDocument();
 
     await usuario.click(registrar);
     expect(screen.getByTestId('rota-atual')).toHaveTextContent('/partidas/registrar');
@@ -334,10 +343,13 @@ describe('HomeDashboard nova experiencia', () => {
     const ultimoJogo = screen.getByRole('region', { name: /Último jogo/i });
 
     expect(within(ultimoJogo).getByRole('link', { name: /Ver histórico/i })).toBeInTheDocument();
-    expect(within(ultimoJogo).getByText('Grupo Praia')).toBeInTheDocument();
+    expect(within(ultimoJogo).getAllByText('Grupo Praia').length).toBeGreaterThan(0);
     expect(within(ultimoJogo).queryByText('Partida avulsa')).not.toBeInTheDocument();
     expect(within(ultimoJogo).getByText('21 x 18')).toBeInTheDocument();
+    expect(within(ultimoJogo).getByText('Primo / Gustavo')).toBeInTheDocument();
+    expect(within(ultimoJogo).getByText('Rafa / Leo')).toBeInTheDocument();
     expect(within(ultimoJogo).getByText('Vitória')).toBeInTheDocument();
+    expect(within(ultimoJogo).getByText('Confirmada')).toBeInTheDocument();
     expect(within(ultimoJogo).queryByText('Derrota')).not.toBeInTheDocument();
     expect(within(ultimoJogo).queryByText('0 x 0')).not.toBeInTheDocument();
     expect(within(ultimoJogo).queryByText('Placar pendente')).not.toBeInTheDocument();

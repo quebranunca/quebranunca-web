@@ -1,5 +1,5 @@
 .pagina.home-dashboard {
-  --home-gap: clamp(0.68rem, 2.6vw, 0.9rem);
+  --home-gap: clamp(0.92rem, 3.2vw, 1.18rem);
   width: min(100%, 1120px);
   margin: 0 auto;
   padding: 0 0 calc(var(--altura-bottom-nav, 4.7rem) + 1.35rem + env(safe-area-inset-bottom, 0px));
@@ -2422,16 +2422,6 @@
   color: var(--cor-primaria);
 }
 
-.home-dashboard-card-topo > div > .home-dashboard-pontosqn-badge {
-  width: 1.95rem;
-  height: 1.95rem;
-  background: transparent;
-}
-
-.home-dashboard-pontosqn-badge img {
-  filter: drop-shadow(0 4px 10px rgba(255, 179, 0, 0.16));
-}
-
 .home-dashboard-card-topo h2 {
   margin: 0;
   overflow: hidden;
@@ -2468,6 +2458,7 @@
 .home-dashboard-qn-corpo {
   align-items: end;
   justify-content: flex-start;
+  gap: 0.78rem;
 }
 
 .home-dashboard-qn-nivel,
@@ -2478,7 +2469,7 @@
 }
 
 .home-dashboard-qn-medalha {
-  --medalha-nivel-size: clamp(3.4rem, 15vw, 4.5rem);
+  --medalha-nivel-size: clamp(3.9rem, 17.25vw, 5.18rem);
 }
 
 .home-dashboard-qn-nivel {
@@ -2494,7 +2485,7 @@
 }
 
 .home-dashboard-qn-nivel strong {
-  font-size: clamp(1.34rem, 6.2vw, 2rem);
+  font-size: clamp(1.14rem, 5.3vw, 1.7rem);
 }
 
 .home-dashboard-qn-nivel span {
@@ -2532,7 +2523,11 @@
 }
 
 .home-dashboard-qn-progresso-linha {
-  gap: 0.34rem;
+  gap: 0.46rem;
+}
+
+.home-dashboard-qn-progresso {
+  height: 0.58rem;
 }
 
 .home-dashboard-qn-progresso-linha > div:last-child {
@@ -2592,6 +2587,10 @@
 
 .home-dashboard-desempenho-card .home-dashboard-desempenho-grid {
   margin-top: -0.1rem;
+}
+
+.home-dashboard-desempenho-card .home-dashboard-desempenho-item strong {
+  font-size: clamp(1.18rem, 5.6vw, 1.72rem);
 }
 
 .home-dashboard-vazio-compacto {
@@ -2659,6 +2658,15 @@
   min-height: 5.2rem;
 }
 
+.home-dashboard-acoes-principais .home-dashboard-cta-principal {
+  gap: 0.72rem;
+}
+
+.home-dashboard-acoes-principais .home-dashboard-cta-principal .home-dashboard-cta-icone svg {
+  width: 1.35rem;
+  height: 1.35rem;
+}
+
 .home-dashboard-acoes-principais .home-dashboard-cta-secundario {
   grid-template-columns: auto minmax(0, 1fr);
   gap: 0.34rem;
@@ -2684,7 +2692,155 @@
   overflow: hidden;
   font-size: 0.66rem;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 2;
+}
+
+.home-dashboard-ultimo-jogo-card {
+  grid-template-columns: 2.45rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.62rem;
+  padding: 0.74rem 0.78rem;
+}
+
+.home-dashboard-ultimo-jogo-resultado {
+  width: 2.35rem;
+  height: 2.35rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  color: var(--cor-texto);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1rem;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.home-dashboard-ultimo-jogo-resultado.vitoria {
+  background: var(--qn-success-soft);
+  color: var(--cor-sucesso);
+}
+
+.home-dashboard-ultimo-jogo-resultado.derrota {
+  background: var(--qn-danger-soft);
+  color: var(--cor-erro);
+}
+
+.home-dashboard-ultimo-jogo-resultado.pendente {
+  background: rgba(255, 179, 0, 0.13);
+  color: var(--cor-primaria);
+}
+
+.home-dashboard-ultimo-jogo-conteudo {
+  min-width: 0;
+  display: grid;
+  gap: 0.36rem;
+}
+
+.home-dashboard-ultimo-jogo-topo,
+.home-dashboard-ultimo-jogo-meta {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.home-dashboard-ultimo-jogo-topo strong,
+.home-dashboard-ultimo-jogo-topo span,
+.home-dashboard-ultimo-jogo-meta span,
+.home-dashboard-ultimo-jogo-meta em {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-dashboard-ultimo-jogo-topo strong {
+  color: var(--cor-texto);
+  font-size: 0.88rem;
+  font-weight: 950;
+  line-height: 1.05;
+}
+
+.home-dashboard-ultimo-jogo-topo span,
+.home-dashboard-ultimo-jogo-meta span {
+  color: var(--cor-texto-suave);
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.home-dashboard-ultimo-jogo-placar {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.46rem;
+}
+
+.home-dashboard-ultimo-jogo-placar span {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--cor-texto);
+  font-size: 0.76rem;
+  font-weight: 860;
+  line-height: 1.08;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-dashboard-ultimo-jogo-placar span:last-child {
+  text-align: right;
+}
+
+.home-dashboard-ultimo-jogo-placar strong {
+  color: var(--cor-texto);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(1.08rem, 4.8vw, 1.34rem);
+  font-weight: 950;
+  line-height: 0.96;
+  white-space: nowrap;
+}
+
+.home-dashboard-ultimo-jogo-placar strong.sem-placar {
+  min-height: 1.28rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.2rem 0.48rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--cor-texto-suave);
+  font-family: inherit;
+  font-size: 0.62rem;
+  font-weight: 900;
+}
+
+.home-dashboard-ultimo-jogo-meta em {
+  min-height: 1.28rem;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.44rem;
+  border-radius: 999px;
+  font-size: 0.64rem;
+  font-style: normal;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.home-dashboard-ultimo-jogo-meta em.vitoria {
+  background: var(--qn-success-soft);
+  color: var(--cor-sucesso);
+}
+
+.home-dashboard-ultimo-jogo-meta em.derrota {
+  background: var(--qn-danger-soft);
+  color: var(--cor-erro);
+}
+
+.home-dashboard-ultimo-jogo-meta em.pendente {
+  background: rgba(255, 179, 0, 0.13);
+  color: var(--cor-primaria);
 }
 
 @media (max-width: 520px) {
@@ -2710,11 +2866,6 @@
     border-radius: 11px;
   }
 
-  .home-dashboard-card-topo > div > .home-dashboard-pontosqn-badge {
-    width: 1.72rem;
-    height: 1.72rem;
-  }
-
   .home-dashboard-card-topo h2 {
     font-size: 0.96rem;
   }
@@ -2726,11 +2877,11 @@
   }
 
   .home-dashboard-qn-nivel strong {
-    font-size: 1.2rem;
+    font-size: 1.02rem;
   }
 
   .home-dashboard-qn-medalha {
-    --medalha-nivel-size: 3.15rem;
+    --medalha-nivel-size: 3.62rem;
   }
 
   .home-dashboard-qn-saldo strong {
@@ -2738,7 +2889,11 @@
   }
 
   .home-dashboard-qn-progresso-linha {
-    gap: 0.2rem;
+    gap: 0.32rem;
+  }
+
+  .home-dashboard-qn-progresso {
+    height: 0.52rem;
   }
 
   .home-dashboard-qn-progresso-linha > div:last-child {
@@ -2805,6 +2960,7 @@
 
   .home-dashboard-acoes-principais .home-dashboard-cta-principal {
     grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 0.66rem;
   }
 
   .home-dashboard-acoes-principais .home-dashboard-cta-secundario {
@@ -2818,6 +2974,11 @@
     height: 2.08rem;
   }
 
+  .home-dashboard-acoes-principais .home-dashboard-cta-principal .home-dashboard-cta-icone svg {
+    width: 1.34rem;
+    height: 1.34rem;
+  }
+
   .home-dashboard-acoes-principais .home-dashboard-cta-secundario .home-dashboard-cta-icone {
     width: 1.52rem;
     height: 1.52rem;
@@ -2829,6 +2990,59 @@
 
   .home-dashboard-acoes-principais .home-dashboard-cta small {
     font-size: 0.58rem;
+  }
+
+  .home-dashboard-desempenho-card .home-dashboard-desempenho-item strong {
+    font-size: 1.14rem;
+  }
+
+  .home-dashboard-ultimo-jogo-card {
+    grid-template-columns: 2.06rem minmax(0, 1fr) auto;
+    gap: 0.46rem;
+    padding: 0.62rem;
+  }
+
+  .home-dashboard-ultimo-jogo-resultado {
+    width: 1.96rem;
+    height: 1.96rem;
+    font-size: 0.86rem;
+  }
+
+  .home-dashboard-ultimo-jogo-conteudo {
+    gap: 0.28rem;
+  }
+
+  .home-dashboard-ultimo-jogo-topo strong {
+    font-size: 0.78rem;
+  }
+
+  .home-dashboard-ultimo-jogo-topo span,
+  .home-dashboard-ultimo-jogo-meta span {
+    font-size: 0.6rem;
+  }
+
+  .home-dashboard-ultimo-jogo-placar {
+    gap: 0.32rem;
+  }
+
+  .home-dashboard-ultimo-jogo-placar span {
+    font-size: 0.66rem;
+  }
+
+  .home-dashboard-ultimo-jogo-placar strong {
+    font-size: 1.02rem;
+  }
+
+  .home-dashboard-ultimo-jogo-placar strong.sem-placar {
+    min-height: 1.08rem;
+    padding-inline: 0.34rem;
+    font-size: 0.52rem;
+  }
+
+  .home-dashboard-ultimo-jogo-meta em {
+    min-height: 1.12rem;
+    padding-inline: 0.34rem;
+    font-size: 0.56rem;
   }
 }
 

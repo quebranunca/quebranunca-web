@@ -17,7 +17,6 @@ import { useAutenticacao } from '../../hooks/useAutenticacao';
 import { obterNomeGrupoPartidaExibicao } from '../../utils/partidas';
 import { formatarData } from '../../utils/formatacao';
 import { MedalhaNivel } from '../gamificacao/MedalhaNivel';
-import { Avatar } from '../ui/Avatar';
 import { HomeSectionType, homeSectionsConfig } from './homeSectionsConfig';
 
 const HOME_NAVIGATION = Object.freeze({
@@ -137,31 +136,119 @@ function formatarDataHoraCurta(data) {
 }
 
 function obterResultadoPartida(partida) {
-  if (partida?.resultado === 'W') {
+  const resultado = String(partida?.resultado || '').trim();
+  const resultadoNormalizado = resultado
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+
+  if (resultado === 'W' || resultadoNormalizado === 'vitoria') {
     return 'Vitória';
   }
 
-  if (partida?.resultado === 'L') {
+  if (partida?.resultado === 'L' || resultadoNormalizado === 'derrota') {
     return 'Derrota';
   }
 
-  return partida?.resultado || 'Pendente';
+  return resultado || 'Pendente';
 }
 
 function obterPlacarPartida(partida) {
-  const placarSuaDupla = partida?.placarSuaDupla;
-  const placarAdversarios = partida?.placarAdversarios;
+  const placarSuaDuplaValor = partida?.placarSuaDupla;
+  const placarAdversariosValor = partida?.placarAdversarios;
 
   if (
-    placarSuaDupla === null ||
-    placarSuaDupla === undefined ||
-    placarAdversarios === null ||
-    placarAdversarios === undefined
+    placarSuaDuplaValor === null ||
+    placarSuaDuplaValor === undefined ||
+    placarAdversariosValor === null ||
+    placarAdversariosValor === undefined
   ) {
-    return 'Placar pendente';
+    return 'Sem placar';
+  }
+
+  const placarSuaDupla = Number(partida?.placarSuaDupla);
+  const placarAdversarios = Number(partida?.placarAdversarios);
+
+  if (
+    !Number.isFinite(placarSuaDupla) ||
+    !Number.isFinite(placarAdversarios) ||
+    (placarSuaDupla === 0 && placarAdversarios === 0)
+  ) {
+    return 'Sem placar';
   }
 
   return `${placarSuaDupla} x ${placarAdversarios}`;
+}
+
+function obterStatusPartida(partida) {
+  const status = obterTextoLimpo(partida?.statusTexto, partida?.statusAprovacaoTexto, partida?.status);
+  const statusNormalizado = status
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+
+  if (!status) {
+    return 'Confirmada';
+  }
+
+  if (statusNormalizado.includes('encerr') || statusNormalizado.includes('aprov') || statusNormalizado.includes('confirm')) {
+    return 'Confirmada';
+  }
+
+  if (statusNormalizado.includes('pend') || statusNormalizado.includes('aguard')) {
+    return 'Aguardando confirmação';
+  }
+
+  return status;
+}
+
+function formatarTextoDupla(valor) {
+  return obterTextoLimpo(valor)
+    .replace(/\s+e\s+/gi, ' / ')
+    .replace(/\s*\/\s*/g, ' / ');
+}
+
+function formatarNomesDupla(nomes, fallback) {
+  const nomesLimpos = nomes.map((nome) => obterTextoLimpo(nome)).filter(Boolean);
+
+  if (nomesLimpos.length > 0) {
+    return nomesLimpos.join(' / ');
+  }
+
+  return formatarTextoDupla(fallback) || 'Dupla a definir';
+}
+
+function obterDuplasUltimoJogo(partida, atletaId, nomeAtleta) {
+  const duplaA = [partida?.nomeDuplaAAtleta1, partida?.nomeDuplaAAtleta2].filter(Boolean);
+  const duplaB = [partida?.nomeDuplaBAtleta1, partida?.nomeDuplaBAtleta2].filter(Boolean);
+  const atletaIdTexto = obterTextoLimpo(atletaId);
+  const atletaEstaNaDuplaA = atletaIdTexto && [
+    partida?.duplaAAtleta1Id,
+    partida?.duplaAAtleta2Id
+  ].map((id) => obterTextoLimpo(id)).includes(atletaIdTexto);
+  const atletaEstaNaDuplaB = atletaIdTexto && [
+    partida?.duplaBAtleta1Id,
+    partida?.duplaBAtleta2Id
+  ].map((id) => obterTextoLimpo(id)).includes(atletaIdTexto);
+
+  if (atletaEstaNaDuplaA || atletaEstaNaDuplaB) {
+    return {
+      suaDupla: formatarNomesDupla(atletaEstaNaDuplaA ? duplaA : duplaB, 'Sua dupla'),
+      adversarios: formatarNomesDupla(atletaEstaNaDuplaA ? duplaB : duplaA, 'Adversários')
+    };
+  }
+
+  if (duplaA.length > 0 || duplaB.length > 0) {
+    return {
+      suaDupla: formatarNomesDupla(duplaA, 'Sua dupla'),
+      adversarios: formatarNomesDupla(duplaB, 'Adversários')
+    };
+  }
+
+  return {
+    suaDupla: formatarNomesDupla([nomeAtleta, partida?.parceiro], 'Sua dupla'),
+    adversarios: formatarNomesDupla([], partida?.adversarios || 'Adversários')
+  };
 }
 
 function HomeEstado({ titulo, mensagem }) {
@@ -281,6 +368,8 @@ export function HomeDashboard({
       <HomeUltimoJogo
         ultimasPartidas={ultimasPartidas}
         erro={ultimasPartidasModulo.erro}
+        atletaId={usuario?.atletaId || perfil.atletaId}
+        nomeAtleta={obterTextoLimpo(perfil.apelido, usuario?.apelido, perfil.nome, usuario?.nome)}
       />
     )
   };
@@ -383,12 +472,6 @@ function HomePontosQNCard({ gamificacaoModulo }) {
     <section className="home-dashboard-pontosqn-card" aria-labelledby="home-pontosqn-titulo">
       <div className="home-dashboard-card-topo">
         <div>
-          <MedalhaNivel
-            nivel={nivelNome}
-            variant="badge"
-            size="sm"
-            className="home-dashboard-pontosqn-badge"
-          />
           <h2 id="home-pontosqn-titulo">Pontos QN</h2>
         </div>
         <Link to={HOME_NAVIGATION.pontosQN} className="home-dashboard-card-link">
@@ -489,7 +572,7 @@ function HomeAcoesPrincipais() {
         to={HOME_NAVIGATION.grupos}
         icone={FaUsers}
         titulo="Criar grupo"
-        descricao="Crie um grupo e acompanhe ranking, histórico e scouts."
+        descricao="Ranking, histórico e scouts."
         variante="secundario"
       />
     </section>
@@ -509,7 +592,7 @@ function HomeAcaoPrincipal({ to, icone: Icone, titulo, descricao, variante = 'pr
   );
 }
 
-function HomeUltimoJogo({ ultimasPartidas, erro }) {
+function HomeUltimoJogo({ ultimasPartidas, erro, atletaId, nomeAtleta }) {
   return (
     <section className="home-dashboard-atividade" aria-labelledby="home-ultimo-jogo-titulo">
       <div className="home-dashboard-section-title home-dashboard-section-title-com-acao">
@@ -526,35 +609,51 @@ function HomeUltimoJogo({ ultimasPartidas, erro }) {
         <div className="home-dashboard-timeline">
           {ultimasPartidas.map((partida) => {
             const resultado = obterResultadoPartida(partida);
-            const vitoria = resultado === 'Vitória';
+            const classeResultado = resultado === 'Vitória'
+              ? 'vitoria'
+              : resultado === 'Derrota'
+                ? 'derrota'
+                : 'pendente';
             const contexto = [
               obterNomeGrupoPartidaExibicao(partida.grupo, ''),
               partida.categoria,
               partida.competicao
             ].filter(Boolean)[0] || 'Partida avulsa';
             const placar = obterPlacarPartida(partida);
+            const semPlacar = placar === 'Sem placar';
+            const status = obterStatusPartida(partida);
+            const duplas = obterDuplasUltimoJogo(partida, atletaId, nomeAtleta);
+            const tituloPartida = obterTextoLimpo(partida.nome, partida.titulo, partida.nomePartida, contexto);
 
             return (
               <Link
                 key={partida.id}
                 to={partida.id ? `${HOME_NAVIGATION.meusJogos}?partidaId=${partida.id}` : HOME_NAVIGATION.meusJogos}
-                className="home-dashboard-timeline-item"
+                className="home-dashboard-timeline-item home-dashboard-ultimo-jogo-card"
               >
-                <Avatar
-                  name={contexto}
-                  size="sm"
-                  type="group"
-                  className="home-dashboard-jogo-avatar"
-                  title={contexto}
-                />
-                <div className="home-dashboard-timeline-conteudo">
-                  <div>
-                    <strong>{contexto}</strong>
+                <div className={`home-dashboard-ultimo-jogo-resultado ${classeResultado}`} aria-hidden="true">
+                  {resultado === 'Vitória' ? 'V' : resultado === 'Derrota' ? 'D' : 'P'}
+                </div>
+
+                <div className="home-dashboard-ultimo-jogo-conteudo">
+                  <div className="home-dashboard-ultimo-jogo-topo">
+                    <strong>{tituloPartida}</strong>
                     <span>{formatarDataAtividade(partida.dataPartida)}</span>
                   </div>
+
+                  <div className="home-dashboard-ultimo-jogo-placar">
+                    <span>{duplas.suaDupla}</span>
+                    <strong className={semPlacar ? 'sem-placar' : ''}>{placar}</strong>
+                    <span>{duplas.adversarios}</span>
+                  </div>
+
+                  <div className="home-dashboard-ultimo-jogo-meta">
+                    <span>{contexto}</span>
+                    <em className={classeResultado}>{resultado}</em>
+                    <span>{status}</span>
+                  </div>
                 </div>
-                <em className={vitoria ? 'vitoria' : 'derrota'}>{resultado}</em>
-                {placar !== 'Placar pendente' && <strong className="home-dashboard-jogo-placar">{placar}</strong>}
+
                 <FaChevronRight aria-hidden="true" />
               </Link>
             );
