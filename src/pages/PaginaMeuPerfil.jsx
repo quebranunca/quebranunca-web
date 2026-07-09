@@ -91,6 +91,8 @@ const estadoInicialMedidas = {
   biquini: ''
 };
 
+const camposMedidas = ['camiseta', 'regata', 'short', 'sunga', 'top', 'biquini'];
+
 const abasPerfil = [
   { id: 'resumo', rotulo: 'Resumo', icone: FaChartLine },
   { id: 'perfil', rotulo: 'Perfil', icone: FaRegUser },
@@ -513,6 +515,26 @@ function normalizarMedidasParaSexo(medidas, sexo) {
   };
 }
 
+function normalizarValorMedida(valor) {
+  return String(valor || '').trim();
+}
+
+function normalizarMedidasParaComparacao(medidas, sexo) {
+  const medidasNormalizadas = normalizarMedidasParaSexo(medidas || estadoInicialMedidas, sexo);
+
+  return camposMedidas.reduce((resultado, campo) => ({
+    ...resultado,
+    [campo]: normalizarValorMedida(medidasNormalizadas[campo])
+  }), {});
+}
+
+function medidasSaoIguais(medidasAtuais, medidasSalvas, sexo) {
+  const atuais = normalizarMedidasParaComparacao(medidasAtuais, sexo);
+  const salvas = normalizarMedidasParaComparacao(medidasSalvas, sexo);
+
+  return camposMedidas.every((campo) => atuais[campo] === salvas[campo]);
+}
+
 function obterLocalizacaoCompacta(atleta) {
   const partes = [atleta.estado, atleta.cidade, atleta.bairro]
     .map((valor) => String(valor || '').trim())
@@ -715,6 +737,7 @@ export function PaginaMeuPerfil() {
   const [formularioUsuario, setFormularioUsuario] = useState({ nome: '' });
   const [formularioAtleta, setFormularioAtleta] = useState(estadoInicialAtleta);
   const [formularioMedidas, setFormularioMedidas] = useState(estadoInicialMedidas);
+  const [medidasSalvas, setMedidasSalvas] = useState(estadoInicialMedidas);
   const [dashboardAtleta, setDashboardAtleta] = useState(null);
   const [abaAtiva, setAbaAtiva] = useState('resumo');
   const [editandoPerfil, setEditandoPerfil] = useState(false);
@@ -830,6 +853,7 @@ export function PaginaMeuPerfil() {
         setUsuarioDetalhe(null);
         setFormularioAtleta(estadoInicialAtleta);
         setFormularioMedidas(estadoInicialMedidas);
+        setMedidasSalvas(estadoInicialMedidas);
         return;
       }
 
@@ -841,8 +865,10 @@ export function PaginaMeuPerfil() {
       if (dadosUsuario.atletaId) {
         const atleta = await atletasServico.obterMeu();
         if (atleta) {
+          const medidasAtleta = criarEstadoMedidas(atleta.medidas);
           preencherFormularioAtleta(atleta, dadosUsuario);
-          setFormularioMedidas(criarEstadoMedidas(atleta.medidas));
+          setFormularioMedidas(medidasAtleta);
+          setMedidasSalvas(medidasAtleta);
           proximoUsuarioDetalhe = {
             ...dadosUsuario,
             atleta: criarResumoAtleta(atleta)
@@ -857,11 +883,13 @@ export function PaginaMeuPerfil() {
           atualizarUsuarioLocal(proximoUsuarioDetalhe);
           setFormularioAtleta(criarEstadoInicialAtleta(dadosUsuario));
           setFormularioMedidas(estadoInicialMedidas);
+          setMedidasSalvas(estadoInicialMedidas);
           setErro('Atleta vinculado não encontrado. Você pode criar novamente seu atleta pelo perfil.');
         }
       } else {
         setFormularioAtleta(criarEstadoInicialAtleta(dadosUsuario));
         setFormularioMedidas(estadoInicialMedidas);
+        setMedidasSalvas(estadoInicialMedidas);
       }
 
       setUsuarioDetalhe(proximoUsuarioDetalhe);
@@ -1237,6 +1265,10 @@ export function PaginaMeuPerfil() {
 
   async function salvarMedidas(evento) {
     evento?.preventDefault();
+    if (!medidasAlteradas) {
+      return;
+    }
+
     if (!possuiAtleta) {
       showNotification({
         type: 'warning',
@@ -1248,10 +1280,19 @@ export function PaginaMeuPerfil() {
 
     setSalvandoMedidas(true);
     try {
-      const medidas = await atletasServico.salvarMinhasMedidas(
-        normalizarMedidasParaSexo(formularioMedidas, formularioAtleta.sexo)
-      );
-      setFormularioMedidas(criarEstadoMedidas(medidas));
+      const payload = normalizarMedidasParaSexo(formularioMedidas, formularioAtleta.sexo);
+      const medidas = await atletasServico.salvarMinhasMedidas(payload);
+      const proximasMedidas = criarEstadoMedidas(medidas);
+      setFormularioMedidas(proximasMedidas);
+      setMedidasSalvas(proximasMedidas);
+      setUsuarioDetalhe((anterior) => anterior
+        ? {
+            ...anterior,
+            atleta: anterior.atleta
+              ? { ...anterior.atleta, medidas: proximasMedidas }
+              : anterior.atleta
+          }
+        : anterior);
       showNotification({
         type: 'success',
         title: 'Medidas salvas',
@@ -1369,6 +1410,7 @@ export function PaginaMeuPerfil() {
   const usuarioEhAtleta = Number(usuarioDetalhe?.perfil || usuario?.perfil) === PERFIS_USUARIO.atleta;
   const usuarioEhAdministrador = Number(usuarioDetalhe?.perfil || usuario?.perfil) === PERFIS_USUARIO.administrador;
   const possuiAtleta = Boolean(usuarioDetalhe?.atletaId);
+  const medidasAlteradas = !medidasSaoIguais(formularioMedidas, medidasSalvas, formularioAtleta.sexo);
   const statusPerfil = obterStatusPerfil(usuarioDetalhe, formularioAtleta);
   const resumoDashboard = dashboardAtleta?.resumo || {};
   const perfilDashboard = dashboardAtleta?.perfil || {};
@@ -1828,7 +1870,7 @@ export function PaginaMeuPerfil() {
                 <select
                   value={formularioMedidas.camiseta}
                   onChange={(evento) => atualizarCampoMedida('camiseta', evento.target.value)}
-                  disabled={!possuiAtleta}
+                  onFocus={scrollFocusedInputIntoView}
                 >
                   <option value="">Não informado</option>
                   {tamanhosRoupa.map((tamanho) => <option key={tamanho} value={tamanho}>{tamanho}</option>)}
@@ -1839,7 +1881,7 @@ export function PaginaMeuPerfil() {
                 <select
                   value={formularioMedidas.regata}
                   onChange={(evento) => atualizarCampoMedida('regata', evento.target.value)}
-                  disabled={!possuiAtleta}
+                  onFocus={scrollFocusedInputIntoView}
                 >
                   <option value="">Não informado</option>
                   {tamanhosRoupa.map((tamanho) => <option key={tamanho} value={tamanho}>{tamanho}</option>)}
@@ -1850,7 +1892,7 @@ export function PaginaMeuPerfil() {
                 <select
                   value={formularioMedidas.short}
                   onChange={(evento) => atualizarCampoMedida('short', evento.target.value)}
-                  disabled={!possuiAtleta}
+                  onFocus={scrollFocusedInputIntoView}
                 >
                   <option value="">Não informado</option>
                   {tamanhosShort.map((tamanho) => <option key={tamanho} value={tamanho}>{tamanho}</option>)}
@@ -1862,7 +1904,7 @@ export function PaginaMeuPerfil() {
                   <select
                     value={formularioMedidas.sunga}
                     onChange={(evento) => atualizarCampoMedida('sunga', evento.target.value)}
-                    disabled={!possuiAtleta}
+                    onFocus={scrollFocusedInputIntoView}
                   >
                     <option value="">Não informado</option>
                     {tamanhosRoupa.map((tamanho) => <option key={tamanho} value={tamanho}>{tamanho}</option>)}
@@ -1876,7 +1918,7 @@ export function PaginaMeuPerfil() {
                     <select
                       value={formularioMedidas.top}
                       onChange={(evento) => atualizarCampoMedida('top', evento.target.value)}
-                      disabled={!possuiAtleta}
+                      onFocus={scrollFocusedInputIntoView}
                     >
                       <option value="">Não informado</option>
                       {tamanhosRoupa.map((tamanho) => <option key={tamanho} value={tamanho}>{tamanho}</option>)}
@@ -1887,7 +1929,7 @@ export function PaginaMeuPerfil() {
                     <select
                       value={formularioMedidas.biquini}
                       onChange={(evento) => atualizarCampoMedida('biquini', evento.target.value)}
-                      disabled={!possuiAtleta}
+                      onFocus={scrollFocusedInputIntoView}
                     >
                       <option value="">Não informado</option>
                       {tamanhosRoupa.map((tamanho) => <option key={tamanho} value={tamanho}>{tamanho}</option>)}
@@ -1898,13 +1940,19 @@ export function PaginaMeuPerfil() {
 
               {!formularioAtleta.sexo && (
                 <p className="perfil-texto-auxiliar perfil-campo-largo">
-                  Informe o sexo/gênero no perfil do atleta para exibir os campos específicos de uniforme.
+                  Você pode informar os tamanhos básicos agora. Ao preencher sexo/gênero, exibiremos opções específicas de uniforme quando necessário.
+                </p>
+              )}
+
+              {!possuiAtleta && (
+                <p className="perfil-texto-auxiliar perfil-campo-largo">
+                  Salve o perfil do atleta para gravar as medidas.
                 </p>
               )}
             </div>
 
             <div className="perfil-acoes-edicao">
-              <button type="submit" className="botao-primario" disabled={salvandoMedidas || !possuiAtleta}>
+              <button type="submit" className="botao-primario" disabled={salvandoMedidas || !medidasAlteradas}>
                 {salvandoMedidas ? 'Salvando...' : 'Salvar medidas'}
               </button>
             </div>
