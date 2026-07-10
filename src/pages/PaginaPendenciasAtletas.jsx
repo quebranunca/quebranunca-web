@@ -5,6 +5,7 @@ import { EmailDomainSuggestions } from '../components/formularios/EmailDomainSug
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { atletasServico } from '../services/atletasServico';
 import { gruposServico } from '../services/gruposServico';
+import { partidasServico } from '../services/partidasServico';
 import { pendenciasServico } from '../services/pendenciasServico';
 import { extrairMensagemErro } from '../utils/erros';
 import { formatarDataHora } from '../utils/formatacao';
@@ -18,7 +19,8 @@ import { useNotification } from '../contexts/NotificationContext';
 const TIPOS_PENDENCIA = {
   aprovarPartida: 1,
   completarContato: 2,
-  confirmarParticipacaoPartida: 3
+  confirmarParticipacaoPartida: 3,
+  responderCancelamentoPartida: 4
 };
 
 const STATUS_APROVACAO = {
@@ -114,7 +116,8 @@ function obterPrioridade(item) {
     return Number(item.prioridade);
   }
 
-  return item?.tipo === TIPOS_PENDENCIA.aprovarPartida
+  return item?.tipo === TIPOS_PENDENCIA.aprovarPartida ||
+    item?.tipo === TIPOS_PENDENCIA.responderCancelamentoPartida
     ? PRIORIDADES.alta
     : PRIORIDADES.media;
 }
@@ -155,6 +158,10 @@ function obterContextoPartida(item) {
 
 function ehPendenciaConfirmacaoParticipacao(item) {
   return item?.tipo === TIPOS_PENDENCIA.confirmarParticipacaoPartida;
+}
+
+function ehPendenciaCancelamentoPartida(item) {
+  return item?.tipo === TIPOS_PENDENCIA.responderCancelamentoPartida;
 }
 
 function PendenciasCabecalho({ metricas }) {
@@ -324,6 +331,86 @@ function PendenciaPartidaCard({ item, expandida, onExpandir, processando, onResp
             >
               {processando ? 'Processando...' : confirmacaoParticipacao ? 'Não reconheço' : 'Recusar resultado'}
             </button>
+          </div>
+        </section>
+      )}
+    </article>
+  );
+}
+
+function PendenciaCancelamentoPartidaCard({ item, expandida, onExpandir, processando, onResponderCancelamento }) {
+  const prioridade = obterApresentacaoPrioridade(item);
+  const detalhesId = `pendencia-detalhes-${item.id}`;
+  const linkPartida = item.partidaId ? `/minhas-partidas?partidaId=${item.partidaId}` : '/minhas-partidas?filtro=pendentes';
+
+  return (
+    <article className={`pendencia-card pendencia-partida-card prioridade-${prioridade.classe}${expandida ? ' expandida' : ''}`}>
+      <div className="pendencia-card-topo">
+        <div className="pendencia-card-conteudo">
+          <span>{prioridade.rotulo} · Cancelamento</span>
+          <h3>Solicitação de cancelamento</h3>
+          <p>Revise o pedido de cancelamento desta partida.</p>
+          <small>{obterContextoPartida(item)} · {formatarDataHora(item.dataPartida || item.dataCriacao)}</small>
+        </div>
+        <PendenciaStatusBadge tipo="alerta">
+          Aguardando resposta
+        </PendenciaStatusBadge>
+      </div>
+
+      <div className="pendencia-card-atalho">
+        <button
+          type="button"
+          className="botao-primario"
+          aria-expanded={expandida}
+          aria-controls={detalhesId}
+          onClick={() => onExpandir(item.id)}
+          disabled={processando}
+        >
+          {expandida ? 'Fechar' : 'Revisar'}
+          <FaChevronDown className={expandida ? 'girado' : ''} aria-hidden="true" />
+        </button>
+      </div>
+
+      {expandida && (
+        <section id={detalhesId} className="pendencia-expandido">
+          <div className="pendencia-partida-placar">
+            <div>
+              <span>Dupla 1</span>
+              <strong>{obterDupla(item, 'A')}</strong>
+              <b>{item.placarDuplaA ?? '-'}</b>
+            </div>
+            <div>
+              <span>Dupla 2</span>
+              <strong>{obterDupla(item, 'B')}</strong>
+              <b>{item.placarDuplaB ?? '-'}</b>
+            </div>
+          </div>
+
+          <p className="pendencia-vinculo-partida">
+            <FaGamepad aria-hidden="true" />
+            <span>A partida só será cancelada se um atleta adversário aprovar.</span>
+          </p>
+
+          <div className="pendencia-card-acoes">
+            <button
+              type="button"
+              className="botao-secundario"
+              onClick={() => onResponderCancelamento(item, 'aprovar')}
+              disabled={processando || !item.solicitacaoCancelamentoPartidaId}
+            >
+              {processando ? 'Processando...' : 'Aprovar cancelamento'}
+            </button>
+            <button
+              type="button"
+              className="botao-terciario"
+              onClick={() => onResponderCancelamento(item, 'recusar')}
+              disabled={processando || !item.solicitacaoCancelamentoPartidaId}
+            >
+              {processando ? 'Processando...' : 'Recusar'}
+            </button>
+            <Link to={linkPartida} className="botao-secundario">
+              Ver solicitação
+            </Link>
           </div>
         </section>
       )}
@@ -590,7 +677,8 @@ export function PaginaPendenciasAtletas() {
     const pendenciasAcionaveis = pendencias.filter(pendenciaExigeAcao);
     const validacoes = pendenciasAcionaveis.filter((item) =>
       item.tipo === TIPOS_PENDENCIA.aprovarPartida ||
-      item.tipo === TIPOS_PENDENCIA.confirmarParticipacaoPartida
+      item.tipo === TIPOS_PENDENCIA.confirmarParticipacaoPartida ||
+      item.tipo === TIPOS_PENDENCIA.responderCancelamentoPartida
     ).length;
     const vinculos = pendenciasAcionaveis.filter((item) => item.tipo === TIPOS_PENDENCIA.completarContato).length;
     const importantes = pendenciasAcionaveis.filter((item) => obterPrioridade(item) === PRIORIDADES.alta).length;
@@ -618,7 +706,8 @@ export function PaginaPendenciasAtletas() {
     if (filtroAtivo === 'partidas') {
       return pendencias.filter((item) =>
         item.tipo === TIPOS_PENDENCIA.aprovarPartida ||
-        item.tipo === TIPOS_PENDENCIA.confirmarParticipacaoPartida
+        item.tipo === TIPOS_PENDENCIA.confirmarParticipacaoPartida ||
+        item.tipo === TIPOS_PENDENCIA.responderCancelamentoPartida
       );
     }
 
@@ -855,6 +944,48 @@ export function PaginaPendenciasAtletas() {
     }
   }
 
+  async function responderCancelamentoPartida(item, acao) {
+    if (!item?.partidaId || !item?.solicitacaoCancelamentoPartidaId) {
+      showNotification({
+        type: 'error',
+        title: 'Não foi possível abrir a solicitação',
+        message: 'A pendência não possui uma solicitação de cancelamento vinculada.'
+      });
+      return;
+    }
+
+    setProcessandoId(item.id);
+
+    try {
+      if (acao === 'aprovar') {
+        await partidasServico.aprovarCancelamentoPartida(item.partidaId, item.solicitacaoCancelamentoPartidaId);
+        registrarResolvida('Partida cancelada', 'O cancelamento foi aprovado e a partida saiu dos cálculos esportivos.');
+        showNotification({
+          type: 'success',
+          title: 'Partida cancelada com sucesso.'
+        });
+      } else {
+        await partidasServico.recusarCancelamentoPartida(item.partidaId, item.solicitacaoCancelamentoPartidaId);
+        registrarResolvida('Cancelamento recusado', 'A solicitação foi encerrada e a partida continua válida.');
+        showNotification({
+          type: 'success',
+          title: 'Solicitação de cancelamento recusada.'
+        });
+      }
+
+      setPendenciaExpandidaId(null);
+      await carregarPendencias();
+    } catch (error) {
+      showNotification({
+        type: 'error',
+        title: 'Erro ao responder cancelamento',
+        message: extrairMensagemErro(error)
+      });
+    } finally {
+      setProcessandoId(null);
+    }
+  }
+
   const mostrarPerfil = filtroAtivo === 'perfil';
   const pendenciasFiltradasAcionaveis = pendenciasFiltradas.filter(pendenciaExigeAcao);
   const pendenciasFiltradasAguardando = pendenciasFiltradas.filter(pendenciaAguardandoCadastro);
@@ -907,6 +1038,15 @@ export function PaginaPendenciasAtletas() {
                     onEmailChange={atualizarEmail}
                     onSalvar={salvarEmail}
                     processando={processandoId === item.id}
+                  />
+                ) : ehPendenciaCancelamentoPartida(item) ? (
+                  <PendenciaCancelamentoPartidaCard
+                    key={item.id}
+                    item={item}
+                    expandida={pendenciaExpandidaId === item.id}
+                    onExpandir={alternarExpansao}
+                    processando={processandoId === item.id}
+                    onResponderCancelamento={responderCancelamentoPartida}
                   />
                 ) : (
                   <PendenciaPartidaCard

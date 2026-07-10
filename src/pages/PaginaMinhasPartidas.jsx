@@ -1,5 +1,17 @@
 import { useEffect, useMemo, useState } from 'react';
-import { FaCrown, FaEdit, FaExclamationTriangle, FaGamepad, FaSortAmountDown, FaTimes, FaTrashAlt, FaTrophy } from 'react-icons/fa';
+import {
+  FaBan,
+  FaCheckCircle,
+  FaCrown,
+  FaEdit,
+  FaExclamationTriangle,
+  FaGamepad,
+  FaHourglassHalf,
+  FaSortAmountDown,
+  FaTimes,
+  FaTrashAlt,
+  FaTrophy
+} from 'react-icons/fa';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { CompartilharPartidaBotao } from '../components/partidas/CompartilharPartidaBotao';
 import { EditarPartidaRegistradaModal } from '../components/partidas/EditarPartidaRegistradaModal';
@@ -12,6 +24,7 @@ import { formatarNomeDupla } from '../utils/atletaUtils';
 import { extrairMensagemErro } from '../utils/erros';
 import { formatarDataHoraCurta } from '../utils/formatacao';
 import { podeEditarPartida, podeExcluirPartida } from '../utils/permissoesPartida';
+import { scrollFocusedInputIntoView } from '../utils/tecladoMobile';
 import {
   atletaEstaNaDuplaA,
   atletaEstaNaDuplaB,
@@ -27,7 +40,8 @@ const FILTROS_PRINCIPAIS = [
   { id: 'todas', rotulo: 'Todas' },
   { id: 'participei', rotulo: 'Participei' },
   { id: 'registradas', rotulo: 'Registradas' },
-  { id: 'pendentes', rotulo: 'Pendentes' }
+  { id: 'pendentes', rotulo: 'Pendentes' },
+  { id: 'canceladas', rotulo: 'Canceladas' }
 ];
 
 const FILTROS_ATLETA = [
@@ -37,12 +51,31 @@ const FILTROS_ATLETA = [
 
 const TIPOS_PENDENCIA = {
   aprovarPartida: 1,
-  completarContato: 2
+  completarContato: 2,
+  responderCancelamentoPartida: 4
 };
 
 const STATUS_PENDENCIA = {
   pendente: 1,
   aguardandoCadastro: 4
+};
+
+const MOTIVOS_CANCELAMENTO_PARTIDA = [
+  { valor: 1, rotulo: 'Partida duplicada' },
+  { valor: 2, rotulo: 'Jogo não aconteceu' },
+  { valor: 3, rotulo: 'Atletas incorretos' },
+  { valor: 4, rotulo: 'Resultado incorreto' },
+  { valor: 5, rotulo: 'Grupo incorreto' },
+  { valor: 6, rotulo: 'Outro motivo' }
+];
+
+const MOTIVO_OUTRO = 6;
+
+const STATUS_SOLICITACAO_CANCELAMENTO = {
+  pendente: 1,
+  aprovada: 2,
+  recusada: 3,
+  canceladaPeloSolicitante: 4
 };
 
 function normalizarFiltro(valor) {
@@ -58,6 +91,10 @@ function normalizarFiltro(valor) {
 
   if (['pendentes', 'pendencias', 'pendências'].includes(filtro)) {
     return 'pendentes';
+  }
+
+  if (['canceladas', 'cancelada'].includes(filtro)) {
+    return 'canceladas';
   }
 
   if (['vitorias', 'vitórias'].includes(filtro)) {
@@ -324,9 +361,14 @@ function combinarPartidas({ participadas, registradas, pendencias, atletaLogadoI
 }
 
 function partidaEstaPendente(partida) {
+  if (partidaEstaCancelada(partida)) {
+    return false;
+  }
+
   const statusAprovacao = Number(partida.statusAprovacao);
 
-  return Boolean(partida.__pendenciaAcionavel) ||
+  return partidaTemCancelamentoPendente(partida) ||
+    Boolean(partida.__pendenciaAcionavel) ||
     statusAprovacao === STATUS_APROVACAO_PARTIDA.pendente ||
     statusAprovacao === STATUS_APROVACAO_PARTIDA.pendenteDeVinculos ||
     Number(partida.quantidadeAtletasPendentes || 0) > 0 ||
@@ -334,6 +376,14 @@ function partidaEstaPendente(partida) {
 }
 
 function partidaPassaFiltro(partida, filtro, atletaLogadoId) {
+  if (filtro === 'canceladas') {
+    return partidaEstaCancelada(partida);
+  }
+
+  if (partidaEstaCancelada(partida)) {
+    return false;
+  }
+
   if (filtro === 'todas') {
     return true;
   }
@@ -401,6 +451,12 @@ function obterMensagemVazia(filtro) {
         texto: '',
         exibirCta: false
       };
+    case 'canceladas':
+      return {
+        titulo: 'Nenhuma partida cancelada.',
+        texto: 'Partidas canceladas aparecerão aqui para consulta e auditoria.',
+        exibirCta: false
+      };
     default:
       return {
         titulo: 'Nenhuma partida encontrada.',
@@ -422,6 +478,16 @@ function obterChipsPartida(partida, filtroAtivo, atletaLogadoId) {
 
     chips.push(chip);
   };
+
+  if (partidaEstaCancelada(partida)) {
+    adicionarChip({ texto: 'Partida cancelada', classe: 'derrota' });
+    adicionarChip({ texto: 'Histórico', classe: 'neutro' });
+    return chips;
+  }
+
+  if (partidaTemCancelamentoPendente(partida)) {
+    adicionarChip({ texto: 'Cancelamento pendente', classe: 'pendente' });
+  }
 
   if (possuiPendencia) {
     adicionarChip({ texto: 'Pendente', classe: 'pendente' });
@@ -492,6 +558,56 @@ function obterIdPartida(partida) {
   return partida?.id || partida?.partidaId || '';
 }
 
+function partidaEstaCancelada(partida) {
+  return Boolean(partida?.cancelada);
+}
+
+function partidaTemCancelamentoPendente(partida) {
+  return Boolean(partida?.cancelamentoPendente);
+}
+
+function obterSolicitacaoCancelamento(partida) {
+  return partida?.solicitacaoCancelamento || null;
+}
+
+function obterMotivoCancelamentoTexto(solicitacao) {
+  if (solicitacao?.motivoTexto) {
+    return solicitacao.motivoTexto;
+  }
+
+  return MOTIVOS_CANCELAMENTO_PARTIDA.find((motivo) => motivo.valor === Number(solicitacao?.motivo))?.rotulo || 'Motivo não informado';
+}
+
+function obterStatusSolicitacaoTexto(status) {
+  switch (Number(status)) {
+    case STATUS_SOLICITACAO_CANCELAMENTO.aprovada:
+      return 'Aprovada';
+    case STATUS_SOLICITACAO_CANCELAMENTO.recusada:
+      return 'Recusada';
+    case STATUS_SOLICITACAO_CANCELAMENTO.canceladaPeloSolicitante:
+      return 'Cancelada pelo solicitante';
+    default:
+      return 'Pendente';
+  }
+}
+
+function obterStatusPendenciaCancelamentoTexto(status) {
+  switch (Number(status)) {
+    case STATUS_PENDENCIA.pendente:
+      return 'Aguardando resposta';
+    default:
+      return 'Encerrada';
+  }
+}
+
+function conflitoDeEstado(error) {
+  return error?.response?.status === 409;
+}
+
+function obterMensagemConflito(error) {
+  return extrairMensagemErro(error) || 'Os dados foram atualizados por outro usuário. A página será recarregada.';
+}
+
 export function PaginaMinhasPartidas() {
   const { usuario } = useAutenticacao();
   const { showNotification } = useNotification();
@@ -509,8 +625,13 @@ export function PaginaMinhasPartidas() {
   const [partidaEmEdicao, setPartidaEmEdicao] = useState(null);
   const [partidaEmExclusao, setPartidaEmExclusao] = useState(null);
   const [erroExclusao, setErroExclusao] = useState('');
+  const [partidaEmSolicitacaoCancelamento, setPartidaEmSolicitacaoCancelamento] = useState(null);
+  const [partidaSolicitacaoDetalhe, setPartidaSolicitacaoDetalhe] = useState(null);
+  const [confirmacaoCancelamento, setConfirmacaoCancelamento] = useState(null);
+  const [erroCancelamento, setErroCancelamento] = useState('');
   const [salvandoEdicao, setSalvandoEdicao] = useState(false);
   const [excluindoPartidaId, setExcluindoPartidaId] = useState('');
+  const [processandoCancelamento, setProcessandoCancelamento] = useState('');
 
   useEffect(() => {
     setFiltroAtivo(normalizarFiltro(searchParams.get('filtro')));
@@ -549,6 +670,8 @@ export function PaginaMinhasPartidas() {
     const registradas = registradasResultado.status === 'fulfilled' ? registradasResultado.value || [] : [];
     const pendencias = pendenciasResultado.status === 'fulfilled' ? pendenciasResultado.value || [] : [];
 
+    let listaFinal = [];
+
     if (participadasResultado.status === 'rejected' && registradasResultado.status === 'rejected') {
       setErro(extrairMensagemErro(participadasResultado.reason || registradasResultado.reason));
       setPartidas([]);
@@ -560,18 +683,22 @@ export function PaginaMinhasPartidas() {
         setErro(extrairMensagemErro(erroParcial.reason));
       }
 
-      setPartidas(ordenarPartidasRecentes(combinarPartidas({
+      const listaCombinada = ordenarPartidasRecentes(combinarPartidas({
         participadas,
         registradas,
         pendencias,
         atletaLogadoId,
         usuarioId
-      })));
+      }));
+      listaFinal = listaCombinada;
+      setPartidas(listaFinal);
     }
 
     if (manterCarregando) {
       setCarregando(false);
     }
+
+    return listaFinal;
   }
 
   useEffect(() => {
@@ -605,7 +732,154 @@ export function PaginaMinhasPartidas() {
     setPartidaEmExclusao(null);
   }
 
-  async function confirmarExclusaoPartida() {
+  async function atualizarPartidasAposAcao(partidaId) {
+    const listaAtualizada = await carregarPartidas({ manterCarregando: false });
+    const partidaAtualizada = listaAtualizada.find((item) => obterIdPartida(item) === partidaId) || null;
+
+    setPartidaDetalhe((atual) => (obterIdPartida(atual) === partidaId ? partidaAtualizada : atual));
+    setPartidaSolicitacaoDetalhe((atual) => (obterIdPartida(atual) === partidaId ? partidaAtualizada : atual));
+
+    return partidaAtualizada;
+  }
+
+  function abrirSolicitacaoCancelamento(partida) {
+    setErroCancelamento('');
+    setPartidaEmSolicitacaoCancelamento(partida);
+  }
+
+  function fecharSolicitacaoCancelamento() {
+    if (processandoCancelamento) {
+      return;
+    }
+
+    setErroCancelamento('');
+    setPartidaEmSolicitacaoCancelamento(null);
+  }
+
+  function abrirDetalheSolicitacaoCancelamento(partida) {
+    setErroCancelamento('');
+    setPartidaSolicitacaoDetalhe(partida);
+  }
+
+  function fecharDetalheSolicitacaoCancelamento() {
+    if (processandoCancelamento) {
+      return;
+    }
+
+    setErroCancelamento('');
+    setPartidaSolicitacaoDetalhe(null);
+  }
+
+  function abrirConfirmacaoAcaoCancelamento(tipo, partida) {
+    setErroCancelamento('');
+    setConfirmacaoCancelamento({ tipo, partida });
+  }
+
+  function fecharConfirmacaoAcaoCancelamento() {
+    if (processandoCancelamento) {
+      return;
+    }
+
+    setErroCancelamento('');
+    setConfirmacaoCancelamento(null);
+  }
+
+  async function enviarSolicitacaoCancelamento(payload) {
+    const partidaId = obterIdPartida(partidaEmSolicitacaoCancelamento);
+
+    if (!partidaId || processandoCancelamento) {
+      return;
+    }
+
+    setErroCancelamento('');
+    setProcessandoCancelamento(`solicitar-${partidaId}`);
+
+    try {
+      await partidasServico.solicitarCancelamentoPartida(partidaId, payload);
+      setPartidaEmSolicitacaoCancelamento(null);
+      const partidaAtualizada = await atualizarPartidasAposAcao(partidaId);
+      showNotification({
+        type: 'success',
+        title: 'Solicitação enviada!',
+        message: 'Os atletas da dupla adversária foram notificados e já podem responder.'
+      });
+      if (partidaAtualizada) {
+        setPartidaSolicitacaoDetalhe(partidaAtualizada);
+      }
+    } catch (error) {
+      const mensagem = conflitoDeEstado(error)
+        ? obterMensagemConflito(error)
+        : extrairMensagemErro(error);
+      setErroCancelamento(mensagem);
+      showNotification({
+        type: 'error',
+        title: 'Não foi possível solicitar cancelamento',
+        message: mensagem
+      });
+      if (conflitoDeEstado(error)) {
+        await atualizarPartidasAposAcao(partidaId);
+      }
+    } finally {
+      setProcessandoCancelamento('');
+    }
+  }
+
+  async function confirmarAcaoCancelamento() {
+    const partida = confirmacaoCancelamento?.partida;
+    const solicitacao = obterSolicitacaoCancelamento(partida);
+    const partidaId = obterIdPartida(partida);
+    const solicitacaoId = solicitacao?.id;
+    const tipo = confirmacaoCancelamento?.tipo;
+
+    if (!partidaId || !solicitacaoId || !tipo || processandoCancelamento) {
+      return;
+    }
+
+    setErroCancelamento('');
+    setProcessandoCancelamento(`${tipo}-${partidaId}`);
+
+    try {
+      if (tipo === 'aprovar') {
+        await partidasServico.aprovarCancelamentoPartida(partidaId, solicitacaoId);
+      } else if (tipo === 'recusar') {
+        await partidasServico.recusarCancelamentoPartida(partidaId, solicitacaoId);
+      } else {
+        await partidasServico.cancelarSolicitacaoCancelamento(partidaId, solicitacaoId);
+      }
+
+      setConfirmacaoCancelamento(null);
+      setPartidaSolicitacaoDetalhe(null);
+      await atualizarPartidasAposAcao(partidaId);
+
+      const mensagens = {
+        aprovar: 'Partida cancelada com sucesso.',
+        recusar: 'Solicitação de cancelamento recusada.',
+        cancelarSolicitacao: 'Solicitação de cancelamento cancelada.'
+      };
+
+      showNotification({
+        type: 'success',
+        title: mensagens[tipo]
+      });
+    } catch (error) {
+      const mensagem = conflitoDeEstado(error)
+        ? obterMensagemConflito(error)
+        : extrairMensagemErro(error);
+      setErroCancelamento(mensagem);
+      showNotification({
+        type: 'error',
+        title: 'Não foi possível concluir a ação',
+        message: mensagem
+      });
+      if (conflitoDeEstado(error)) {
+        await atualizarPartidasAposAcao(partidaId);
+      }
+    } finally {
+      setProcessandoCancelamento('');
+    }
+  }
+
+  async function confirmarExclusaoPartida(motivo) {
     const partidaId = obterIdPartida(partidaEmExclusao);
 
     if (!partidaId || excluindoPartidaId) {
@@ -616,13 +890,13 @@ export function PaginaMinhasPartidas() {
     setExcluindoPartidaId(partidaId);
 
     try {
-      await partidasServico.remover(partidaId);
-      setPartidas((atuais) => atuais.filter((partida) => obterIdPartida(partida) !== partidaId));
+      await partidasServico.excluirPartidaDefinitivamente(partidaId, motivo);
+      await carregarPartidas({ manterCarregando: false });
       setPartidaDetalhe((atual) => (obterIdPartida(atual) === partidaId ? null : atual));
       setPartidaEmExclusao(null);
       showNotification({
         type: 'success',
-        title: 'Partida excluída com sucesso.'
+        title: 'Partida excluída definitivamente.'
       });
       navigate('/minhas-partidas', { replace: true });
     } catch (error) {
@@ -675,7 +949,7 @@ export function PaginaMinhasPartidas() {
 
   const resumo = useMemo(() => {
     return partidas
-      .filter((partida) => partida.__participei)
+      .filter((partida) => partida.__participei && !partidaEstaCancelada(partida))
       .reduce((acumulado, partida) => {
         const resultado = obterResultadoParticipacao(partida, atletaLogadoId);
         return {
@@ -777,6 +1051,12 @@ export function PaginaMinhasPartidas() {
               filtroAtivo={filtroAtivo}
               onDetalhes={() => setPartidaDetalhe(partida)}
               onEditar={podeEditarPartida(partida, usuario) ? () => abrirEdicao(partida) : null}
+              onSolicitarCancelamento={() => abrirSolicitacaoCancelamento(partida)}
+              onVerSolicitacao={() => abrirDetalheSolicitacaoCancelamento(partida)}
+              onAprovarCancelamento={() => abrirConfirmacaoAcaoCancelamento('aprovar', partida)}
+              onRecusarCancelamento={() => abrirConfirmacaoAcaoCancelamento('recusar', partida)}
+              onCancelarSolicitacao={() => abrirConfirmacaoAcaoCancelamento('cancelarSolicitacao', partida)}
+              onExcluirDefinitivamente={() => abrirConfirmacaoExclusao(partida)}
             />
           ))}
         </div>
@@ -789,7 +1069,43 @@ export function PaginaMinhasPartidas() {
           onFechar={() => setPartidaDetalhe(null)}
           onEditar={podeEditarPartida(partidaDetalhe, usuario) ? () => abrirEdicao(partidaDetalhe) : null}
           onExcluir={podeExcluirPartida(partidaDetalhe, usuario) ? () => abrirConfirmacaoExclusao(partidaDetalhe) : null}
+          onSolicitarCancelamento={() => abrirSolicitacaoCancelamento(partidaDetalhe)}
+          onVerSolicitacao={() => abrirDetalheSolicitacaoCancelamento(partidaDetalhe)}
+          onAprovarCancelamento={() => abrirConfirmacaoAcaoCancelamento('aprovar', partidaDetalhe)}
+          onRecusarCancelamento={() => abrirConfirmacaoAcaoCancelamento('recusar', partidaDetalhe)}
+          onCancelarSolicitacao={() => abrirConfirmacaoAcaoCancelamento('cancelarSolicitacao', partidaDetalhe)}
           excluindo={excluindoPartidaId === obterIdPartida(partidaDetalhe)}
+        />
+      )}
+
+      {partidaEmSolicitacaoCancelamento && (
+        <SolicitarCancelamentoPartidaModal
+          erro={erroCancelamento}
+          enviando={processandoCancelamento === `solicitar-${obterIdPartida(partidaEmSolicitacaoCancelamento)}`}
+          onCancelar={fecharSolicitacaoCancelamento}
+          onEnviar={enviarSolicitacaoCancelamento}
+        />
+      )}
+
+      {partidaSolicitacaoDetalhe && (
+        <SolicitacaoCancelamentoDetalheModal
+          partida={partidaSolicitacaoDetalhe}
+          erro={erroCancelamento}
+          processando={Boolean(processandoCancelamento)}
+          onFechar={fecharDetalheSolicitacaoCancelamento}
+          onAprovar={() => abrirConfirmacaoAcaoCancelamento('aprovar', partidaSolicitacaoDetalhe)}
+          onRecusar={() => abrirConfirmacaoAcaoCancelamento('recusar', partidaSolicitacaoDetalhe)}
+          onCancelarSolicitacao={() => abrirConfirmacaoAcaoCancelamento('cancelarSolicitacao', partidaSolicitacaoDetalhe)}
+        />
+      )}
+
+      {confirmacaoCancelamento && (
+        <ConfirmarAcaoCancelamentoModal
+          tipo={confirmacaoCancelamento.tipo}
+          erro={erroCancelamento}
+          processando={Boolean(processandoCancelamento)}
+          onCancelar={fecharConfirmacaoAcaoCancelamento}
+          onConfirmar={confirmarAcaoCancelamento}
         />
       )}
 
@@ -843,17 +1159,35 @@ function EstadoVazio({ filtro }) {
   );
 }
 
-function CardMinhaPartida({ partida, atletaLogadoId, filtroAtivo, onDetalhes, onEditar }) {
+function CardMinhaPartida({
+  partida,
+  atletaLogadoId,
+  filtroAtivo,
+  onDetalhes,
+  onEditar,
+  onSolicitarCancelamento,
+  onVerSolicitacao,
+  onAprovarCancelamento,
+  onRecusarCancelamento,
+  onCancelarSolicitacao,
+  onExcluirDefinitivamente
+}) {
   const atletas = obterAtletasPartida(partida, atletaLogadoId);
   const minhaDuplaEhA = atletaEstaNaDuplaA(partida, atletaLogadoId);
   const minhaDuplaEhB = atletaEstaNaDuplaB(partida, atletaLogadoId);
   const temPlacar = partidaTemPlacar(partida);
   const pendenciasTexto = obterTextoPendencias(partida);
-  const podeCompartilhar = Number(partida.status) === STATUS_PARTIDA.encerrada && partida.id;
-  const podeResolverPendencias = partida.__pendenciaAcionavel;
+  const cancelada = partidaEstaCancelada(partida);
+  const cancelamentoPendente = partidaTemCancelamentoPendente(partida);
+  const podeCompartilhar = Number(partida.status) === STATUS_PARTIDA.encerrada && partida.id && !cancelada && !cancelamentoPendente;
+  const podeResolverPendencias = partida.__pendenciaAcionavel && !cancelada && !cancelamentoPendente;
+  const podeSolicitarCancelamento = Boolean(partida.podeSolicitarCancelamento) && !cancelada && !cancelamentoPendente;
+  const podeExcluirDefinitivamente = Boolean(partida.podeExcluirDefinitivamente);
+  const exibirAcoesCancelamentoPendente = cancelamentoPendente && !cancelada;
 
   return (
     <PartidaCardPremium
+      className={`${cancelada ? 'minhas-partidas-card-cancelada' : ''} ${cancelamentoPendente ? 'minhas-partidas-card-cancelamento-pendente' : ''}`.trim()}
       contexto={obterContextoPartida(partida)}
       dataPartida={partida.dataPartida || partida.dataCriacao}
       badges={obterChipsPartida(partida, filtroAtivo, atletaLogadoId)}
@@ -878,6 +1212,23 @@ function CardMinhaPartida({ partida, atletaLogadoId, filtroAtivo, onDetalhes, on
         destaque: minhaDuplaEhB,
         vencedora: duplaBVenceu(partida)
       }}
+      statusCancelamento={
+        <>
+          {cancelamentoPendente && !cancelada && (
+            <CancelamentoPendenteBloco
+              partida={partida}
+              compacto
+              onVerSolicitacao={onVerSolicitacao}
+              onAprovar={onAprovarCancelamento}
+              onRecusar={onRecusarCancelamento}
+              onCancelarSolicitacao={onCancelarSolicitacao}
+            />
+          )}
+          {cancelada && (
+            <PartidaCanceladaBloco partida={partida} compacto />
+          )}
+        </>
+      }
       acaoPrincipal={podeResolverPendencias && (
         <Link to="/app/pendencias" className="botao-primario botao-compacto minhas-partidas-acao-principal">
           <FaExclamationTriangle aria-hidden="true" />
@@ -886,7 +1237,7 @@ function CardMinhaPartida({ partida, atletaLogadoId, filtroAtivo, onDetalhes, on
       )}
       acaoCompartilhar={
         <>
-          {onEditar && (
+          {onEditar && !cancelada && !cancelamentoPendente && (
             <button
               type="button"
               className="botao-secundario botao-compacto botao-editar-partida-discreto"
@@ -904,6 +1255,35 @@ function CardMinhaPartida({ partida, atletaLogadoId, filtroAtivo, onDetalhes, on
               registradoPor={partida.nomeCriadoPorUsuario}
             />
           )}
+          {podeSolicitarCancelamento && (
+            <button
+              type="button"
+              className="botao-terciario botao-compacto minhas-partidas-acao-cancelamento"
+              onClick={onSolicitarCancelamento}
+            >
+              <FaBan aria-hidden="true" />
+              Solicitar cancelamento
+            </button>
+          )}
+          {exibirAcoesCancelamentoPendente && (
+            <button
+              type="button"
+              className="botao-secundario botao-compacto minhas-partidas-acao-ver-solicitacao"
+              onClick={onVerSolicitacao}
+            >
+              Ver solicitação
+            </button>
+          )}
+          {cancelada && podeExcluirDefinitivamente && (
+            <button
+              type="button"
+              className="botao-perigo botao-compacto minhas-partidas-acao-cancelamento"
+              onClick={onExcluirDefinitivamente}
+            >
+              <FaTrashAlt aria-hidden="true" />
+              Excluir definitivamente
+            </button>
+          )}
         </>
       }
       onDetalhes={onDetalhes}
@@ -912,13 +1292,92 @@ function CardMinhaPartida({ partida, atletaLogadoId, filtroAtivo, onDetalhes, on
   );
 }
 
-function DetalhesPartidaModal({ partida, atletaLogadoId, onFechar, onEditar, onExcluir, excluindo = false }) {
+function CancelamentoPendenteBloco({
+  partida,
+  compacto = false,
+  onVerSolicitacao,
+  onAprovar,
+  onRecusar,
+  onCancelarSolicitacao
+}) {
+  const solicitacao = obterSolicitacaoCancelamento(partida);
+
+  return (
+    <section className={`minhas-partidas-cancelamento-bloco ${compacto ? 'compacto' : ''}`} aria-label="Cancelamento pendente">
+      <div>
+        <span className="minhas-partidas-cancelamento-badge pendente">
+          <FaHourglassHalf aria-hidden="true" />
+          Cancelamento pendente
+        </span>
+        <strong>Aguardando aprovação da dupla adversária.</strong>
+        {solicitacao && <p>Motivo: {obterMotivoCancelamentoTexto(solicitacao)}</p>}
+      </div>
+      <div className="minhas-partidas-cancelamento-acoes">
+        {onVerSolicitacao && (
+          <button type="button" className="botao-secundario botao-compacto" onClick={onVerSolicitacao}>
+            Ver solicitação
+          </button>
+        )}
+        {partida?.podeCancelarSolicitacao && onCancelarSolicitacao && (
+          <button type="button" className="botao-terciario botao-compacto" onClick={onCancelarSolicitacao}>
+            Cancelar solicitação
+          </button>
+        )}
+        {partida?.podeResponderCancelamento && onRecusar && (
+          <button type="button" className="botao-terciario botao-compacto minhas-partidas-botao-recusa" onClick={onRecusar}>
+            Recusar
+          </button>
+        )}
+        {partida?.podeResponderCancelamento && onAprovar && (
+          <button type="button" className="botao-secundario botao-compacto minhas-partidas-botao-aprovar" onClick={onAprovar}>
+            Aprovar cancelamento
+          </button>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function PartidaCanceladaBloco({ partida, compacto = false }) {
+  const solicitacao = obterSolicitacaoCancelamento(partida);
+
+  return (
+    <section className={`minhas-partidas-cancelamento-bloco cancelada ${compacto ? 'compacto' : ''}`} aria-label="Partida cancelada">
+      <div>
+        <span className="minhas-partidas-cancelamento-badge cancelada">
+          <FaBan aria-hidden="true" />
+          Partida cancelada
+        </span>
+        <strong>Esta partida não conta mais para rankings, scouts e benefícios.</strong>
+        {solicitacao && <p>Motivo: {obterMotivoCancelamentoTexto(solicitacao)}</p>}
+        {partida?.canceladaEm && <p>Cancelada em: {formatarDataHoraCurta(partida.canceladaEm)}</p>}
+      </div>
+    </section>
+  );
+}
+
+function DetalhesPartidaModal({
+  partida,
+  atletaLogadoId,
+  onFechar,
+  onEditar,
+  onExcluir,
+  onSolicitarCancelamento,
+  onVerSolicitacao,
+  onAprovarCancelamento,
+  onRecusarCancelamento,
+  onCancelarSolicitacao,
+  excluindo = false
+}) {
   const atletas = obterAtletasPartida(partida, atletaLogadoId);
   const resultado = obterResultadoParticipacao(partida, atletaLogadoId);
   const contexto = obterContextoPartida(partida);
   const pendenciasTexto = obterTextoPendencias(partida);
-  const podeResolverPendencias = partida.__pendenciaAcionavel;
-  const podeCompartilhar = Number(partida.status) === STATUS_PARTIDA.encerrada && partida.id;
+  const cancelada = partidaEstaCancelada(partida);
+  const cancelamentoPendente = partidaTemCancelamentoPendente(partida);
+  const podeResolverPendencias = partida.__pendenciaAcionavel && !cancelada && !cancelamentoPendente;
+  const podeCompartilhar = Number(partida.status) === STATUS_PARTIDA.encerrada && partida.id && !cancelada && !cancelamentoPendente;
+  const podeSolicitarCancelamento = Boolean(partida.podeSolicitarCancelamento) && !cancelada && !cancelamentoPendente;
 
   return (
     <div className="modal-backdrop minhas-partidas-detalhe-backdrop" role="presentation" onClick={onFechar}>
@@ -942,6 +1401,18 @@ function DetalhesPartidaModal({ partida, atletaLogadoId, onFechar, onEditar, onE
               </span>
             ))}
           </div>
+
+          {cancelamentoPendente && !cancelada && (
+            <CancelamentoPendenteBloco
+              partida={partida}
+              onVerSolicitacao={onVerSolicitacao}
+              onAprovar={onAprovarCancelamento}
+              onRecusar={onRecusarCancelamento}
+              onCancelarSolicitacao={onCancelarSolicitacao}
+            />
+          )}
+
+          {cancelada && <PartidaCanceladaBloco partida={partida} />}
 
           <div className="minhas-partidas-placar-premium">
             <PartidaCardPremium.LinhaPlacar
@@ -1003,6 +1474,12 @@ function DetalhesPartidaModal({ partida, atletaLogadoId, onFechar, onEditar, onE
               registradoPor={partida.nomeCriadoPorUsuario}
             />
           )}
+          {podeSolicitarCancelamento && (
+            <button type="button" className="botao-terciario minhas-partidas-modal-solicitar-cancelamento" onClick={onSolicitarCancelamento}>
+              <FaBan aria-hidden="true" />
+              Solicitar cancelamento
+            </button>
+          )}
           {onExcluir && (
             <button
               type="button"
@@ -1023,7 +1500,277 @@ function DetalhesPartidaModal({ partida, atletaLogadoId, onFechar, onEditar, onE
   );
 }
 
+function SolicitarCancelamentoPartidaModal({ erro, enviando, onCancelar, onEnviar }) {
+  const [motivo, setMotivo] = useState('');
+  const [observacao, setObservacao] = useState('');
+  const [erroValidacao, setErroValidacao] = useState('');
+  const motivoNumerico = Number(motivo);
+  const observacaoLimpa = observacao.trim();
+  const observacaoObrigatoria = motivoNumerico === MOTIVO_OUTRO;
+  const observacaoValida = !observacaoObrigatoria || observacaoLimpa.length > 0;
+  const motivoValido = MOTIVOS_CANCELAMENTO_PARTIDA.some((item) => item.valor === motivoNumerico);
+  const podeEnviar = motivoValido && observacaoValida && !enviando && observacao.length <= 200;
+
+  function enviar(evento) {
+    evento.preventDefault();
+
+    if (!motivoValido) {
+      setErroValidacao('Informe o motivo do cancelamento.');
+      return;
+    }
+
+    if (!observacaoValida) {
+      setErroValidacao('Descreva o motivo do cancelamento.');
+      return;
+    }
+
+    if (observacao.length > 200) {
+      setErroValidacao('A observação deve ter no máximo 200 caracteres.');
+      return;
+    }
+
+    setErroValidacao('');
+    onEnviar({
+      motivo: motivoNumerico,
+      observacao: observacaoLimpa || null
+    });
+  }
+
+  return (
+    <div className="modal-backdrop minhas-partidas-confirmacao-backdrop" role="presentation" onClick={enviando ? undefined : onCancelar}>
+      <form
+        className="modal-conteudo minhas-partidas-confirmacao-modal minhas-partidas-cancelamento-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="solicitar-cancelamento-titulo"
+        onSubmit={enviar}
+        onClick={(evento) => evento.stopPropagation()}
+      >
+        <div className="minhas-partidas-confirmacao-icone alerta" aria-hidden="true">
+          <FaBan />
+        </div>
+
+        <div className="minhas-partidas-confirmacao-texto">
+          <span>Solicitação de cancelamento</span>
+          <h3 id="solicitar-cancelamento-titulo">Solicitar cancelamento</h3>
+          <p>Sua solicitação será enviada para a dupla adversária.</p>
+          <p>A partida só será cancelada após a aprovação de pelo menos um atleta do outro time.</p>
+        </div>
+
+        <label className="minhas-partidas-campo">
+          Motivo do cancelamento
+          <select value={motivo} onChange={(evento) => setMotivo(evento.target.value)} disabled={enviando}>
+            <option value="">Selecione</option>
+            {MOTIVOS_CANCELAMENTO_PARTIDA.map((item) => (
+              <option key={item.valor} value={item.valor}>{item.rotulo}</option>
+            ))}
+          </select>
+        </label>
+
+        <label className="minhas-partidas-campo">
+          Observação
+          <textarea
+            value={observacao}
+            onChange={(evento) => setObservacao(evento.target.value)}
+            onFocus={scrollFocusedInputIntoView}
+            placeholder="Conte mais detalhes sobre o motivo..."
+            maxLength={220}
+            disabled={enviando}
+          />
+          <small>{observacao.length}/200</small>
+        </label>
+
+        {(erroValidacao || erro) && <p className="texto-erro minhas-partidas-confirmacao-erro">{erroValidacao || erro}</p>}
+
+        <div className="minhas-partidas-confirmacao-acoes">
+          <button type="button" className="botao-terciario" onClick={onCancelar} disabled={enviando}>
+            Cancelar
+          </button>
+          <button type="submit" className="botao-primario" disabled={!podeEnviar}>
+            {enviando ? 'Enviando...' : 'Enviar solicitação'}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+function SolicitacaoCancelamentoDetalheModal({
+  partida,
+  erro,
+  processando,
+  onFechar,
+  onAprovar,
+  onRecusar,
+  onCancelarSolicitacao
+}) {
+  const solicitacao = obterSolicitacaoCancelamento(partida);
+  const pendencias = Array.isArray(solicitacao?.pendencias) ? solicitacao.pendencias : [];
+
+  return (
+    <div className="modal-backdrop minhas-partidas-detalhe-backdrop" role="presentation" onClick={processando ? undefined : onFechar}>
+      <article
+        className="modal-conteudo minhas-partidas-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Solicitação de cancelamento"
+        onClick={(evento) => evento.stopPropagation()}
+      >
+        <div className="minhas-partidas-modal-cabecalho">
+          <div>
+            <span>Solicitação de cancelamento</span>
+            <h3>{obterContextoPartida(partida)}</h3>
+            <p>{solicitacao?.solicitadaEm ? formatarDataHoraCurta(solicitacao.solicitadaEm) : 'Data a definir'}</p>
+          </div>
+          <button type="button" className="minhas-partidas-modal-fechar" onClick={onFechar} aria-label="Fechar solicitação" disabled={processando}>
+            <FaTimes aria-hidden="true" />
+          </button>
+        </div>
+
+        <div className="minhas-partidas-modal-corpo">
+          <div className="minhas-partidas-cancelamento-detalhe">
+            <span className="minhas-partidas-cancelamento-badge pendente">
+              {obterStatusSolicitacaoTexto(solicitacao?.status)}
+            </span>
+            <dl>
+              <div>
+                <dt>Solicitada por</dt>
+                <dd>{solicitacao?.nomeSolicitante || 'Usuário QN'}</dd>
+              </div>
+              <div>
+                <dt>Motivo</dt>
+                <dd>{obterMotivoCancelamentoTexto(solicitacao)}</dd>
+              </div>
+              {solicitacao?.observacao && (
+                <div>
+                  <dt>Observação</dt>
+                  <dd>{solicitacao.observacao}</dd>
+                </div>
+              )}
+              {solicitacao?.nomeRespondente && (
+                <div>
+                  <dt>Respondida por</dt>
+                  <dd>{solicitacao.nomeRespondente}</dd>
+                </div>
+              )}
+              {solicitacao?.respondidaEm && (
+                <div>
+                  <dt>Resposta em</dt>
+                  <dd>{formatarDataHoraCurta(solicitacao.respondidaEm)}</dd>
+                </div>
+              )}
+            </dl>
+          </div>
+
+          <div className="minhas-partidas-cancelamento-impacto">
+            Ao aprovar, esta partida deixará de contar nos rankings, scouts e benefícios. Os QN relacionados serão estornados.
+          </div>
+
+          {pendencias.length > 0 && (
+            <div className="minhas-partidas-cancelamento-pendencias">
+              <strong>Dupla adversária</strong>
+              {pendencias.map((pendencia) => (
+                <span key={pendencia.pendenciaId}>
+                  {pendencia.nomeAtleta || 'Atleta'} · {obterStatusPendenciaCancelamentoTexto(pendencia.status)}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {erro && <p className="texto-erro minhas-partidas-confirmacao-erro">{erro}</p>}
+        </div>
+
+        <div className="minhas-partidas-modal-acoes">
+          {partida?.podeCancelarSolicitacao && (
+            <button type="button" className="botao-terciario" onClick={onCancelarSolicitacao} disabled={processando}>
+              Cancelar solicitação
+            </button>
+          )}
+          {partida?.podeResponderCancelamento && (
+            <>
+              <button type="button" className="botao-perigo" onClick={onRecusar} disabled={processando}>
+                Recusar
+              </button>
+              <button type="button" className="botao-secundario minhas-partidas-botao-aprovar" onClick={onAprovar} disabled={processando}>
+                Aprovar cancelamento
+              </button>
+            </>
+          )}
+          <button type="button" className="botao-terciario" onClick={onFechar} disabled={processando}>
+            Fechar
+          </button>
+        </div>
+      </article>
+    </div>
+  );
+}
+
+function ConfirmarAcaoCancelamentoModal({ tipo, erro, processando, onCancelar, onConfirmar }) {
+  const configuracao = {
+    aprovar: {
+      tag: 'Aprovação',
+      titulo: 'Aprovar cancelamento?',
+      texto: 'Após a aprovação, esta partida deixará de contar nos rankings, scouts e benefícios. Os QN conquistados por causa dela serão estornados.',
+      botao: 'Aprovar cancelamento',
+      classe: 'botao-secundario minhas-partidas-botao-aprovar',
+      icone: <FaCheckCircle />
+    },
+    recusar: {
+      tag: 'Recusa',
+      titulo: 'Recusar cancelamento?',
+      texto: 'A solicitação será encerrada e a partida continuará válida normalmente.',
+      botao: 'Recusar solicitação',
+      classe: 'botao-perigo',
+      icone: <FaTimes />
+    },
+    cancelarSolicitacao: {
+      tag: 'Cancelar solicitação',
+      titulo: 'Cancelar solicitação?',
+      texto: 'A partida continuará válida e a dupla adversária não precisará mais responder.',
+      botao: 'Cancelar solicitação',
+      classe: 'botao-terciario',
+      icone: <FaBan />
+    }
+  }[tipo] || {};
+
+  return (
+    <div className="modal-backdrop minhas-partidas-confirmacao-backdrop" role="presentation" onClick={processando ? undefined : onCancelar}>
+      <article
+        className="modal-conteudo minhas-partidas-confirmacao-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="confirmar-acao-cancelamento-titulo"
+        onClick={(evento) => evento.stopPropagation()}
+      >
+        <div className="minhas-partidas-confirmacao-icone alerta" aria-hidden="true">
+          {configuracao.icone}
+        </div>
+
+        <div className="minhas-partidas-confirmacao-texto">
+          <span>{configuracao.tag}</span>
+          <h3 id="confirmar-acao-cancelamento-titulo">{configuracao.titulo}</h3>
+          <p>{configuracao.texto}</p>
+        </div>
+
+        {erro && <p className="texto-erro minhas-partidas-confirmacao-erro">{erro}</p>}
+
+        <div className="minhas-partidas-confirmacao-acoes">
+          <button type="button" className="botao-terciario" onClick={onCancelar} disabled={processando}>
+            Voltar
+          </button>
+          <button type="button" className={configuracao.classe} onClick={onConfirmar} disabled={processando}>
+            {processando ? 'Processando...' : configuracao.botao}
+          </button>
+        </div>
+      </article>
+    </div>
+  );
+}
+
 function ConfirmarExclusaoPartidaModal({ erro, excluindo, onCancelar, onConfirmar }) {
+  const [motivo, setMotivo] = useState('');
+  const motivoValido = motivo.trim().length > 0 && motivo.trim().length <= 200;
+
   return (
     <div
       className="modal-backdrop minhas-partidas-confirmacao-backdrop"
@@ -1044,24 +1791,37 @@ function ConfirmarExclusaoPartidaModal({ erro, excluindo, onCancelar, onConfirma
 
         <div className="minhas-partidas-confirmacao-texto">
           <span>Ação destrutiva</span>
-          <h3 id="confirmar-exclusao-partida-titulo">Excluir partida?</h3>
+          <h3 id="confirmar-exclusao-partida-titulo">Excluir definitivamente?</h3>
           <p id="confirmar-exclusao-partida-descricao">
-            Esta ação é permanente e removerá esta partida do histórico, rankings e estatísticas relacionadas.
+            Esta ação removerá a partida das consultas normais e não poderá ser desfeita pela interface.
           </p>
           <p id="confirmar-exclusao-partida-pergunta">
-            Você realmente deseja excluir esta partida?
+            O histórico administrativo mínimo será preservado.
           </p>
         </div>
+
+        <label className="minhas-partidas-campo">
+          Motivo da exclusão
+          <textarea
+            value={motivo}
+            onChange={(evento) => setMotivo(evento.target.value)}
+            onFocus={scrollFocusedInputIntoView}
+            placeholder="Informe por que esta partida será excluída..."
+            disabled={excluindo}
+            maxLength={220}
+          />
+          <small>{motivo.length}/200</small>
+        </label>
 
         {erro && <p className="texto-erro minhas-partidas-confirmacao-erro">{erro}</p>}
 
         <div className="minhas-partidas-confirmacao-acoes">
           <button type="button" className="botao-terciario" onClick={onCancelar} disabled={excluindo}>
-            Cancelar
+            Voltar
           </button>
-          <button type="button" className="botao-perigo" onClick={onConfirmar} disabled={excluindo}>
+          <button type="button" className="botao-perigo" onClick={() => onConfirmar(motivo.trim())} disabled={excluindo || !motivoValido}>
             <FaTrashAlt aria-hidden="true" />
-            {excluindo ? 'Excluindo partida...' : 'Excluir partida'}
+            {excluindo ? 'Excluindo...' : 'Excluir definitivamente'}
           </button>
         </div>
       </article>

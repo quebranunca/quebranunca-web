@@ -34,6 +34,11 @@ vi.mock('../services/partidasServico', () => ({
     listarMinhas: vi.fn(),
     listarRegistradasPorMim: vi.fn(),
     remover: vi.fn(),
+    solicitarCancelamentoPartida: vi.fn(),
+    aprovarCancelamentoPartida: vi.fn(),
+    recusarCancelamentoPartida: vi.fn(),
+    cancelarSolicitacaoCancelamento: vi.fn(),
+    excluirPartidaDefinitivamente: vi.fn(),
     atualizarBasica: vi.fn(),
     obterCompartilhamento: vi.fn()
   }
@@ -86,6 +91,52 @@ function criarPartida(sobrescritas = {}) {
     quantidadeAtletasPendentes: 0,
     quantidadeAtletasPendentesSemEmail: 0,
     atletasPendentes: [],
+    cancelada: false,
+    cancelamentoPendente: false,
+    podeSolicitarCancelamento: false,
+    podeResponderCancelamento: false,
+    podeCancelarSolicitacao: false,
+    podeEditar: true,
+    podeExcluirDefinitivamente: false,
+    solicitacaoCancelamento: null,
+    ...sobrescritas
+  };
+}
+
+function criarSolicitacaoCancelamento(sobrescritas = {}) {
+  return {
+    id: 'solicitacao-1',
+    partidaId: 'partida-1',
+    solicitadaPorUsuarioId: 'admin-1',
+    nomeSolicitante: 'Admin QN',
+    solicitadaEm: '2026-07-04T13:00:00Z',
+    duplaSolicitanteId: 'dupla-a',
+    duplaAdversariaId: 'dupla-b',
+    motivo: 1,
+    motivoTexto: 'Partida duplicada',
+    observacao: null,
+    status: 1,
+    respondidaPorUsuarioId: null,
+    nomeRespondente: null,
+    respondidaEm: null,
+    canceladaPeloSolicitanteEm: null,
+    respostaUsuarioAtual: null,
+    pendencias: [
+      {
+        pendenciaId: 'pendencia-cancelamento-1',
+        atletaId: 'atleta-b1',
+        nomeAtleta: 'Rafa',
+        status: 1,
+        usuarioAtualPodeResponder: true
+      },
+      {
+        pendenciaId: 'pendencia-cancelamento-2',
+        atletaId: 'atleta-b2',
+        nomeAtleta: 'Leo',
+        status: 1,
+        usuarioAtualPodeResponder: false
+      }
+    ],
     ...sobrescritas
   };
 }
@@ -117,6 +168,11 @@ beforeEach(() => {
   };
   configurarPartidas([criarPartida()]);
   partidasServico.remover.mockResolvedValue(undefined);
+  partidasServico.solicitarCancelamentoPartida.mockResolvedValue({});
+  partidasServico.aprovarCancelamentoPartida.mockResolvedValue({});
+  partidasServico.recusarCancelamentoPartida.mockResolvedValue({});
+  partidasServico.cancelarSolicitacaoCancelamento.mockResolvedValue({});
+  partidasServico.excluirPartidaDefinitivamente.mockResolvedValue(undefined);
 });
 
 afterEach(() => {
@@ -127,47 +183,62 @@ afterEach(() => {
 describe('PaginaMinhasPartidas - exclusao pelos detalhes', () => {
   it('abre e cancela a confirmacao de exclusao sem remover a partida', async () => {
     const usuario = userEvent.setup();
+    configurarPartidas([criarPartida({
+      cancelada: true,
+      canceladaEm: '2026-07-04T13:10:00Z',
+      podeEditar: false,
+      podeExcluirDefinitivamente: true,
+      solicitacaoCancelamento: criarSolicitacaoCancelamento({ status: 2 })
+    })]);
 
-    renderizarPagina();
+    renderizarPagina('/minhas-partidas?filtro=canceladas');
 
     await usuario.click(await screen.findByRole('button', { name: /Abrir detalhes da partida/i }));
     expect(screen.getByRole('dialog', { name: 'Detalhes da partida' })).toBeInTheDocument();
 
     await usuario.click(screen.getByRole('button', { name: 'Excluir partida' }));
 
-    const modalConfirmacao = screen.getByRole('dialog', { name: 'Excluir partida?' });
-    expect(within(modalConfirmacao).getByText('Esta ação é permanente e removerá esta partida do histórico, rankings e estatísticas relacionadas.')).toBeInTheDocument();
-    expect(within(modalConfirmacao).getByText('Você realmente deseja excluir esta partida?')).toBeInTheDocument();
+    const modalConfirmacao = screen.getByRole('dialog', { name: 'Excluir definitivamente?' });
+    expect(within(modalConfirmacao).getByText('Esta ação removerá a partida das consultas normais e não poderá ser desfeita pela interface.')).toBeInTheDocument();
+    expect(within(modalConfirmacao).getByText('O histórico administrativo mínimo será preservado.')).toBeInTheDocument();
 
-    await usuario.click(within(modalConfirmacao).getByRole('button', { name: 'Cancelar' }));
+    await usuario.click(within(modalConfirmacao).getByRole('button', { name: 'Voltar' }));
 
-    expect(screen.queryByRole('dialog', { name: 'Excluir partida?' })).not.toBeInTheDocument();
-    expect(partidasServico.remover).not.toHaveBeenCalled();
+    expect(screen.queryByRole('dialog', { name: 'Excluir definitivamente?' })).not.toBeInTheDocument();
+    expect(partidasServico.excluirPartidaDefinitivamente).not.toHaveBeenCalled();
   });
 
   it('confirma exclusao com loading, remove da lista e volta para Minhas Partidas', async () => {
     const usuario = userEvent.setup();
     let resolverExclusao;
+    configurarPartidas([criarPartida({
+      cancelada: true,
+      canceladaEm: '2026-07-04T13:10:00Z',
+      podeEditar: false,
+      podeExcluirDefinitivamente: true,
+      solicitacaoCancelamento: criarSolicitacaoCancelamento({ status: 2 })
+    })]);
 
-    partidasServico.remover.mockImplementation(() => new Promise((resolve) => {
+    partidasServico.excluirPartidaDefinitivamente.mockImplementation(() => new Promise((resolve) => {
       resolverExclusao = resolve;
     }));
 
-    renderizarPagina();
+    renderizarPagina('/minhas-partidas?filtro=canceladas');
 
     await usuario.click(await screen.findByRole('button', { name: /Abrir detalhes da partida/i }));
     await usuario.click(screen.getByRole('button', { name: 'Excluir partida' }));
 
-    const modalConfirmacao = screen.getByRole('dialog', { name: 'Excluir partida?' });
-    await usuario.click(within(modalConfirmacao).getByRole('button', { name: 'Excluir partida' }));
+    const modalConfirmacao = screen.getByRole('dialog', { name: 'Excluir definitivamente?' });
+    await usuario.type(within(modalConfirmacao).getByPlaceholderText('Informe por que esta partida será excluída...'), 'Auditoria administrativa');
+    await usuario.click(within(modalConfirmacao).getByRole('button', { name: 'Excluir definitivamente' }));
 
-    expect(within(modalConfirmacao).getByRole('button', { name: 'Excluindo partida...' })).toBeDisabled();
-    expect(within(modalConfirmacao).getByRole('button', { name: 'Cancelar' })).toBeDisabled();
+    expect(within(modalConfirmacao).getByRole('button', { name: 'Excluindo...' })).toBeDisabled();
+    expect(within(modalConfirmacao).getByRole('button', { name: 'Voltar' })).toBeDisabled();
 
     resolverExclusao();
 
     await waitFor(() => {
-      expect(partidasServico.remover).toHaveBeenCalledWith('partida-1');
+      expect(partidasServico.excluirPartidaDefinitivamente).toHaveBeenCalledWith('partida-1', 'Auditoria administrativa');
     });
     await waitFor(() => {
       expect(screen.queryByRole('dialog', { name: 'Detalhes da partida' })).not.toBeInTheDocument();
@@ -175,15 +246,22 @@ describe('PaginaMinhasPartidas - exclusao pelos detalhes', () => {
 
     expect(mocks.showNotification).toHaveBeenCalledWith({
       type: 'success',
-      title: 'Partida excluída com sucesso.'
+      title: 'Partida excluída definitivamente.'
     });
     expect(screen.getByTestId('rota-atual')).toHaveTextContent('/minhas-partidas');
   });
 
   it('mantem detalhes abertos e exibe erro amigavel quando a API falha', async () => {
     const usuario = userEvent.setup();
+    configurarPartidas([criarPartida({
+      cancelada: true,
+      canceladaEm: '2026-07-04T13:10:00Z',
+      podeEditar: false,
+      podeExcluirDefinitivamente: true,
+      solicitacaoCancelamento: criarSolicitacaoCancelamento({ status: 2 })
+    })]);
 
-    partidasServico.remover.mockRejectedValue({
+    partidasServico.excluirPartidaDefinitivamente.mockRejectedValue({
       response: {
         data: {
           erro: 'Voce nao tem permissao para excluir esta partida.'
@@ -191,17 +269,18 @@ describe('PaginaMinhasPartidas - exclusao pelos detalhes', () => {
       }
     });
 
-    renderizarPagina();
+    renderizarPagina('/minhas-partidas?filtro=canceladas');
 
     await usuario.click(await screen.findByRole('button', { name: /Abrir detalhes da partida/i }));
     await usuario.click(screen.getByRole('button', { name: 'Excluir partida' }));
 
-    const modalConfirmacao = screen.getByRole('dialog', { name: 'Excluir partida?' });
-    await usuario.click(within(modalConfirmacao).getByRole('button', { name: 'Excluir partida' }));
+    const modalConfirmacao = screen.getByRole('dialog', { name: 'Excluir definitivamente?' });
+    await usuario.type(within(modalConfirmacao).getByPlaceholderText('Informe por que esta partida será excluída...'), 'Auditoria administrativa');
+    await usuario.click(within(modalConfirmacao).getByRole('button', { name: 'Excluir definitivamente' }));
 
     expect(await within(modalConfirmacao).findByText('Voce nao tem permissao para excluir esta partida.')).toBeInTheDocument();
     expect(screen.getByRole('dialog', { name: 'Detalhes da partida' })).toBeInTheDocument();
-    expect(screen.getByTestId('rota-atual')).toHaveTextContent('/minhas-partidas?filtro=registradas');
+    expect(screen.getByTestId('rota-atual')).toHaveTextContent('/minhas-partidas?filtro=canceladas');
   });
 
   it('nao mostra a acao destrutiva para usuario sem permissao', async () => {
@@ -220,5 +299,127 @@ describe('PaginaMinhasPartidas - exclusao pelos detalhes', () => {
 
     expect(screen.getByRole('dialog', { name: 'Detalhes da partida' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Excluir partida' })).not.toBeInTheDocument();
+  });
+});
+
+describe('PaginaMinhasPartidas - cancelamento de partida', () => {
+  it('exibe e envia solicitacao de cancelamento com codigo de motivo', async () => {
+    const usuario = userEvent.setup();
+    const partidaAtiva = criarPartida({ podeSolicitarCancelamento: true });
+    const partidaPendente = criarPartida({
+      cancelamentoPendente: true,
+      podeSolicitarCancelamento: false,
+      podeCancelarSolicitacao: true,
+      solicitacaoCancelamento: criarSolicitacaoCancelamento()
+    });
+
+    partidasServico.listarMinhas.mockResolvedValue([]);
+    partidasServico.listarRegistradasPorMim
+      .mockResolvedValueOnce([partidaAtiva])
+      .mockResolvedValueOnce([partidaPendente]);
+    pendenciasServico.listar.mockResolvedValue([]);
+
+    renderizarPagina();
+
+    await usuario.click(await screen.findByRole('button', { name: /Solicitar cancelamento/i }));
+
+    const modal = screen.getByRole('dialog', { name: 'Solicitar cancelamento' });
+    expect(within(modal).getByRole('button', { name: 'Enviar solicitação' })).toBeDisabled();
+
+    await usuario.selectOptions(within(modal).getByLabelText('Motivo do cancelamento'), '1');
+    await usuario.click(within(modal).getByRole('button', { name: 'Enviar solicitação' }));
+
+    await waitFor(() => {
+      expect(partidasServico.solicitarCancelamentoPartida).toHaveBeenCalledWith('partida-1', {
+        motivo: 1,
+        observacao: null
+      });
+    });
+    expect((await screen.findAllByText('Cancelamento pendente')).length).toBeGreaterThan(0);
+  });
+
+  it('exige observacao quando o motivo for outro', async () => {
+    const usuario = userEvent.setup();
+    configurarPartidas([criarPartida({ podeSolicitarCancelamento: true })]);
+
+    renderizarPagina();
+
+    await usuario.click(await screen.findByRole('button', { name: /Solicitar cancelamento/i }));
+    const modal = screen.getByRole('dialog', { name: 'Solicitar cancelamento' });
+
+    await usuario.selectOptions(within(modal).getByLabelText('Motivo do cancelamento'), '6');
+
+    expect(within(modal).getByRole('button', { name: 'Enviar solicitação' })).toBeDisabled();
+    expect(partidasServico.solicitarCancelamentoPartida).not.toHaveBeenCalled();
+  });
+
+  it('permite aprovacao de cancelamento quando backend autoriza', async () => {
+    const usuario = userEvent.setup();
+    const partidaPendente = criarPartida({
+      cancelamentoPendente: true,
+      podeResponderCancelamento: true,
+      podeEditar: false,
+      solicitacaoCancelamento: criarSolicitacaoCancelamento()
+    });
+    const partidaCancelada = criarPartida({
+      cancelada: true,
+      canceladaEm: '2026-07-04T13:20:00Z',
+      cancelamentoPendente: false,
+      podeResponderCancelamento: false,
+      podeEditar: false,
+      solicitacaoCancelamento: criarSolicitacaoCancelamento({
+        status: 2,
+        nomeRespondente: 'Rafa',
+        respondidaEm: '2026-07-04T13:20:00Z'
+      })
+    });
+
+    partidasServico.listarMinhas.mockResolvedValue([]);
+    partidasServico.listarRegistradasPorMim
+      .mockResolvedValueOnce([partidaPendente])
+      .mockResolvedValueOnce([partidaCancelada]);
+    pendenciasServico.listar.mockResolvedValue([]);
+
+    renderizarPagina();
+
+    await usuario.click(await screen.findByRole('button', { name: /Aprovar cancelamento/i }));
+    const modal = screen.getByRole('dialog', { name: 'Aprovar cancelamento?' });
+    await usuario.click(within(modal).getByRole('button', { name: 'Aprovar cancelamento' }));
+
+    await waitFor(() => {
+      expect(partidasServico.aprovarCancelamentoPartida).toHaveBeenCalledWith('partida-1', 'solicitacao-1');
+    });
+    await usuario.click(screen.getByRole('button', { name: 'Canceladas' }));
+    expect((await screen.findAllByText('Partida cancelada')).length).toBeGreaterThan(0);
+  });
+
+  it('mostra partidas canceladas apenas no filtro Canceladas e sem editar', async () => {
+    const usuario = userEvent.setup();
+    configurarPartidas([
+      criarPartida({ id: 'partida-ativa', nomeGrupo: 'Grupo Ativo' }),
+      criarPartida({
+        id: 'partida-cancelada',
+        nomeGrupo: 'Grupo Cancelado',
+        cancelada: true,
+        canceladaEm: '2026-07-04T13:20:00Z',
+        podeEditar: false,
+        solicitacaoCancelamento: criarSolicitacaoCancelamento({
+          id: 'solicitacao-cancelada',
+          partidaId: 'partida-cancelada',
+          status: 2
+        })
+      })
+    ]);
+
+    renderizarPagina('/minhas-partidas');
+
+    expect(await screen.findByText('Grupo Ativo')).toBeInTheDocument();
+    expect(screen.queryByText('Grupo Cancelado')).not.toBeInTheDocument();
+
+    await usuario.click(screen.getByRole('button', { name: 'Canceladas' }));
+
+    expect(await screen.findByText('Grupo Cancelado')).toBeInTheDocument();
+    expect(screen.queryByText('Grupo Ativo')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Editar partida' })).not.toBeInTheDocument();
   });
 });

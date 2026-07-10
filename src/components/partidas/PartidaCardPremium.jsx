@@ -56,6 +56,7 @@ export function PartidaCardPremium({
   duplaB,
   acaoPrincipal = null,
   acaoCompartilhar = null,
+  statusCancelamento = null,
   detalhesHref,
   onDetalhes,
   detalhesDesabilitado = false
@@ -138,6 +139,8 @@ export function PartidaCardPremium({
           <span>{avisoPendencias}</span>
         </p>
       )}
+
+      {statusCancelamento}
 
       <div className="minhas-partidas-card-acoes" onClick={(evento) => evento.stopPropagation()}>
         {acaoPrincipal}

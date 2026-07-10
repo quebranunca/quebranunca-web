@@ -14912,6 +14912,21 @@ a.botao-terciario:active {
   border-radius: 16px;
 }
 
+.minhas-partidas-card-cancelada {
+  border-color: rgba(255, 107, 122, 0.34);
+  background:
+    linear-gradient(145deg, rgba(255, 107, 122, 0.1), transparent 42%),
+    var(--qn-bg-card);
+}
+
+.minhas-partidas-card-cancelada .minhas-partidas-placar-premium {
+  opacity: 0.78;
+}
+
+.minhas-partidas-card-cancelamento-pendente {
+  border-color: rgba(255, 179, 0, 0.34);
+}
+
 .minhas-partidas-card-topo-premium {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -15055,6 +15070,8 @@ a.botao-terciario:active {
 .minhas-partidas-card-acoes .botao-compartilhar-partida,
 .minhas-partidas-card-acoes .botao-editar-partida-discreto,
 .minhas-partidas-card-acoes .minhas-partidas-acao-principal,
+.minhas-partidas-card-acoes .minhas-partidas-acao-cancelamento,
+.minhas-partidas-card-acoes .minhas-partidas-acao-ver-solicitacao,
 .minhas-partidas-card-acoes .minhas-partidas-detalhes {
   min-height: 2rem;
   padding: 0.3rem 0.42rem;
@@ -15071,6 +15088,98 @@ a.botao-terciario:active {
 .minhas-partidas-card-acoes .botao-compartilhar-partida,
 .minhas-partidas-card-acoes .botao-editar-partida-discreto {
   background: rgba(255, 255, 255, 0.055);
+}
+
+.minhas-partidas-acao-cancelamento {
+  border-color: rgba(255, 107, 122, 0.34);
+  background: rgba(255, 107, 122, 0.08);
+  color: #ffadb6;
+}
+
+.minhas-partidas-acao-ver-solicitacao {
+  color: var(--qn-gold);
+}
+
+.minhas-partidas-cancelamento-bloco {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.62rem;
+  border: 1px solid rgba(255, 179, 0, 0.22);
+  border-radius: 13px;
+  background: rgba(255, 179, 0, 0.06);
+}
+
+.minhas-partidas-cancelamento-bloco.cancelada {
+  border-color: rgba(255, 107, 122, 0.28);
+  background: rgba(255, 107, 122, 0.07);
+}
+
+.minhas-partidas-cancelamento-bloco.compacto {
+  padding: 0.5rem;
+}
+
+.minhas-partidas-cancelamento-bloco strong,
+.minhas-partidas-cancelamento-bloco p {
+  margin: 0;
+}
+
+.minhas-partidas-cancelamento-bloco strong {
+  display: block;
+  margin-top: 0.28rem;
+  color: var(--qn-text-primary);
+  font-size: 0.82rem;
+  line-height: 1.25;
+}
+
+.minhas-partidas-cancelamento-bloco p {
+  margin-top: 0.18rem;
+  color: var(--qn-text-secondary);
+  font-size: 0.76rem;
+  font-weight: 700;
+  line-height: 1.32;
+}
+
+.minhas-partidas-cancelamento-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
+  width: fit-content;
+  min-height: 1.36rem;
+  padding: 0.14rem 0.44rem;
+  border-radius: 999px;
+  font-size: 0.64rem;
+  font-weight: 900;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.minhas-partidas-cancelamento-badge.pendente {
+  border: 1px solid rgba(255, 179, 0, 0.34);
+  background: rgba(255, 179, 0, 0.12);
+  color: var(--qn-gold);
+}
+
+.minhas-partidas-cancelamento-badge.cancelada {
+  border: 1px solid rgba(255, 107, 122, 0.36);
+  background: rgba(255, 107, 122, 0.12);
+  color: #ffadb6;
+}
+
+.minhas-partidas-cancelamento-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.36rem;
+}
+
+.minhas-partidas-botao-aprovar {
+  border-color: rgba(64, 214, 121, 0.34);
+  background: rgba(64, 214, 121, 0.1);
+  color: #8ef0b0;
+}
+
+.minhas-partidas-botao-recusa {
+  border-color: rgba(255, 107, 122, 0.34);
+  color: #ffadb6;
 }
 
 .minhas-partidas-detalhes {
@@ -15233,6 +15342,7 @@ a.botao-terciario:active {
 .minhas-partidas-confirmacao-modal {
   display: grid;
   width: min(100%, 23rem);
+  max-height: min(88dvh, 42rem);
   gap: 0.78rem;
   padding: 1rem;
   border: 1px solid rgba(255, 107, 122, 0.34);
@@ -15243,6 +15353,8 @@ a.botao-terciario:active {
   box-shadow:
     0 0 0 1px rgba(255, 107, 122, 0.06),
     0 24px 70px rgba(0, 0, 0, 0.48);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .minhas-partidas-confirmacao-icone {
@@ -15255,6 +15367,12 @@ a.botao-terciario:active {
   background: rgba(255, 107, 122, 0.12);
   color: #ff9aa4;
   font-size: 1.12rem;
+}
+
+.minhas-partidas-confirmacao-icone.alerta {
+  border-color: rgba(255, 179, 0, 0.34);
+  background: rgba(255, 179, 0, 0.12);
+  color: var(--qn-gold);
 }
 
 .minhas-partidas-confirmacao-texto {
@@ -15314,6 +15432,102 @@ a.botao-terciario:active {
 .minhas-partidas-confirmacao-acoes .botao-perigo:focus-visible {
   border-color: rgba(255, 107, 122, 0.72);
   background: rgba(255, 107, 122, 0.24);
+}
+
+.minhas-partidas-campo {
+  display: grid;
+  gap: 0.34rem;
+  color: var(--qn-text-primary);
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.minhas-partidas-campo select,
+.minhas-partidas-campo textarea {
+  width: 100%;
+  min-height: 2.7rem;
+  border: 1px solid var(--qn-border-soft);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.055);
+  color: var(--qn-text-primary);
+  font: inherit;
+  font-weight: 800;
+  outline: none;
+}
+
+.minhas-partidas-campo select {
+  padding: 0 0.78rem;
+}
+
+.minhas-partidas-campo textarea {
+  min-height: 5.4rem;
+  padding: 0.72rem;
+  resize: vertical;
+}
+
+.minhas-partidas-campo select:focus-visible,
+.minhas-partidas-campo textarea:focus-visible {
+  border-color: rgba(255, 179, 0, 0.58);
+  box-shadow: 0 0 0 3px rgba(255, 179, 0, 0.12);
+}
+
+.minhas-partidas-campo small {
+  justify-self: end;
+  color: var(--qn-text-secondary);
+  font-size: 0.72rem;
+}
+
+.minhas-partidas-cancelamento-detalhe,
+.minhas-partidas-cancelamento-impacto,
+.minhas-partidas-cancelamento-pendencias {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.66rem;
+  border: 1px solid var(--qn-border-soft);
+  border-radius: 13px;
+  background: var(--qn-bg-card-soft);
+}
+
+.minhas-partidas-cancelamento-detalhe dl {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.minhas-partidas-cancelamento-detalhe div {
+  display: grid;
+  gap: 0.12rem;
+}
+
+.minhas-partidas-cancelamento-detalhe dt {
+  color: var(--qn-gold);
+  font-size: 0.64rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.minhas-partidas-cancelamento-detalhe dd {
+  margin: 0;
+  color: var(--qn-text-primary);
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.minhas-partidas-cancelamento-impacto {
+  color: var(--qn-text-secondary);
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1.38;
+}
+
+.minhas-partidas-cancelamento-pendencias strong {
+  color: var(--qn-text-primary);
+}
+
+.minhas-partidas-cancelamento-pendencias span {
+  color: var(--qn-text-secondary);
+  font-size: 0.82rem;
+  font-weight: 800;
 }
 
 @media (min-width: 820px) {

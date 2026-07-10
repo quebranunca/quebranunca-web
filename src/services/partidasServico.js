@@ -1,5 +1,12 @@
 import { http } from './http';
 import { localizacaoServico } from './localizacaoServico';
+import { EVENTO_PENDENCIAS_ATUALIZADAS } from './pendenciasServico';
+
+function notificarPendenciasAtualizadas() {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(EVENTO_PENDENCIAS_ATUALIZADAS));
+  }
+}
 
 export const partidasServico = {
   async listar({ competicaoId, grupoId, categoriaId, administracao } = {}) {
@@ -75,6 +82,40 @@ export const partidasServico = {
   async atualizarBasica(id, dados) {
     const resposta = await http.put(`/partidas/${id}/edicao-basica`, dados);
     return resposta.data;
+  },
+
+  async solicitarCancelamentoPartida(id, dados) {
+    const resposta = await http.post(`/partidas/${id}/solicitacoes-cancelamento`, dados);
+    notificarPendenciasAtualizadas();
+    return resposta.data;
+  },
+
+  async obterSolicitacaoCancelamento(id) {
+    const resposta = await http.get(`/partidas/${id}/solicitacao-cancelamento`);
+    return resposta.data;
+  },
+
+  async aprovarCancelamentoPartida(id, solicitacaoId) {
+    const resposta = await http.post(`/partidas/${id}/solicitacoes-cancelamento/${solicitacaoId}/aprovar`);
+    notificarPendenciasAtualizadas();
+    return resposta.data;
+  },
+
+  async recusarCancelamentoPartida(id, solicitacaoId) {
+    const resposta = await http.post(`/partidas/${id}/solicitacoes-cancelamento/${solicitacaoId}/recusar`);
+    notificarPendenciasAtualizadas();
+    return resposta.data;
+  },
+
+  async cancelarSolicitacaoCancelamento(id, solicitacaoId) {
+    const resposta = await http.post(`/partidas/${id}/solicitacoes-cancelamento/${solicitacaoId}/cancelar`);
+    notificarPendenciasAtualizadas();
+    return resposta.data;
+  },
+
+  async excluirPartidaDefinitivamente(id, motivo) {
+    await http.delete(`/admin/partidas/${id}`, { data: { motivo } });
+    notificarPendenciasAtualizadas();
   },
 
   async remover(id) {
