@@ -90,7 +90,12 @@ function criarBeneficio(id, titulo, pontosNecessarios, sobrescritas = {}) {
     imagemUrl: sobrescritas.imagemUrl ?? null,
     destaque: Boolean(sobrescritas.destaque),
     saldoSuficiente: sobrescritas.saldoSuficiente ?? false,
-    pontosFaltantes: sobrescritas.pontosFaltantes ?? pontosNecessarios
+    pontosFaltantes: sobrescritas.pontosFaltantes ?? pontosNecessarios,
+    emBreve: sobrescritas.emBreve ?? false,
+    status: sobrescritas.status,
+    statusNome: sobrescritas.statusNome,
+    disponibilidade: sobrescritas.disponibilidade,
+    situacao: sobrescritas.situacao
   };
 }
 
@@ -188,7 +193,7 @@ describe('PaginaPontosQN simplificada', () => {
     expect(screen.queryByRole('button', { name: 'Resgatar' })).not.toBeInTheDocument();
   });
 
-  it('trata benefícios inativos como indisponíveis para a vitrine ativa', async () => {
+  it('trata benefícios inativos como fora da vitrine publicável', async () => {
     configurarApisComSucesso({
       beneficios: [
         criarBeneficio('beneficio-inativo', 'Boné QuebraNunca', 8000, {
@@ -206,6 +211,106 @@ describe('PaginaPontosQN simplificada', () => {
     expect(screen.queryByText('8.000 Pontos QN')).not.toBeInTheDocument();
   });
 
+  it('mostra benefício com pontos suficientes com ação Resgatar habilitada', async () => {
+    configurarApisComSucesso({
+      saldoAtual: 1000,
+      beneficios: [
+        criarBeneficio('beneficio-resgatavel', 'Brinde QuebraNunca', 500, {
+          tipo: 2,
+          tipoNome: 'Brinde',
+          saldoSuficiente: true,
+          pontosFaltantes: 0,
+          quantidadeDisponivel: 3
+        })
+      ]
+    });
+    renderizarPagina('/app/pontos-qn?aba=beneficios');
+
+    await screen.findByRole('heading', { name: /Benefícios QN/i });
+
+    expect(screen.getByText('Brinde QuebraNunca')).toBeInTheDocument();
+    expect(screen.getByText('500 Pontos QN')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Resgatar' })).toBeEnabled();
+    expect(screen.queryByText('Novos benefícios em breve')).not.toBeInTheDocument();
+  });
+
+  it('mantém benefício com pontos insuficientes visível e não permite resgate', async () => {
+    const usuario = userEvent.setup();
+    configurarApisComSucesso({
+      saldoAtual: 500,
+      beneficios: [
+        criarBeneficio('beneficio-caro', 'Boné QuebraNunca', 2000, {
+          tipo: 2,
+          tipoNome: 'Brinde',
+          saldoSuficiente: false,
+          pontosFaltantes: 1500
+        })
+      ]
+    });
+    renderizarPagina('/app/pontos-qn?aba=beneficios');
+
+    await screen.findByRole('heading', { name: /Benefícios QN/i });
+
+    expect(screen.getByText('Boné QuebraNunca')).toBeInTheDocument();
+    expect(screen.getByText('2.000 Pontos QN')).toBeInTheDocument();
+    expect(screen.getByText('Pontos insuficientes')).toBeInTheDocument();
+    expect(screen.getByText('Faltam 1.500 pontos')).toBeInTheDocument();
+
+    const cta = screen.getByRole('button', { name: 'Faltam 1.500 pontos' });
+    expect(cta).toBeDisabled();
+    await usuario.click(cta);
+    expect(gamificacaoServico.solicitarResgate).not.toHaveBeenCalled();
+    expect(screen.queryByText('Novos benefícios em breve')).not.toBeInTheDocument();
+  });
+
+  it('mantém benefício sem estoque visível e bloqueia o resgate', async () => {
+    configurarApisComSucesso({
+      saldoAtual: 3000,
+      beneficios: [
+        criarBeneficio('beneficio-sem-estoque', 'Chaveiro QuebraNunca', 1000, {
+          tipo: 2,
+          tipoNome: 'Brinde',
+          saldoSuficiente: true,
+          pontosFaltantes: 0,
+          quantidadeDisponivel: 0
+        })
+      ]
+    });
+    renderizarPagina('/app/pontos-qn?aba=beneficios');
+
+    await screen.findByRole('heading', { name: /Benefícios QN/i });
+
+    expect(screen.getByText('Chaveiro QuebraNunca')).toBeInTheDocument();
+    expect(screen.getByText('1.000 Pontos QN')).toBeInTheDocument();
+    expect(screen.getAllByText('Indisponível no momento')).not.toHaveLength(0);
+    expect(screen.getByRole('button', { name: 'Indisponível no momento' })).toBeDisabled();
+    expect(screen.queryByText('Novos benefícios em breve')).not.toBeInTheDocument();
+  });
+
+  it('mantém benefício em breve publicável visível sem permitir resgate', async () => {
+    configurarApisComSucesso({
+      saldoAtual: 3000,
+      beneficios: [
+        criarBeneficio('beneficio-em-breve', 'Experiência em breve', 1500, {
+          tipo: 3,
+          tipoNome: 'Experiência',
+          saldoSuficiente: true,
+          pontosFaltantes: 0,
+          emBreve: true
+        })
+      ]
+    });
+    renderizarPagina('/app/pontos-qn?aba=beneficios');
+
+    await screen.findByRole('heading', { name: /Benefícios QN/i });
+
+    expect(screen.getByText('Experiência em breve')).toBeInTheDocument();
+    expect(screen.getByText('1.500 Pontos QN')).toBeInTheDocument();
+    expect(screen.getAllByText('Em breve')).not.toHaveLength(0);
+    expect(screen.getByRole('button', { name: 'Em breve' })).toBeDisabled();
+    expect(screen.queryByText('Novos benefícios em breve')).not.toBeInTheDocument();
+  });
+
   it('na aba Benefícios com itens ativos mostra somente filtros de categorias com conteúdo', async () => {
     configurarApisComSucesso();
     const usuario = userEvent.setup();
@@ -216,8 +321,8 @@ describe('PaginaPontosQN simplificada', () => {
 
     expect(within(filtros).getByRole('button', { name: 'Todos' })).toBeInTheDocument();
     expect(within(filtros).getByRole('button', { name: 'Campanhas' })).toBeInTheDocument();
-    expect(within(filtros).getByRole('button', { name: 'Brindes' })).toBeInTheDocument();
-    expect(within(filtros).queryByRole('button', { name: 'Produtos' })).not.toBeInTheDocument();
+    expect(within(filtros).getByRole('button', { name: 'Produtos' })).toBeInTheDocument();
+    expect(within(filtros).queryByRole('button', { name: 'Brindes' })).not.toBeInTheDocument();
     expect(within(filtros).queryByRole('button', { name: 'Experiências' })).not.toBeInTheDocument();
     expect(within(filtros).queryByRole('button', { name: 'App' })).not.toBeInTheDocument();
     expect(within(filtros).queryByRole('button', { name: 'Descontos' })).not.toBeInTheDocument();
@@ -226,11 +331,76 @@ describe('PaginaPontosQN simplificada', () => {
     expect(screen.getByText('Chaveiro QuebraNunca')).toBeInTheDocument();
     expect(screen.getByText('Boné QuebraNunca')).toBeInTheDocument();
 
-    await usuario.click(within(filtros).getByRole('button', { name: 'Brindes' }));
+    await usuario.click(within(filtros).getByRole('button', { name: 'Produtos' }));
 
     expect(screen.getByText('Chaveiro QuebraNunca')).toBeInTheDocument();
     expect(screen.getByText('Boné QuebraNunca')).toBeInTheDocument();
     expect(screen.queryByText('Condição especial em campanha')).not.toBeInTheDocument();
+  });
+
+  it('inclui nos filtros categorias com benefícios visíveis mesmo sem resgate disponível', async () => {
+    configurarApisComSucesso({
+      saldoAtual: 0,
+      beneficios: [
+        criarBeneficio('beneficio-campanha', 'Campanha da comunidade', 500, {
+          tipo: 1,
+          tipoNome: 'Campanha promocional',
+          saldoSuficiente: false
+        }),
+        criarBeneficio('beneficio-brinde', 'Boné QuebraNunca', 5000, {
+          tipo: 2,
+          tipoNome: 'Brinde',
+          saldoSuficiente: false,
+          pontosFaltantes: 5000
+        })
+      ]
+    });
+    const usuario = userEvent.setup();
+    renderizarPagina('/app/pontos-qn?aba=beneficios');
+
+    await screen.findByRole('heading', { name: /Benefícios QN/i });
+    const filtros = screen.getByRole('group', { name: /Filtros de benefícios/i });
+
+    expect(within(filtros).getByRole('button', { name: 'Todos' })).toBeInTheDocument();
+    expect(within(filtros).getByRole('button', { name: 'Campanhas' })).toBeInTheDocument();
+    expect(within(filtros).getByRole('button', { name: 'Produtos' })).toBeInTheDocument();
+    expect(within(filtros).queryByRole('button', { name: 'Brindes' })).not.toBeInTheDocument();
+
+    await usuario.click(within(filtros).getByRole('button', { name: 'Produtos' }));
+
+    expect(screen.getByText('Boné QuebraNunca')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Faltam 5.000 pontos' })).toBeDisabled();
+  });
+
+  it('benefício com tipo legado Brinde continua visível em Todos e em Produtos', async () => {
+    configurarApisComSucesso({
+      saldoAtual: 0,
+      beneficios: [
+        criarBeneficio('beneficio-campanha', 'Campanha da comunidade', 500, {
+          tipo: 1,
+          tipoNome: 'Campanha promocional'
+        }),
+        criarBeneficio('beneficio-legado-brinde', 'Chaveiro QuebraNunca', 2000, {
+          tipo: 2,
+          tipoNome: 'Brinde',
+          saldoSuficiente: false,
+          pontosFaltantes: 2000
+        })
+      ]
+    });
+    const usuario = userEvent.setup();
+    renderizarPagina('/app/pontos-qn?aba=beneficios');
+
+    await screen.findByRole('heading', { name: /Benefícios QN/i });
+
+    expect(screen.getByText('Chaveiro QuebraNunca')).toBeInTheDocument();
+    const filtros = screen.getByRole('group', { name: /Filtros de benefícios/i });
+    expect(within(filtros).queryByRole('button', { name: 'Brindes' })).not.toBeInTheDocument();
+
+    await usuario.click(within(filtros).getByRole('button', { name: 'Produtos' }));
+
+    expect(screen.getByText('Chaveiro QuebraNunca')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Faltam 2.000 pontos' })).toBeDisabled();
   });
 
   it('não mostra filtros se houver benefícios ativos em apenas uma categoria', async () => {
@@ -301,6 +471,8 @@ describe('PaginaPontosQN simplificada', () => {
     expect(screen.queryByText(/cashback/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/carteira financeira/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/conversão/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/comprar/i)).not.toBeInTheDocument();
+    expect(screen.getAllByText(/Resgatar|Faltam|Pontos insuficientes/i).length).toBeGreaterThan(0);
   });
 
   it('continua renderizando o Histórico focado no extrato', async () => {

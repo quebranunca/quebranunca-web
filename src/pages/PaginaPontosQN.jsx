@@ -27,7 +27,6 @@ const ABAS = [
 const filtrosBeneficios = [
   { id: 'todos', rotulo: 'Todos' },
   { id: 'campanhas', rotulo: 'Campanhas' },
-  { id: 'brindes', rotulo: 'Brindes' },
   { id: 'produtos', rotulo: 'Produtos' },
   { id: 'experiencias', rotulo: 'Experiências' },
   { id: 'app', rotulo: 'App' }
@@ -142,12 +141,16 @@ function obterCategoriaBeneficio(beneficio) {
   const tipo = Number(beneficio?.tipo);
   const texto = obterTextoBeneficio(beneficio);
 
-  if (texto.includes('chaveiro') || texto.includes('bone') || texto.includes('brinde')) {
-    return 'brindes';
-  }
-
-  if (tipo === 2) {
-    return 'brindes';
+  if (
+    texto.includes('chaveiro') ||
+    texto.includes('bone') ||
+    texto.includes('boné') ||
+    texto.includes('brinde') ||
+    texto.includes('camiseta') ||
+    texto.includes('regata') ||
+    texto.includes('produto')
+  ) {
+    return 'produtos';
   }
 
   if (tipo === 3 || texto.includes('experiencia') || texto.includes('aula') || texto.includes('evento')) {
@@ -164,7 +167,7 @@ function obterCategoriaBeneficio(beneficio) {
     return 'app';
   }
 
-  if (tipo === 4 || texto.includes('produto') || texto.includes('camiseta') || texto.includes('regata')) {
+  if (tipo === 2 || tipo === 4) {
     return 'produtos';
   }
 
@@ -183,7 +186,7 @@ function filtrarBeneficios(beneficios, filtro) {
   return beneficios.filter((beneficio) => obterCategoriaBeneficio(beneficio) === filtro);
 }
 
-function beneficioAtivo(beneficio) {
+function beneficioPublicavel(beneficio) {
   return beneficio?.ativo !== false;
 }
 
@@ -282,7 +285,7 @@ function obterDescricaoBeneficioSegura(beneficio) {
 
 function obterTipoBeneficioSeguro(beneficio, produtoFisico) {
   if (produtoFisico) {
-    return 'Brinde';
+    return 'Produto';
   }
 
   const categoria = filtrosBeneficios.find((item) => item.id === obterCategoriaBeneficio(beneficio));
@@ -304,11 +307,21 @@ function obterStatusResgate(resgates, beneficioId) {
     Number(resgate.status) === 1);
 }
 
-function beneficioEstaDisponivel(beneficio) {
-  if (beneficio?.ativo === false) {
-    return false;
-  }
+function beneficioEmBreve(beneficio) {
+  const status = normalizarTextoBusca([
+    beneficio?.status,
+    beneficio?.statusNome,
+    beneficio?.disponibilidade,
+    beneficio?.situacao,
+    beneficio?.titulo,
+    beneficio?.descricao,
+    beneficio?.tipoNome
+  ].filter(Boolean).join(' '));
 
+  return beneficio?.emBreve === true || status.includes('em breve');
+}
+
+function beneficioTemEstoque(beneficio) {
   if (beneficio?.quantidadeDisponivel === null || beneficio?.quantidadeDisponivel === undefined) {
     return true;
   }
@@ -316,8 +329,20 @@ function beneficioEstaDisponivel(beneficio) {
   return Number(beneficio.quantidadeDisponivel) > 0;
 }
 
+function beneficioDisponivelParaResgate(beneficio) {
+  if (!beneficioPublicavel(beneficio) || beneficioEmBreve(beneficio)) {
+    return false;
+  }
+
+  return beneficioTemEstoque(beneficio);
+}
+
 function obterTextoDisponibilidade(beneficio) {
-  if (!beneficioEstaDisponivel(beneficio)) {
+  if (beneficioEmBreve(beneficio)) {
+    return 'Em breve';
+  }
+
+  if (!beneficioTemEstoque(beneficio)) {
     return 'Indisponível no momento';
   }
 
@@ -377,9 +402,12 @@ function BeneficioCard({ beneficio, resgateSolicitado, resgatando, onResgatar })
   const tituloBeneficio = obterTituloBeneficioSeguro(beneficio);
   const descricaoBeneficio = obterDescricaoBeneficioSegura(beneficio);
   const tipoBeneficio = obterTipoBeneficioSeguro(beneficio, produtoFisico);
-  const disponivel = beneficioEstaDisponivel(beneficio);
+  const emBreve = beneficioEmBreve(beneficio);
+  const disponivel = beneficioDisponivelParaResgate(beneficio);
   const pontosFaltantes = Math.max(0, Number(beneficio.pontosFaltantes || 0));
-  const estado = !disponivel
+  const estado = emBreve
+    ? 'Em breve'
+    : !disponivel
     ? 'Indisponível no momento'
     : resgateSolicitado
     ? 'Solicitado'
@@ -387,9 +415,25 @@ function BeneficioCard({ beneficio, resgateSolicitado, resgatando, onResgatar })
       ? 'Disponível'
       : 'Pontos insuficientes';
   const podeResgatar = disponivel && saldoSuficiente && !resgateSolicitado;
+  const textoCtaDesabilitado = emBreve
+    ? 'Em breve'
+    : !disponivel
+    ? 'Indisponível no momento'
+    : resgateSolicitado
+    ? 'Solicitado'
+    : pontosFaltantes > 0
+      ? `Faltam ${formatarPontos(pontosFaltantes)} pontos`
+      : 'Pontos insuficientes';
+  const classeEstado = emBreve
+    ? 'em-breve'
+    : !disponivel
+    ? 'indisponivel'
+    : saldoSuficiente
+    ? 'disponivel'
+    : 'insuficiente';
 
   return (
-    <article className={`pontosqn-beneficio-card ${produtoFisico ? 'produto-fisico' : ''} ${beneficio.destaque ? 'destaque' : ''} ${imagemBeneficio ? 'com-imagem' : 'sem-imagem'}`}>
+    <article className={`pontosqn-beneficio-card ${produtoFisico ? 'produto-fisico' : ''} ${beneficio.destaque ? 'destaque' : ''} ${imagemBeneficio ? 'com-imagem' : 'sem-imagem'} ${!podeResgatar ? `estado-${classeEstado}` : ''}`}>
       <div
         className={`pontosqn-beneficio-imagem ${imagemBeneficio ? '' : 'pontosqn-beneficio-imagem-fallback'}`}
         {...(!imagemBeneficio ? { role: 'img', 'aria-label': `Benefício QN: ${tituloBeneficio}` } : {})}
@@ -405,6 +449,9 @@ function BeneficioCard({ beneficio, resgateSolicitado, resgatando, onResgatar })
           <FaGift aria-hidden="true" />
           {tipoBeneficio}
         </span>
+        {!podeResgatar && (
+          <span className={`pontosqn-status ${classeEstado}`}>{estado}</span>
+        )}
       </div>
       <h3>{tituloBeneficio}</h3>
       <p>{descricaoBeneficio}</p>
@@ -413,9 +460,6 @@ function BeneficioCard({ beneficio, resgateSolicitado, resgatando, onResgatar })
           <span>Pontos necessários</span>
           <strong>{formatarPontos(beneficio.pontosNecessarios)} Pontos QN</strong>
           <small>{obterTextoDisponibilidade(beneficio)}</small>
-          {!saldoSuficiente && disponivel && pontosFaltantes > 0 && (
-            <small>Faltam {formatarPontos(pontosFaltantes)} pontos</small>
-          )}
         </div>
         {podeResgatar ? (
           <button
@@ -427,9 +471,9 @@ function BeneficioCard({ beneficio, resgateSolicitado, resgatando, onResgatar })
             {resgatando ? 'Solicitando...' : 'Resgatar'}
           </button>
         ) : (
-          <span className={`pontosqn-status ${disponivel && saldoSuficiente ? 'disponivel' : ''} ${!disponivel ? 'indisponivel' : ''}`}>
-            {estado}
-          </span>
+          <button type="button" className="botao-secundario pontosqn-beneficio-cta-desabilitado" disabled>
+            {textoCtaDesabilitado}
+          </button>
         )}
       </div>
     </article>
@@ -521,13 +565,13 @@ export function PaginaPontosQN() {
   const saldo = resumo?.pontuacao?.saldoAtual || 0;
   const nivel = resumo?.nivel;
   const temAtletaVinculado = resumo?.pontuacao?.temAtletaVinculado !== false;
-  const beneficiosAtivos = useMemo(
-    () => beneficios.filter(beneficioAtivo),
+  const beneficiosPublicaveis = useMemo(
+    () => beneficios.filter(beneficioPublicavel),
     [beneficios]
   );
   const filtrosBeneficiosDisponiveis = useMemo(
-    () => obterFiltrosBeneficiosDisponiveis(beneficiosAtivos),
-    [beneficiosAtivos]
+    () => obterFiltrosBeneficiosDisponiveis(beneficiosPublicaveis),
+    [beneficiosPublicaveis]
   );
   const filtroBeneficioEfetivo = useMemo(() => {
     if (filtrosBeneficiosDisponiveis.length === 0) {
@@ -539,14 +583,14 @@ export function PaginaPontosQN() {
       : 'todos';
   }, [filtroBeneficio, filtrosBeneficiosDisponiveis]);
   const beneficiosFiltrados = useMemo(
-    () => filtrarBeneficios(beneficiosAtivos, filtroBeneficioEfetivo),
-    [beneficiosAtivos, filtroBeneficioEfetivo]
+    () => filtrarBeneficios(beneficiosPublicaveis, filtroBeneficioEfetivo),
+    [beneficiosPublicaveis, filtroBeneficioEfetivo]
   );
-  const temBeneficiosAtivos = beneficiosAtivos.length > 0;
+  const temBeneficiosPublicaveis = beneficiosPublicaveis.length > 0;
   const mostrarFiltrosBeneficios = filtrosBeneficiosDisponiveis.length > 0;
-  const temBeneficiosDisponiveis = useMemo(
-    () => beneficiosAtivos.some(beneficioEstaDisponivel),
-    [beneficiosAtivos]
+  const temBeneficiosNaVitrine = useMemo(
+    () => beneficiosPublicaveis.length > 0,
+    [beneficiosPublicaveis]
   );
   const historicoFiltrado = useMemo(
     () => filtrarHistorico(extrato, filtroHistorico),
@@ -667,7 +711,7 @@ export function PaginaPontosQN() {
                 não têm saque e só podem ser usados em benefícios do QuebraNunca.
               </p>
             </div>
-            {temBeneficiosDisponiveis && (
+            {temBeneficiosNaVitrine && (
               <button type="button" className="botao-secundario" onClick={() => selecionarAba('beneficios')}>
                 Ver benefícios
               </button>
@@ -697,7 +741,7 @@ export function PaginaPontosQN() {
           )}
 
           {beneficiosFiltrados.length === 0 ? (
-            !temBeneficiosAtivos ? (
+            !temBeneficiosPublicaveis ? (
               <EstadoPainel
                 titulo="Novos benefícios em breve"
                 texto="Continue jogando e acumulando Pontos QN. As próximas campanhas e brindes da comunidade aparecem aqui quando estiverem disponíveis."
