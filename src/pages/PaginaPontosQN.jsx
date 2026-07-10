@@ -1,12 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
-  FaAward,
-  FaChevronRight,
+  FaCheckCircle,
   FaClipboardList,
   FaGift,
-  FaHistory,
-  FaInfoCircle,
   FaLock,
   FaShareAlt,
   FaShoppingBag,
@@ -22,9 +19,8 @@ import beneficioBoneQN from '../assets/pontos-qn/beneficio-bone-qn.png';
 import beneficioChaveiroQN from '../assets/pontos-qn/beneficio-chaveiro-qn.png';
 
 const ABAS = [
-  { id: 'resumo', rotulo: 'Pontos QN' },
+  { id: 'resumo', rotulo: 'Resumo' },
   { id: 'beneficios', rotulo: 'Benefícios' },
-  { id: 'como-ganhar', rotulo: 'Como ganhar' },
   { id: 'historico', rotulo: 'Histórico' }
 ];
 
@@ -49,26 +45,34 @@ const filtrosHistorico = [
 ];
 
 const regrasGanhoPontosQN = [
-  { titulo: 'Participar de partida válida', pontos: 10, status: 'Ativo', descricao: 'Vale para atletas da partida depois que ela for considerada válida.' },
-  { titulo: 'Registrar uma partida', pontos: 5, status: 'Ativo', descricao: 'Bônus para o atleta vinculado ao usuário que registrou a partida.' },
-  { titulo: 'Partida com placar completo', pontos: 5, status: 'Ativo', descricao: 'Bônus de qualidade dos dados quando o placar é informado.' },
-  { titulo: 'Vitória', pontos: 3, status: 'Ativo', descricao: 'Bônus leve para atletas da dupla vencedora, sem interferir no ranking.' },
-  { titulo: 'Confirmar/aprovar partida', pontos: 2, status: 'Ativo', descricao: 'Para quem ajuda a validar uma partida pendente.' },
-  { titulo: 'Resolver pendência de vínculo', pontos: 10, status: 'Ativo', descricao: 'Quando o vínculo é resolvido corretamente no fluxo atual.' },
-  { titulo: 'Completar perfil', pontos: 50, status: 'Ativo', descricao: 'Uma única vez, quando o perfil de atleta estiver completo.' },
-  { titulo: 'Compartilhar resultado', pontos: 5, status: 'Ativo', descricao: 'Limitado por partida/dia para evitar abuso.' },
-  { titulo: 'Entrar em grupo', pontos: 20, status: 'Em breve', descricao: 'Regra prevista para pontuação automática por grupo.' },
-  { titulo: 'Convidar atleta', pontos: 100, status: 'Em breve', descricao: 'Somente quando houver rastreabilidade confiável do convite.' }
-];
-
-const beneficiosReferenciaPontosQN = [
-  { pontos: 500, beneficio: 'Condição especial em campanha', tipo: 'Campanha' },
-  { pontos: 1000, beneficio: 'Benefício promocional QN', tipo: 'Campanha' },
-  { pontos: 2000, beneficio: 'Chaveiro QuebraNunca', tipo: 'Produto' },
-  { pontos: 2000, beneficio: 'Produto QN em campanha', tipo: 'Campanha' },
-  { pontos: 3000, beneficio: 'Benefício em produto parceiro', tipo: 'Campanha' },
-  { pontos: 5000, beneficio: 'Condição especial QuebraNunca', tipo: 'Campanha' },
-  { pontos: 8000, beneficio: 'Boné QuebraNunca', tipo: 'Produto' }
+  {
+    titulo: 'Registrar partida',
+    pontos: 5,
+    descricao: 'Salve seu jogo e ajude a manter o histórico do grupo.',
+    rota: '/partidas/registrar',
+    Icone: FaClipboardList
+  },
+  {
+    titulo: 'Participar de partida',
+    pontos: 10,
+    descricao: 'Pontos aparecem quando a partida for considerada válida.',
+    rota: '/minhas-partidas?filtro=participei',
+    Icone: FaUserFriends
+  },
+  {
+    titulo: 'Confirmar pendência',
+    pontos: 2,
+    descricao: 'Ajude a validar resultados e vínculos da comunidade.',
+    rota: '/app/pendencias',
+    Icone: FaCheckCircle
+  },
+  {
+    titulo: 'Compartilhar resultado',
+    pontos: 5,
+    descricao: 'Compartilhe jogos registrados sem prometer acúmulo ilimitado.',
+    rota: '/feed',
+    Icone: FaShareAlt
+  }
 ];
 
 const abasDisponiveis = new Set(ABAS.map((item) => item.id));
@@ -91,6 +95,10 @@ const padroesCopyFinanceiraBeneficio = [
 
 function obterAbaQuery(searchParams) {
   const aba = searchParams.get('aba');
+  if (aba === 'como-ganhar') {
+    return 'resumo';
+  }
+
   return abasDisponiveis.has(aba) ? aba : 'resumo';
 }
 
@@ -100,19 +108,6 @@ function formatarPontos(valor) {
 
 function obterPrimeiroNome(usuario) {
   return (usuario?.nome || 'Atleta').split(' ')[0];
-}
-
-function calcularPontosSemana(extrato = []) {
-  const agora = new Date();
-  const inicio = new Date(agora);
-  const dia = inicio.getDay();
-  const diff = (dia + 6) % 7;
-  inicio.setHours(0, 0, 0, 0);
-  inicio.setDate(inicio.getDate() - diff);
-
-  return extrato
-    .filter((item) => item.pontos > 0 && new Date(item.criadoEm) >= inicio)
-    .reduce((total, item) => total + Number(item.pontos || 0), 0);
 }
 
 function filtrarHistorico(extrato, filtro) {
@@ -186,6 +181,22 @@ function filtrarBeneficios(beneficios, filtro) {
   }
 
   return beneficios.filter((beneficio) => obterCategoriaBeneficio(beneficio) === filtro);
+}
+
+function beneficioAtivo(beneficio) {
+  return beneficio?.ativo !== false;
+}
+
+function obterFiltrosBeneficiosDisponiveis(beneficios) {
+  const categoriasComItens = new Set(beneficios.map(obterCategoriaBeneficio));
+  const filtrosComItens = filtrosBeneficios
+    .filter((item) => item.id !== 'todos' && categoriasComItens.has(item.id));
+
+  if (categoriasComItens.size < 2) {
+    return [];
+  }
+
+  return [filtrosBeneficios[0], ...filtrosComItens];
 }
 
 function ehProdutoFisicoDestaque(beneficio) {
@@ -338,6 +349,27 @@ function EstadoPainel({ tipo = 'vazio', titulo, texto, children }) {
   );
 }
 
+function ProximosBeneficios() {
+  const proximos = [
+    { titulo: 'Boné QuebraNunca', imagem: beneficioBoneQN },
+    { titulo: 'Chaveiro QuebraNunca', imagem: beneficioChaveiroQN }
+  ];
+
+  return (
+    <div className="pontosqn-em-breve-grid" aria-label="Próximos benefícios">
+      {proximos.map((beneficio) => (
+        <article key={beneficio.titulo} className="pontosqn-em-breve-card">
+          <img src={beneficio.imagem} alt={beneficio.titulo} loading="lazy" />
+          <div>
+            <strong>{beneficio.titulo}</strong>
+            <span>Em breve</span>
+          </div>
+        </article>
+      ))}
+    </div>
+  );
+}
+
 function BeneficioCard({ beneficio, resgateSolicitado, resgatando, onResgatar }) {
   const saldoSuficiente = Boolean(beneficio.saldoSuficiente);
   const imagemBeneficio = obterImagemBeneficio(beneficio);
@@ -420,83 +452,22 @@ function HistoricoItem({ item }) {
   );
 }
 
-function ComoGanharPontosQN() {
+function ComoGanharResumo() {
   return (
-    <section className="pontosqn-secao pontosqn-regras">
-      <div className="pontosqn-secao-topo">
-        <h2>Como ganhar Pontos QN</h2>
+    <section className="cartao pontosqn-como-ganhar" id="como-ganhar-pontos">
+      <h2>Como ganhar mais pontos</h2>
+      <div className="pontosqn-acoes-grid">
+        {regrasGanhoPontosQN.map(({ titulo, pontos, descricao, rota, Icone }) => (
+          <Link key={titulo} to={rota}>
+            <Icone aria-hidden="true" />
+            <span>
+              <strong>{titulo}</strong>
+              <small>{descricao}</small>
+            </span>
+            <b>+{pontos} QN</b>
+          </Link>
+        ))}
       </div>
-
-      <section className="cartao pontosqn-regras-card pontosqn-regras-intro">
-        <span className="pontosqn-selo"><FaInfoCircle aria-hidden="true" /> O que são Pontos QN?</span>
-        <p>
-          Pontos QN são pontos promocionais da QuebraNunca. Você ganha participando da comunidade,
-          registrando partidas, jogando, compartilhando resultados e participando de campanhas.
-        </p>
-        <p>
-          Eles não são dinheiro, não podem ser sacados, não podem ser transferidos e só podem ser usados
-          em benefícios da QuebraNunca.
-        </p>
-      </section>
-
-      <section className="pontosqn-regras-grid">
-        <article className="cartao pontosqn-regras-card">
-          <h3>Como usar?</h3>
-          <div className="pontosqn-economia-destaque">
-            <strong>Benefícios promocionais</strong>
-            <span>Use seus Pontos QN para desbloquear benefícios da comunidade.</span>
-          </div>
-          <p>Cada benefício pode ter regra, validade, limite e disponibilidade própria.</p>
-        </article>
-
-        <article className="cartao pontosqn-regras-card">
-          <h3>Proteções do MVP</h3>
-          <ul className="pontosqn-regras-lista">
-            <li>Campanhas com QN têm limite e regras próprias.</li>
-            <li>Frete ou logística só entram quando a campanha informar.</li>
-            <li>Brindes são campanhas limitadas, não regra padrão.</li>
-          </ul>
-        </article>
-      </section>
-
-      <section className="cartao pontosqn-regras-card">
-        <h3>Como ganhar?</h3>
-        <div className="pontosqn-regras-ganhos">
-          {regrasGanhoPontosQN.map((regra) => (
-            <article key={regra.titulo} className={regra.status === 'Ativo' ? '' : 'em-breve'}>
-              <div>
-                <strong>{regra.titulo}</strong>
-                <p>{regra.descricao}</p>
-              </div>
-              <span>{regra.status === 'Ativo' ? `+${regra.pontos} QN` : 'Em breve'}</span>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="cartao pontosqn-regras-card">
-        <h3>Benefícios de referência</h3>
-        <div className="pontosqn-regras-beneficios">
-          {beneficiosReferenciaPontosQN.map((beneficio) => (
-            <article key={`${beneficio.tipo}-${beneficio.pontos}-${beneficio.beneficio}`}>
-              <strong>{formatarPontos(beneficio.pontos)} QN</strong>
-              <span>{beneficio.beneficio}</span>
-              <small>{beneficio.tipo}</small>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="cartao pontosqn-regras-card">
-        <h3>Regras importantes</h3>
-        <ul className="pontosqn-regras-lista">
-          <li>Pontos podem ser estornados se uma partida for cancelada, removida ou invalidada.</li>
-          <li>Partidas duplicadas ou inválidas não geram pontos.</li>
-          <li>Compartilhamentos têm limite para evitar acúmulo artificial.</li>
-          <li>Benefícios podem ter validade, estoque limitado e aprovação manual.</li>
-          <li>QN não pode ser convertido em dinheiro.</li>
-        </ul>
-      </section>
     </section>
   );
 }
@@ -550,17 +521,37 @@ export function PaginaPontosQN() {
   const saldo = resumo?.pontuacao?.saldoAtual || 0;
   const nivel = resumo?.nivel;
   const temAtletaVinculado = resumo?.pontuacao?.temAtletaVinculado !== false;
+  const beneficiosAtivos = useMemo(
+    () => beneficios.filter(beneficioAtivo),
+    [beneficios]
+  );
+  const filtrosBeneficiosDisponiveis = useMemo(
+    () => obterFiltrosBeneficiosDisponiveis(beneficiosAtivos),
+    [beneficiosAtivos]
+  );
+  const filtroBeneficioEfetivo = useMemo(() => {
+    if (filtrosBeneficiosDisponiveis.length === 0) {
+      return 'todos';
+    }
+
+    return filtrosBeneficiosDisponiveis.some((item) => item.id === filtroBeneficio)
+      ? filtroBeneficio
+      : 'todos';
+  }, [filtroBeneficio, filtrosBeneficiosDisponiveis]);
   const beneficiosFiltrados = useMemo(
-    () => filtrarBeneficios(beneficios, filtroBeneficio),
-    [beneficios, filtroBeneficio]
+    () => filtrarBeneficios(beneficiosAtivos, filtroBeneficioEfetivo),
+    [beneficiosAtivos, filtroBeneficioEfetivo]
+  );
+  const temBeneficiosAtivos = beneficiosAtivos.length > 0;
+  const mostrarFiltrosBeneficios = filtrosBeneficiosDisponiveis.length > 0;
+  const temBeneficiosDisponiveis = useMemo(
+    () => beneficiosAtivos.some(beneficioEstaDisponivel),
+    [beneficiosAtivos]
   );
   const historicoFiltrado = useMemo(
     () => filtrarHistorico(extrato, filtroHistorico),
     [extrato, filtroHistorico]
   );
-  const pontosSemana = useMemo(() => calcularPontosSemana(extrato), [extrato]);
-  const mediaSemanal = Math.round((resumo?.pontuacao?.totalAcumulado || 0) / 4);
-
   async function solicitarResgate(beneficio) {
     const tituloBeneficio = obterTituloBeneficioSeguro(beneficio);
     if (!beneficio?.id || !window.confirm(`Solicitar resgate de ${tituloBeneficio} por ${beneficio.pontosNecessarios} Pontos QN?`)) {
@@ -593,7 +584,17 @@ export function PaginaPontosQN() {
     setSearchParams(id === 'resumo' ? {} : { aba: id });
   }
 
-  if (carregando && aba !== 'como-ganhar') {
+  function irParaComoGanharResumo() {
+    selecionarAba('resumo');
+    window.setTimeout(() => {
+      const secao = document.getElementById('como-ganhar-pontos');
+      if (typeof secao?.scrollIntoView === 'function') {
+        secao.scrollIntoView({ block: 'start', behavior: 'smooth' });
+      }
+    }, 0);
+  }
+
+  if (carregando) {
     return (
       <main className="pagina pontosqn-pagina">
         <EstadoPainel titulo="Carregando Pontos QN" texto="Buscando saldo, benefícios e missões." />
@@ -601,7 +602,7 @@ export function PaginaPontosQN() {
     );
   }
 
-  if (erro && aba !== 'como-ganhar') {
+  if (erro) {
     return (
       <main className="pagina pontosqn-pagina">
         <EstadoPainel tipo="erro" titulo="Não foi possível carregar" texto={erro} />
@@ -656,47 +657,21 @@ export function PaginaPontosQN() {
 
       {aba === 'resumo' && (
         <section className="pontosqn-secao">
-          {saldo === 0 && (
-            <EstadoPainel
-              titulo="Você ainda não tem pontos"
-              texto="Comece por uma ação simples e os Pontos QN aparecem no histórico assim que forem validados."
-            >
-              <div className="pontosqn-estado-dicas" aria-label="Próximos passos para ganhar Pontos QN">
-                <span>Registrar uma partida</span>
-                <span>Participar de jogos</span>
-                <span>Completar o perfil</span>
-                <span>Resolver pendências</span>
-              </div>
-            </EstadoPainel>
-          )}
+          <ComoGanharResumo />
 
-          <section className="cartao pontosqn-como-ganhar">
-            <h2>Como ganhar mais pontos</h2>
-            <div className="pontosqn-acoes-grid">
-              <Link to="/partidas/registrar"><FaClipboardList aria-hidden="true" /><span>Registrar partida</span><FaChevronRight aria-hidden="true" /></Link>
-              <Link to="/minhas-partidas?filtro=participei"><FaUserFriends aria-hidden="true" /><span>Participar de partida</span><FaChevronRight aria-hidden="true" /></Link>
-              <Link to="/feed"><FaShareAlt aria-hidden="true" /><span>Compartilhar resultado</span><FaChevronRight aria-hidden="true" /></Link>
+          <section className="cartao pontosqn-sobre-card">
+            <div>
+              <h2>Sobre os Pontos QN</h2>
+              <p>
+                Pontos QN reconhecem participação e ações úteis para a comunidade. Eles não são dinheiro,
+                não têm saque e só podem ser usados em benefícios do QuebraNunca.
+              </p>
             </div>
-          </section>
-
-          <section className="pontosqn-duas-colunas">
-            <div className="cartao">
-              <h2>Resumo do programa</h2>
-              <ul className="pontosqn-resumo-lista">
-                <li>Pontos QN medem participação e ações úteis para a comunidade.</li>
-                <li>QN é promocional: não saca, não transfere e só vale em campanhas QuebraNunca.</li>
-                <li>Benefícios e brindes aparecem na vitrine conforme estoque e regras da campanha.</li>
-              </ul>
-            </div>
-
-            <div className="cartao">
-              <h2>Atalhos</h2>
-              <div className="pontosqn-lista-compacta">
-                <button type="button" onClick={() => selecionarAba('historico')}><span>Histórico de Pontos</span><FaHistory aria-hidden="true" /></button>
-                <button type="button" onClick={() => selecionarAba('beneficios')}><span>Benefícios</span><FaGift aria-hidden="true" /></button>
-                <button type="button" onClick={() => selecionarAba('como-ganhar')}><span>Como ganhar</span><FaAward aria-hidden="true" /></button>
-              </div>
-            </div>
+            {temBeneficiosDisponiveis && (
+              <button type="button" className="botao-secundario" onClick={() => selecionarAba('beneficios')}>
+                Ver benefícios
+              </button>
+            )}
           </section>
         </section>
       )}
@@ -707,25 +682,28 @@ export function PaginaPontosQN() {
             <div>
               <span className="pontosqn-selo"><FaShoppingBag aria-hidden="true" /> Benefícios da comunidade</span>
               <h2>Benefícios QN</h2>
-              <p>Use seus Pontos QN para desbloquear campanhas, brindes e vantagens da comunidade.</p>
+              <p>Campanhas, brindes e vantagens da comunidade aparecem aqui quando estiverem disponíveis.</p>
             </div>
           </div>
 
-          <div className="ranking-tabs pontosqn-filtros">
-            {filtrosBeneficios.map((item) => (
-              <button key={item.id} type="button" className={filtroBeneficio === item.id ? 'ativo' : ''} onClick={() => setFiltroBeneficio(item.id)}>
-                {item.rotulo}
-              </button>
-            ))}
-          </div>
+          {mostrarFiltrosBeneficios && (
+            <div className="ranking-tabs pontosqn-filtros" role="group" aria-label="Filtros de benefícios">
+              {filtrosBeneficiosDisponiveis.map((item) => (
+                <button key={item.id} type="button" className={filtroBeneficioEfetivo === item.id ? 'ativo' : ''} onClick={() => setFiltroBeneficio(item.id)}>
+                  {item.rotulo}
+                </button>
+              ))}
+            </div>
+          )}
 
           {beneficiosFiltrados.length === 0 ? (
-            beneficios.length === 0 ? (
+            !temBeneficiosAtivos ? (
               <EstadoPainel
                 titulo="Novos benefícios em breve"
-                texto="Continue jogando e acumulando Pontos QN. As campanhas, brindes e vantagens da comunidade aparecem aqui quando estiverem disponíveis."
+                texto="Continue jogando e acumulando Pontos QN. As próximas campanhas e brindes da comunidade aparecem aqui quando estiverem disponíveis."
               >
-                <button type="button" className="botao-secundario" onClick={() => selecionarAba('como-ganhar')}>
+                <ProximosBeneficios />
+                <button type="button" className="botao-secundario" onClick={irParaComoGanharResumo}>
                   Ver como ganhar pontos
                 </button>
               </EstadoPainel>
@@ -755,18 +733,12 @@ export function PaginaPontosQN() {
         </section>
       )}
 
-      {aba === 'como-ganhar' && <ComoGanharPontosQN />}
-
       {aba === 'historico' && (
         <section className="pontosqn-secao">
           <div className="pontosqn-secao-topo">
             <h2>Histórico de Pontos</h2>
           </div>
-          <div className="pontosqn-metricas">
-            <article><FaStar aria-hidden="true" /><span>Ganhos na semana</span><strong>{formatarPontos(pontosSemana)}</strong></article>
-            <article><FaHistory aria-hidden="true" /><span>Média semanal</span><strong>{formatarPontos(mediaSemanal)}</strong></article>
-          </div>
-          <div className="ranking-tabs pontosqn-filtros">
+          <div className="ranking-tabs pontosqn-filtros" role="group" aria-label="Filtros do histórico">
             {filtrosHistorico.map((item) => (
               <button key={item.id} type="button" className={filtroHistorico === item.id ? 'ativo' : ''} onClick={() => setFiltroHistorico(item.id)}>
                 {item.rotulo}
