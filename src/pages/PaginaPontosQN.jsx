@@ -29,11 +29,12 @@ const ABAS = [
 ];
 
 const filtrosBeneficios = [
-  { id: 'todos', rotulo: 'Todos', tipo: null },
-  { id: 'descontos', rotulo: 'Descontos', tipo: 1 },
-  { id: 'brindes', rotulo: 'Brindes', tipo: 2 },
-  { id: 'experiencias', rotulo: 'Experiências', tipo: 3 },
-  { id: 'produtos', rotulo: 'Produtos', tipo: 4 }
+  { id: 'todos', rotulo: 'Todos' },
+  { id: 'campanhas', rotulo: 'Campanhas' },
+  { id: 'brindes', rotulo: 'Brindes' },
+  { id: 'produtos', rotulo: 'Produtos' },
+  { id: 'experiencias', rotulo: 'Experiências' },
+  { id: 'app', rotulo: 'App' }
 ];
 
 const imagensBeneficiosPontosQN = {
@@ -64,24 +65,28 @@ const beneficiosReferenciaPontosQN = [
   { pontos: 500, beneficio: 'Condição especial em campanha', tipo: 'Campanha' },
   { pontos: 1000, beneficio: 'Benefício promocional QN', tipo: 'Campanha' },
   { pontos: 2000, beneficio: 'Chaveiro QuebraNunca', tipo: 'Produto' },
-  { pontos: 2000, beneficio: 'Desconto promocional em produto QN', tipo: 'Campanha' },
+  { pontos: 2000, beneficio: 'Produto QN em campanha', tipo: 'Campanha' },
   { pontos: 3000, beneficio: 'Benefício em produto parceiro', tipo: 'Campanha' },
   { pontos: 5000, beneficio: 'Condição especial QuebraNunca', tipo: 'Campanha' },
   { pontos: 8000, beneficio: 'Boné QuebraNunca', tipo: 'Produto' }
 ];
 
 const abasDisponiveis = new Set(ABAS.map((item) => item.id));
-const ordemProdutosDestaque = ['chaveiro', 'boné', 'bone'];
 const padroesCopyFinanceiraBeneficio = [
+  /100\s*qn\s*=\s*r\$\s*1/i,
   /r\$\s*\d+/i,
   /\b\d+\s*reais?\b/i,
   /\boff\b/i,
+  /\bdescontos?\b/i,
   /cashback/i,
   /saldo financeiro/i,
   /carteira/i,
   /cr[eé]dito financeiro/i,
   /convers[aã]o monet[aá]ria/i,
-  /converter pontos em dinheiro/i
+  /converter pontos em dinheiro/i,
+  /\bsacar\b/i,
+  /\bsaque\b/i,
+  /\btransferir\b/i
 ];
 
 function obterAbaQuery(searchParams) {
@@ -122,35 +127,93 @@ function filtrarHistorico(extrato, filtro) {
   return extrato;
 }
 
+function normalizarTextoBusca(texto) {
+  return String(texto || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+}
+
+function obterTextoBeneficio(beneficio) {
+  return normalizarTextoBusca([
+    beneficio?.titulo,
+    beneficio?.descricao,
+    beneficio?.tipoNome,
+    beneficio?.imagemUrl
+  ].filter(Boolean).join(' '));
+}
+
+function obterCategoriaBeneficio(beneficio) {
+  const tipo = Number(beneficio?.tipo);
+  const texto = obterTextoBeneficio(beneficio);
+
+  if (texto.includes('chaveiro') || texto.includes('bone') || texto.includes('brinde')) {
+    return 'brindes';
+  }
+
+  if (tipo === 2) {
+    return 'brindes';
+  }
+
+  if (tipo === 3 || texto.includes('experiencia') || texto.includes('aula') || texto.includes('evento')) {
+    return 'experiencias';
+  }
+
+  if (
+    texto.includes('registro extra') ||
+    texto.includes('slot') ||
+    texto.includes('grupo extra') ||
+    texto.includes('estatistica') ||
+    texto.includes('app')
+  ) {
+    return 'app';
+  }
+
+  if (tipo === 4 || texto.includes('produto') || texto.includes('camiseta') || texto.includes('regata')) {
+    return 'produtos';
+  }
+
+  if (tipo === 1 || texto.includes('campanha') || texto.includes('promocional') || texto.includes('cupom') || texto.includes('condicao')) {
+    return 'campanhas';
+  }
+
+  return 'outros';
+}
+
 function filtrarBeneficios(beneficios, filtro) {
-  const tipo = filtrosBeneficios.find((item) => item.id === filtro)?.tipo;
-  if (!tipo) {
+  if (filtro === 'todos') {
     return beneficios;
   }
 
-  return beneficios.filter((beneficio) => Number(beneficio.tipo) === tipo);
+  return beneficios.filter((beneficio) => obterCategoriaBeneficio(beneficio) === filtro);
 }
 
 function ehProdutoFisicoDestaque(beneficio) {
-  const texto = `${beneficio?.titulo || ''} ${beneficio?.imagemUrl || ''}`.toLowerCase();
-  return Number(beneficio?.tipo) === 4 ||
-    texto.includes('chaveiro') ||
-    texto.includes('boné') ||
-    texto.includes('bone');
-}
-
-function ordenarProdutosDestaque(a, b) {
-  const indiceA = ordemProdutosDestaque.findIndex((item) => `${a.titulo} ${a.imagemUrl || ''}`.toLowerCase().includes(item));
-  const indiceB = ordemProdutosDestaque.findIndex((item) => `${b.titulo} ${b.imagemUrl || ''}`.toLowerCase().includes(item));
-  return (indiceA === -1 ? 99 : indiceA) - (indiceB === -1 ? 99 : indiceB);
+  const texto = obterTextoBeneficio(beneficio);
+  return texto.includes('chaveiro') || texto.includes('bone') || Number(beneficio?.tipo) === 2;
 }
 
 function obterImagemBeneficio(beneficio) {
-  if (!beneficio?.imagemUrl) {
-    return '';
+  const imagemUrl = beneficio?.imagemUrl?.trim();
+  const texto = obterTextoBeneficio(beneficio);
+
+  if (imagemUrl && imagensBeneficiosPontosQN[imagemUrl]) {
+    return imagensBeneficiosPontosQN[imagemUrl];
   }
 
-  return imagensBeneficiosPontosQN[beneficio.imagemUrl] || beneficio.imagemUrl;
+  if (texto.includes('chaveiro')) {
+    return beneficioChaveiroQN;
+  }
+
+  if (texto.includes('bone')) {
+    return beneficioBoneQN;
+  }
+
+  if (imagemUrl && (/^https?:\/\//i.test(imagemUrl) || imagemUrl.startsWith('/') || imagemUrl.startsWith('data:'))) {
+    return imagemUrl;
+  }
+
+  return '';
 }
 
 function contemCopyFinanceiraBeneficio(texto) {
@@ -187,7 +250,7 @@ function obterTituloBeneficioSeguro(beneficio) {
   }
 
   if (pontosNecessarios >= 2000) {
-    return 'Desconto promocional em produto QN';
+    return 'Produto QN em campanha';
   }
 
   if (pontosNecessarios >= 1000) {
@@ -208,7 +271,12 @@ function obterDescricaoBeneficioSegura(beneficio) {
 
 function obterTipoBeneficioSeguro(beneficio, produtoFisico) {
   if (produtoFisico) {
-    return 'Produto físico';
+    return 'Brinde';
+  }
+
+  const categoria = filtrosBeneficios.find((item) => item.id === obterCategoriaBeneficio(beneficio));
+  if (categoria) {
+    return categoria.rotulo;
   }
 
   const tipoNome = beneficio?.tipoNome?.trim();
@@ -223,6 +291,31 @@ function obterStatusResgate(resgates, beneficioId) {
   return resgates.find((resgate) =>
     resgate.beneficioId === beneficioId &&
     Number(resgate.status) === 1);
+}
+
+function beneficioEstaDisponivel(beneficio) {
+  if (beneficio?.ativo === false) {
+    return false;
+  }
+
+  if (beneficio?.quantidadeDisponivel === null || beneficio?.quantidadeDisponivel === undefined) {
+    return true;
+  }
+
+  return Number(beneficio.quantidadeDisponivel) > 0;
+}
+
+function obterTextoDisponibilidade(beneficio) {
+  if (!beneficioEstaDisponivel(beneficio)) {
+    return 'Indisponível no momento';
+  }
+
+  if (beneficio?.quantidadeDisponivel === null || beneficio?.quantidadeDisponivel === undefined) {
+    return 'Disponível';
+  }
+
+  const quantidade = Number(beneficio.quantidadeDisponivel);
+  return quantidade === 1 ? '1 disponível' : `${quantidade} disponíveis`;
 }
 
 function BarraProgresso({ valor }) {
@@ -252,19 +345,29 @@ function BeneficioCard({ beneficio, resgateSolicitado, resgatando, onResgatar })
   const tituloBeneficio = obterTituloBeneficioSeguro(beneficio);
   const descricaoBeneficio = obterDescricaoBeneficioSegura(beneficio);
   const tipoBeneficio = obterTipoBeneficioSeguro(beneficio, produtoFisico);
-  const estado = resgateSolicitado
+  const disponivel = beneficioEstaDisponivel(beneficio);
+  const pontosFaltantes = Math.max(0, Number(beneficio.pontosFaltantes || 0));
+  const estado = !disponivel
+    ? 'Indisponível no momento'
+    : resgateSolicitado
     ? 'Solicitado'
     : saldoSuficiente
       ? 'Disponível'
       : 'Pontos insuficientes';
+  const podeResgatar = disponivel && saldoSuficiente && !resgateSolicitado;
 
   return (
-    <article className={`pontosqn-beneficio-card ${produtoFisico ? 'produto-fisico' : ''} ${beneficio.destaque ? 'destaque' : ''} ${imagemBeneficio ? 'com-imagem' : ''}`}>
-      {imagemBeneficio && (
-        <div className="pontosqn-beneficio-imagem">
+    <article className={`pontosqn-beneficio-card ${produtoFisico ? 'produto-fisico' : ''} ${beneficio.destaque ? 'destaque' : ''} ${imagemBeneficio ? 'com-imagem' : 'sem-imagem'}`}>
+      <div
+        className={`pontosqn-beneficio-imagem ${imagemBeneficio ? '' : 'pontosqn-beneficio-imagem-fallback'}`}
+        {...(!imagemBeneficio ? { role: 'img', 'aria-label': `Benefício QN: ${tituloBeneficio}` } : {})}
+      >
+        {imagemBeneficio ? (
           <img src={imagemBeneficio} alt={tituloBeneficio} loading="lazy" />
-        </div>
-      )}
+        ) : (
+          <FaGift aria-hidden="true" />
+        )}
+      </div>
       <div className="pontosqn-beneficio-meta">
         <span className="pontosqn-beneficio-topo">
           <FaGift aria-hidden="true" />
@@ -276,9 +379,13 @@ function BeneficioCard({ beneficio, resgateSolicitado, resgatando, onResgatar })
       <div className="pontosqn-beneficio-rodape">
         <div className="pontosqn-beneficio-custo">
           <span>Pontos necessários</span>
-          <strong>{formatarPontos(beneficio.pontosNecessarios)} QN</strong>
+          <strong>{formatarPontos(beneficio.pontosNecessarios)} Pontos QN</strong>
+          <small>{obterTextoDisponibilidade(beneficio)}</small>
+          {!saldoSuficiente && disponivel && pontosFaltantes > 0 && (
+            <small>Faltam {formatarPontos(pontosFaltantes)} pontos</small>
+          )}
         </div>
-        {saldoSuficiente && !resgateSolicitado ? (
+        {podeResgatar ? (
           <button
             type="button"
             className="botao-primario"
@@ -288,7 +395,7 @@ function BeneficioCard({ beneficio, resgateSolicitado, resgatando, onResgatar })
             {resgatando ? 'Solicitando...' : 'Resgatar'}
           </button>
         ) : (
-          <span className={saldoSuficiente ? 'pontosqn-status disponivel' : 'pontosqn-status'}>
+          <span className={`pontosqn-status ${disponivel && saldoSuficiente ? 'disponivel' : ''} ${!disponivel ? 'indisponivel' : ''}`}>
             {estado}
           </span>
         )}
@@ -443,24 +550,9 @@ export function PaginaPontosQN() {
   const saldo = resumo?.pontuacao?.saldoAtual || 0;
   const nivel = resumo?.nivel;
   const temAtletaVinculado = resumo?.pontuacao?.temAtletaVinculado !== false;
-  const produtosDestaque = useMemo(
-    () => beneficios.filter(ehProdutoFisicoDestaque).sort(ordenarProdutosDestaque).slice(0, 2),
-    [beneficios]
-  );
-  const idsProdutosDestaque = useMemo(
-    () => new Set(produtosDestaque.map((item) => item.id)),
-    [produtosDestaque]
-  );
   const beneficiosFiltrados = useMemo(
     () => filtrarBeneficios(beneficios, filtroBeneficio),
     [beneficios, filtroBeneficio]
-  );
-  const mostrarProdutosDestaque = filtroBeneficio === 'todos' && produtosDestaque.length > 0;
-  const beneficiosDaLista = useMemo(
-    () => (mostrarProdutosDestaque
-      ? beneficiosFiltrados.filter((item) => !idsProdutosDestaque.has(item.id))
-      : beneficiosFiltrados),
-    [beneficiosFiltrados, idsProdutosDestaque, mostrarProdutosDestaque]
   );
   const historicoFiltrado = useMemo(
     () => filtrarHistorico(extrato, filtroHistorico),
@@ -613,33 +705,11 @@ export function PaginaPontosQN() {
         <section className="pontosqn-secao">
           <div className="pontosqn-vitrine-topo">
             <div>
-              <span className="pontosqn-selo"><FaShoppingBag aria-hidden="true" /> Benefícios disponíveis</span>
-              <h2>Benefícios</h2>
-              <p>Benefícios por campanha, com pontos necessários e disponibilidade indicados em cada card.</p>
+              <span className="pontosqn-selo"><FaShoppingBag aria-hidden="true" /> Benefícios da comunidade</span>
+              <h2>Benefícios QN</h2>
+              <p>Use seus Pontos QN para desbloquear campanhas, brindes e vantagens da comunidade.</p>
             </div>
           </div>
-
-          {mostrarProdutosDestaque && (
-            <section className="pontosqn-produtos-destaque" aria-labelledby="produtos-destaque-titulo">
-              <div className="pontosqn-secao-topo">
-                <div>
-                  <span className="pontosqn-selo"><FaGift aria-hidden="true" /> Brindes em destaque</span>
-                  <h3 id="produtos-destaque-titulo">Boné e Chaveiro QuebraNunca</h3>
-                </div>
-              </div>
-              <div className="pontosqn-produtos-grid">
-                {produtosDestaque.map((beneficio) => (
-                  <BeneficioCard
-                    key={beneficio.id}
-                    beneficio={beneficio}
-                    resgateSolicitado={obterStatusResgate(resgates, beneficio.id)}
-                    resgatando={resgatandoId === beneficio.id}
-                    onResgatar={solicitarResgate}
-                  />
-                ))}
-              </div>
-            </section>
-          )}
 
           <div className="ranking-tabs pontosqn-filtros">
             {filtrosBeneficios.map((item) => (
@@ -649,11 +719,29 @@ export function PaginaPontosQN() {
             ))}
           </div>
 
-          {beneficiosDaLista.length === 0 ? (
-            <EstadoPainel titulo="Sem benefícios nesta categoria" texto="Troque o filtro ou volte em breve para ver novas campanhas QuebraNunca." />
+          {beneficiosFiltrados.length === 0 ? (
+            beneficios.length === 0 ? (
+              <EstadoPainel
+                titulo="Novos benefícios em breve"
+                texto="Continue jogando e acumulando Pontos QN. As campanhas, brindes e vantagens da comunidade aparecem aqui quando estiverem disponíveis."
+              >
+                <button type="button" className="botao-secundario" onClick={() => selecionarAba('como-ganhar')}>
+                  Ver como ganhar pontos
+                </button>
+              </EstadoPainel>
+            ) : (
+              <EstadoPainel
+                titulo="Nenhum benefício nesta categoria"
+                texto="Tente outro filtro ou acompanhe as próximas campanhas QuebraNunca."
+              >
+                <button type="button" className="botao-secundario" onClick={() => setFiltroBeneficio('todos')}>
+                  Ver todos
+                </button>
+              </EstadoPainel>
+            )
           ) : (
             <div className="pontosqn-beneficios-grid">
-              {beneficiosDaLista.map((beneficio) => (
+              {beneficiosFiltrados.map((beneficio) => (
                 <BeneficioCard
                   key={beneficio.id}
                   beneficio={beneficio}

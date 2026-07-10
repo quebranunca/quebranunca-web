@@ -33,10 +33,10 @@ vi.mock('../services/gamificacaoServico', () => ({
   }
 }));
 
-function configurarApisComSucesso({ beneficios = criarBeneficios() } = {}) {
+function configurarApisComSucesso({ beneficios = criarBeneficios(), saldoAtual = 0 } = {}) {
   gamificacaoServico.obterResumo.mockResolvedValue({
     pontuacao: {
-      saldoAtual: 0,
+      saldoAtual,
       totalAcumulado: 0,
       temAtletaVinculado: true
     },
@@ -92,11 +92,12 @@ function criarBeneficio(id, titulo, pontosNecessarios, sobrescritas = {}) {
     tipo: sobrescritas.tipo ?? 1,
     tipoNome: sobrescritas.tipoNome ?? 'Desconto na loja',
     pontosNecessarios,
-    ativo: true,
+    ativo: sobrescritas.ativo ?? true,
+    quantidadeDisponivel: sobrescritas.quantidadeDisponivel ?? null,
     imagemUrl: sobrescritas.imagemUrl ?? null,
     destaque: pontosNecessarios === 500,
-    saldoSuficiente: false,
-    pontosFaltantes: pontosNecessarios
+    saldoSuficiente: sobrescritas.saldoSuficiente ?? false,
+    pontosFaltantes: sobrescritas.pontosFaltantes ?? pontosNecessarios
   };
 }
 
@@ -167,28 +168,33 @@ describe('PaginaPontosQN - regras oficiais', () => {
     expect(within(beneficios).queryByText(/100 QN = R\$ 1/i)).not.toBeInTheDocument();
   });
 
-  it('mostra produtos físicos com imagem e pontos necessários na aba de benefícios', async () => {
+  it('renderiza a aba Benefícios com categorias finais e lista única de cards', async () => {
     configurarApisComSucesso();
     renderizarPagina('/app/pontos-qn?aba=beneficios');
 
-    await screen.findByRole('heading', { name: /Benefícios/i });
-    const destaque = screen.getByRole('heading', { name: /Boné e Chaveiro QuebraNunca/i }).closest('section');
-    expect(destaque).not.toBeNull();
-    const gridDestaque = destaque.querySelector('.pontosqn-produtos-grid');
-    expect(gridDestaque).not.toBeNull();
-    expect(gridDestaque.querySelectorAll('.pontosqn-beneficio-card')).toHaveLength(2);
+    await screen.findByRole('heading', { name: /Benefícios QN/i });
 
-    expect(within(destaque).getByText('Chaveiro QuebraNunca')).toBeInTheDocument();
-    expect(within(destaque).getByText('Boné QuebraNunca')).toBeInTheDocument();
-    expect(within(destaque).getByRole('img', { name: 'Chaveiro QuebraNunca' })).toBeInTheDocument();
-    expect(within(destaque).getByRole('img', { name: 'Boné QuebraNunca' })).toBeInTheDocument();
+    expect(screen.getByText(/Use seus Pontos QN para desbloquear campanhas, brindes e vantagens da comunidade/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Todos' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Campanhas' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Brindes' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Produtos' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Experiências' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'App' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Descontos' })).not.toBeInTheDocument();
 
-    const chaveiroCard = within(destaque).getByText('Chaveiro QuebraNunca').closest('article');
-    const boneCard = within(destaque).getByText('Boné QuebraNunca').closest('article');
-    expect(within(chaveiroCard).getAllByText('2.000 QN')).toHaveLength(1);
-    expect(within(boneCard).getAllByText('8.000 QN')).toHaveLength(1);
+    expect(screen.getByText('Chaveiro QuebraNunca')).toBeInTheDocument();
+    expect(screen.getByText('Boné QuebraNunca')).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Chaveiro QuebraNunca' })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Boné QuebraNunca' })).toBeInTheDocument();
+
+    const chaveiroCard = screen.getByText('Chaveiro QuebraNunca').closest('article');
+    const boneCard = screen.getByText('Boné QuebraNunca').closest('article');
+    expect(within(chaveiroCard).getAllByText('2.000 Pontos QN')).toHaveLength(1);
+    expect(within(boneCard).getAllByText('8.000 Pontos QN')).toHaveLength(1);
     expect(within(chaveiroCard).getAllByText('Pontos insuficientes')).toHaveLength(1);
     expect(within(boneCard).getAllByText('Pontos insuficientes')).toHaveLength(1);
+    expect(within(chaveiroCard).getByText('Faltam 2.000 pontos')).toBeInTheDocument();
 
     expect(screen.getByText('Condição especial em campanha')).toBeInTheDocument();
     expect(screen.getByText('Condição especial QuebraNunca')).toBeInTheDocument();
@@ -196,18 +202,17 @@ describe('PaginaPontosQN - regras oficiais', () => {
     expect(screen.queryByText('R$ 50 off na loja')).not.toBeInTheDocument();
     expect(screen.queryByText(/R\$/i)).not.toBeInTheDocument();
     const listaBeneficios = document.querySelector('.pontosqn-beneficios-grid');
-    expect(listaBeneficios.querySelectorAll('.pontosqn-beneficio-card')).toHaveLength(5);
+    expect(listaBeneficios.querySelectorAll('.pontosqn-beneficio-card')).toHaveLength(7);
     expect(screen.queryByText(/Seu saldo/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/Faltam 2\.000/i)).not.toBeInTheDocument();
   });
 
   it('não apresenta Pontos QN como dinheiro, cashback ou carteira financeira', async () => {
     configurarApisComSucesso();
     renderizarPagina('/app/pontos-qn?aba=beneficios');
 
-    await screen.findByRole('heading', { name: /Benefícios/i });
+    await screen.findByRole('heading', { name: /Benefícios QN/i });
 
-    expect(screen.getByText(/Benefícios por campanha/i)).toBeInTheDocument();
+    expect(screen.getByText(/campanhas, brindes e vantagens da comunidade/i)).toBeInTheDocument();
     expect(screen.queryByText(/100 QN = R\$ 1/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/cashback/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/carteira/i)).not.toBeInTheDocument();
@@ -228,20 +233,159 @@ describe('PaginaPontosQN - regras oficiais', () => {
     expect(screen.getByRole('heading', { name: /Como ganhar mais pontos/i })).toBeInTheDocument();
   });
 
-  it('mantém o filtro Produtos funcionando sem repetir pontos necessários no card', async () => {
-    configurarApisComSucesso();
+  it('filtra Brindes por boné e chaveiro mesmo quando a API não envia imagemUrl', async () => {
+    configurarApisComSucesso({
+      beneficios: [
+        criarBeneficio('beneficio-chaveiro-sem-url', 'Chaveiro QuebraNunca', 2000, {
+          tipo: 4,
+          tipoNome: 'Produto'
+        }),
+        criarBeneficio('beneficio-bone-sem-url', 'Boné QuebraNunca', 8000, {
+          tipo: 4,
+          tipoNome: 'Produto'
+        }),
+        criarBeneficio('beneficio-campanha', 'Cupom especial QuebraNunca', 500, {
+          tipo: 1,
+          tipoNome: 'Campanha promocional'
+        })
+      ]
+    });
     const usuario = userEvent.setup();
     renderizarPagina('/app/pontos-qn?aba=beneficios');
 
-    await screen.findByRole('heading', { name: /Benefícios/i });
-    await usuario.click(screen.getByRole('button', { name: 'Produtos' }));
+    await screen.findByRole('heading', { name: /Benefícios QN/i });
+    await usuario.click(screen.getByRole('button', { name: 'Brindes' }));
 
     const chaveiroCard = screen.getByText('Chaveiro QuebraNunca').closest('article');
     const boneCard = screen.getByText('Boné QuebraNunca').closest('article');
 
-    expect(screen.queryByText('R$ 5 off na loja')).not.toBeInTheDocument();
-    expect(within(chaveiroCard).getAllByText('2.000 QN')).toHaveLength(1);
-    expect(within(boneCard).getAllByText('8.000 QN')).toHaveLength(1);
+    expect(screen.queryByText('Cupom especial QuebraNunca')).not.toBeInTheDocument();
+    expect(within(chaveiroCard).getByRole('img', { name: 'Chaveiro QuebraNunca' })).toBeInTheDocument();
+    expect(within(boneCard).getByRole('img', { name: 'Boné QuebraNunca' })).toBeInTheDocument();
+    expect(within(chaveiroCard).getAllByText('2.000 Pontos QN')).toHaveLength(1);
+    expect(within(boneCard).getAllByText('8.000 Pontos QN')).toHaveLength(1);
+  });
+
+  it('filtra Campanhas pelo tipo estável sem depender do texto público Descontos', async () => {
+    configurarApisComSucesso();
+    const usuario = userEvent.setup();
+    renderizarPagina('/app/pontos-qn?aba=beneficios');
+
+    await screen.findByRole('heading', { name: /Benefícios QN/i });
+    await usuario.click(screen.getByRole('button', { name: 'Campanhas' }));
+
+    expect(screen.getByText('Condição especial em campanha')).toBeInTheDocument();
+    expect(screen.getByText('Condição especial QuebraNunca')).toBeInTheDocument();
+    expect(screen.queryByText('Chaveiro QuebraNunca')).not.toBeInTheDocument();
+    expect(screen.queryByText('Boné QuebraNunca')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Descontos/i)).not.toBeInTheDocument();
+  });
+
+  it('mantém Produtos separado de Brindes quando o item físico não é boné ou chaveiro', async () => {
+    configurarApisComSucesso({
+      beneficios: [
+        criarBeneficio('beneficio-produto', 'Produto QuebraNunca em campanha', 1500, {
+          tipo: 4,
+          tipoNome: 'Produto'
+        }),
+        criarBeneficio('beneficio-chaveiro', 'Chaveiro QuebraNunca', 2000, {
+          tipo: 4,
+          tipoNome: 'Produto'
+        })
+      ]
+    });
+    const usuario = userEvent.setup();
+    renderizarPagina('/app/pontos-qn?aba=beneficios');
+
+    await screen.findByRole('heading', { name: /Benefícios QN/i });
+    await usuario.click(screen.getByRole('button', { name: 'Produtos' }));
+
+    const produtoCard = screen.getByText('Produto QuebraNunca em campanha').closest('article');
+    expect(produtoCard).not.toBeNull();
+    expect(within(produtoCard).getByText('Produtos')).toBeInTheDocument();
+    expect(screen.queryByText('Chaveiro QuebraNunca')).not.toBeInTheDocument();
+  });
+
+  it('mostra fallback visual quando o benefício não possui imagem mapeada', async () => {
+    configurarApisComSucesso({
+      beneficios: [
+        criarBeneficio('beneficio-sem-imagem', 'Benefício da comunidade', 700, {
+          tipo: 99,
+          tipoNome: 'Outro'
+        })
+      ]
+    });
+    renderizarPagina('/app/pontos-qn?aba=beneficios');
+
+    await screen.findByRole('heading', { name: /Benefícios QN/i });
+
+    expect(screen.getByRole('img', { name: 'Benefício QN: Benefício da comunidade' })).toBeInTheDocument();
+    expect(screen.getByText('Benefício da comunidade')).toBeInTheDocument();
+  });
+
+  it('diferencia resgate disponível, pontos insuficientes e benefício indisponível', async () => {
+    configurarApisComSucesso({
+      beneficios: [
+        criarBeneficio('beneficio-disponivel', 'Benefício disponível', 100, {
+          saldoSuficiente: true,
+          pontosFaltantes: 0
+        }),
+        criarBeneficio('beneficio-insuficiente', 'Benefício insuficiente', 500, {
+          saldoSuficiente: false,
+          pontosFaltantes: 300
+        }),
+        criarBeneficio('beneficio-sem-estoque', 'Benefício sem estoque', 200, {
+          saldoSuficiente: true,
+          quantidadeDisponivel: 0
+        })
+      ]
+    });
+    renderizarPagina('/app/pontos-qn?aba=beneficios');
+
+    await screen.findByRole('heading', { name: /Benefícios QN/i });
+
+    expect(screen.getByRole('button', { name: 'Resgatar' })).toBeInTheDocument();
+    expect(screen.getByText('Pontos insuficientes')).toBeInTheDocument();
+    expect(screen.getByText('Faltam 300 pontos')).toBeInTheDocument();
+    expect(screen.getAllByText('Indisponível no momento').length).toBeGreaterThan(0);
+  });
+
+  it('mostra estado vazio geral e leva para Como ganhar pontos', async () => {
+    configurarApisComSucesso({ beneficios: [] });
+    const usuario = userEvent.setup();
+    renderizarPagina('/app/pontos-qn?aba=beneficios');
+
+    await screen.findByRole('heading', { name: /Benefícios QN/i });
+
+    expect(screen.getByText('Novos benefícios em breve')).toBeInTheDocument();
+    expect(screen.getByText(/Continue jogando e acumulando Pontos QN/i)).toBeInTheDocument();
+
+    await usuario.click(screen.getByRole('button', { name: 'Ver como ganhar pontos' }));
+
+    expect(await screen.findByRole('heading', { name: /Como ganhar Pontos QN/i })).toBeInTheDocument();
+  });
+
+  it('mostra estado vazio de categoria e permite voltar para Todos', async () => {
+    configurarApisComSucesso({
+      beneficios: [
+        criarBeneficio('beneficio-campanha', 'Cupom especial QuebraNunca', 500, {
+          tipo: 1,
+          tipoNome: 'Campanha promocional'
+        })
+      ]
+    });
+    const usuario = userEvent.setup();
+    renderizarPagina('/app/pontos-qn?aba=beneficios');
+
+    await screen.findByRole('heading', { name: /Benefícios QN/i });
+    await usuario.click(screen.getByRole('button', { name: 'App' }));
+
+    expect(screen.getByText('Nenhum benefício nesta categoria')).toBeInTheDocument();
+    expect(screen.getByText(/Tente outro filtro/i)).toBeInTheDocument();
+
+    await usuario.click(screen.getByRole('button', { name: 'Ver todos' }));
+
+    expect(screen.getByText('Cupom especial QuebraNunca')).toBeInTheDocument();
   });
 
   it('mostra regras importantes e proteção contra conversão em dinheiro', async () => {
