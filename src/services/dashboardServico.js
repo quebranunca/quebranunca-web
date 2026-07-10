@@ -31,8 +31,25 @@ export const dashboardServico = {
     return resposta.data;
   },
 
+  async listarJogosAtleta(filtros = {}) {
+    const resposta = await http.get('/dashboard/atleta/jogos', {
+      params: filtros
+    });
+    return resposta.data;
+  },
+
   async obterConexoesAtleta() {
     const resposta = await http.get('/dashboard/atleta/conexoes');
+    return resposta.data;
+  },
+
+  async obterDesempenhoPorGrupoAtleta() {
+    const resposta = await http.get('/dashboard/atleta/grupos');
+    return resposta.data;
+  },
+
+  async listarDuplasDisponiveisAtleta() {
+    const resposta = await http.get('/dashboard/atleta/duplas');
     return resposta.data;
   },
 
