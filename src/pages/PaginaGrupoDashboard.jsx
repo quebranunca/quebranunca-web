@@ -282,6 +282,8 @@ export function PaginaGrupoDashboard() {
   const mensagemMembrosVazia = (grupo?.totalMembros || 0) > 0
     ? 'Veja a lista completa para consultar os membros cadastrados.'
     : 'Nenhum membro no grupo ainda.';
+  const podeRegistrarPartida = Boolean(grupo?.podeRegistrarPartida);
+  const podeExibirConfiguracoes = Boolean(grupo?.podeEditar) && Boolean(grupo?.pertenceAoGrupo);
   const duplaDoMomento = useMemo(() => calcularDuplaDoMomento(ultimasPartidas), [ultimasPartidas]);
   const pendenciasResumo = useMemo(() => {
     const lista = Array.isArray(pendencias) ? pendencias : [];
@@ -325,6 +327,19 @@ export function PaginaGrupoDashboard() {
     } finally {
       setCarregando(false);
     }
+  }
+
+  function abrirRegistroPartida() {
+    if (!podeRegistrarPartida) {
+      showNotification({
+        type: 'warning',
+        title: 'Acesso ao grupo necessário',
+        message: 'Você precisa fazer parte deste grupo para registrar partidas nele.'
+      });
+      return;
+    }
+
+    setRegistroAberto(true);
   }
 
   if (carregando) {
@@ -372,9 +387,11 @@ export function PaginaGrupoDashboard() {
           </div>
         </div>
 
-        <button type="button" className="botao-primario grupo-dashboard-hero-cta" onClick={() => setRegistroAberto(true)}>
-          Registrar partida
-        </button>
+        {podeRegistrarPartida && (
+          <button type="button" className="botao-primario grupo-dashboard-hero-cta" onClick={abrirRegistroPartida}>
+            Registrar partida
+          </button>
+        )}
       </header>
 
       <section className="grupo-dashboard-acoes-rapidas" aria-label="Ações do grupo">
@@ -386,7 +403,7 @@ export function PaginaGrupoDashboard() {
           <span><FaTrophy aria-hidden="true" /> Ranking</span>
           <FaChevronRight aria-hidden="true" />
         </button>
-        {grupo.podeEditar && (
+        {podeExibirConfiguracoes && (
           <button type="button" className="grupo-dashboard-acao-rapida" onClick={() => navegar(`/grupos/${grupo.id}/configuracoes`)}>
             <span><FaCog aria-hidden="true" /> Configurações</span>
             <FaChevronRight aria-hidden="true" />
@@ -583,7 +600,7 @@ export function PaginaGrupoDashboard() {
         </div>
       </article>
 
-      {registroAberto && (
+      {registroAberto && podeRegistrarPartida && (
         <RegistrarPartidaNovoContainer
           contextoInicial={{ grupoId: grupo.id }}
           onFechar={() => {

@@ -57,6 +57,8 @@ function criarDashboard(sobrescritasGrupo = {}) {
       totalPartidas: 2,
       ultimaPartidaEm: '2026-07-01T12:00:00Z',
       podeEditar: true,
+      pertenceAoGrupo: true,
+      podeRegistrarPartida: true,
       ...sobrescritasGrupo
     },
     resumo: {
@@ -127,6 +129,35 @@ describe('PaginaGrupoDashboard', () => {
     renderizarPagina();
 
     await waitFor(() => expect(screen.queryByText('Carregando dashboard do grupo...')).not.toBeInTheDocument());
+    expect(screen.queryByRole('button', { name: /Configurações/i })).not.toBeInTheDocument();
+  });
+
+  it('exibe Registrar partida para usuário membro do grupo', async () => {
+    const usuario = userEvent.setup();
+    gruposServico.obterDashboardGrupo.mockResolvedValue(criarDashboard());
+    pendenciasServico.listar.mockResolvedValue([]);
+
+    renderizarPagina();
+
+    await usuario.click(await screen.findByRole('button', { name: /Registrar partida/i }));
+
+    expect(screen.getByTestId('registrar-partida-modal')).toBeInTheDocument();
+  });
+
+  it('não exibe registro nem ações administrativas para usuário fora de grupo público', async () => {
+    gruposServico.obterDashboardGrupo.mockResolvedValue(criarDashboard({
+      publico: true,
+      privacidade: 'Público',
+      podeEditar: false,
+      pertenceAoGrupo: false,
+      podeRegistrarPartida: false
+    }));
+    pendenciasServico.listar.mockResolvedValue([]);
+
+    renderizarPagina();
+
+    expect(await screen.findByRole('heading', { name: 'Serie C' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Registrar partida/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Configurações/i })).not.toBeInTheDocument();
   });
 });

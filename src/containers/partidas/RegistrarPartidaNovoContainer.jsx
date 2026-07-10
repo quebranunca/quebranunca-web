@@ -867,13 +867,32 @@ export function RegistrarPartidaNovoContainer({
 
       try {
         setCarregandoGrupo(true);
-        const [grupo, atletas] = await Promise.all([
+        const [grupo, atletas, dashboardGrupo] = await Promise.all([
           gruposServico.obterPorId(grupoId),
-          grupoAtletasServico.listarPorGrupo(grupoId).catch(() => [])
+          grupoAtletasServico.listarPorGrupo(grupoId).catch(() => []),
+          gruposServico.obterDashboardGrupo(grupoId).catch(() => null)
         ]);
 
         if (!cancelado) {
-          setGrupoContexto(normalizarGrupoContexto(grupo, atletas?.length));
+          const permissoesGrupo = dashboardGrupo?.grupo || {};
+
+          if (!ehEdicao && permissoesGrupo.podeRegistrarPartida === false) {
+            setErro('Você precisa fazer parte deste grupo para registrar partidas nele.');
+            setGrupoContexto(null);
+            setAtletasGrupo([]);
+            setContextoPartida((atual) => ({
+              ...atual,
+              grupoId: null
+            }));
+            showNotification({
+              type: 'warning',
+              title: 'Acesso ao grupo necessário',
+              message: 'Você precisa fazer parte deste grupo para registrar partidas nele.'
+            });
+            return;
+          }
+
+          setGrupoContexto(normalizarGrupoContexto({ ...grupo, ...permissoesGrupo }, atletas?.length));
           setAtletasGrupo(atletas || []);
         }
       } catch {
@@ -899,7 +918,7 @@ export function RegistrarPartidaNovoContainer({
     return () => {
       cancelado = true;
     };
-  }, [contextoPartida?.grupoId]);
+  }, [contextoPartida?.grupoId, ehEdicao]);
 
   useEffect(() => {
     let cancelado = false;
