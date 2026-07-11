@@ -42,7 +42,11 @@ vi.mock('../services/rankingServico', () => ({
     listarAtletasGeral: vi.fn(),
     listarAtletasPorGrupo: vi.fn(),
     listarAtletasPorCompeticao: vi.fn(),
-    listarAtletasPorRegiao: vi.fn()
+    listarAtletasPorRegiao: vi.fn(),
+    listarDuplas: vi.fn(),
+    obterDupla: vi.fn(),
+    listarGruposRanking: vi.fn(),
+    obterGrupoRanking: vi.fn()
   }
 }));
 
@@ -83,6 +87,136 @@ function criarGrupoRanking(atletas) {
   };
 }
 
+function criarRankingDuplas() {
+  return {
+    itens: [
+      {
+        id: 'dupla-1',
+        posicao: 1,
+        atleta1: { atletaId: 'atleta-1', nome: 'Gustavo', apelido: '', fotoPerfilUrl: '' },
+        atleta2: { atletaId: 'atleta-2', nome: 'João', apelido: '', fotoPerfilUrl: '' },
+        jogos: 4,
+        vitorias: 3,
+        derrotas: 1,
+        aproveitamento: 75,
+        sequenciaAtual: { tipo: 'V', quantidade: 2, texto: '2 vitórias seguidas' },
+        pontosRanking: 8,
+        variacao: 0,
+        ultimoJogo: '2026-07-10T10:00:00Z',
+        grupoPrincipal: 'Fechadinho de Quinta',
+        pontosPro: 84,
+        pontosContra: 70,
+        saldo: 14
+      }
+    ],
+    total: 1,
+    pagina: 1,
+    tamanhoPagina: 50,
+    totalPaginas: 1
+  };
+}
+
+function criarDetalheDupla() {
+  return {
+    resumo: criarRankingDuplas().itens[0],
+    ultimosJogos: [
+      {
+        partidaId: 'partida-1',
+        dataPartida: '2026-07-10T10:00:00Z',
+        contexto: 'Fechadinho de Quinta',
+        duplaAdversaria: 'Rafa / Teteu',
+        resultado: 'Vitória',
+        placar: '21 x 18',
+        possuiPlacar: true
+      }
+    ],
+    principaisAdversarios: [
+      {
+        id: 'dupla-adv',
+        nome: 'Rafa / Teteu',
+        jogos: 2,
+        vitorias: 1,
+        derrotas: 1,
+        aproveitamento: 50
+      }
+    ],
+    grupos: [
+      {
+        grupoId: 'grupo-1',
+        nome: 'Fechadinho de Quinta',
+        jogos: 4,
+        vitorias: 3,
+        derrotas: 1,
+        aproveitamento: 75,
+        pontosRanking: 8
+      }
+    ],
+    historico: []
+  };
+}
+
+function criarRankingGrupos() {
+  return {
+    itens: [
+      {
+        grupoId: 'grupo-1',
+        posicao: 1,
+        nome: 'Long Beach',
+        fotoUrl: '',
+        cidade: 'Santos',
+        quantidadeAtletas: 42,
+        quantidadePartidas: 124,
+        atletasAtivos: 18,
+        pontuacaoRanking: 2145,
+        variacao: 0,
+        ultimaPartida: '2026-07-09T10:00:00Z'
+      }
+    ],
+    total: 1,
+    pagina: 1,
+    tamanhoPagina: 50,
+    totalPaginas: 1
+  };
+}
+
+function criarDetalheGrupo() {
+  return {
+    grupoId: 'grupo-1',
+    nome: 'Long Beach',
+    fotoUrl: '',
+    cidade: 'Santos',
+    descricao: 'Grupo da comunidade',
+    administrador: 'Primo',
+    publico: true,
+    quantidadeAtletas: 42,
+    quantidadePartidas: 124,
+    atletasAtivos: 18,
+    pontuacaoRanking: 2145,
+    topAtletas: [criarAtleta(1, 'Gustavo', 10)],
+    topDuplas: criarRankingDuplas().itens,
+    ultimosJogos: [
+      {
+        partidaId: 'partida-1',
+        dataPartida: '2026-07-09T10:00:00Z',
+        duplaA: 'Gustavo / João',
+        duplaB: 'Rafa / Teteu',
+        resultado: 'Gustavo / João venceu',
+        placar: '21 x 18',
+        possuiPlacar: true
+      }
+    ],
+    evolucaoMensal: [
+      {
+        ano: 2026,
+        mes: 7,
+        partidas: 12,
+        atletasAtivos: 8,
+        pontuacaoRanking: 144
+      }
+    ]
+  };
+}
+
 function configurarBase({ atletas = atletasPadrao() } = {}) {
   competicoesServico.listar.mockResolvedValue([
     { id: 'competicao-1', nome: 'Circuito Verão', tipo: 1 },
@@ -107,6 +241,10 @@ function configurarBase({ atletas = atletasPadrao() } = {}) {
   ]);
   rankingServico.listarAtletasPorCompeticao.mockResolvedValue([criarGrupoRanking(atletas)]);
   rankingServico.listarAtletasPorRegiao.mockResolvedValue([criarGrupoRanking(atletas)]);
+  rankingServico.listarDuplas.mockResolvedValue(criarRankingDuplas());
+  rankingServico.obterDupla.mockResolvedValue(criarDetalheDupla());
+  rankingServico.listarGruposRanking.mockResolvedValue(criarRankingGrupos());
+  rankingServico.obterGrupoRanking.mockResolvedValue(criarDetalheGrupo());
 }
 
 function atletasPadrao() {
@@ -177,7 +315,7 @@ describe('PaginaRanking redesenhada', () => {
     expect(screen.queryByText('Todas as competições')).not.toBeInTheDocument();
   });
 
-  it('mostra estado vazio preparado para ranking de duplas sem chamar endpoint inexistente', async () => {
+  it('renderiza ranking de duplas real e abre detalhe', async () => {
     const usuario = userEvent.setup();
 
     renderizarPagina();
@@ -187,9 +325,52 @@ describe('PaginaRanking redesenhada', () => {
     await usuario.click(within(visoes).getByRole('button', { name: /Duplas/i }));
 
     expect(screen.getByRole('button', { name: /Todas as duplas/i })).toBeInTheDocument();
-    expect(screen.getByText('Ranking de duplas em preparação')).toBeInTheDocument();
+    expect(await screen.findByText('Gustavo / João')).toBeInTheDocument();
+    expect(screen.getByText('75% aproveitamento • 3V • 1D')).toBeInTheDocument();
     expect(screen.queryByText('Paulinho')).not.toBeInTheDocument();
     expect(rankingServico.listarAtletasGeral).toHaveBeenCalledTimes(1);
+    expect(rankingServico.listarDuplas).toHaveBeenCalledWith({
+      grupoId: '',
+      pagina: 1,
+      periodo: '',
+      tamanhoPagina: 50
+    });
+
+    await usuario.click(screen.getByRole('button', { name: /Abrir detalhes da dupla Gustavo \/ João/i }));
+
+    expect(await screen.findByRole('dialog', { name: /Gustavo \/ João/i })).toBeInTheDocument();
+    expect(screen.getByText('Principais adversários')).toBeInTheDocument();
+    expect(rankingServico.obterDupla).toHaveBeenCalledWith('dupla-1', {
+      grupoId: '',
+      periodo: ''
+    });
+  });
+
+  it('renderiza ranking de grupos real e abre detalhe', async () => {
+    const usuario = userEvent.setup();
+
+    renderizarPagina();
+    await screen.findByText('Destaques');
+
+    const visoes = screen.getByRole('navigation', { name: 'Visões do ranking' });
+    await usuario.click(within(visoes).getByRole('button', { name: /Grupos/i }));
+
+    expect(await screen.findByText('Long Beach')).toBeInTheDocument();
+    expect(screen.getByText('124 partidas • 42 atletas • 18 ativos')).toBeInTheDocument();
+    expect(rankingServico.listarGruposRanking).toHaveBeenCalledWith({
+      grupoId: '',
+      pagina: 1,
+      periodo: '',
+      tamanhoPagina: 50
+    });
+
+    await usuario.click(screen.getByRole('button', { name: /Abrir detalhes do grupo Long Beach/i }));
+
+    expect(await screen.findByRole('dialog', { name: 'Long Beach' })).toBeInTheDocument();
+    expect(screen.getByText('Top duplas')).toBeInTheDocument();
+    expect(rankingServico.obterGrupoRanking).toHaveBeenCalledWith('grupo-1', {
+      periodo: ''
+    });
   });
 
   it('mantem filtro por grupo usando o endpoint atual de atletas por grupo', async () => {

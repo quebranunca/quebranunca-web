@@ -45,5 +45,49 @@ export const rankingServico = {
   async listarAtletasPorGrupo(grupoId) {
     const resposta = await http.get(`/ranking/grupos/${grupoId}/atletas`);
     return resposta.data;
+  },
+
+  async listarDuplas(filtros = {}) {
+    const resposta = await http.get('/rankings/duplas', {
+      params: montarParamsRanking(filtros)
+    });
+    return resposta.data;
+  },
+
+  async obterDupla(id, filtros = {}) {
+    const resposta = await http.get(`/rankings/duplas/${id}`, {
+      params: montarParamsRanking(filtros)
+    });
+    return resposta.data;
+  },
+
+  async listarGruposRanking(filtros = {}) {
+    const resposta = await http.get('/rankings/grupos', {
+      params: montarParamsRanking(filtros)
+    });
+    return resposta.data;
+  },
+
+  async obterGrupoRanking(id, filtros = {}) {
+    const resposta = await http.get(`/rankings/grupos/${id}`, {
+      params: montarParamsRanking(filtros)
+    });
+    return resposta.data;
   }
 };
+
+function montarParamsRanking(filtros = {}) {
+  return Object.entries({
+    grupoId: filtros.grupoId || undefined,
+    periodo: filtros.periodo || undefined,
+    pagina: filtros.pagina || undefined,
+    tamanhoPagina: filtros.tamanhoPagina || undefined,
+    ordenacao: filtros.ordenacao || undefined
+  }).reduce((params, [chave, valor]) => {
+    if (valor !== undefined && valor !== null && valor !== '') {
+      params[chave] = valor;
+    }
+
+    return params;
+  }, {});
+}

@@ -40,17 +40,26 @@ const VISOES_RANKING = [
   {
     valor: 'duplas',
     rotulo: 'Duplas',
-    descricao: 'Em preparação',
+    descricao: 'Ranking de duplas',
     Icone: FaUserFriends,
-    disponivel: false
+    disponivel: true
   },
   {
     valor: 'grupos',
     rotulo: 'Grupos',
-    descricao: 'Em preparação',
+    descricao: 'Comunidades',
     Icone: FaUsers,
-    disponivel: false
+    disponivel: true
   }
+];
+
+const ABAS_RANKING_ENTIDADES = ABAS_RANKING.filter((aba) => ['geral', 'grupos'].includes(aba.valor));
+
+const PERIODOS_RANKING = [
+  { valor: '', rotulo: 'Todos os períodos' },
+  { valor: '30d', rotulo: 'Últimos 30 dias' },
+  { valor: '90d', rotulo: 'Últimos 90 dias' },
+  { valor: 'ano', rotulo: 'Ano atual' }
 ];
 
 const TIPOS_COMPETICAO = {
@@ -162,20 +171,6 @@ function obterRotuloEscopo(visaoRanking, abaRanking, resumoFiltro) {
   }
 }
 
-function obterMensagemVisaoIndisponivel(visaoRanking) {
-  if (visaoRanking === 'duplas') {
-    return {
-      titulo: 'Ranking de duplas em preparação',
-      texto: 'Assim que o ranking de duplas estiver disponível pela API, ele aparecerá aqui sem mudar o fluxo atual.'
-    };
-  }
-
-  return {
-    titulo: 'Ranking de grupos em preparação',
-    texto: 'A comparação entre grupos ainda não possui dados próprios no contrato atual. Os rankings por grupo continuam disponíveis no filtro Grupos.'
-  };
-}
-
 function obterCabecalhoSecao(grupo, abaRanking) {
   if (abaRanking === 'geral') {
     return {
@@ -212,6 +207,48 @@ function ordenarTop3(top3) {
   return top3;
 }
 
+function normalizarPaginaRanking(resposta) {
+  if (Array.isArray(resposta)) {
+    return { itens: resposta, total: resposta.length };
+  }
+
+  return {
+    itens: resposta?.itens || [],
+    total: resposta?.total ?? resposta?.itens?.length ?? 0
+  };
+}
+
+function formatarPercentual(valor) {
+  const numero = Number(valor || 0);
+  return `${numero.toLocaleString('pt-BR', {
+    minimumFractionDigits: numero % 1 === 0 ? 0 : 1,
+    maximumFractionDigits: 1
+  })}%`;
+}
+
+function formatarDataCurta(valor) {
+  if (!valor) {
+    return 'Sem jogos';
+  }
+
+  return new Date(valor).toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit'
+  });
+}
+
+function obterNomeResumoAtleta(atleta) {
+  return obterNomeExibicaoAtleta({
+    nomeAtleta: atleta?.nome,
+    apelidoAtleta: atleta?.apelido,
+    fotoPerfilUrl: atleta?.fotoPerfilUrl
+  }) || atleta?.nome || 'Atleta';
+}
+
+function montarNomeDuplaRanking(item) {
+  return [item?.atleta1, item?.atleta2].map(obterNomeResumoAtleta).join(' / ');
+}
+
 export function PaginaRanking() {
   const { token } = useAutenticacao();
   const { navegarParaPerfilAtleta } = useNavegacaoPerfilAtleta();
@@ -228,6 +265,11 @@ export function PaginaRanking() {
   const [cidadeRegiao, setCidadeRegiao] = useState('');
   const [bairroRegiao, setBairroRegiao] = useState('');
   const [ranking, setRanking] = useState([]);
+  const [rankingEntidade, setRankingEntidade] = useState([]);
+  const [totalEntidade, setTotalEntidade] = useState(0);
+  const [periodoRanking, setPeriodoRanking] = useState('');
+  const [detalheRanking, setDetalheRanking] = useState(null);
+  const [carregandoDetalhe, setCarregandoDetalhe] = useState(false);
   const [filtrosAbertos, setFiltrosAbertos] = useState(false);
   const [carregandoBase, setCarregandoBase] = useState(true);
   const [baseInicializada, setBaseInicializada] = useState(false);
@@ -294,6 +336,7 @@ export function PaginaRanking() {
     () => rankingFiltrado.filter((grupo) => (grupo.atletas || []).length > 0),
     [rankingFiltrado]
   );
+  const rankingEntidadeFiltrado = useMemo(() => rankingEntidade, [rankingEntidade]);
   const resumoFiltro = obterResumoFiltro({
     abaRanking,
     grupoSelecionado,
@@ -306,28 +349,31 @@ export function PaginaRanking() {
   const visaoAtual = VISOES_RANKING.find((visao) => visao.valor === visaoRanking) || VISOES_RANKING[0];
   const filtroPrincipal = obterRotuloEscopo(visaoRanking, abaRanking, resumoFiltro);
   const autenticado = Boolean(token);
+  const opcoesContexto = visaoRanking === 'atletas' ? ABAS_RANKING : ABAS_RANKING_ENTIDADES;
+  const rankingCompartilhavel = visaoRanking === 'atletas' ? rankingComAtletas : [];
 
   useEffect(() => {
     carregarBase();
   }, []);
 
   useEffect(() => {
-    if (!baseInicializada || visaoRanking !== 'atletas') {
+    if (!baseInicializada) {
       return;
     }
 
     if (abaRanking === 'grupos' && !grupoId) {
       setRanking([]);
+      setRankingEntidade([]);
       return;
     }
 
-    if (abaRanking === 'competicoes' && !competicaoId) {
+    if (visaoRanking === 'atletas' && abaRanking === 'competicoes' && !competicaoId) {
       setRanking([]);
       return;
     }
 
     carregarRanking();
-  }, [baseInicializada, visaoRanking, abaRanking, grupoId, competicaoId, estadoRegiao, cidadeRegiao, bairroRegiao]);
+  }, [baseInicializada, visaoRanking, abaRanking, grupoId, competicaoId, estadoRegiao, cidadeRegiao, bairroRegiao, periodoRanking]);
 
   useEffect(() => {
     if (!categoriaId || categoriasRanking.length === 0) {
@@ -396,6 +442,36 @@ export function PaginaRanking() {
     setErro('');
 
     try {
+      if (visaoRanking === 'duplas') {
+        const resposta = await rankingServico.listarDuplas({
+          grupoId: abaRanking === 'grupos' ? grupoId : '',
+          periodo: periodoRanking,
+          pagina: 1,
+          tamanhoPagina: 50
+        });
+        const pagina = normalizarPaginaRanking(resposta);
+        setRankingEntidade(pagina.itens);
+        setTotalEntidade(pagina.total);
+        setRanking([]);
+        atualizarParametros(abaRanking, grupoId, competicaoId, estadoRegiao, cidadeRegiao, bairroRegiao, categoriaId);
+        return;
+      }
+
+      if (visaoRanking === 'grupos') {
+        const resposta = await rankingServico.listarGruposRanking({
+          grupoId: abaRanking === 'grupos' ? grupoId : '',
+          periodo: periodoRanking,
+          pagina: 1,
+          tamanhoPagina: 50
+        });
+        const pagina = normalizarPaginaRanking(resposta);
+        setRankingEntidade(pagina.itens);
+        setTotalEntidade(pagina.total);
+        setRanking([]);
+        atualizarParametros(abaRanking, grupoId, competicaoId, estadoRegiao, cidadeRegiao, bairroRegiao, categoriaId);
+        return;
+      }
+
       let lista = [];
       if (abaRanking === 'geral') {
         lista = await rankingServico.listarAtletasGeral();
@@ -412,10 +488,14 @@ export function PaginaRanking() {
       }
 
       setRanking(normalizarRanking(lista, abaRanking));
+      setRankingEntidade([]);
+      setTotalEntidade(0);
       atualizarParametros(abaRanking, grupoId, competicaoId, estadoRegiao, cidadeRegiao, bairroRegiao, categoriaId);
     } catch (error) {
       setErro(extrairMensagemErro(error));
       setRanking([]);
+      setRankingEntidade([]);
+      setTotalEntidade(0);
     } finally {
       setCarregandoRanking(false);
     }
@@ -451,14 +531,25 @@ export function PaginaRanking() {
 
   function selecionarVisao(valor) {
     setVisaoRanking(valor);
+    setDetalheRanking(null);
+    if (valor !== 'atletas' && !ABAS_RANKING_ENTIDADES.some((aba) => aba.valor === abaRanking)) {
+      setAbaRanking('geral');
+      atualizarParametros('geral', grupoId, competicaoId, estadoRegiao, cidadeRegiao, bairroRegiao, '');
+    }
     setFiltrosAbertos(false);
   }
 
   function selecionarAba(valor) {
     setAbaRanking(valor);
     setCategoriaId('');
+    setDetalheRanking(null);
     setFiltrosAbertos(false);
     atualizarParametros(valor, grupoId, competicaoId, estadoRegiao, cidadeRegiao, bairroRegiao, '');
+  }
+
+  function selecionarPeriodo(valor) {
+    setPeriodoRanking(valor);
+    setDetalheRanking(null);
   }
 
   function selecionarGrupo(valor) {
@@ -522,6 +613,37 @@ export function PaginaRanking() {
     });
   }
 
+  async function abrirDupla(item) {
+    setCarregandoDetalhe(true);
+    setErro('');
+    try {
+      const detalhe = await rankingServico.obterDupla(item.id, {
+        grupoId: abaRanking === 'grupos' ? grupoId : '',
+        periodo: periodoRanking
+      });
+      setDetalheRanking({ tipo: 'dupla', dados: detalhe });
+    } catch (error) {
+      setErro(extrairMensagemErro(error));
+    } finally {
+      setCarregandoDetalhe(false);
+    }
+  }
+
+  async function abrirGrupo(item) {
+    setCarregandoDetalhe(true);
+    setErro('');
+    try {
+      const detalhe = await rankingServico.obterGrupoRanking(item.grupoId, {
+        periodo: periodoRanking
+      });
+      setDetalheRanking({ tipo: 'grupo', dados: detalhe });
+    } catch (error) {
+      setErro(extrairMensagemErro(error));
+    } finally {
+      setCarregandoDetalhe(false);
+    }
+  }
+
   return (
     <section className="pagina pagina-ranking ranking-app">
       <header className="ranking-app-header">
@@ -534,7 +656,7 @@ export function PaginaRanking() {
           <CompartilharRankingBotao
             contexto={resumoFiltro}
             titulo="Ranking QuebraNunca"
-            ranking={rankingComAtletas}
+            ranking={rankingCompartilhavel}
           />
         </div>
         <div className="ranking-hero-arte" aria-hidden="true">
@@ -573,7 +695,7 @@ export function PaginaRanking() {
               value={abaRanking}
               onChange={(evento) => selecionarAba(evento.target.value)}
             >
-              {ABAS_RANKING.map((aba) => (
+              {opcoesContexto.map((aba) => (
                 <option key={aba.valor} value={aba.valor}>{aba.rotulo}</option>
               ))}
             </select>
@@ -688,6 +810,15 @@ export function PaginaRanking() {
                 <p className="texto-ajuda">Ranking consolidado de todas as partidas registradas.</p>
               )}
 
+              <label>
+                Período
+                <select value={periodoRanking} onChange={(evento) => selecionarPeriodo(evento.target.value)}>
+                  {PERIODOS_RANKING.map((periodo) => (
+                    <option key={periodo.valor || 'todos'} value={periodo.valor}>{periodo.rotulo}</option>
+                  ))}
+                </select>
+              </label>
+
               <div className="ranking-filtros-acoes">
                 <button type="button" className="botao-secundario" onClick={limparFiltrosAvancados}>
                   Limpar filtros
@@ -703,13 +834,11 @@ export function PaginaRanking() {
 
       {erro && <p className="texto-erro">{erro}</p>}
 
-      {visaoRanking !== 'atletas' ? (
-        <RankingEstadoIndisponivel visao={visaoRanking} />
-      ) : carregandoBase || carregandoRanking ? (
+      {carregandoBase || carregandoRanking ? (
         <div className="ranking-estado">Carregando ranking...</div>
-      ) : rankingComAtletas.length === 0 ? (
+      ) : visaoRanking === 'atletas' && rankingComAtletas.length === 0 ? (
         <div className="ranking-estado">Nenhuma pontuação encontrada para o filtro selecionado.</div>
-      ) : (
+      ) : visaoRanking === 'atletas' ? (
         <div className="ranking-secoes">
           {rankingComAtletas.map((grupo) => (
             <RankingSecao
@@ -720,6 +849,33 @@ export function PaginaRanking() {
             />
           ))}
         </div>
+      ) : rankingEntidadeFiltrado.length === 0 ? (
+        <div className="ranking-estado">Nenhuma pontuação encontrada para o filtro selecionado.</div>
+      ) : (
+        <div className="ranking-secoes">
+          {visaoRanking === 'duplas' ? (
+            <RankingDuplasSecao
+              itens={rankingEntidadeFiltrado}
+              total={totalEntidade}
+              abrirDupla={abrirDupla}
+            />
+          ) : (
+            <RankingGruposSecao
+              itens={rankingEntidadeFiltrado}
+              total={totalEntidade}
+              abrirGrupo={abrirGrupo}
+            />
+          )}
+        </div>
+      )}
+
+      {carregandoDetalhe && <div className="ranking-estado">Carregando detalhes...</div>}
+
+      {detalheRanking && (
+        <RankingDetalheModal
+          detalhe={detalheRanking}
+          onClose={() => setDetalheRanking(null)}
+        />
       )}
     </section>
   );
@@ -784,6 +940,343 @@ function RankingSecao({ grupo, abaRanking, abrirAtleta }) {
   );
 }
 
+function RankingDuplasSecao({ itens, total, abrirDupla }) {
+  return (
+    <section className="ranking-secao ranking-entidade-secao">
+      <div className="ranking-secao-titulo">
+        <div>
+          <span>Ranking de duplas</span>
+          <h3>Duplas</h3>
+        </div>
+        <small>{total} duplas</small>
+      </div>
+
+      <div className="ranking-lista-compacta">
+        {itens.map((item) => (
+          <DuplaRankingLinha
+            key={item.id}
+            item={item}
+            onClick={() => abrirDupla(item)}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function RankingGruposSecao({ itens, total, abrirGrupo }) {
+  return (
+    <section className="ranking-secao ranking-entidade-secao">
+      <div className="ranking-secao-titulo">
+        <div>
+          <span>Ranking de grupos</span>
+          <h3>Grupos</h3>
+        </div>
+        <small>{total} grupos</small>
+      </div>
+
+      <div className="ranking-lista-compacta">
+        {itens.map((item) => (
+          <GrupoRankingLinha
+            key={item.grupoId}
+            item={item}
+            onClick={() => abrirGrupo(item)}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function DuplaRankingLinha({ item, onClick }) {
+  const sequencia = item.sequenciaAtual?.texto || 'Sem sequência';
+
+  return (
+    <button
+      type="button"
+      className="ranking-linha-compacta ranking-linha-dupla"
+      onClick={onClick}
+      aria-label={`Abrir detalhes da dupla ${montarNomeDuplaRanking(item)}`}
+    >
+      <span className="ranking-linha-posicao">#{item.posicao}</span>
+      <span className="ranking-avatar-dupla" aria-hidden="true">
+        <AvatarUsuario
+          nome={obterNomeResumoAtleta(item.atleta1)}
+          fotoPerfilUrl={item.atleta1?.fotoPerfilUrl}
+          tamanho="sm"
+          className="ranking-avatar"
+        />
+        <AvatarUsuario
+          nome={obterNomeResumoAtleta(item.atleta2)}
+          fotoPerfilUrl={item.atleta2?.fotoPerfilUrl}
+          tamanho="sm"
+          className="ranking-avatar"
+        />
+      </span>
+      <span className="ranking-linha-info">
+        <strong>{montarNomeDuplaRanking(item)}</strong>
+        <small>{formatarPercentual(item.aproveitamento)} aproveitamento • {item.vitorias}V • {item.derrotas}D</small>
+        <small>{sequencia} • último jogo {formatarDataCurta(item.ultimoJogo)}</small>
+        {item.grupoPrincipal && <small>{item.grupoPrincipal}</small>}
+      </span>
+      <span className="ranking-linha-pontos">
+        <strong>{formatarPontuacao(item.pontosRanking)}</strong>
+        <small>pts</small>
+      </span>
+      <FaChevronRight className="ranking-linha-seta" aria-hidden="true" />
+    </button>
+  );
+}
+
+function GrupoRankingLinha({ item, onClick }) {
+  return (
+    <button
+      type="button"
+      className="ranking-linha-compacta ranking-linha-grupo"
+      onClick={onClick}
+      aria-label={`Abrir detalhes do grupo ${item.nome}`}
+    >
+      <span className="ranking-linha-posicao">#{item.posicao}</span>
+      <AvatarUsuario
+        nome={item.nome}
+        fotoPerfilUrl={item.fotoUrl}
+        tamanho="md"
+        className="ranking-avatar"
+      />
+      <span className="ranking-linha-info">
+        <strong>{item.nome}</strong>
+        {item.cidade && <span className="ranking-status-dot ativo">{item.cidade}</span>}
+        <small>{item.quantidadePartidas} partidas • {item.quantidadeAtletas} atletas • {item.atletasAtivos} ativos</small>
+        <small>Última partida {formatarDataCurta(item.ultimaPartida)}</small>
+      </span>
+      <span className="ranking-linha-pontos">
+        <strong>{formatarPontuacao(item.pontuacaoRanking)}</strong>
+        <small>pts</small>
+      </span>
+      <FaChevronRight className="ranking-linha-seta" aria-hidden="true" />
+    </button>
+  );
+}
+
+function RankingDetalheModal({ detalhe, onClose }) {
+  return (
+    <div className="ranking-filtros-backdrop" onClick={onClose}>
+      <section
+        className="ranking-detalhe-painel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="ranking-detalhe-titulo"
+        onClick={(evento) => evento.stopPropagation()}
+      >
+        <div className="ranking-filtros-topo">
+          <div>
+            <span>{detalhe.tipo === 'dupla' ? 'Detalhe da dupla' : 'Detalhe do grupo'}</span>
+            <h2 id="ranking-detalhe-titulo">
+              {detalhe.tipo === 'dupla'
+                ? montarNomeDuplaRanking(detalhe.dados?.resumo)
+                : detalhe.dados?.nome}
+            </h2>
+          </div>
+          <button
+            type="button"
+            className="botao-terciario botao-compacto"
+            onClick={onClose}
+            aria-label="Fechar detalhes"
+          >
+            <FaTimes aria-hidden="true" />
+          </button>
+        </div>
+
+        {detalhe.tipo === 'dupla' ? (
+          <DetalheDupla dados={detalhe.dados} />
+        ) : (
+          <DetalheGrupo dados={detalhe.dados} />
+        )}
+      </section>
+    </div>
+  );
+}
+
+function DetalheDupla({ dados }) {
+  const resumo = dados?.resumo || {};
+
+  return (
+    <div className="ranking-detalhe-conteudo">
+      <div className="ranking-detalhe-avatar-dupla">
+        <AvatarUsuario nome={obterNomeResumoAtleta(resumo.atleta1)} fotoPerfilUrl={resumo.atleta1?.fotoPerfilUrl} tamanho="lg" />
+        <AvatarUsuario nome={obterNomeResumoAtleta(resumo.atleta2)} fotoPerfilUrl={resumo.atleta2?.fotoPerfilUrl} tamanho="lg" />
+      </div>
+      <div className="ranking-detalhe-metricas">
+        <RankingMetrica rotulo="Posição" valor={`#${resumo.posicao || '-'}`} />
+        <RankingMetrica rotulo="Pontuação" valor={formatarPontuacao(resumo.pontosRanking)} />
+        <RankingMetrica rotulo="Jogos" valor={resumo.jogos || 0} />
+        <RankingMetrica rotulo="Vitórias" valor={resumo.vitorias || 0} />
+        <RankingMetrica rotulo="Derrotas" valor={resumo.derrotas || 0} />
+        <RankingMetrica rotulo="Aproveitamento" valor={formatarPercentual(resumo.aproveitamento)} />
+        <RankingMetrica rotulo="Sequência" valor={resumo.sequenciaAtual?.texto || 'Sem jogos'} />
+        <RankingMetrica rotulo="Saldo" valor={resumo.saldo ?? 'Sem placar'} />
+      </div>
+
+      <RankingDetalheLista titulo="Últimos jogos" itens={dados?.ultimosJogos} renderItem={renderizarJogoDupla} />
+      <RankingDetalheLista titulo="Principais adversários" itens={dados?.principaisAdversarios} renderItem={renderizarAdversarioDupla} />
+      <RankingDetalheLista titulo="Grupos onde jogou" itens={dados?.grupos} renderItem={renderizarGrupoDupla} />
+    </div>
+  );
+}
+
+function DetalheGrupo({ dados }) {
+  return (
+    <div className="ranking-detalhe-conteudo">
+      <div className="ranking-detalhe-grupo-topo">
+        <AvatarUsuario nome={dados?.nome} fotoPerfilUrl={dados?.fotoUrl} tamanho="lg" />
+        <div>
+          <strong>{dados?.nome}</strong>
+          <small>{dados?.cidade || 'Comunidade QuebraNunca'} • {dados?.publico ? 'Público' : 'Privado'}</small>
+          {dados?.administrador && <small>Admin: {dados.administrador}</small>}
+        </div>
+      </div>
+      {dados?.descricao && <p className="ranking-detalhe-descricao">{dados.descricao}</p>}
+
+      <div className="ranking-detalhe-metricas">
+        <RankingMetrica rotulo="Pontuação" valor={formatarPontuacao(dados?.pontuacaoRanking)} />
+        <RankingMetrica rotulo="Partidas" valor={dados?.quantidadePartidas || 0} />
+        <RankingMetrica rotulo="Atletas" valor={dados?.quantidadeAtletas || 0} />
+        <RankingMetrica rotulo="Ativos" valor={dados?.atletasAtivos || 0} />
+      </div>
+
+      <button
+        type="button"
+        className="botao-secundario botao-compacto ranking-detalhe-compartilhar"
+        onClick={() => compartilharGrupoRanking(dados)}
+      >
+        Compartilhar
+      </button>
+
+      <RankingDetalheLista titulo="Últimos jogos" itens={dados?.ultimosJogos} renderItem={renderizarJogoGrupo} />
+      <RankingDetalheLista titulo="Top atletas" itens={dados?.topAtletas} renderItem={renderizarTopAtletaGrupo} />
+      <RankingDetalheLista titulo="Top duplas" itens={dados?.topDuplas} renderItem={renderizarTopDuplaGrupo} />
+      <RankingDetalheLista titulo="Evolução mensal" itens={dados?.evolucaoMensal} renderItem={renderizarEvolucaoGrupo} />
+    </div>
+  );
+}
+
+function RankingMetrica({ rotulo, valor }) {
+  return (
+    <div className="ranking-detalhe-metrica">
+      <strong>{valor}</strong>
+      <span>{rotulo}</span>
+    </div>
+  );
+}
+
+function RankingDetalheLista({ titulo, itens = [], renderItem }) {
+  return (
+    <section className="ranking-detalhe-lista">
+      <div className="ranking-subsecao-titulo">
+        <span>{titulo}</span>
+      </div>
+      {(itens || []).length > 0 ? (
+        <div>
+          {itens.map((item, indice) => (
+            <div key={item.partidaId || item.id || item.grupoId || `${titulo}-${indice}`} className="ranking-detalhe-item">
+              {renderItem(item)}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="ranking-lista-vazia">Sem dados suficientes para este bloco.</p>
+      )}
+    </section>
+  );
+}
+
+function renderizarJogoDupla(item) {
+  return (
+    <>
+      <strong>{item.contexto}</strong>
+      <small>{item.resultado} • {item.possuiPlacar ? item.placar : 'sem placar'} • {formatarDataCurta(item.dataPartida)}</small>
+      <small>vs {item.duplaAdversaria}</small>
+    </>
+  );
+}
+
+function renderizarAdversarioDupla(item) {
+  return (
+    <>
+      <strong>{item.nome}</strong>
+      <small>{item.jogos} jogos • {item.vitorias}V • {item.derrotas}D • {formatarPercentual(item.aproveitamento)}</small>
+    </>
+  );
+}
+
+function renderizarGrupoDupla(item) {
+  return (
+    <>
+      <strong>{item.nome}</strong>
+      <small>{item.jogos} jogos • {item.vitorias}V • {formatarPercentual(item.aproveitamento)}</small>
+    </>
+  );
+}
+
+function renderizarJogoGrupo(item) {
+  return (
+    <>
+      <strong>{item.duplaA} x {item.duplaB}</strong>
+      <small>{item.resultado} • {item.possuiPlacar ? item.placar : 'sem placar'} • {formatarDataCurta(item.dataPartida)}</small>
+    </>
+  );
+}
+
+function renderizarTopAtletaGrupo(item) {
+  return (
+    <>
+      <strong>#{item.posicao} {obterNomeExibicaoAtleta(item)}</strong>
+      <small>{formatarPontuacao(item.pontos)} pts • {item.vitorias}V • {item.jogos} jogos</small>
+    </>
+  );
+}
+
+function renderizarTopDuplaGrupo(item) {
+  return (
+    <>
+      <strong>#{item.posicao} {montarNomeDuplaRanking(item)}</strong>
+      <small>{formatarPontuacao(item.pontosRanking)} pts • {item.vitorias}V • {item.jogos} jogos</small>
+    </>
+  );
+}
+
+function renderizarEvolucaoGrupo(item) {
+  return (
+    <>
+      <strong>{String(item.mes).padStart(2, '0')}/{item.ano}</strong>
+      <small>{item.partidas} partidas • {item.atletasAtivos} ativos • {formatarPontuacao(item.pontuacaoRanking)} pts</small>
+    </>
+  );
+}
+
+async function compartilharGrupoRanking(dados) {
+  if (!dados) {
+    return;
+  }
+
+  const texto = `${dados.nome} no Ranking QuebraNunca: ${formatarPontuacao(dados.pontuacaoRanking)} pts, ${dados.quantidadePartidas || 0} partidas e ${dados.atletasAtivos || 0} atletas ativos.`;
+  try {
+    if (navigator.share) {
+      await navigator.share({
+        title: `Ranking ${dados.nome}`,
+        text: texto
+      });
+      return;
+    }
+
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(texto);
+    }
+  } catch {
+    // Compartilhamento e clipboard dependem do navegador; a tela segue utilizavel se forem bloqueados.
+  }
+}
+
 function AtletaPodioCard({ item, destaque, onClick }) {
   const status = obterStatusVisual(item);
 
@@ -846,20 +1339,6 @@ function AvatarAtleta({ item, destaque = false }) {
       tamanho={destaque ? 'lg' : 'md'}
       className={`ranking-avatar ${destaque ? 'destaque' : ''}`}
     />
-  );
-}
-
-function RankingEstadoIndisponivel({ visao }) {
-  const mensagem = obterMensagemVisaoIndisponivel(visao);
-
-  return (
-    <article className="ranking-estado ranking-estado-vazio">
-      <FaTrophy aria-hidden="true" />
-      <div>
-        <strong>{mensagem.titulo}</strong>
-        <p>{mensagem.texto}</p>
-      </div>
-    </article>
   );
 }
 
