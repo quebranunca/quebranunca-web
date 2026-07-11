@@ -8889,6 +8889,55 @@ body.grupos-edicao-modal-aberto .layout-com-bottom-nav {
   opacity: 0.55;
 }
 
+.grupos-home-criar-shell {
+  display: grid;
+  padding-inline: clamp(0.78rem, 3vw, 1rem);
+}
+
+.grupos-home-criar-botao {
+  width: 100%;
+  min-height: 4rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.82rem;
+  padding: 0.95rem 1.1rem;
+  border: 1px solid rgba(255, 225, 128, 0.8);
+  border-radius: 1.42rem;
+  background: linear-gradient(180deg, #ffd35f 0%, #ffb51f 54%, #f0a012 100%);
+  color: #11100c;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.08rem;
+  font-weight: 950;
+  line-height: 1;
+  letter-spacing: 0;
+  box-shadow: 0 14px 30px rgba(255, 179, 0, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.32);
+  transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
+}
+
+.grupos-home-criar-botao svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex: 0 0 auto;
+}
+
+.grupos-home-criar-botao:hover,
+.grupos-home-criar-botao:focus-visible {
+  transform: translateY(-1px);
+  filter: brightness(1.03);
+  box-shadow: 0 18px 34px rgba(255, 179, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.36);
+}
+
+.grupos-home-criar-botao:active {
+  transform: translateY(1px) scale(0.992);
+}
+
+.grupos-home-criar-botao:disabled {
+  cursor: not-allowed;
+  filter: grayscale(0.35);
+  opacity: 0.56;
+}
+
 .grupos-home-secao-titulo {
   display: flex;
   align-items: center;
@@ -9322,6 +9371,24 @@ button.grupos-home-grupo-card:focus-visible,
   padding: 0.72rem;
 }
 
+.grupos-home-sem-grupos {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.74rem;
+  padding: 0.78rem;
+}
+
+.grupos-home-sem-grupos .grupos-dashboard-card-icone {
+  width: 2.45rem;
+  height: 2.45rem;
+}
+
+.grupos-home-sem-grupos > div {
+  min-width: 0;
+  display: grid;
+  gap: 0.2rem;
+}
+
 .grupos-home-acoes-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -9547,6 +9614,12 @@ button.grupos-home-grupo-card:focus-visible,
     height: 2.04rem;
   }
 
+  .grupos-home-criar-botao {
+    min-height: 3.72rem;
+    border-radius: 1.28rem;
+    font-size: 1rem;
+  }
+
   .grupos-home-ultima-linha {
     grid-template-columns: auto minmax(0, 1fr) auto;
     gap: 0.42rem;
@@ -9580,6 +9653,14 @@ button.grupos-home-grupo-card:focus-visible,
 @media (min-width: 720px) {
   .grupos-home-header {
     padding-inline: 0;
+  }
+
+  .grupos-home-criar-shell {
+    padding-inline: 0;
+  }
+
+  .grupos-home-criar-botao {
+    width: min(100%, 30rem);
   }
 
   .grupos-home-header h1 {

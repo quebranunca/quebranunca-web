@@ -121,7 +121,7 @@ describe('PaginaGrupos - home de grupos', () => {
 
     expect(await screen.findByRole('heading', { name: 'Grupos' })).toBeInTheDocument();
     expect(screen.getByText('Sua comunidade de partidas')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Novo grupo/i })).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: 'Criar grupo' })).toHaveLength(1);
 
     const principal = await screen.findByRole('button', { name: /Abrir grupo Fechadinho De Quinta/i });
     expect(within(principal).getByText('Fechadinho De Quinta')).toBeInTheDocument();
@@ -132,11 +132,13 @@ describe('PaginaGrupos - home de grupos', () => {
     expect(within(principal).getByText('Abrir grupo')).toBeInTheDocument();
 
     expect(screen.getByRole('heading', { name: 'Meus grupos' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Abrir grupo Beach Friends/i })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Ações rápidas' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Criar grupo/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Explorar públicos/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Convites/i })).toBeInTheDocument();
+    const beachCard = screen.getByRole('button', { name: /Abrir grupo Beach Friends/i });
+    expect(beachCard).toBeInTheDocument();
+    expect(within(beachCard).getByText('B')).toBeInTheDocument();
+    expect(within(beachCard).queryByText('BF')).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Ações rápidas' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Explorar públicos/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Convites/i })).not.toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Atividade recente' })).toBeInTheDocument();
 
     expect(screen.queryByText('Geral')).not.toBeInTheDocument();
@@ -157,6 +159,7 @@ describe('PaginaGrupos - home de grupos', () => {
     await usuario.click(await screen.findByRole('button', { name: /Abrir grupo Fechadinho De Quinta/i }));
 
     expect(screen.getByTestId('rota-atual')).toHaveTextContent('/grupos/grupo-principal');
+    expect(screen.queryByRole('heading', { name: 'Meus grupos' })).not.toBeInTheDocument();
   });
 
   it('trata estado sem grupos reais quando só existe grupo técnico', async () => {
@@ -172,16 +175,20 @@ describe('PaginaGrupos - home de grupos', () => {
 
     renderizarPagina();
 
-    expect(await screen.findByText('Crie seu primeiro grupo')).toBeInTheDocument();
-    expect(screen.getByText(/Organize sua turma/i)).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Ações rápidas' })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Criar grupo' })).toBeInTheDocument();
+    expect(screen.getByText('Você ainda não participa de nenhum grupo.')).toBeInTheDocument();
+    expect(screen.getByText(/Crie seu primeiro grupo para registrar partidas/i)).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Seu grupo principal' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Meus grupos' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Ações rápidas' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Explorar públicos/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Convites/i })).not.toBeInTheDocument();
     expect(screen.getByText('Nenhuma atividade recente')).toBeInTheDocument();
     expect(screen.queryByText('Geral')).not.toBeInTheDocument();
     expect(screen.queryByText('Partidas avulsas')).not.toBeInTheDocument();
   });
 
-  it('lista grupos públicos disponíveis sem misturar com meus grupos', async () => {
-    const usuario = userEvent.setup();
+  it('não renderiza explorar públicos mesmo quando a API retorna grupos públicos', async () => {
     configurarDashboard([
       criarGrupo({
         grupoId: 'grupo-principal',
@@ -203,18 +210,11 @@ describe('PaginaGrupos - home de grupos', () => {
 
     renderizarPagina();
 
-    const publico = await screen.findByText('Arena Forte');
-    const card = publico.closest('.grupos-home-publico-card');
+    await screen.findByRole('button', { name: /Abrir grupo Fechadinho De Quinta/i });
 
-    expect(card).not.toBeNull();
-    expect(within(card).getByText('A')).toBeInTheDocument();
-    expect(within(card).queryByText('AF')).not.toBeInTheDocument();
-    expect(within(card).getByText('Público')).toBeInTheDocument();
-    expect(within(card).getByText(/Grupo focado em diversão/i)).toBeInTheDocument();
-
-    await usuario.click(within(card).getByRole('button', { name: 'Entrar' }));
-
-    expect(screen.getByTestId('rota-atual')).toHaveTextContent('/grupos/publico-1');
+    expect(screen.queryByRole('heading', { name: 'Explorar públicos' })).not.toBeInTheDocument();
+    expect(screen.queryByText('Arena Forte')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Entrar' })).not.toBeInTheDocument();
   });
 
   it('cria grupo pelo wizard e abre o grupo criado automaticamente', async () => {
@@ -229,7 +229,7 @@ describe('PaginaGrupos - home de grupos', () => {
 
     renderizarPagina();
 
-    await usuario.click(await screen.findByRole('button', { name: /\+ Novo grupo/i }));
+    await usuario.click(await screen.findByRole('button', { name: 'Criar grupo' }));
 
     expect(screen.getByRole('dialog', { name: /Criar grupo/i })).toBeInTheDocument();
     expect(screen.getByText('Como seu grupo se chama?')).toBeInTheDocument();
