@@ -403,6 +403,55 @@ describe('PaginaPontosQN simplificada', () => {
     expect(screen.getByRole('button', { name: 'Faltam 2.000 pontos' })).toBeDisabled();
   });
 
+  it('mantém cupons percentuais em Campanhas e produtos físicos em Produtos', async () => {
+    configurarApisComSucesso({
+      saldoAtual: 1000,
+      beneficios: [
+        criarBeneficio('cupom-10', 'Cupom 10% OFF', 300, {
+          tipo: 1,
+          tipoNome: 'Campanha promocional',
+          saldoSuficiente: true,
+          pontosFaltantes: 0
+        }),
+        criarBeneficio('cupom-20', 'Cupom 20% OFF', 600, {
+          tipo: 1,
+          tipoNome: 'Campanha promocional',
+          saldoSuficiente: true,
+          pontosFaltantes: 0
+        }),
+        criarBeneficio('beneficio-bone', 'Boné QuebraNunca', 1500, {
+          tipo: 4,
+          tipoNome: 'Produto',
+          saldoSuficiente: false,
+          pontosFaltantes: 500
+        })
+      ]
+    });
+    const usuario = userEvent.setup();
+    renderizarPagina('/app/pontos-qn?aba=beneficios');
+
+    await screen.findByRole('heading', { name: /Benefícios QN/i });
+
+    expect(screen.getByText('Cupom 10% OFF')).toBeInTheDocument();
+    expect(screen.getByText('Cupom 20% OFF')).toBeInTheDocument();
+    expect(screen.getByText('Boné QuebraNunca')).toBeInTheDocument();
+
+    const filtros = screen.getByRole('group', { name: /Filtros de benefícios/i });
+    expect(within(filtros).queryByRole('button', { name: 'Brindes' })).not.toBeInTheDocument();
+
+    await usuario.click(within(filtros).getByRole('button', { name: 'Campanhas' }));
+
+    expect(screen.getByText('Cupom 10% OFF')).toBeInTheDocument();
+    expect(screen.getByText('Cupom 20% OFF')).toBeInTheDocument();
+    expect(screen.queryByText('Boné QuebraNunca')).not.toBeInTheDocument();
+
+    await usuario.click(within(filtros).getByRole('button', { name: 'Produtos' }));
+
+    expect(screen.getByText('Boné QuebraNunca')).toBeInTheDocument();
+    expect(screen.queryByText('Cupom 10% OFF')).not.toBeInTheDocument();
+    expect(screen.queryByText('Cupom 20% OFF')).not.toBeInTheDocument();
+  });
+
   it('não mostra filtros se houver benefícios ativos em apenas uma categoria', async () => {
     configurarApisComSucesso({
       beneficios: [

@@ -79,7 +79,6 @@ const padroesCopyFinanceiraBeneficio = [
   /100\s*qn\s*=\s*r\$\s*1/i,
   /r\$\s*\d+/i,
   /\b\d+\s*reais?\b/i,
-  /\boff\b/i,
   /\bdescontos?\b/i,
   /cashback/i,
   /saldo financeiro/i,
