@@ -39,7 +39,7 @@ export function MedalhaNivel({
 
   return (
     <span className={classes}>
-      {falhaImagem ? (
+      {!src || falhaImagem ? (
         <span className="medalha-nivel-fallback" role="img" aria-label={textoAlternativo}>
           {nomeNivel.charAt(0)}
         </span>

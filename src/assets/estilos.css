@@ -3200,6 +3200,97 @@ code {
   line-height: 1.45;
 }
 
+.pontosqn-medalhas-card {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.pontosqn-medalhas-topo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.85rem;
+}
+
+.pontosqn-medalhas-topo h2 {
+  margin: 0;
+  font-size: 1.12rem;
+}
+
+.pontosqn-medalhas-topo p {
+  max-width: 720px;
+  margin: 0.28rem 0 0;
+  color: var(--cor-texto-suave);
+  font-size: 0.9rem;
+  line-height: 1.42;
+}
+
+.pontosqn-medalhas-lista {
+  display: grid;
+  gap: 0.52rem;
+}
+
+.pontosqn-medalha-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.65rem 0.72rem;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-sm);
+  background: var(--cor-superficie-suave);
+}
+
+.pontosqn-medalha-item.atual {
+  border-color: rgba(255, 179, 0, 0.34);
+  background:
+    linear-gradient(135deg, rgba(255, 179, 0, 0.12), rgba(255, 255, 255, 0.03)),
+    var(--cor-superficie);
+}
+
+.pontosqn-medalha-item.bloqueada {
+  opacity: 0.76;
+}
+
+.pontosqn-medalha-item > div {
+  display: grid;
+  gap: 0.12rem;
+  min-width: 0;
+}
+
+.pontosqn-medalha-item strong {
+  overflow: hidden;
+  color: var(--cor-texto);
+  font-size: 0.98rem;
+  line-height: 1.12;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pontosqn-medalha-item span,
+.pontosqn-medalha-item small {
+  color: var(--cor-texto-suave);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.pontosqn-medalha-item small {
+  justify-self: end;
+  padding: 0.22rem 0.48rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.055);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.pontosqn-medalha-item.atual small,
+.pontosqn-medalha-item.alcancada small {
+  border-color: rgba(255, 179, 0, 0.24);
+  background: rgba(255, 179, 0, 0.1);
+  color: #ffd56a;
+}
+
 .pontosqn-duas-colunas {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -3775,6 +3866,17 @@ code {
   .pontosqn-sobre-card {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .pontosqn-medalha-item {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .pontosqn-medalha-item small {
+    grid-column: 2;
+    justify-self: start;
+    text-align: left;
+    white-space: normal;
   }
 
   .pontosqn-em-breve-grid {

@@ -36,26 +36,84 @@ vi.mock('../services/gamificacaoServico', () => ({
 function configurarApisComSucesso({
   beneficios = criarBeneficios(),
   saldoAtual = 0,
+  totalAcumulado = saldoAtual,
+  nivel = criarNivelResumo(totalAcumulado),
   extrato = []
 } = {}) {
   gamificacaoServico.obterResumo.mockResolvedValue({
     pontuacao: {
       saldoAtual,
-      totalAcumulado: saldoAtual,
+      totalAcumulado,
       temAtletaVinculado: true
     },
-    nivel: {
-      nome: 'Bronze',
-      progressoPercentual: 42,
-      pontosRestantes: 580,
-      pontosProximaFaixa: 1000
-    }
+    nivel,
+    faixasMedalha: criarFaixasMedalha()
   });
   gamificacaoServico.listarBeneficios.mockResolvedValue(beneficios);
   gamificacaoServico.listarExtrato.mockResolvedValue({ itens: extrato });
   gamificacaoServico.listarResgates.mockResolvedValue([]);
   gamificacaoServico.listarMissoes.mockResolvedValue([]);
   gamificacaoServico.listarConquistas.mockResolvedValue([]);
+}
+
+function criarFaixasMedalha() {
+  return [
+    { nome: 'Bronze', pontosMinimos: 0, pontosProximaFaixa: 500 },
+    { nome: 'Prata', pontosMinimos: 500, pontosProximaFaixa: 1500 },
+    { nome: 'Ouro', pontosMinimos: 1500, pontosProximaFaixa: 4000 },
+    { nome: 'Diamante', pontosMinimos: 4000, pontosProximaFaixa: 8000 },
+    { nome: 'Lenda QN', pontosMinimos: 8000, pontosProximaFaixa: null }
+  ];
+}
+
+function criarNivelResumo(totalAcumulado) {
+  if (totalAcumulado >= 8000) {
+    return {
+      nome: 'Lenda QN',
+      pontosMinimos: 8000,
+      progressoPercentual: 100,
+      pontosRestantes: 0,
+      pontosProximaFaixa: null
+    };
+  }
+
+  if (totalAcumulado >= 4000) {
+    return {
+      nome: 'Diamante',
+      pontosMinimos: 4000,
+      progressoPercentual: Math.floor(((totalAcumulado - 4000) / 4000) * 100),
+      pontosRestantes: 8000 - totalAcumulado,
+      pontosProximaFaixa: 8000
+    };
+  }
+
+  if (totalAcumulado >= 1500) {
+    return {
+      nome: 'Ouro',
+      pontosMinimos: 1500,
+      progressoPercentual: Math.floor(((totalAcumulado - 1500) / 2500) * 100),
+      pontosRestantes: 4000 - totalAcumulado,
+      pontosProximaFaixa: 4000
+    };
+  }
+
+  if (totalAcumulado >= 500) {
+    return {
+      nome: 'Prata',
+      pontosMinimos: 500,
+      progressoPercentual: Math.floor(((totalAcumulado - 500) / 1000) * 100),
+      pontosRestantes: 1500 - totalAcumulado,
+      pontosProximaFaixa: 1500
+    };
+  }
+
+  return {
+    nome: 'Bronze',
+    pontosMinimos: 0,
+    progressoPercentual: Math.floor((totalAcumulado / 500) * 100),
+    pontosRestantes: 500 - totalAcumulado,
+    pontosProximaFaixa: 500
+  };
 }
 
 function criarBeneficios() {
@@ -148,15 +206,15 @@ describe('PaginaPontosQN simplificada', () => {
   });
 
   it('mostra no Resumo pontos disponíveis, faixa, progresso e Como ganhar compacto', async () => {
-    configurarApisComSucesso({ saldoAtual: 420 });
+    configurarApisComSucesso({ saldoAtual: 55, totalAcumulado: 120 });
     renderizarPagina();
 
     await screen.findByText(/Bora jogar e somar pontos/i);
 
     expect(screen.getByText('Pontos disponíveis')).toBeInTheDocument();
-    expect(screen.getByText('Bronze')).toBeInTheDocument();
-    expect(screen.getByText('420')).toBeInTheDocument();
-    expect(screen.getByText('Faltam 580 pontos para a próxima faixa')).toBeInTheDocument();
+    expect(screen.getByText('Bronze · 120 Pontos QN acumulados')).toBeInTheDocument();
+    expect(screen.getByText('55')).toBeInTheDocument();
+    expect(screen.getByText('Faltam 380 Pontos QN para Prata')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Como ganhar mais pontos' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Registrar partida/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Participar de partida/i })).toBeInTheDocument();
@@ -166,6 +224,42 @@ describe('PaginaPontosQN simplificada', () => {
     expect(screen.getByText(/Eles não são dinheiro, não têm saque/i)).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: /Resumo do programa/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: /Atalhos/i })).not.toBeInTheDocument();
+  });
+
+  it('renderiza as medalhas QN oficiais e explica que resgate nao reduz medalha', async () => {
+    configurarApisComSucesso({ saldoAtual: 55, totalAcumulado: 120 });
+    renderizarPagina();
+
+    await screen.findByRole('heading', { name: 'Medalhas QN' });
+
+    expect(screen.getByText(/total acumulado de Pontos QN/i)).toBeInTheDocument();
+    expect(screen.getByText(/Resgatar benefícios não reduz sua medalha/i)).toBeInTheDocument();
+    expect(screen.getByText('Bronze')).toBeInTheDocument();
+    expect(screen.getByText('Prata')).toBeInTheDocument();
+    expect(screen.getByText('Ouro')).toBeInTheDocument();
+    expect(screen.getByText('Diamante')).toBeInTheDocument();
+    expect(screen.getByText('Lenda QN')).toBeInTheDocument();
+    expect(screen.getByText('A partir de 0 Pontos QN')).toBeInTheDocument();
+    expect(screen.getByText('A partir de 500 Pontos QN')).toBeInTheDocument();
+    expect(screen.getByText('A partir de 1.500 Pontos QN')).toBeInTheDocument();
+    expect(screen.getByText('A partir de 4.000 Pontos QN')).toBeInTheDocument();
+    expect(screen.getByText('A partir de 8.000 Pontos QN')).toBeInTheDocument();
+    expect(screen.getByLabelText('Bronze: Medalha atual')).toHaveAttribute('aria-current', 'step');
+    expect(screen.getByText('Faltam 380 Pontos QN')).toBeInTheDocument();
+  });
+
+  it('destaca a medalha pelo total acumulado, nao pelo saldo disponível', async () => {
+    configurarApisComSucesso({ saldoAtual: 55, totalAcumulado: 1500 });
+    renderizarPagina();
+
+    await screen.findByRole('heading', { name: 'Medalhas QN' });
+
+    expect(screen.getByText('Ouro · 1.500 Pontos QN acumulados')).toBeInTheDocument();
+    expect(screen.getByText('55')).toBeInTheDocument();
+    expect(screen.getByLabelText('Ouro: Medalha atual')).toHaveAttribute('aria-current', 'step');
+    expect(screen.getByLabelText('Bronze: Alcançada')).toBeInTheDocument();
+    expect(screen.getByLabelText('Prata: Alcançada')).toBeInTheDocument();
+    expect(screen.getByText('Faltam 2.500 Pontos QN')).toBeInTheDocument();
   });
 
   it('mantém deep link antigo de Como ganhar apontando para Resumo', async () => {

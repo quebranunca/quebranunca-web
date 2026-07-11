@@ -10,7 +10,8 @@ const NOMES_NIVEIS = Object.freeze({
   prata: 'Prata',
   ouro: 'Ouro',
   platina: 'Platina',
-  diamante: 'Diamante'
+  diamante: 'Diamante',
+  lenda: 'Lenda QN'
 });
 
 const ALIASES_NIVEIS = Object.freeze({
@@ -37,7 +38,13 @@ const ALIASES_NIVEIS = Object.freeze({
   diamond: 'diamante',
   'nivel-5': 'diamante',
   'nível-5': 'diamante',
-  5: 'diamante'
+  5: 'diamante',
+  lenda: 'lenda',
+  'lenda-qn': 'lenda',
+  legend: 'lenda',
+  'nivel-6': 'lenda',
+  'nível-6': 'lenda',
+  6: 'lenda'
 });
 
 function obterValorNivel(nivel) {
@@ -68,10 +75,10 @@ export function obterNomeNivelGamificacao(nivel) {
 
 export function getMedalhaPorNivel(nivel) {
   const chave = normalizarNivelGamificacao(nivel);
-  return medalhasGamificacao[chave] || medalhasGamificacao[NIVEL_FALLBACK];
+  return medalhasGamificacao[chave] || (chave === NIVEL_FALLBACK ? medalhasGamificacao[NIVEL_FALLBACK] : null);
 }
 
 export function getBadgePorNivel(nivel) {
   const chave = normalizarNivelGamificacao(nivel);
-  return badgesGamificacao[chave] || badgesGamificacao[NIVEL_FALLBACK];
+  return badgesGamificacao[chave] || (chave === NIVEL_FALLBACK ? badgesGamificacao[NIVEL_FALLBACK] : null);
 }

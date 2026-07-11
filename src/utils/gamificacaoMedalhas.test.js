@@ -13,6 +13,7 @@ describe('gamificacaoMedalhas', () => {
     expect(normalizarNivelGamificacao('Ouro')).toBe('ouro');
     expect(normalizarNivelGamificacao('Platina')).toBe('platina');
     expect(normalizarNivelGamificacao('Diamante')).toBe('diamante');
+    expect(normalizarNivelGamificacao('Lenda QN')).toBe('lenda');
     expect(normalizarNivelGamificacao({ nome: 'Prata' })).toBe('prata');
   });
 
@@ -25,6 +26,8 @@ describe('gamificacaoMedalhas', () => {
   it('retorna assets de medalha e badge por nivel', () => {
     expect(getMedalhaPorNivel('Ouro')).toBeTruthy();
     expect(getBadgePorNivel('Diamante')).toBeTruthy();
+    expect(obterNomeNivelGamificacao('Lenda QN')).toBe('Lenda QN');
+    expect(getMedalhaPorNivel('Lenda QN')).toBeNull();
     expect(getMedalhaPorNivel('nivel desconhecido')).toBe(getMedalhaPorNivel('Bronze'));
   });
 });

@@ -15,6 +15,7 @@ import { useAutenticacao } from '../hooks/useAutenticacao';
 import { useNotification } from '../contexts/NotificationContext';
 import { gamificacaoServico } from '../services/gamificacaoServico';
 import { extrairMensagemErro } from '../utils/erros';
+import { MedalhaNivel } from '../components/gamificacao/MedalhaNivel';
 import beneficioBoneQN from '../assets/pontos-qn/beneficio-bone-qn.png';
 import beneficioChaveiroQN from '../assets/pontos-qn/beneficio-chaveiro-qn.png';
 
@@ -102,6 +103,10 @@ function obterAbaQuery(searchParams) {
 
 function formatarPontos(valor) {
   return Number(valor || 0).toLocaleString('pt-BR');
+}
+
+function normalizarNomeFaixa(nome) {
+  return normalizarTextoBusca(nome).replace(/\s+/g, '-');
 }
 
 function obterPrimeiroNome(usuario) {
@@ -361,6 +366,29 @@ function BarraProgresso({ valor }) {
   );
 }
 
+function obterFaixasMedalhaResumo(resumo) {
+  const faixas = Array.isArray(resumo?.faixasMedalha) ? resumo.faixasMedalha : [];
+  return faixas
+    .filter((faixa) => faixa?.nome && Number.isFinite(Number(faixa.pontosMinimos)))
+    .map((faixa) => ({
+      nome: faixa.nome,
+      pontosMinimos: Number(faixa.pontosMinimos),
+      pontosProximaFaixa: faixa.pontosProximaFaixa === null || faixa.pontosProximaFaixa === undefined
+        ? null
+        : Number(faixa.pontosProximaFaixa)
+    }))
+    .sort((a, b) => a.pontosMinimos - b.pontosMinimos);
+}
+
+function obterProximaMedalhaNome(faixas, nivel, totalAcumulado) {
+  const proximaPorLimite = faixas.find((faixa) => faixa.pontosMinimos === Number(nivel?.pontosProximaFaixa));
+  if (proximaPorLimite) {
+    return proximaPorLimite.nome;
+  }
+
+  return faixas.find((faixa) => faixa.pontosMinimos > Number(totalAcumulado || 0))?.nome || '';
+}
+
 function EstadoPainel({ tipo = 'vazio', titulo, texto, children }) {
   const Icone = tipo === 'erro' ? FaLock : FaStar;
   return (
@@ -515,6 +543,61 @@ function ComoGanharResumo() {
   );
 }
 
+function MedalhasResumo({ faixas, nivel, totalAcumulado }) {
+  if (!faixas.length) {
+    return null;
+  }
+
+  const total = Number(totalAcumulado || 0);
+  const nivelAtual = normalizarTextoBusca(nivel?.nome || '');
+  const proximaFaixa = faixas.find((faixa) => faixa.pontosMinimos > total);
+
+  return (
+    <section className="cartao pontosqn-medalhas-card">
+      <div className="pontosqn-medalhas-topo">
+        <div>
+          <h2>Medalhas QN</h2>
+          <p>Sua medalha evolui pelo total acumulado de Pontos QN. Resgatar benefícios não reduz sua medalha.</p>
+        </div>
+      </div>
+      <div className="pontosqn-medalhas-lista" role="list">
+        {faixas.map((faixa) => {
+          const nomeNormalizado = normalizarTextoBusca(faixa.nome);
+          const atual = nomeNormalizado === nivelAtual;
+          const alcancada = total >= faixa.pontosMinimos;
+          const proxima = proximaFaixa?.nome === faixa.nome;
+          const pontosFaltantes = Math.max(0, faixa.pontosMinimos - total);
+          const status = atual
+            ? 'Medalha atual'
+            : alcancada
+            ? 'Alcançada'
+            : proxima
+            ? `Faltam ${formatarPontos(pontosFaltantes)} Pontos QN`
+            : 'Próxima faixa';
+
+          return (
+            <article
+              key={faixa.nome}
+              className={`pontosqn-medalha-item ${atual ? 'atual' : ''} ${alcancada ? 'alcancada' : 'bloqueada'}`}
+              role="listitem"
+              aria-current={atual ? 'step' : undefined}
+              aria-label={`${faixa.nome}: ${status}`}
+              data-testid={`medalha-${normalizarNomeFaixa(faixa.nome)}`}
+            >
+              <MedalhaNivel nivel={faixa.nome} size={atual ? 'md' : 'sm'} className="pontosqn-medalha-icone" />
+              <div>
+                <strong>{faixa.nome}</strong>
+                <span>A partir de {formatarPontos(faixa.pontosMinimos)} Pontos QN</span>
+              </div>
+              <small>{status}</small>
+            </article>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 export function PaginaPontosQN() {
   const { usuario } = useAutenticacao();
   const { showNotification } = useNotification();
@@ -562,7 +645,13 @@ export function PaginaPontosQN() {
   }, [searchParams]);
 
   const saldo = resumo?.pontuacao?.saldoAtual || 0;
+  const totalAcumulado = resumo?.pontuacao?.totalAcumulado || 0;
   const nivel = resumo?.nivel;
+  const faixasMedalha = useMemo(
+    () => obterFaixasMedalhaResumo(resumo),
+    [resumo]
+  );
+  const proximaMedalhaNome = obterProximaMedalhaNome(faixasMedalha, nivel, totalAcumulado);
   const temAtletaVinculado = resumo?.pontuacao?.temAtletaVinculado !== false;
   const beneficiosPublicaveis = useMemo(
     () => beneficios.filter(beneficioPublicavel),
@@ -665,13 +754,13 @@ export function PaginaPontosQN() {
         <div className="pontosqn-saldo-card">
           <div className="pontosqn-saldo-topo">
             <span>Pontos disponíveis</span>
-            <small>{nivel?.nome || 'Bronze'}</small>
+            <small>{nivel?.nome ? `${nivel.nome} · ${formatarPontos(totalAcumulado)} Pontos QN acumulados` : `${formatarPontos(totalAcumulado)} Pontos QN acumulados`}</small>
           </div>
           <strong>{formatarPontos(saldo)}</strong>
           <BarraProgresso valor={nivel?.progressoPercentual || 0} />
           <em>
             {nivel?.pontosProximaFaixa
-              ? `Faltam ${formatarPontos(nivel?.pontosRestantes || 0)} pontos para a próxima faixa`
+              ? `Faltam ${formatarPontos(nivel?.pontosRestantes || 0)} Pontos QN para ${proximaMedalhaNome || 'a próxima faixa'}`
               : 'Faixa máxima alcançada'}
           </em>
         </div>
@@ -700,6 +789,7 @@ export function PaginaPontosQN() {
 
       {aba === 'resumo' && (
         <section className="pontosqn-secao">
+          <MedalhasResumo faixas={faixasMedalha} nivel={nivel} totalAcumulado={totalAcumulado} />
           <ComoGanharResumo />
 
           <section className="cartao pontosqn-sobre-card">

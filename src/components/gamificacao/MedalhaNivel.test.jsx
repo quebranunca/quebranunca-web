@@ -29,4 +29,10 @@ describe('MedalhaNivel', () => {
 
     expect(screen.getByRole('img', { name: 'Medalha nível Platina' })).toHaveTextContent('P');
   });
+
+  it('renderiza fallback acessivel para Lenda QN quando nao ha asset final', () => {
+    render(<MedalhaNivel nivel="Lenda QN" />);
+
+    expect(screen.getByRole('img', { name: 'Medalha nível Lenda QN' })).toHaveTextContent('L');
+  });
 });
