@@ -126,8 +126,9 @@ export function PaginaGrupoConfiguracoes() {
     [grupo?.usuarioOrganizadorId, usuario?.id]
   );
   const usuarioAdministrador = ehAdministrador(usuario);
-  const podeConfigurar = Boolean(grupo) && (usuarioAdministrador || usuarioEhCriador);
-  const podeExcluir = Boolean(grupo) && usuarioEhCriador;
+  const grupoAtivo = grupo?.ativo !== false;
+  const podeConfigurar = Boolean(grupo) && grupoAtivo && (usuarioAdministrador || usuarioEhCriador);
+  const podeExcluir = Boolean(grupo) && grupoAtivo && usuarioEhCriador;
   const privacidade = obterPrivacidadeGrupo(grupo);
   const PrivacidadeIcone = grupoEhPublico(grupo) ? FaGlobeAmericas : FaLock;
 
@@ -304,8 +305,8 @@ export function PaginaGrupoConfiguracoes() {
       setModalAtivo(null);
       showNotification({
         type: 'success',
-        title: 'Grupo excluído',
-        message: 'O grupo foi removido com sucesso.'
+        title: 'Grupo excluído com sucesso.',
+        message: 'O grupo foi arquivado e os históricos esportivos foram preservados.'
       });
       navegar('/grupos', { replace: true });
     } catch (error) {
@@ -347,7 +348,7 @@ export function PaginaGrupoConfiguracoes() {
         </header>
         <article className="cartao-lista grupos-dashboard-estado">
           <h3>Configurações indisponíveis</h3>
-          <p>Somente o criador ou administradores podem alterar este grupo.</p>
+          <p>{grupoAtivo ? 'Somente o criador ou administradores podem alterar este grupo.' : 'Este grupo foi excluído e não pode mais ser alterado.'}</p>
           <button type="button" className="botao-secundario" onClick={() => navegar(`/grupos/${grupo.id}`)}>
             Voltar para o grupo
           </button>
@@ -428,7 +429,7 @@ export function PaginaGrupoConfiguracoes() {
 
       {podeExcluir && (
         <section className="grupo-config-secao grupo-config-zona-perigo" aria-labelledby="grupo-config-perigo">
-          <h3 id="grupo-config-perigo">Zona de perigo</h3>
+          <h3 id="grupo-config-perigo">ZONA DE PERIGO</h3>
           <div className="grupo-config-lista">
             <ConfiguracaoLinha
               icone={FaTrashAlt}
@@ -584,7 +585,7 @@ export function PaginaGrupoConfiguracoes() {
       {modalAtivo === 'exclusao' && (
         <ModalBase
           titulo="Excluir grupo"
-          descricao="Esta ação exige confirmação do criador."
+          descricao="Esta ação preserva todo o histórico esportivo."
           onFechar={fecharModal}
           labelledBy="grupo-config-modal-exclusao"
         >
@@ -593,7 +594,7 @@ export function PaginaGrupoConfiguracoes() {
               <FaExclamationTriangle aria-hidden="true" />
               <div>
                 <p>Tem certeza que deseja excluir este grupo?</p>
-                <p>Esta ação poderá impactar partidas, rankings, scouts e históricos vinculados ao grupo.</p>
+                <p>O grupo deixará de aparecer na plataforma, porém todas as partidas, rankings, scouts e históricos continuarão preservados.</p>
                 <p>Esta ação não poderá ser desfeita.</p>
               </div>
             </div>

@@ -14,6 +14,10 @@ const estadoAutenticacao = vi.hoisted(() => ({
   }
 }));
 
+const notificacoes = vi.hoisted(() => ({
+  showNotification: vi.fn()
+}));
+
 vi.mock('../hooks/useAutenticacao', () => ({
   useAutenticacao: () => ({
     usuario: estadoAutenticacao.usuario
@@ -22,7 +26,7 @@ vi.mock('../hooks/useAutenticacao', () => ({
 
 vi.mock('../contexts/NotificationContext', () => ({
   useNotification: () => ({
-    showNotification: vi.fn()
+    showNotification: notificacoes.showNotification
   })
 }));
 
@@ -91,7 +95,7 @@ describe('PaginaGrupoConfiguracoes', () => {
     expect(screen.getByText('S')).toBeInTheDocument();
     expect(screen.getByText('Informações')).toBeInTheDocument();
     expect(screen.getByText('Participantes')).toBeInTheDocument();
-    expect(screen.getByText('Zona de perigo')).toBeInTheDocument();
+    expect(screen.getByText('ZONA DE PERIGO')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Excluir grupo/i })).toBeInTheDocument();
     expect(screen.queryByText(/Convidar/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/Compartilhar/i)).not.toBeInTheDocument();
@@ -109,7 +113,22 @@ describe('PaginaGrupoConfiguracoes', () => {
 
     expect(await screen.findByRole('heading', { name: 'Configurações do Grupo' })).toBeInTheDocument();
     expect(screen.getByText('Informações')).toBeInTheDocument();
-    expect(screen.queryByText('Zona de perigo')).not.toBeInTheDocument();
+    expect(screen.queryByText('ZONA DE PERIGO')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Excluir grupo/i })).not.toBeInTheDocument();
+  });
+
+  it('não mostra Excluir grupo para membro comum', async () => {
+    estadoAutenticacao.usuario = {
+      id: 'usuario-membro',
+      nome: 'Membro',
+      perfil: 3
+    };
+    gruposServico.obterPorId.mockResolvedValue(criarGrupo());
+
+    renderizarPagina();
+
+    expect(await screen.findByRole('heading', { name: 'Configurações do Grupo' })).toBeInTheDocument();
+    expect(screen.queryByText('ZONA DE PERIGO')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Excluir grupo/i })).not.toBeInTheDocument();
   });
 
@@ -131,6 +150,10 @@ describe('PaginaGrupoConfiguracoes', () => {
     await usuario.click(botaoExcluir);
 
     await waitFor(() => expect(gruposServico.remover).toHaveBeenCalledWith('grupo-1'));
+    expect(notificacoes.showNotification).toHaveBeenCalledWith(expect.objectContaining({
+      type: 'success',
+      title: 'Grupo excluído com sucesso.'
+    }));
     expect(screen.getByTestId('rota-atual')).toHaveTextContent('/grupos');
   });
 });
