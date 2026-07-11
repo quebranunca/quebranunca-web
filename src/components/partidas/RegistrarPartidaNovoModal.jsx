@@ -296,6 +296,32 @@ function ehOpcaoPartidaAvulsa(grupo) {
   return obterNomeGrupoPartidaExibicao(grupo, '') === 'Partidas avulsas';
 }
 
+function obterChaveGrupoSelecao(grupo) {
+  return grupo?.id || grupo?.grupoId || obterNomeGrupoPartidaExibicao(grupo, '');
+}
+
+function listarGruposReaisUnicos(grupos) {
+  const vistos = new Set();
+
+  return (grupos || []).filter((grupo) => {
+    if (ehOpcaoPartidaAvulsa(grupo)) {
+      return false;
+    }
+
+    const chave = obterChaveGrupoSelecao(grupo);
+    if (!chave) {
+      return true;
+    }
+
+    if (vistos.has(chave)) {
+      return false;
+    }
+
+    vistos.add(chave);
+    return true;
+  });
+}
+
 function GrupoOpcaoAvatar({ grupo, semGrupo = false }) {
   if (semGrupo) {
     return (
@@ -718,7 +744,7 @@ function EtapaGrupo({
   onEscolherGrupo,
   onRemoverGrupo
 }) {
-  const gruposReais = (gruposDisponiveis || []).filter((grupoOpcao) => !ehOpcaoPartidaAvulsa(grupoOpcao));
+  const gruposReais = listarGruposReaisUnicos(gruposDisponiveis);
   const gruposVisiveis = gruposReais.slice(0, 4);
   const grupoSelecionadoEhPartidaAvulsa = grupo ? ehOpcaoPartidaAvulsa(grupo) : false;
   const grupoSelecionadoId = grupoSelecionadoEhPartidaAvulsa ? null : grupo?.id || null;

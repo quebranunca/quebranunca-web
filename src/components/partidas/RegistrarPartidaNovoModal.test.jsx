@@ -324,6 +324,26 @@ describe('RegistrarPartidaNovoModal - etapa Grupo', () => {
     expect(onEscolherGrupo).toHaveBeenCalledWith(gruposDisponiveis[1]);
   });
 
+  it('exibe grupos retornados pela API sem duplicar cards', () => {
+    const gruposRetornados = [
+      { id: 'publico-1', nome: 'Arena Pública', quantidadeAtletas: 20, privacidade: 'Público' },
+      { id: 'privado-1', nome: 'Meu Grupo Privado', quantidadeAtletas: 10, privacidade: 'Privado' },
+      { id: 'criado-1', nome: 'Grupo Criado por Mim', quantidadeAtletas: 1, privacidade: 'Privado' },
+      { id: 'publico-1', nome: 'Arena Pública', quantidadeAtletas: 20, privacidade: 'Público' }
+    ];
+
+    renderizarModal({
+      etapaAtual: etapas[0],
+      indiceEtapa: 0,
+      gruposDisponiveis: gruposRetornados
+    });
+
+    expect(screen.getAllByRole('button', { name: /Arena Pública/i })).toHaveLength(1);
+    expect(screen.getByRole('button', { name: /Meu Grupo Privado/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Grupo Criado por Mim/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Privado de Terceiro/i })).not.toBeInTheDocument();
+  });
+
   it('trata o grupo especial Geral como Partida avulsa visualmente', () => {
     renderizarModal({
       etapaAtual: etapas[0],

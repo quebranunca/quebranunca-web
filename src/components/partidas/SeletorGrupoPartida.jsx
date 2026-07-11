@@ -17,6 +17,28 @@ function GrupoAvatar({ grupo }) {
   return <AvatarGrupo grupo={grupo} tamanho="md" className="seletor-grupo-partida-avatar" alt="" />;
 }
 
+function listarGruposVisiveisUnicos(grupos) {
+  const vistos = new Set();
+
+  return (grupos || []).filter((grupo) => {
+    if (obterNomeGrupoPartidaExibicao(grupo, '') === 'Partidas avulsas') {
+      return false;
+    }
+
+    const chave = grupo?.id || grupo?.grupoId || obterNomeGrupoPartidaExibicao(grupo, '');
+    if (!chave) {
+      return true;
+    }
+
+    if (vistos.has(chave)) {
+      return false;
+    }
+
+    vistos.add(chave);
+    return true;
+  });
+}
+
 export function SeletorGrupoPartida({
   aberto,
   grupos = [],
@@ -33,9 +55,7 @@ export function SeletorGrupoPartida({
     return null;
   }
 
-  const gruposVisiveis = (grupos || []).filter(
-    (grupo) => obterNomeGrupoPartidaExibicao(grupo, '') !== 'Partidas avulsas'
-  );
+  const gruposVisiveis = listarGruposVisiveisUnicos(grupos);
   const grupoSelecionadoEhPartidaAvulsa = grupoSelecionado
     ? obterNomeGrupoPartidaExibicao(grupoSelecionado, '') === 'Partidas avulsas'
     : false;
