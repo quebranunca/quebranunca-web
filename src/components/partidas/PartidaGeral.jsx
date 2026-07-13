@@ -1,6 +1,9 @@
+import { Link } from 'react-router-dom';
+import { FaChevronRight } from 'react-icons/fa';
 import { CompartilharPartidaBotao } from './CompartilharPartidaBotao';
 import { PlacarDupla } from './PlacarDupla';
 import { formatarNomeDupla } from '../../utils/atletaUtils';
+import { obterRotaDetalhePartida } from '../../utils/partidaRotas';
 
 export function PartidaGeral({ partida }) {
   const ultimoJogo = partida?.ultimoJogo;
@@ -34,7 +37,13 @@ export function PartidaGeral({ partida }) {
           </div>
 
           {partida?.partidaId && (
-            <CompartilharPartidaBotao partidaId={partida.partidaId} />
+            <>
+              <CompartilharPartidaBotao partidaId={partida.partidaId} />
+              <Link to={obterRotaDetalhePartida(partida.partidaId)} className="botao-secundario botao-compacto">
+                Detalhes
+                <FaChevronRight aria-hidden="true" />
+              </Link>
+            </>
           )}
         </div>
 

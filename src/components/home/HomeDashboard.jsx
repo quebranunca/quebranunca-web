@@ -17,6 +17,7 @@ import {
 } from 'react-icons/fa';
 import { useAutenticacao } from '../../hooks/useAutenticacao';
 import { obterNomeGrupoPartidaExibicao } from '../../utils/partidas';
+import { obterRotaDetalhePartida } from '../../utils/partidaRotas';
 import { formatarData } from '../../utils/formatacao';
 import { MedalhaNivel } from '../gamificacao/MedalhaNivel';
 import { Avatar } from '../ui/Avatar';
@@ -755,7 +756,7 @@ function HomeUltimoJogo({ ultimasPartidas, erro, atletaId, nomeAtleta }) {
             return (
               <Link
                 key={partida.id}
-                to={partida.id ? `${HOME_NAVIGATION.meusJogos}?partidaId=${partida.id}` : HOME_NAVIGATION.meusJogos}
+                to={partida.id ? obterRotaDetalhePartida(partida) : HOME_NAVIGATION.meusJogos}
                 className="home-dashboard-timeline-item home-dashboard-ultimo-jogo-card"
               >
                 <div className="home-dashboard-ultimo-jogo-linha">

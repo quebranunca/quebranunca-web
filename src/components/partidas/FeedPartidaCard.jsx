@@ -6,6 +6,7 @@ import { CompartilharPartidaBotao } from './CompartilharPartidaBotao';
 import { formatarData, formatarDataHora, formatarHora } from '../../utils/formatacao';
 import { formatarNomeDupla } from '../../utils/atletaUtils';
 import { obterNomeGrupoPartidaExibicao } from '../../utils/partidas';
+import { obterRotaDetalhePartida } from '../../utils/partidaRotas';
 
 function nomesDupla(dupla) {
   return formatarNomeDupla(dupla, 'Dupla a definir');
@@ -75,7 +76,7 @@ function FeedPartidaCardHome({ partida }) {
 
   return (
     <Link
-      to={`/feed?partida=${partida.partidaId}`}
+      to={obterRotaDetalhePartida(partida.partidaId)}
       className="feed-partida-card feed-partida-card-home"
       aria-label={`Ver partida registrada por ${nomeRegistrador}`}
     >
@@ -112,7 +113,7 @@ function FeedPartidaCardHome({ partida }) {
       </div>
 
       <span className="feed-partida-home-acao">
-        Ver mais partidas
+        Ver detalhes
         <FaChevronRight aria-hidden="true" />
       </span>
     </Link>
@@ -207,7 +208,7 @@ export function FeedPartidaCard({ partida, variante = 'padrao' }) {
             url={`/feed?partida=${partida.partidaId}`}
             registradoPor={partida.nomeCriadoPorUsuario || partida.registradoPor}
           />
-          <Link to="/partidas/consulta" className="botao-secundario botao-compacto">
+          <Link to={obterRotaDetalhePartida(partida.partidaId)} className="botao-secundario botao-compacto">
             Detalhes
             <FaChevronRight aria-hidden="true" />
           </Link>

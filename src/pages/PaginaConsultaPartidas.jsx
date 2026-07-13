@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { FaEdit, FaTrash } from 'react-icons/fa';
+import { Link, useSearchParams } from 'react-router-dom';
+import { FaChevronRight, FaEdit, FaTrash } from 'react-icons/fa';
 import { gruposServico } from '../services/gruposServico';
 import { partidasServico } from '../services/partidasServico';
 import { useAutenticacao } from '../hooks/useAutenticacao';
@@ -12,6 +12,7 @@ import { podeEditarPartida } from '../utils/permissoesPartida';
 import { PlacarDupla } from '../components/partidas/PlacarDupla';
 import { CompartilharPartidaBotao } from '../components/partidas/CompartilharPartidaBotao';
 import { EditarPartidaRegistradaModal } from '../components/partidas/EditarPartidaRegistradaModal';
+import { obterRotaDetalhePartida } from '../utils/partidaRotas';
 
 function obterGrupoPartida(partida) {
   return partida?.nomeGrupo || 'Grupo';
@@ -263,6 +264,10 @@ export function PaginaConsultaPartidas() {
                         registradoPor={partida.nomeCriadoPorUsuario}
                       />
                     )}
+                    <Link to={obterRotaDetalhePartida(partida)} className="botao-secundario botao-compacto">
+                      Detalhes
+                      <FaChevronRight aria-hidden="true" />
+                    </Link>
                     {podeEditarPartida(partida, usuario) && (
                       <button
                         type="button"

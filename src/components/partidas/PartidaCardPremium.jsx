@@ -64,6 +64,7 @@ export function PartidaCardPremium({
   const navegar = useNavigate();
   const resultadoTexto = normalizarResultado(resultado);
   const podeAbrirDetalhes = !detalhesDesabilitado && Boolean(detalhesHref || onDetalhes);
+  const contextoExibicao = obterNomeGrupoPartidaExibicao(contexto);
   const badgesExibicao = Array.isArray(badges) && badges.length > 0
     ? badges
     : [
@@ -101,6 +102,7 @@ export function PartidaCardPremium({
   const propriedadesCard = {
     role: podeAbrirDetalhes ? 'link' : undefined,
     tabIndex: podeAbrirDetalhes ? 0 : undefined,
+    'aria-label': podeAbrirDetalhes ? `Abrir detalhes da partida ${contextoExibicao}` : undefined,
     onClick: podeAbrirDetalhes ? abrirDetalhes : undefined,
     onKeyDown: aoTeclarCard
   };
@@ -112,7 +114,7 @@ export function PartidaCardPremium({
     >
       <div className="minhas-partidas-card-topo-premium">
         <div>
-          <strong>{obterNomeGrupoPartidaExibicao(contexto)}</strong>
+          <strong>{contextoExibicao}</strong>
           <small>
             {dataPartida ? formatarDataHoraCurta(dataPartida) : 'Data a definir'}
           </small>

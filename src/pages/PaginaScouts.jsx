@@ -20,6 +20,7 @@ import { useAutenticacao } from '../hooks/useAutenticacao';
 import { extrairMensagemErro } from '../utils/erros';
 import { formatarData } from '../utils/formatacao';
 import { obterNomeGrupoPartidaExibicao } from '../utils/partidas';
+import { obterRotaDetalhePartida } from '../utils/partidaRotas';
 import '../components/home/home-dashboard.css';
 
 const TIPO_ATLETA = 'atleta';
@@ -672,7 +673,7 @@ function MatchRow({ partida, modo = TIPO_ATLETA }) {
 
   return (
     <Link
-      to={partida.id ? `/minhas-partidas?partidaId=${partida.id}` : '/minhas-partidas'}
+      to={partida.id ? obterRotaDetalhePartida(partida) : '/minhas-partidas'}
       className="scouts-match-row"
     >
       <Avatar

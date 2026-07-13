@@ -42,6 +42,11 @@ export const partidasServico = {
     return resposta.data;
   },
 
+  async obterPorId(id) {
+    const resposta = await http.get(`/partidas/${id}`);
+    return resposta.data;
+  },
+
   async obterCompartilhamento(id) {
     const resposta = await http.get(`/partidas/${id}/compartilhamento`);
     return resposta.data;
@@ -113,8 +118,14 @@ export const partidasServico = {
     return resposta.data;
   },
 
+  async cancelarPartida(id, motivo) {
+    const resposta = await http.post(`/partidas/${id}/cancelar`, { motivo });
+    notificarPendenciasAtualizadas();
+    return resposta.data;
+  },
+
   async excluirPartidaDefinitivamente(id, motivo) {
-    await http.delete(`/admin/partidas/${id}`, { data: { motivo } });
+    await http.post(`/partidas/${id}/excluir-definitivamente`, { motivo });
     notificarPendenciasAtualizadas();
   },
 

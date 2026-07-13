@@ -24,6 +24,7 @@ import { formatarNomeDupla } from '../utils/atletaUtils';
 import { extrairMensagemErro } from '../utils/erros';
 import { formatarDataHoraCurta } from '../utils/formatacao';
 import { podeEditarPartida, podeExcluirPartida } from '../utils/permissoesPartida';
+import { obterRotaDetalhePartida } from '../utils/partidaRotas';
 import { scrollFocusedInputIntoView } from '../utils/tecladoMobile';
 import {
   atletaEstaNaDuplaA,
@@ -1286,6 +1287,7 @@ function CardMinhaPartida({
           )}
         </>
       }
+      detalhesHref={obterRotaDetalhePartida(partida)}
       onDetalhes={onDetalhes}
       detalhesDesabilitado={!partida.id}
     />

@@ -19,6 +19,7 @@ import {
   extrairMensagemErro
 } from '../../utils/erros';
 import { ehAdministrador, ehOrganizador } from '../../utils/perfis';
+import { obterRotaDetalhePartida } from '../../utils/partidaRotas';
 import {
   CAMPOS_ATLETAS_PARTIDA,
   limparTextoRegistro,
@@ -1274,7 +1275,7 @@ export function RegistrarPartidaNovoContainer({
       return;
     }
 
-    navegar(`/minhas-partidas?partidaId=${partidaId}`);
+    navegar(obterRotaDetalhePartida(partidaId));
     onFechar?.();
   }
 

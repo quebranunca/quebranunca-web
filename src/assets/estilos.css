@@ -17164,3 +17164,320 @@ a.botao-terciario:active {
     padding: 0.68rem;
   }
 }
+/* Detalhe de partida */
+.pagina-partida-detalhe {
+  width: min(100%, 720px);
+  margin: 0 auto;
+  padding: 18px 14px calc(104px + env(safe-area-inset-bottom, 0px));
+  color: var(--cor-texto, #f8fafc);
+}
+
+.partida-detalhe-topo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.partida-detalhe-topo > div {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.partida-detalhe-topo span,
+.partida-detalhe-section-title span,
+.partida-detalhe-lista dt,
+.partida-detalhe-dupla span,
+.partida-detalhe-placar span,
+.partida-detalhe-vazio {
+  color: rgba(226, 232, 240, 0.68);
+  font-size: 0.82rem;
+}
+
+.partida-detalhe-topo strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 1.18rem;
+}
+
+.partida-detalhe-card {
+  margin-top: 12px;
+  padding: 16px;
+  border: 1px solid rgba(245, 197, 66, 0.16);
+  border-radius: 18px;
+  background: linear-gradient(145deg, rgba(22, 24, 29, 0.96), rgba(9, 11, 14, 0.96));
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.24);
+}
+
+.partida-detalhe-card.principal {
+  border-color: rgba(245, 197, 66, 0.28);
+}
+
+.partida-detalhe-card.cancelada,
+.partida-detalhe-card.cancelada-info {
+  border-color: rgba(248, 113, 113, 0.35);
+}
+
+.partida-detalhe-card.pendente {
+  border-color: rgba(245, 197, 66, 0.34);
+}
+
+.partida-detalhe-card-topo,
+.partida-detalhe-section-title {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.partida-detalhe-card-topo > div,
+.partida-detalhe-section-title {
+  display: grid;
+  gap: 4px;
+}
+
+.partida-detalhe-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.partida-detalhe-badge.neutro {
+  color: #facc15;
+  background: rgba(250, 204, 21, 0.11);
+}
+
+.partida-detalhe-badge.perigo {
+  color: #fecaca;
+  background: rgba(239, 68, 68, 0.18);
+}
+
+.partida-detalhe-resultado {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.partida-detalhe-dupla,
+.partida-detalhe-placar {
+  min-width: 0;
+  padding: 13px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.partida-detalhe-dupla {
+  display: grid;
+  gap: 6px;
+}
+
+.partida-detalhe-dupla strong {
+  overflow-wrap: anywhere;
+}
+
+.partida-detalhe-dupla.vencedora {
+  border-color: rgba(34, 197, 94, 0.35);
+}
+
+.partida-detalhe-dupla small {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #86efac;
+  font-weight: 700;
+}
+
+.partida-detalhe-placar {
+  display: grid;
+  place-items: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.partida-detalhe-placar strong {
+  font-size: clamp(1.4rem, 7vw, 2.2rem);
+}
+
+.partida-detalhe-lista {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin: 14px 0 0;
+}
+
+.partida-detalhe-lista div {
+  display: grid;
+  gap: 3px;
+}
+
+.partida-detalhe-lista dd,
+.partida-detalhe-lista dt {
+  margin: 0;
+}
+
+.partida-detalhe-lista dd {
+  font-weight: 700;
+}
+
+.partida-detalhe-acoes,
+.partida-detalhe-modal-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.partida-detalhe-acoes > * {
+  min-height: 44px;
+}
+
+.partida-detalhe-feedback {
+  margin: 10px 0;
+  padding: 12px 14px;
+  border-radius: 14px;
+  font-weight: 700;
+}
+
+.partida-detalhe-feedback.sucesso {
+  color: #bbf7d0;
+  background: rgba(22, 163, 74, 0.16);
+}
+
+.partida-detalhe-feedback.erro {
+  color: #fecaca;
+  background: rgba(239, 68, 68, 0.16);
+}
+
+.partida-detalhe-historico {
+  display: grid;
+  gap: 10px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.partida-detalhe-historico li {
+  display: grid;
+  gap: 3px;
+  padding: 10px 0 10px 12px;
+  border-left: 2px solid rgba(245, 197, 66, 0.35);
+}
+
+.partida-detalhe-historico span,
+.partida-detalhe-historico small {
+  color: rgba(226, 232, 240, 0.68);
+}
+
+.partida-detalhe-estado,
+.partida-detalhe-skeleton {
+  display: grid;
+  gap: 14px;
+  min-height: 220px;
+  place-items: center;
+  padding: 24px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.partida-detalhe-skeleton {
+  animation: qn-pulse 1.2s ease-in-out infinite;
+}
+
+.partida-detalhe-modal {
+  width: min(92vw, 520px);
+}
+
+.partida-detalhe-modal-topo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.partida-detalhe-modal-topo p {
+  margin: 6px 0 0;
+  color: rgba(226, 232, 240, 0.72);
+}
+
+.partida-detalhe-modal-topo button {
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 999px;
+  color: #f8fafc;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.partida-detalhe-campo {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.partida-detalhe-campo textarea,
+.partida-detalhe-campo select {
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid rgba(245, 197, 66, 0.18);
+  border-radius: 12px;
+  color: #f8fafc;
+  background: rgba(7, 9, 12, 0.82);
+}
+
+.partida-detalhe-campo textarea {
+  min-height: 104px;
+  resize: vertical;
+  padding: 12px;
+}
+
+.partida-detalhe-campo select {
+  padding: 0 12px;
+}
+
+.partida-detalhe-campo small {
+  justify-self: end;
+  color: rgba(226, 232, 240, 0.62);
+}
+
+@media (min-width: 680px) {
+  .partida-detalhe-resultado {
+    grid-template-columns: 1fr minmax(160px, 0.8fr) 1fr;
+    align-items: stretch;
+  }
+
+  .partida-detalhe-lista {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.ranking-detalhe-link {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.ranking-detalhe-link > span {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.ranking-detalhe-link:focus-visible {
+  outline: 2px solid rgba(246, 196, 83, 0.82);
+  outline-offset: 4px;
+  border-radius: 10px;
+}

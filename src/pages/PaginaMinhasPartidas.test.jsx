@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, useLocation } from 'react-router-dom';
 import { PaginaMinhasPartidas } from './PaginaMinhasPartidas';
@@ -180,7 +180,37 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-describe('PaginaMinhasPartidas - exclusao pelos detalhes', () => {
+describe('PaginaMinhasPartidas - detalhes e exclusao', () => {
+  it('navega para a pagina unica de detalhes ao tocar no atalho do card', async () => {
+    const usuario = userEvent.setup();
+    renderizarPagina();
+
+    await usuario.click(await screen.findByRole('link', { name: 'Abrir detalhes da partida' }));
+
+    expect(screen.getByTestId('rota-atual')).toHaveTextContent('/app/partidas/partida-1');
+  });
+
+  it('navega para os detalhes com Enter e Espaco no card clicavel', async () => {
+    renderizarPagina();
+
+    const tituloCard = await screen.findByText('Fechadinho de Quinta');
+    const card = tituloCard.closest('article');
+
+    expect(card).toHaveAttribute('role', 'link');
+
+    card.focus();
+    fireEvent.keyDown(card, { key: 'Enter' });
+    expect(screen.getByTestId('rota-atual')).toHaveTextContent('/app/partidas/partida-1');
+
+    cleanup();
+    renderizarPagina();
+
+    const novoCard = (await screen.findByText('Fechadinho de Quinta')).closest('article');
+    novoCard.focus();
+    fireEvent.keyDown(novoCard, { key: ' ' });
+    expect(screen.getByTestId('rota-atual')).toHaveTextContent('/app/partidas/partida-1');
+  });
+
   it('abre e cancela a confirmacao de exclusao sem remover a partida', async () => {
     const usuario = userEvent.setup();
     configurarPartidas([criarPartida({
@@ -193,10 +223,7 @@ describe('PaginaMinhasPartidas - exclusao pelos detalhes', () => {
 
     renderizarPagina('/minhas-partidas?filtro=canceladas');
 
-    await usuario.click(await screen.findByRole('button', { name: /Abrir detalhes da partida/i }));
-    expect(screen.getByRole('dialog', { name: 'Detalhes da partida' })).toBeInTheDocument();
-
-    await usuario.click(screen.getByRole('button', { name: 'Excluir partida' }));
+    await usuario.click(await screen.findByRole('button', { name: 'Excluir definitivamente' }));
 
     const modalConfirmacao = screen.getByRole('dialog', { name: 'Excluir definitivamente?' });
     expect(within(modalConfirmacao).getByText('Esta ação removerá a partida das consultas normais e não poderá ser desfeita pela interface.')).toBeInTheDocument();
@@ -225,8 +252,7 @@ describe('PaginaMinhasPartidas - exclusao pelos detalhes', () => {
 
     renderizarPagina('/minhas-partidas?filtro=canceladas');
 
-    await usuario.click(await screen.findByRole('button', { name: /Abrir detalhes da partida/i }));
-    await usuario.click(screen.getByRole('button', { name: 'Excluir partida' }));
+    await usuario.click(await screen.findByRole('button', { name: 'Excluir definitivamente' }));
 
     const modalConfirmacao = screen.getByRole('dialog', { name: 'Excluir definitivamente?' });
     await usuario.type(within(modalConfirmacao).getByPlaceholderText('Informe por que esta partida será excluída...'), 'Auditoria administrativa');
@@ -240,10 +266,6 @@ describe('PaginaMinhasPartidas - exclusao pelos detalhes', () => {
     await waitFor(() => {
       expect(partidasServico.excluirPartidaDefinitivamente).toHaveBeenCalledWith('partida-1', 'Auditoria administrativa');
     });
-    await waitFor(() => {
-      expect(screen.queryByRole('dialog', { name: 'Detalhes da partida' })).not.toBeInTheDocument();
-    });
-
     expect(mocks.showNotification).toHaveBeenCalledWith({
       type: 'success',
       title: 'Partida excluída definitivamente.'
@@ -271,15 +293,13 @@ describe('PaginaMinhasPartidas - exclusao pelos detalhes', () => {
 
     renderizarPagina('/minhas-partidas?filtro=canceladas');
 
-    await usuario.click(await screen.findByRole('button', { name: /Abrir detalhes da partida/i }));
-    await usuario.click(screen.getByRole('button', { name: 'Excluir partida' }));
+    await usuario.click(await screen.findByRole('button', { name: 'Excluir definitivamente' }));
 
     const modalConfirmacao = screen.getByRole('dialog', { name: 'Excluir definitivamente?' });
     await usuario.type(within(modalConfirmacao).getByPlaceholderText('Informe por que esta partida será excluída...'), 'Auditoria administrativa');
     await usuario.click(within(modalConfirmacao).getByRole('button', { name: 'Excluir definitivamente' }));
 
     expect(await within(modalConfirmacao).findByText('Voce nao tem permissao para excluir esta partida.')).toBeInTheDocument();
-    expect(screen.getByRole('dialog', { name: 'Detalhes da partida' })).toBeInTheDocument();
     expect(screen.getByTestId('rota-atual')).toHaveTextContent('/minhas-partidas?filtro=canceladas');
   });
 
@@ -295,10 +315,8 @@ describe('PaginaMinhasPartidas - exclusao pelos detalhes', () => {
 
     renderizarPagina();
 
-    await usuario.click(await screen.findByRole('button', { name: /Abrir detalhes da partida/i }));
-
-    expect(screen.getByRole('dialog', { name: 'Detalhes da partida' })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Excluir partida' })).not.toBeInTheDocument();
+    await screen.findByText('Fechadinho de Quinta');
+    expect(screen.queryByRole('button', { name: 'Excluir definitivamente' })).not.toBeInTheDocument();
   });
 });
 

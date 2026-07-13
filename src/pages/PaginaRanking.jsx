@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import {
   FaChevronDown,
   FaChevronRight,
@@ -21,6 +21,7 @@ import { useAutenticacao } from '../hooks/useAutenticacao';
 import { useNavegacaoPerfilAtleta } from '../hooks/useNavegacaoPerfilAtleta';
 import { extrairMensagemErro } from '../utils/erros';
 import { obterNomeExibicaoAtleta } from '../utils/atletaUtils';
+import { obterRotaDetalhePartida } from '../utils/partidaRotas';
 
 const ABAS_RANKING = [
   { valor: 'geral', rotulo: 'Geral' },
@@ -1169,6 +1170,25 @@ function RankingMetrica({ rotulo, valor }) {
   );
 }
 
+function RankingDetalhePartidaLink({ item, children }) {
+  const partidaId = item?.partidaId || item?.id;
+
+  if (!partidaId) {
+    return <>{children}</>;
+  }
+
+  return (
+    <Link
+      to={obterRotaDetalhePartida(partidaId)}
+      className="ranking-detalhe-link"
+      aria-label="Abrir detalhes da partida"
+    >
+      <span>{children}</span>
+      <FaChevronRight aria-hidden="true" />
+    </Link>
+  );
+}
+
 function RankingDetalheLista({ titulo, itens = [], renderItem }) {
   return (
     <section className="ranking-detalhe-lista">
@@ -1192,11 +1212,11 @@ function RankingDetalheLista({ titulo, itens = [], renderItem }) {
 
 function renderizarJogoDupla(item) {
   return (
-    <>
+    <RankingDetalhePartidaLink item={item}>
       <strong>{item.contexto}</strong>
       <small>{item.resultado} • {item.possuiPlacar ? item.placar : 'sem placar'} • {formatarDataCurta(item.dataPartida)}</small>
       <small>vs {item.duplaAdversaria}</small>
-    </>
+    </RankingDetalhePartidaLink>
   );
 }
 
@@ -1220,10 +1240,10 @@ function renderizarGrupoDupla(item) {
 
 function renderizarJogoGrupo(item) {
   return (
-    <>
+    <RankingDetalhePartidaLink item={item}>
       <strong>{item.duplaA} x {item.duplaB}</strong>
       <small>{item.resultado} • {item.possuiPlacar ? item.placar : 'sem placar'} • {formatarDataCurta(item.dataPartida)}</small>
-    </>
+    </RankingDetalhePartidaLink>
   );
 }
 

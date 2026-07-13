@@ -14,6 +14,7 @@ import { rolarParaTopo } from '../utils/rolagem';
 import { scrollFocusedInputIntoView } from '../utils/tecladoMobile';
 import { formatarNomeDupla, obterNomeExibicaoAtleta, obterNomeExibicaoDupla } from '../utils/atletaUtils';
 import { obterNomeGrupoPartidaExibicao } from '../utils/partidas';
+import { obterRotaDetalhePartida } from '../utils/partidaRotas';
 import { useNotification } from '../contexts/NotificationContext';
 
 const TIPOS_PENDENCIA = {
@@ -255,7 +256,7 @@ function PendenciaPartidaCard({ item, expandida, onExpandir, processando, onResp
   const status = confirmacaoParticipacao ? 'Aguardando confirmação' : obterRotuloStatusAprovacao(item.statusAprovacaoPartida);
   const prioridade = obterApresentacaoPrioridade(item);
   const detalhesId = `pendencia-detalhes-${item.id}`;
-  const linkPartida = item.partidaId ? `/minhas-partidas?partidaId=${item.partidaId}` : '/partidas/consulta';
+  const linkPartida = item.partidaId ? obterRotaDetalhePartida(item.partidaId) : '/partidas/consulta';
 
   return (
     <article className={`pendencia-card pendencia-partida-card prioridade-${prioridade.classe}${expandida ? ' expandida' : ''}`}>
@@ -341,7 +342,7 @@ function PendenciaPartidaCard({ item, expandida, onExpandir, processando, onResp
 function PendenciaCancelamentoPartidaCard({ item, expandida, onExpandir, processando, onResponderCancelamento }) {
   const prioridade = obterApresentacaoPrioridade(item);
   const detalhesId = `pendencia-detalhes-${item.id}`;
-  const linkPartida = item.partidaId ? `/minhas-partidas?partidaId=${item.partidaId}` : '/minhas-partidas?filtro=pendentes';
+  const linkPartida = item.partidaId ? obterRotaDetalhePartida(item.partidaId) : '/minhas-partidas?filtro=pendentes';
 
   return (
     <article className={`pendencia-card pendencia-partida-card prioridade-${prioridade.classe}${expandida ? ' expandida' : ''}`}>

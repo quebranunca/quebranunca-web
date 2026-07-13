@@ -119,7 +119,7 @@ describe('PaginaPendenciasAtletas - cancelamento de partida', () => {
 
     expect(screen.getByRole('link', { name: /Ver solicitação/i })).toHaveAttribute(
       'href',
-      '/minhas-partidas?partidaId=partida-1'
+      '/app/partidas/partida-1'
     );
 
     await usuario.click(screen.getByRole('button', { name: /Aprovar cancelamento/i }));
