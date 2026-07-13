@@ -15,17 +15,18 @@
 
 .home-dashboard-hero {
   position: relative;
-  min-height: clamp(10.6rem, 20dvh, 11.65rem);
+  min-height: clamp(14rem, 31dvh, 17rem);
   margin: 0 calc(-1 * clamp(0.85rem, 1.2vw, 1.3rem));
-  padding: calc(0.7rem + env(safe-area-inset-top, 0px)) clamp(0.78rem, 3.4vw, 1rem) 0.8rem;
+  padding: calc(0.82rem + env(safe-area-inset-top, 0px)) clamp(0.9rem, 3.8vw, 1.18rem) 1.08rem;
   display: grid;
   align-content: space-between;
   overflow: hidden;
   isolation: isolate;
   background:
-    linear-gradient(180deg, rgba(0, 0, 0, 0.2), rgba(4, 5, 7, 0.86) 74%, rgba(8, 9, 11, 0.98)),
-    linear-gradient(90deg, rgba(0, 0, 0, 0.78), rgba(0, 0, 0, 0.16)),
-    var(--home-hero-image) center 35% / cover no-repeat;
+    linear-gradient(90deg, rgba(4, 4, 5, 0.94) 0%, rgba(4, 4, 5, 0.72) 38%, rgba(4, 4, 5, 0.18) 70%, rgba(4, 4, 5, 0.34) 100%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.24) 0%, rgba(4, 5, 7, 0.18) 48%, rgba(8, 9, 11, 0.96) 100%),
+    var(--home-hero-image) 58% center / cover no-repeat;
+  border-radius: 0 0 28px 28px;
   box-shadow: 0 20px 44px rgba(0, 0, 0, 0.42);
 }
 
@@ -36,6 +37,35 @@
   height: 4.6rem;
   z-index: -1;
   background: linear-gradient(180deg, rgba(8, 9, 11, 0), var(--cor-fundo));
+}
+
+.home-dashboard-hero-topbar {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.home-dashboard-hero-kicker {
+  min-height: 1.72rem;
+  display: inline-flex;
+  align-items: center;
+  width: max-content;
+  max-width: 52%;
+  padding: 0.28rem 0.62rem;
+  overflow: hidden;
+  border: 1px solid rgba(255, 179, 0, 0.3);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.42);
+  color: rgba(255, 213, 106, 0.96);
+  font-size: 0.68rem;
+  font-weight: 950;
+  line-height: 1;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+  backdrop-filter: blur(12px);
 }
 
 .home-dashboard-hero-acoes {
@@ -79,28 +109,36 @@
 
 .home-dashboard-hero-identidade {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   align-items: end;
-  gap: 0.7rem;
+  width: min(100%, 18.5rem);
 }
 
-.home-dashboard-avatar {
-  --avatar-size: 3.65rem;
-  border: 2px solid rgba(255, 179, 0, 0.78);
-  box-shadow: 0 0 0 5px rgba(255, 179, 0, 0.12), 0 16px 32px rgba(0, 0, 0, 0.42);
+.home-dashboard-hero .home-dashboard-avatar {
+  --avatar-size: 2.38rem;
+  border: 1px solid rgba(255, 179, 0, 0.62);
+  box-shadow: 0 0 0 3px rgba(255, 179, 0, 0.1), 0 12px 28px rgba(0, 0, 0, 0.42);
 }
 
 .home-dashboard-hero-texto {
   min-width: 0;
   display: grid;
-  gap: 0.32rem;
+  gap: 0.34rem;
+}
+
+.home-dashboard-hero-saudacao {
+  color: rgba(255, 255, 255, 0.86);
+  font-size: clamp(0.84rem, 3.4vw, 1rem);
+  font-weight: 850;
+  line-height: 1;
+  text-shadow: 0 8px 22px rgba(0, 0, 0, 0.48);
 }
 
 .home-dashboard-hero-texto h1 {
   overflow: hidden;
   color: var(--cor-texto);
-  font-size: clamp(1.72rem, 7.7vw, 2.6rem);
-  line-height: 0.96;
+  font-size: clamp(2.25rem, 11vw, 3.38rem);
+  line-height: 0.9;
   letter-spacing: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -132,6 +170,15 @@
 .home-dashboard-hero-meta span:last-child {
   border-color: rgba(255, 179, 0, 0.38);
   color: var(--cor-primaria);
+}
+
+.home-dashboard-hero .home-dashboard-avatar-menu {
+  z-index: 25;
+}
+
+.home-dashboard-hero .home-dashboard-menu-perfil {
+  right: 0;
+  left: auto;
 }
 
 .home-dashboard-hero-resumo {
@@ -1705,7 +1752,7 @@
     align-items: start;
   }
 
-  .home-dashboard-avatar {
+  .home-dashboard-identidade-card .home-dashboard-avatar {
     width: 4rem;
     height: 4rem;
   }
@@ -1753,7 +1800,11 @@
     border-radius: 28px;
   }
 
-  .home-dashboard-avatar {
+  .home-dashboard-hero .home-dashboard-avatar {
+    --avatar-size: 2.55rem;
+  }
+
+  .home-dashboard-identidade-card .home-dashboard-avatar {
     --avatar-size: 4.6rem;
   }
 
@@ -3540,7 +3591,7 @@
 }
 
 .home-dashboard-ultimo-jogo-rodape {
-  grid-template-columns: repeat(3, minmax(0, auto));
+  grid-template-columns: repeat(2, minmax(0, auto));
   align-items: center;
   justify-content: space-between;
   gap: 0.38rem;
@@ -3777,10 +3828,6 @@
 
   .home-dashboard-ultimo-jogo-rodape {
     grid-template-columns: minmax(0, 1fr) auto;
-  }
-
-  .home-dashboard-ultimo-jogo-rodape span:nth-child(3) {
-    display: none;
   }
 }
 

@@ -168,6 +168,19 @@ afterEach(() => {
 });
 
 describe('HomeDashboard nova experiencia', () => {
+  it('renderiza o hero visual com saudacao, notificacoes e avatar da conta', () => {
+    renderizarHome();
+
+    const hero = screen.getByTestId('home-dashboard-hero');
+
+    expect(hero.getAttribute('style')).toContain('home-hero-futevolei');
+    expect(within(hero).getByText(/Bo(m|a) (dia|tarde|noite)/i)).toBeInTheDocument();
+    expect(within(hero).getByRole('heading', { name: 'Gustavo' })).toBeInTheDocument();
+    expect(within(hero).getByText('Primo • Bronze')).toBeInTheDocument();
+    expect(within(hero).getByRole('button', { name: /Abrir pendências/i })).toBeInTheDocument();
+    expect(within(hero).getByRole('button', { name: /Abrir menu da conta/i })).toBeInTheDocument();
+  });
+
   it('remove o card de perfil redundante da Home', () => {
     renderizarHome();
 
@@ -374,11 +387,12 @@ describe('HomeDashboard nova experiencia', () => {
     const ultimoJogo = screen.getByRole('region', { name: /Último jogo/i });
 
     expect(within(ultimoJogo).getByLabelText('Resultado sem placar')).toBeInTheDocument();
-    expect(within(ultimoJogo).getByText('Vitória sem placar')).toBeInTheDocument();
+    expect(within(ultimoJogo).getByText('Dupla vencedora')).toBeInTheDocument();
     expect(within(ultimoJogo).getByText('Sem placar')).toBeInTheDocument();
     expect(within(ultimoJogo).getByText('Primo / Gustavo')).toBeInTheDocument();
     expect(within(ultimoJogo).getByText('Rafa / Leo')).toBeInTheDocument();
     expect(within(ultimoJogo).getByLabelText('Dupla vencedora')).toBeInTheDocument();
+    expect(within(ultimoJogo).queryByText('Vitória sem placar')).not.toBeInTheDocument();
     expect(within(ultimoJogo).queryByText('0 x 0')).not.toBeInTheDocument();
     expect(within(ultimoJogo).queryByLabelText('Resultado com placar')).not.toBeInTheDocument();
   });
