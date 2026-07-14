@@ -608,7 +608,7 @@ function HomeDashboardHero({
       autenticado={Boolean(usuario)}
       resumoNotificacoes={resumoNotificacoes}
       testId="home-dashboard-hero"
-      height="default"
+      variant="home"
     />
   );
 }

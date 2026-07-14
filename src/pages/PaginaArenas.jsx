@@ -62,6 +62,7 @@ export function PaginaArenas() {
       <AppHero
         title="Arenas"
         subtitle="Locais onde a comunidade joga."
+        variant="page"
       />
 
       <ArenasListPage

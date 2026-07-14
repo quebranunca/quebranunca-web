@@ -283,6 +283,14 @@ export function PaginaScouts() {
   if (carregando) {
     return (
       <section className="pagina home-dashboard scouts-page" aria-busy="true">
+        <AppHero
+          title={tipoAtivo === TIPO_DUPLAS ? 'Scout da dupla' : 'Scout do atleta'}
+          subtitle={tipoAtivo === TIPO_DUPLAS ? 'Desempenho completo das suas parcerias.' : 'Seu desempenho completo.'}
+          badge={subtitulo || nomeCompleto}
+          autenticado={Boolean(usuario)}
+          showAvatar={false}
+          variant="page"
+        />
         <div className="home-dashboard-identidade-card home-dashboard-skeleton-card" />
         <div className="home-dashboard-scouts home-dashboard-skeleton-card" />
         <div className="home-dashboard-scouts home-dashboard-skeleton-card" />
@@ -293,6 +301,14 @@ export function PaginaScouts() {
   if (erro) {
     return (
       <section className="pagina home-dashboard scouts-page">
+        <AppHero
+          title={tipoAtivo === TIPO_DUPLAS ? 'Scout da dupla' : 'Scout do atleta'}
+          subtitle={tipoAtivo === TIPO_DUPLAS ? 'Desempenho completo das suas parcerias.' : 'Seu desempenho completo.'}
+          badge={subtitulo || nomeCompleto}
+          autenticado={Boolean(usuario)}
+          showAvatar={false}
+          variant="page"
+        />
         <EmptyState
           icon={FaChartLine}
           title="Não foi possível carregar seus scouts."
@@ -305,6 +321,14 @@ export function PaginaScouts() {
   if (!possuiAtletaVinculado) {
     return (
       <section className="pagina home-dashboard scouts-page">
+        <AppHero
+          title={tipoAtivo === TIPO_DUPLAS ? 'Scout da dupla' : 'Scout do atleta'}
+          subtitle={tipoAtivo === TIPO_DUPLAS ? 'Desempenho completo das suas parcerias.' : 'Seu desempenho completo.'}
+          badge={subtitulo || nomeCompleto}
+          autenticado={Boolean(usuario)}
+          showAvatar={false}
+          variant="page"
+        />
         <EmptyState
           icon={FaChartLine}
           title="Vincule seu atleta para ver seus scouts."
@@ -318,10 +342,12 @@ export function PaginaScouts() {
   return (
     <section className="pagina home-dashboard scouts-page">
       <AppHero
-        title={tipoAtivo === TIPO_DUPLAS ? 'Scout de duplas' : 'Scout'}
+        title={tipoAtivo === TIPO_DUPLAS ? 'Scout da dupla' : 'Scout do atleta'}
         subtitle={tipoAtivo === TIPO_DUPLAS ? 'Desempenho completo das suas parcerias.' : 'Seu desempenho completo.'}
         badge={subtitulo || nomeCompleto}
         autenticado={Boolean(usuario)}
+        showAvatar={false}
+        variant="page"
       />
 
       <header className="scouts-athlete-card">

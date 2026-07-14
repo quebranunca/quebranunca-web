@@ -913,6 +913,7 @@ export function PaginaGrupos() {
         subtitle="Organize partidas e acompanhe sua comunidade."
         autenticado={autenticado}
         showAccountActions={autenticado}
+        variant="page"
       />
       <GruposHomeCriarGrupoBotao
         autenticado={autenticado}

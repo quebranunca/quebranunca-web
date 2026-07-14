@@ -1,6 +1,6 @@
 import { useContext, useEffect, useId, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaCog, FaSignOutAlt, FaUser } from 'react-icons/fa';
+import { FaChevronLeft, FaCog, FaSignOutAlt, FaUser } from 'react-icons/fa';
 import { AutenticacaoContexto } from '../contexts/AutenticacaoContexto';
 import { AvatarUsuario, obterFotoPerfilAvatar } from './AvatarUsuario';
 import { NotificacoesBotao } from './NotificacoesBotao';
@@ -24,9 +24,15 @@ export function AppHero({
   autenticado: autenticadoProp,
   onSair,
   showAccountActions = true,
+  showNotifications,
+  showAvatar,
+  showBackButton = false,
+  onBack,
+  backLabel = 'Voltar',
   resumoNotificacoes,
   testId,
-  height = 'default'
+  variant = 'page',
+  height
 }) {
   const contextoAutenticacao = useContext(AutenticacaoContexto);
   const navegar = useNavigate();
@@ -88,11 +94,24 @@ export function AppHero({
     navegar('/', { replace: true });
   }
 
-  const mostrarConta = showAccountActions && autenticado;
+  const mostrarNotificacoes = (showNotifications ?? showAccountActions) && autenticado;
+  const mostrarAvatar = (showAvatar ?? showAccountActions) && autenticado;
+  const mostrarAcoesTopo = showBackButton || actions || mostrarNotificacoes || mostrarAvatar;
+
+  function voltar() {
+    if (onBack) {
+      onBack();
+      return;
+    }
+
+    navegar(-1);
+  }
+
+  const classeVariante = `app-hero--${variant || height || 'page'}`;
 
   return (
     <section
-      className={`app-hero app-hero--${height} ${className}`.trim()}
+      className={`app-hero ${classeVariante} ${height ? `app-hero--${height}` : ''} ${className}`.trim()}
       aria-labelledby={tituloId}
       data-testid={testId}
       style={{ '--app-hero-image': `url(${homeHeroFutevolei})` }}
@@ -100,13 +119,22 @@ export function AppHero({
       <div className="app-hero__topbar">
         {eyebrow && <span className="app-hero__eyebrow">{eyebrow}</span>}
 
-        <div className="app-hero__top-actions">
-          {actions && <div className="app-hero__custom-actions">{actions}</div>}
+        {mostrarAcoesTopo && (
+          <div className="app-hero__top-actions">
+            {showBackButton && (
+              <button type="button" className="app-hero__back-button" onClick={voltar} aria-label={backLabel}>
+                <FaChevronLeft aria-hidden="true" />
+                <span>{backLabel}</span>
+              </button>
+            )}
 
-          {mostrarConta && (
-            <>
+            {actions && <div className="app-hero__custom-actions">{actions}</div>}
+
+            {mostrarNotificacoes && (
               <NotificacoesBotao autenticado={autenticado} resumo={resumoNotificacoesControlado} />
+            )}
 
+            {mostrarAvatar && (
               <div className="app-hero__account" ref={contaRef}>
                 <button
                   type="button"
@@ -142,9 +170,9 @@ export function AppHero({
                   </nav>
                 )}
               </div>
-            </>
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="app-hero__copy">

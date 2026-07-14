@@ -729,6 +729,13 @@ export function PaginaPontosQN() {
   if (carregando) {
     return (
       <main className="pagina pontosqn-pagina">
+        <AppHero
+          title="Pontos QN"
+          subtitle="Evolua, conquiste benefícios e acompanhe seu progresso."
+          badge={`Oi, ${obterPrimeiroNome(usuario)}.`}
+          autenticado={Boolean(usuario)}
+          variant="page"
+        />
         <EstadoPainel titulo="Carregando Pontos QN" texto="Buscando saldo, benefícios e missões." />
       </main>
     );
@@ -737,6 +744,13 @@ export function PaginaPontosQN() {
   if (erro) {
     return (
       <main className="pagina pontosqn-pagina">
+        <AppHero
+          title="Pontos QN"
+          subtitle="Evolua, conquiste benefícios e acompanhe seu progresso."
+          badge={`Oi, ${obterPrimeiroNome(usuario)}.`}
+          autenticado={Boolean(usuario)}
+          variant="page"
+        />
         <EstadoPainel tipo="erro" titulo="Não foi possível carregar" texto={erro} />
         <button type="button" className="botao-primario" onClick={carregar}>Tentar novamente</button>
       </main>
@@ -750,9 +764,10 @@ export function PaginaPontosQN() {
         subtitle="Evolua, conquiste benefícios e acompanhe seu progresso."
         badge={`Oi, ${obterPrimeiroNome(usuario)}.`}
         autenticado={Boolean(usuario)}
+        variant="page"
       />
 
-      <section className="pontosqn-hero pontosqn-hero-resumo" aria-label="Resumo de Pontos QN">
+      <section className="pontosqn-resumo-shell" aria-label="Resumo de Pontos QN">
         <div className="pontosqn-saldo-card">
           <div className="pontosqn-saldo-topo">
             <span>Pontos disponíveis</span>

@@ -1446,6 +1446,14 @@ export function PaginaMeuPerfil() {
   if (carregando) {
     return (
       <section className="pagina perfil-premium">
+        <AppHero
+          title="Perfil"
+          subtitle="Sua identidade na comunidade."
+          badge={`Oi, ${(usuario?.nome || usuario?.nomeCompleto || 'Atleta').split(/\s+/)[0]}.`}
+          autenticado={Boolean(usuario)}
+          showAvatar={false}
+          variant="page"
+        />
         <div className="perfil-carregando">
           <span className="perfil-avatar-esqueleto" />
           <p>Carregando seu perfil...</p>
@@ -1465,6 +1473,8 @@ export function PaginaMeuPerfil() {
         subtitle="Sua identidade na comunidade."
         badge={[nomePerfil, obterRotuloNivel(formularioAtleta.nivel)].filter(Boolean).join(' • ')}
         autenticado={Boolean(usuarioDetalhe || usuario)}
+        showAvatar={false}
+        variant="page"
       />
 
       {primeiroAcessoPendente && !usuarioEhAtleta && (

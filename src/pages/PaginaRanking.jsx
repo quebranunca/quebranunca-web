@@ -658,6 +658,7 @@ export function PaginaRanking() {
         }
         autenticado={autenticado}
         showAccountActions={autenticado}
+        variant="page"
       />
 
       <nav className="ranking-visao-tabs" aria-label="Visões do ranking">

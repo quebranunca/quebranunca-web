@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { FaBan, FaChevronLeft, FaEdit, FaRegTrashAlt, FaTimes, FaTrophy } from 'react-icons/fa';
+import { FaBan, FaEdit, FaRegTrashAlt, FaTimes, FaTrophy } from 'react-icons/fa';
 import { AppHero } from '../components/AppHero';
 import { CompartilharPartidaBotao } from '../components/partidas/CompartilharPartidaBotao';
 import { partidasServico } from '../services/partidasServico';
@@ -171,10 +171,14 @@ export function PaginaPartidaDetalhe() {
   if (erro && !partida) {
     return (
       <main className="pagina-partida-detalhe">
-        <button type="button" className="botao-secundario botao-compacto" onClick={() => navigate(-1)}>
-          <FaChevronLeft aria-hidden="true" />
-          Voltar
-        </button>
+        <AppHero
+          eyebrow="Partida"
+          title="Detalhes da partida"
+          subtitle="Resultado, atletas e estatísticas."
+          showBackButton
+          onBack={() => navigate(-1)}
+          variant="detail"
+        />
         <section className="partida-detalhe-estado">
           <strong>{erro}</strong>
           <button type="button" className="botao-primario" onClick={carregarPartida}>
@@ -192,12 +196,9 @@ export function PaginaPartidaDetalhe() {
         title="Detalhes da partida"
         subtitle="Resultado, atletas e estatísticas."
         badge={obterNomeGrupoPartidaExibicao(partida?.nomeGrupo)}
-        actions={
-          <button type="button" className="botao-secundario botao-compacto partida-detalhe-voltar-hero" onClick={() => navigate(-1)} aria-label="Voltar">
-            <FaChevronLeft aria-hidden="true" />
-            <span>Voltar</span>
-          </button>
-        }
+        showBackButton
+        onBack={() => navigate(-1)}
+        variant="detail"
       />
 
       {mensagem && <p className="partida-detalhe-feedback sucesso">{mensagem}</p>}

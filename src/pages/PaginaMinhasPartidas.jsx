@@ -981,6 +981,7 @@ export function PaginaMinhasPartidas() {
         subtitle="Todas as suas partidas em um só lugar."
         badge="Partidas, resultados e pendências"
         autenticado={Boolean(usuario)}
+        variant="page"
       />
 
       {atletaLogadoId && (

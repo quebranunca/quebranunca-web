@@ -1,6 +1,6 @@
 .app-hero {
   position: relative;
-  min-height: clamp(10.7rem, 23dvh, 11.9rem);
+  min-height: clamp(8.75rem, 19dvh, 10.5rem);
   margin: 0 calc(-1 * clamp(0.85rem, 1.2vw, 1.3rem));
   padding: calc(0.78rem + env(safe-area-inset-top, 0px)) clamp(0.9rem, 3.8vw, 1.18rem) 1rem;
   display: grid;
@@ -16,12 +16,17 @@
   box-shadow: 0 18px 38px rgba(0, 0, 0, 0.4);
 }
 
+.app-hero--home,
 .app-hero--tall {
-  min-height: clamp(11.4rem, 25dvh, 12.8rem);
+  min-height: clamp(11.25rem, 25dvh, 13.1rem);
+}
+
+.app-hero--detail {
+  min-height: clamp(8.55rem, 18dvh, 10rem);
 }
 
 .app-hero--compact {
-  min-height: clamp(10.1rem, 21dvh, 11.2rem);
+  min-height: clamp(8.35rem, 18dvh, 9.75rem);
 }
 
 .app-hero::after {
@@ -78,7 +83,8 @@
 }
 
 .app-hero__top-actions .botao-notificacoes-topo,
-.app-hero__avatar-button {
+.app-hero__avatar-button,
+.app-hero__back-button {
   width: 2.35rem;
   min-width: 2.35rem;
   height: 2.35rem;
@@ -97,7 +103,9 @@
 .app-hero__top-actions .botao-notificacoes-topo:hover,
 .app-hero__top-actions .botao-notificacoes-topo:focus-visible,
 .app-hero__avatar-button:hover,
-.app-hero__avatar-button:focus-visible {
+.app-hero__avatar-button:focus-visible,
+.app-hero__back-button:hover,
+.app-hero__back-button:focus-visible {
   transform: translateY(-1px);
   border-color: rgba(255, 179, 0, 0.58);
   background: rgba(10, 11, 13, 0.72);
@@ -105,8 +113,21 @@
 }
 
 .app-hero__top-actions .botao-notificacoes-topo:active,
-.app-hero__avatar-button:active {
+.app-hero__avatar-button:active,
+.app-hero__back-button:active {
   transform: scale(0.96);
+}
+
+.app-hero__back-button {
+  gap: 0.35rem;
+  width: auto;
+  padding-inline: 0.58rem 0.68rem;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.app-hero__back-button span {
+  display: inline;
 }
 
 .app-hero__account {
@@ -185,13 +206,17 @@
   margin: 0;
   overflow: hidden;
   color: var(--cor-texto);
-  font-size: clamp(2rem, 9vw, 3rem);
+  font-size: clamp(1.65rem, 7vw, 2.35rem);
   font-weight: 950;
   line-height: 0.95;
   letter-spacing: 0;
   text-overflow: ellipsis;
   text-shadow: 0 10px 30px rgba(0, 0, 0, 0.58);
   white-space: nowrap;
+}
+
+.app-hero--home .app-hero__copy h1 {
+  font-size: clamp(2.12rem, 10vw, 3.15rem);
 }
 
 .app-hero__badge {
@@ -229,8 +254,12 @@
 
 @media (max-width: 380px) {
   .app-hero {
-    min-height: 10.65rem;
+    min-height: 8.95rem;
     padding-inline: 0.82rem;
+  }
+
+  .app-hero--home {
+    min-height: 11.25rem;
   }
 
   .app-hero__eyebrow {
@@ -242,8 +271,13 @@
     font-size: clamp(1.86rem, 9vw, 2.35rem);
   }
 
+  .app-hero:not(.app-hero--home) .app-hero__copy h1 {
+    font-size: clamp(1.48rem, 7.5vw, 2.05rem);
+  }
+
   .app-hero__top-actions .botao-notificacoes-topo,
-  .app-hero__avatar-button {
+  .app-hero__avatar-button,
+  .app-hero__back-button {
     width: 2.22rem;
     min-width: 2.22rem;
     height: 2.22rem;
@@ -252,11 +286,16 @@
   .app-hero__avatar {
     --avatar-size: 2.22rem;
   }
+
+  .app-hero__back-button span {
+    display: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .app-hero__top-actions .botao-notificacoes-topo,
-  .app-hero__avatar-button {
+  .app-hero__avatar-button,
+  .app-hero__back-button {
     transition: none;
   }
 }

@@ -2934,12 +2934,21 @@ code {
   box-shadow: var(--sombra-suave);
 }
 
-.pontosqn-hero-resumo {
+.pontosqn-resumo-shell {
+  display: grid;
   grid-template-columns: minmax(0, 1fr);
+  gap: 0.8rem;
+  align-items: center;
   padding: 0.85rem;
+  border: 1px solid rgba(255, 179, 0, 0.18);
+  border-radius: var(--raio-lg);
+  background:
+    linear-gradient(135deg, rgba(255, 179, 0, 0.12), rgba(255, 255, 255, 0.035) 42%, rgba(20, 22, 28, 0.96)),
+    var(--cor-superficie);
+  box-shadow: var(--sombra-suave);
 }
 
-.pontosqn-hero-resumo .pontosqn-saldo-card {
+.pontosqn-resumo-shell .pontosqn-saldo-card {
   min-height: auto;
 }
 
@@ -13697,6 +13706,10 @@ a.botao-terciario:active {
   padding-bottom: calc(var(--altura-bottom-nav, 4.7rem) + 1rem);
 }
 
+.perfil-premium > .app-hero + * {
+  margin-top: -0.35rem;
+}
+
 .perfil-carregando,
 .perfil-alerta,
 .perfil-hero,
@@ -16726,7 +16739,7 @@ a.botao-terciario:active {
 .layout-home-dashboard-app > .topo-app,
 .layout-pagina-com-hero-proprio > .topo-app,
 .layout-grupos-dashboard-app > .topo-app {
-  display: grid;
+  display: none;
 }
 
 .layout-autenticado .topo-app {
@@ -16762,7 +16775,7 @@ a.botao-terciario:active {
   .layout-home-dashboard-app,
   .layout-pagina-com-hero-proprio,
   .layout-grupos-dashboard-app {
-    gap: var(--app-header-content-gap);
+    gap: 0;
   }
 }
 
@@ -17190,24 +17203,14 @@ a.botao-terciario:active {
 .pagina-partida-detalhe {
   width: min(100%, 720px);
   margin: 0 auto;
-  padding: 18px 14px calc(104px + env(safe-area-inset-bottom, 0px));
+  padding: 0 14px calc(104px + env(safe-area-inset-bottom, 0px));
   display: grid;
   gap: 12px;
   color: var(--cor-texto, #f8fafc);
 }
 
 .pagina-partida-detalhe .app-hero {
-  margin-top: -18px;
-}
-
-.partida-detalhe-voltar-hero {
-  min-width: 2.35rem;
-  min-height: 2.35rem;
-  padding-inline: 0.62rem;
-  border-radius: 999px;
-  background: rgba(5, 6, 8, 0.56);
-  color: var(--cor-texto, #f8fafc);
-  backdrop-filter: blur(12px);
+  margin-bottom: 0;
 }
 
 .partida-detalhe-topo {
