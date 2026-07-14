@@ -600,7 +600,6 @@ function HomeDashboardHero({
 
   return (
     <AppHero
-      eyebrow="QuebraNunca"
       subtitle={`${obterSaudacaoAtual()},`}
       title={primeiroNome}
       badge={subtitulo}

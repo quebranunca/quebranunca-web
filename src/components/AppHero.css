@@ -1,6 +1,8 @@
 .app-hero {
-  position: relative;
-  min-height: clamp(8.75rem, 19dvh, 10.5rem);
+  position: sticky;
+  top: 0;
+  z-index: 920;
+  min-height: clamp(9.5rem, 19dvh, 10.5rem);
   margin: 0 calc(-1 * clamp(0.85rem, 1.2vw, 1.3rem));
   padding: calc(0.78rem + env(safe-area-inset-top, 0px)) clamp(0.9rem, 3.8vw, 1.18rem) 1rem;
   display: grid;
@@ -8,8 +10,8 @@
   overflow: visible;
   isolation: isolate;
   background:
-    linear-gradient(90deg, rgba(4, 4, 5, 0.94) 0%, rgba(4, 4, 5, 0.74) 37%, rgba(4, 4, 5, 0.2) 70%, rgba(4, 4, 5, 0.34) 100%),
-    linear-gradient(180deg, rgba(0, 0, 0, 0.24) 0%, rgba(4, 5, 7, 0.18) 48%, rgba(8, 9, 11, 0.96) 100%),
+    linear-gradient(90deg, rgba(4, 4, 5, 0.96) 0%, rgba(4, 4, 5, 0.78) 34%, rgba(4, 4, 5, 0.2) 68%, rgba(4, 4, 5, 0.32) 100%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.52) 0%, rgba(4, 5, 7, 0.16) 46%, rgba(8, 9, 11, 0.98) 100%),
     var(--app-hero-image) 58% center / cover no-repeat;
   border-radius: 0 0 28px 28px;
   color: var(--cor-texto);
@@ -18,15 +20,15 @@
 
 .app-hero--home,
 .app-hero--tall {
-  min-height: clamp(11.25rem, 25dvh, 13.1rem);
+  min-height: clamp(11.9rem, 25dvh, 13.1rem);
 }
 
 .app-hero--detail {
-  min-height: clamp(8.55rem, 18dvh, 10rem);
+  min-height: clamp(9.35rem, 18dvh, 10.65rem);
 }
 
 .app-hero--compact {
-  min-height: clamp(8.35rem, 18dvh, 9.75rem);
+  min-height: clamp(9.15rem, 18dvh, 10.45rem);
 }
 
 .app-hero::after {
@@ -40,6 +42,7 @@
 }
 
 .app-hero__topbar,
+.app-hero__leading,
 .app-hero__top-actions,
 .app-hero__custom-actions {
   min-width: 0;
@@ -50,6 +53,12 @@
 .app-hero__topbar {
   justify-content: space-between;
   gap: 0.75rem;
+}
+
+.app-hero__leading {
+  flex: 1 1 auto;
+  justify-content: flex-start;
+  gap: 0.45rem;
 }
 
 .app-hero__eyebrow {
@@ -74,6 +83,7 @@
 }
 
 .app-hero__top-actions {
+  flex: 0 0 auto;
   justify-content: flex-end;
   gap: 0.45rem;
 }
@@ -85,19 +95,33 @@
 .app-hero__top-actions .botao-notificacoes-topo,
 .app-hero__avatar-button,
 .app-hero__back-button {
-  width: 2.35rem;
-  min-width: 2.35rem;
-  height: 2.35rem;
+  width: 2.62rem;
+  min-width: 2.62rem;
+  height: 2.62rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  border: 1px solid rgba(255, 179, 0, 0.34);
   border-radius: 999px;
-  background: rgba(5, 6, 8, 0.52);
+  background: rgba(5, 6, 8, 0.66);
   color: var(--cor-texto);
   backdrop-filter: blur(14px);
-  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.26);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.36);
   transition: transform 180ms ease, border-color 180ms ease, background 180ms ease, box-shadow 180ms ease;
+}
+
+.app-hero__top-actions .botao-notificacoes-topo {
+  background:
+    linear-gradient(145deg, rgba(255, 179, 0, 0.14), rgba(255, 255, 255, 0.045)),
+    rgba(3, 4, 6, 0.72);
+  color: #fff;
+  box-shadow: 0 0 0 1px rgba(255, 179, 0, 0.08), 0 16px 34px rgba(0, 0, 0, 0.42);
+}
+
+.app-hero__top-actions .botao-notificacoes-topo svg {
+  width: 1.08rem;
+  height: 1.08rem;
 }
 
 .app-hero__top-actions .botao-notificacoes-topo:hover,
@@ -120,14 +144,19 @@
 
 .app-hero__back-button {
   gap: 0.35rem;
-  width: auto;
-  padding-inline: 0.58rem 0.68rem;
+  width: 2.62rem;
+  padding-inline: 0;
   font-weight: 850;
   cursor: pointer;
 }
 
 .app-hero__back-button span {
-  display: inline;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
 .app-hero__account {
@@ -136,13 +165,18 @@
 
 .app-hero__avatar-button {
   padding: 0;
+  background:
+    linear-gradient(145deg, rgba(255, 179, 0, 0.18), rgba(255, 255, 255, 0.08)),
+    rgba(255, 255, 255, 0.12);
   cursor: pointer;
 }
 
 .app-hero__avatar {
-  --avatar-size: 2.38rem;
-  border: 1px solid rgba(255, 179, 0, 0.62);
-  box-shadow: 0 0 0 3px rgba(255, 179, 0, 0.1), 0 12px 28px rgba(0, 0, 0, 0.42);
+  --avatar-size: 2.5rem;
+  --qn-avatar-bg: #f4f4f1;
+  --qn-avatar-color: #151515;
+  border: 2px solid rgba(255, 196, 55, 0.92);
+  box-shadow: 0 0 0 3px rgba(255, 179, 0, 0.14), 0 14px 30px rgba(0, 0, 0, 0.46);
 }
 
 .app-hero__account-menu {
@@ -194,6 +228,10 @@
   gap: 0.34rem;
 }
 
+.app-hero__copy > * {
+  min-width: 0;
+}
+
 .app-hero__subtitle {
   color: rgba(255, 255, 255, 0.86);
   font-size: clamp(0.82rem, 3.2vw, 0.98rem);
@@ -213,6 +251,43 @@
   text-overflow: ellipsis;
   text-shadow: 0 10px 30px rgba(0, 0, 0, 0.58);
   white-space: nowrap;
+}
+
+.app-hero__custom-actions > button,
+.app-hero__custom-actions > a {
+  min-height: 2.44rem;
+  border-color: rgba(255, 179, 0, 0.34);
+  background: rgba(5, 6, 8, 0.62);
+  color: var(--cor-texto);
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.app-hero__custom-actions .grupos-home-criar-shell {
+  margin: 0;
+}
+
+.app-hero__custom-actions .grupos-home-criar-botao {
+  min-height: 2.44rem;
+  padding: 0 0.72rem;
+  border-color: rgba(255, 179, 0, 0.54);
+  border-radius: 999px;
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.34);
+}
+
+.app-hero__top-actions .indicador-alerta {
+  top: -0.7rem;
+  right: -0.72rem;
+  min-width: 1.12rem;
+  height: 1.12rem;
+  padding: 0 0.26rem;
+  border: 2px solid rgba(14, 14, 15, 0.96);
+  background: var(--cor-primaria);
+  color: #050505;
+  font-size: 0.66rem;
+  font-weight: 950;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.42), 0 0 0 1px rgba(255, 255, 255, 0.16);
 }
 
 .app-hero--home .app-hero__copy h1 {
@@ -254,7 +329,7 @@
 
 @media (max-width: 380px) {
   .app-hero {
-    min-height: 8.95rem;
+    min-height: 9.5rem;
     padding-inline: 0.82rem;
   }
 
@@ -278,17 +353,13 @@
   .app-hero__top-actions .botao-notificacoes-topo,
   .app-hero__avatar-button,
   .app-hero__back-button {
-    width: 2.22rem;
-    min-width: 2.22rem;
-    height: 2.22rem;
+    width: 2.42rem;
+    min-width: 2.42rem;
+    height: 2.42rem;
   }
 
   .app-hero__avatar {
-    --avatar-size: 2.22rem;
-  }
-
-  .app-hero__back-button span {
-    display: none;
+    --avatar-size: 2.3rem;
   }
 }
 

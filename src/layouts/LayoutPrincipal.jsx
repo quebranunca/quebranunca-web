@@ -23,8 +23,8 @@ const ROTAS_COM_HERO_PROPRIO_APP = [
   '/app/scouts',
   '/arenas',
   '/grupos',
-  '/minhas-partidas',
   '/mais',
+  '/minhas-partidas',
   '/ranking'
 ];
 
@@ -82,12 +82,14 @@ export function LayoutPrincipal() {
         paginaComHeroProprioApp ? ' layout-pagina-com-hero-proprio' : ''
       }`}
     >
-      <AppHeader
-        autenticado={autenticado}
-        usuario={usuario}
-        mostrarNotificacoes
-        aoSair={aoSair}
-      />
+      {!paginaComHeroProprioApp && (
+        <AppHeader
+          autenticado={autenticado}
+          usuario={usuario}
+          mostrarNotificacoes
+          aoSair={aoSair}
+        />
+      )}
 
       <main className="conteudo-principal">
         <Outlet />

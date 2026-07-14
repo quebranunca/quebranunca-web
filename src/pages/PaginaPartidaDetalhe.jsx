@@ -172,7 +172,6 @@ export function PaginaPartidaDetalhe() {
     return (
       <main className="pagina-partida-detalhe">
         <AppHero
-          eyebrow="Partida"
           title="Detalhes da partida"
           subtitle="Resultado, atletas e estatísticas."
           showBackButton
@@ -192,10 +191,31 @@ export function PaginaPartidaDetalhe() {
   return (
     <main className="pagina-partida-detalhe">
       <AppHero
-        eyebrow={partida?.cancelada ? 'Partida cancelada' : 'Partida'}
         title="Detalhes da partida"
         subtitle="Resultado, atletas e estatísticas."
-        badge={obterNomeGrupoPartidaExibicao(partida?.nomeGrupo)}
+        badge={[partida?.cancelada ? 'Partida cancelada' : '', obterNomeGrupoPartidaExibicao(partida?.nomeGrupo)].filter(Boolean).join(' • ')}
+        actions={
+          <>
+            {permissoes.podeEditar && !partida?.cancelada && (
+              <Link
+                className="botao-secundario botao-compacto"
+                to={`/partidas/registrar?partidaId=${partida.id}`}
+                aria-label="Editar partida"
+                title="Editar partida"
+              >
+                <FaEdit aria-hidden="true" />
+                <span>Editar</span>
+              </Link>
+            )}
+            {!partida?.cancelada && (
+              <CompartilharPartidaBotao
+                partidaId={partida.id}
+                registradoPor={partida.nomeCriadoPorUsuario}
+                className="botao-compartilhar-partida botao-compacto"
+              />
+            )}
+          </>
+        }
         showBackButton
         onBack={() => navigate(-1)}
         variant="detail"
@@ -318,15 +338,6 @@ export function PaginaPartidaDetalhe() {
           <span>As permissões são calculadas pela API.</span>
         </div>
         <div className="partida-detalhe-acoes">
-          {permissoes.podeEditar && !partida?.cancelada && (
-            <Link className="botao-secundario" to={`/partidas/registrar?partidaId=${partida.id}`}>
-              <FaEdit aria-hidden="true" />
-              Editar
-            </Link>
-          )}
-          {!partida?.cancelada && (
-            <CompartilharPartidaBotao partidaId={partida.id} registradoPor={partida.nomeCriadoPorUsuario} />
-          )}
           {permissoes.podeSolicitarCancelamento && !partida?.cancelada && !partida?.cancelamentoPendente && (
             <button type="button" className="botao-terciario" onClick={() => setModal({ tipo: 'solicitar' })}>
               <FaBan aria-hidden="true" />

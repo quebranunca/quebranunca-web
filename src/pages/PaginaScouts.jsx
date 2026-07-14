@@ -288,7 +288,7 @@ export function PaginaScouts() {
           subtitle={tipoAtivo === TIPO_DUPLAS ? 'Desempenho completo das suas parcerias.' : 'Seu desempenho completo.'}
           badge={subtitulo || nomeCompleto}
           autenticado={Boolean(usuario)}
-          showAvatar={false}
+          showBackButton
           variant="page"
         />
         <div className="home-dashboard-identidade-card home-dashboard-skeleton-card" />
@@ -306,7 +306,7 @@ export function PaginaScouts() {
           subtitle={tipoAtivo === TIPO_DUPLAS ? 'Desempenho completo das suas parcerias.' : 'Seu desempenho completo.'}
           badge={subtitulo || nomeCompleto}
           autenticado={Boolean(usuario)}
-          showAvatar={false}
+          showBackButton
           variant="page"
         />
         <EmptyState
@@ -326,7 +326,7 @@ export function PaginaScouts() {
           subtitle={tipoAtivo === TIPO_DUPLAS ? 'Desempenho completo das suas parcerias.' : 'Seu desempenho completo.'}
           badge={subtitulo || nomeCompleto}
           autenticado={Boolean(usuario)}
-          showAvatar={false}
+          showBackButton
           variant="page"
         />
         <EmptyState
@@ -346,7 +346,7 @@ export function PaginaScouts() {
         subtitle={tipoAtivo === TIPO_DUPLAS ? 'Desempenho completo das suas parcerias.' : 'Seu desempenho completo.'}
         badge={subtitulo || nomeCompleto}
         autenticado={Boolean(usuario)}
-        showAvatar={false}
+        showBackButton
         variant="page"
       />
 

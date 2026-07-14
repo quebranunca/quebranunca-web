@@ -50,7 +50,8 @@ describe('AppHeader', () => {
   it('mostra topo principal com saudacao, apelido, sino e avatar sem botão voltar', () => {
     renderizarHeader('/app');
 
-    expect(screen.getByRole('heading', { name: /Bom dia|Boa tarde|Boa noite/i })).toHaveTextContent(/Primo/i);
+    expect(screen.getByText(/Bom dia|Boa tarde|Boa noite/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Primo/i })).toBeInTheDocument();
     expect(screen.getByText('Primo • Bronze')).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Home' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Abrir pendências/i })).toBeInTheDocument();

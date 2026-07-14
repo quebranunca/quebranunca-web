@@ -980,7 +980,20 @@ export function PaginaMinhasPartidas() {
         title="Histórico"
         subtitle="Todas as suas partidas em um só lugar."
         badge="Partidas, resultados e pendências"
+        actions={
+          <button
+            type="button"
+            className="botao-secundario botao-compacto"
+            onClick={() => document.getElementById('minhas-partidas-filtros')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+            aria-label="Ver filtros do histórico"
+            title="Filtros"
+          >
+            <FaSortAmountDown aria-hidden="true" />
+            <span>Filtros</span>
+          </button>
+        }
         autenticado={Boolean(usuario)}
+        showBackButton
         variant="page"
       />
 
@@ -1006,7 +1019,7 @@ export function PaginaMinhasPartidas() {
         </article>
       )}
 
-      <section className="minhas-partidas-controles" aria-label="Filtros das partidas">
+      <section id="minhas-partidas-filtros" className="minhas-partidas-controles" aria-label="Filtros das partidas">
         <div className="minhas-partidas-filtros">
           {filtrosDisponiveis.map((filtro) => (
             <button

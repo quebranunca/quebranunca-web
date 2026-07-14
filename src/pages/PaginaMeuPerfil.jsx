@@ -1451,7 +1451,7 @@ export function PaginaMeuPerfil() {
           subtitle="Sua identidade na comunidade."
           badge={`Oi, ${(usuario?.nome || usuario?.nomeCompleto || 'Atleta').split(/\s+/)[0]}.`}
           autenticado={Boolean(usuario)}
-          showAvatar={false}
+          showBackButton
           variant="page"
         />
         <div className="perfil-carregando">
@@ -1473,7 +1473,22 @@ export function PaginaMeuPerfil() {
         subtitle="Sua identidade na comunidade."
         badge={[nomePerfil, obterRotuloNivel(formularioAtleta.nivel)].filter(Boolean).join(' • ')}
         autenticado={Boolean(usuarioDetalhe || usuario)}
-        showAvatar={false}
+        showBackButton
+        actions={
+          <button
+            type="button"
+            className="botao-secundario botao-compacto"
+            onClick={() => {
+              setAbaAtiva('perfil');
+              setEditandoPerfil(true);
+            }}
+            aria-label="Editar perfil"
+            title="Editar perfil"
+          >
+            <FaUserEdit aria-hidden="true" />
+            <span>Editar</span>
+          </button>
+        }
         variant="page"
       />
 
@@ -1551,17 +1566,6 @@ export function PaginaMeuPerfil() {
             </small>
           </div>
 
-          <button
-            type="button"
-            className="perfil-editar-atalho"
-            onClick={() => {
-              setAbaAtiva('perfil');
-              setEditandoPerfil(true);
-            }}
-          >
-            <FaUserEdit aria-hidden="true" />
-            <span>Editar</span>
-          </button>
         </div>
 
         <div className="perfil-hero-detalhes">

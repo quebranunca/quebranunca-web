@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FaCheck, FaChevronDown, FaClock, FaGamepad } from 'react-icons/fa';
+import { AppHero } from '../components/AppHero';
 import { EmailDomainSuggestions } from '../components/formularios/EmailDomainSuggestions';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { atletasServico } from '../services/atletasServico';
@@ -998,7 +999,14 @@ export function PaginaPendenciasAtletas() {
 
   return (
     <section className="pagina pendencias-pagina">
-      <PendenciasCabecalho metricas={metricas} />
+      <AppHero
+        title="Pendências"
+        subtitle={metricas.abertas === 0 ? 'Tudo resolvido.' : 'Aprove partidas e resolva vínculos.'}
+        badge={metricas.abertas === 1 ? '1 ação aberta' : `${metricas.abertas} ações abertas`}
+        autenticado={Boolean(usuario)}
+        showBackButton
+        variant="page"
+      />
 
       <PendenciasResumo metricas={metricas} />
 

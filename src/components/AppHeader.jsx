@@ -1,14 +1,9 @@
 import {
-  Link,
   matchPath,
   useLocation
 } from 'react-router-dom';
 
-import { useEffect, useRef, useState } from 'react';
-import { FaCog, FaSignOutAlt, FaUser } from 'react-icons/fa';
-import { HeaderBackButton } from './BotaoVoltar';
-import { NotificacoesBotao } from './NotificacoesBotao';
-import { AvatarUsuario, obterFotoPerfilAvatar } from './AvatarUsuario';
+import { AppHero } from './AppHero';
 
 import {
   ROTAS_APP_HEADER,
@@ -17,12 +12,7 @@ import {
 
 const ROTA_HOME_APP = '/app';
 const ROTAS_PRINCIPAIS_SEM_VOLTAR = new Set([
-  '/app',
-  '/admin',
-  '/minhas-partidas',
-  '/ranking',
-  '/grupos',
-  '/mais'
+  '/app'
 ]);
 
 function obterTextoLimpo(...valores) {
@@ -88,6 +78,32 @@ function obterConfiguracaoHeader(pathname) {
   );
 }
 
+function obterSubtituloPadrao(pathname, titulo) {
+  if (pathname === '/ranking') {
+    return 'Veja sua evolução.';
+  }
+
+  if (pathname === '/grupos') {
+    return 'Organize partidas e acompanhe sua comunidade.';
+  }
+
+  if (pathname === '/minhas-partidas') {
+    return 'Todas as suas partidas em um só lugar.';
+  }
+
+  if (pathname === '/mais') {
+    return 'Perfil, histórico, benefícios e suporte.';
+  }
+
+  if (pathname === '/app/pendencias') {
+    return 'Aprove partidas e resolva vínculos.';
+  }
+
+  return titulo === 'QuebraNunca'
+    ? 'Futevôlei, ranking e comunidade.'
+    : '';
+}
+
 export function AppHeader({
   autenticado,
   usuario,
@@ -95,134 +111,38 @@ export function AppHeader({
   aoSair
 }) {
   const location = useLocation();
-  const [menuContaAberto, setMenuContaAberto] = useState(false);
-  const contaRef = useRef(null);
-
-  const configuracao =
-    obterConfiguracaoHeader(location.pathname);
-
+  const configuracao = obterConfiguracaoHeader(location.pathname);
   const telaHomeApp = autenticado && location.pathname === ROTA_HOME_APP;
-  const telaInterna =
-    autenticado &&
-    !ROTAS_PRINCIPAIS_SEM_VOLTAR.has(location.pathname);
-
-  const rotaHome =
-    autenticado
-      ? ROTA_HOME_APP
-      : '/';
-  const tituloTopo = telaHomeApp
-    ? `${obterSaudacaoAtual()}, ${obterPrimeiroNomeUsuario(usuario)}`
-    : configuracao.title;
+  const telaInterna = autenticado && !ROTAS_PRINCIPAIS_SEM_VOLTAR.has(location.pathname);
   const apelidoTopo = telaHomeApp ? obterApelidoUsuario(usuario) : '';
   const nivelTopo = telaHomeApp ? obterNivelUsuario(usuario) : '';
-  const subtituloTopo = [apelidoTopo, nivelTopo].filter(Boolean).join(' • ');
 
-  useEffect(() => {
-    setMenuContaAberto(false);
-  }, [location.pathname]);
-
-  useEffect(() => {
-    if (!menuContaAberto) {
-      return undefined;
-    }
-
-    function aoClicarFora(evento) {
-      if (!contaRef.current?.contains(evento.target)) {
-        setMenuContaAberto(false);
-      }
-    }
-
-    function aoPressionarTecla(evento) {
-      if (evento.key === 'Escape') {
-        setMenuContaAberto(false);
-      }
-    }
-
-    document.addEventListener('mousedown', aoClicarFora);
-    window.addEventListener('keydown', aoPressionarTecla);
-
-    return () => {
-      document.removeEventListener('mousedown', aoClicarFora);
-      window.removeEventListener('keydown', aoPressionarTecla);
-    };
-  }, [menuContaAberto]);
-
-  function sairDaConta() {
-    setMenuContaAberto(false);
-    aoSair?.();
+  if (telaHomeApp) {
+    return (
+      <AppHero
+        subtitle={`${obterSaudacaoAtual()},`}
+        title={obterPrimeiroNomeUsuario(usuario)}
+        badge={[apelidoTopo, nivelTopo].filter(Boolean).join(' • ')}
+        accountUser={usuario}
+        autenticado={autenticado}
+        showNotifications={mostrarNotificacoes}
+        showBackButton={false}
+        onSair={aoSair}
+        variant="home"
+      />
+    );
   }
 
   return (
-    <header className={`topo-app ${telaInterna ? 'topo-app-interno' : 'topo-app-principal'}`}>
-      {telaInterna ? (
-        <div className="marca-topo marca-topo-interna">
-          <HeaderBackButton
-            mostrarTexto={false}
-            rotaFallback={ROTA_HOME_APP}
-          />
-
-          <div className="marca-texto">
-            <h1 className="marca-titulo" title={configuracao.title}>
-              {configuracao.title}
-            </h1>
-          </div>
-        </div>
-      ) : (
-        <Link to={rotaHome} className="marca-topo" aria-label="Ir para a home">
-          <div className="marca-texto">
-            <h1 className="marca-titulo" title={tituloTopo}>
-              {tituloTopo}
-            </h1>
-            {subtituloTopo && <span className="marca-subtitulo-app">{subtituloTopo}</span>}
-          </div>
-        </Link>
-      )}
-
-      <div className="usuario-topo">
-        {autenticado && mostrarNotificacoes && (
-          <NotificacoesBotao
-            autenticado={autenticado}
-          />
-        )}
-
-        {autenticado && (
-          <div className="app-header-conta" ref={contaRef}>
-            <button
-              type="button"
-              className="app-header-avatar-botao"
-              aria-label="Abrir menu da conta"
-              aria-haspopup="menu"
-              aria-expanded={menuContaAberto}
-              onClick={() => setMenuContaAberto((aberto) => !aberto)}
-            >
-              <AvatarUsuario
-                nome={usuario?.nome}
-                fotoPerfilUrl={obterFotoPerfilAvatar(usuario)}
-                tamanho="sm"
-                className="usuario-avatar"
-                alt=""
-              />
-            </button>
-
-            {menuContaAberto && (
-              <nav className="app-header-conta-menu" aria-label="Menu da conta">
-                <Link to="/app/perfil" onClick={() => setMenuContaAberto(false)}>
-                  <FaUser aria-hidden="true" />
-                  <span>Meu perfil</span>
-                </Link>
-                <Link to="/app/perfil?aba=configuracoes" onClick={() => setMenuContaAberto(false)}>
-                  <FaCog aria-hidden="true" />
-                  <span>Configurações</span>
-                </Link>
-                <button type="button" onClick={sairDaConta}>
-                  <FaSignOutAlt aria-hidden="true" />
-                  <span>Sair</span>
-                </button>
-              </nav>
-            )}
-          </div>
-        )}
-      </div>
-    </header>
+    <AppHero
+      title={configuracao.title}
+      subtitle={obterSubtituloPadrao(location.pathname, configuracao.title)}
+      accountUser={usuario}
+      autenticado={autenticado}
+      showNotifications={mostrarNotificacoes}
+      showBackButton={telaInterna}
+      onSair={aoSair}
+      variant="page"
+    />
   );
 }

@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { FaPlus } from 'react-icons/fa';
 import { AppHero } from '../components/AppHero';
 import { ArenasListPage } from '../components/arenas/ArenasListPage';
 import '../components/arenas/arena-publico.css';
+import { useAutenticacao } from '../hooks/useAutenticacao';
 import { arenaService } from '../services/arenaService';
 import { extrairMensagemErro } from '../utils/erros';
 
@@ -13,6 +16,7 @@ const estadoInicialFiltros = {
 };
 
 export function PaginaArenas() {
+  const { token } = useAutenticacao();
   const [arenas, setArenas] = useState([]);
   const [filtros, setFiltros] = useState(estadoInicialFiltros);
   const [carregando, setCarregando] = useState(true);
@@ -62,6 +66,14 @@ export function PaginaArenas() {
       <AppHero
         title="Arenas"
         subtitle="Locais onde a comunidade joga."
+        actions={Boolean(token) ? (
+          <Link to="/minhas-arenas" className="botao-secundario botao-compacto" aria-label="Adicionar ou gerenciar arena">
+            <FaPlus aria-hidden="true" />
+            <span>Adicionar</span>
+          </Link>
+        ) : null}
+        autenticado={Boolean(token)}
+        showBackButton={Boolean(token)}
         variant="page"
       />
 

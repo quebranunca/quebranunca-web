@@ -734,6 +734,7 @@ export function PaginaPontosQN() {
           subtitle="Evolua, conquiste benefícios e acompanhe seu progresso."
           badge={`Oi, ${obterPrimeiroNome(usuario)}.`}
           autenticado={Boolean(usuario)}
+          showBackButton
           variant="page"
         />
         <EstadoPainel titulo="Carregando Pontos QN" texto="Buscando saldo, benefícios e missões." />
@@ -749,6 +750,7 @@ export function PaginaPontosQN() {
           subtitle="Evolua, conquiste benefícios e acompanhe seu progresso."
           badge={`Oi, ${obterPrimeiroNome(usuario)}.`}
           autenticado={Boolean(usuario)}
+          showBackButton
           variant="page"
         />
         <EstadoPainel tipo="erro" titulo="Não foi possível carregar" texto={erro} />
@@ -764,6 +766,7 @@ export function PaginaPontosQN() {
         subtitle="Evolua, conquiste benefícios e acompanhe seu progresso."
         badge={`Oi, ${obterPrimeiroNome(usuario)}.`}
         autenticado={Boolean(usuario)}
+        showBackButton
         variant="page"
       />
 

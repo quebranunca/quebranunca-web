@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { FaChevronRight } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
+import { AppHero } from '../components/AppHero';
 import { obterMoreNavigationSections } from '../components/navigation/navigationConfig';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { pendenciasServico } from '../services/pendenciasServico';
@@ -52,12 +53,16 @@ export function PaginaMais() {
   }
 
   return (
-    <section className="pagina pagina-mais" aria-labelledby="mais-titulo">
-      <header className="mais-hero">
-        <span>Hub</span>
-        <h1 id="mais-titulo">Mais</h1>
-        <p>Acesse perfil, scouts, histórico, Pontos QN, benefícios, notificações e suporte em um só lugar.</p>
-      </header>
+    <section className="pagina pagina-mais">
+      <AppHero
+        title="Mais"
+        subtitle="Perfil, histórico, benefícios e suporte."
+        badge="Hub do atleta"
+        accountUser={usuario}
+        autenticado={Boolean(usuario)}
+        showBackButton
+        variant="page"
+      />
 
       <div className="mais-secoes">
         {secoes.map((secao) => (

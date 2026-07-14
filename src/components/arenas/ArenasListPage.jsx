@@ -1,5 +1,4 @@
 import { useMemo } from 'react';
-import { Link } from 'react-router-dom';
 import { ArenaCard } from './ArenaCard';
 import { ArenaEmptyState } from './ArenaEmptyState';
 
@@ -95,9 +94,6 @@ export function ArenasListPage({ arenas, carregando, erro, filtros, onFiltrosCha
         </label>
 
         <div className="arena-page__acoes-filtros">
-          <Link to="/minhas-arenas" className="botao-secundario">
-            Gerenciar arenas
-          </Link>
           <button type="button" className="botao-secundario" onClick={onLimparFiltros}>
             Limpar filtros
           </button>

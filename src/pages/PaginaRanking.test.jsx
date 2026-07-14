@@ -284,7 +284,7 @@ describe('PaginaRanking redesenhada', () => {
     renderizarPagina();
 
     expect(await screen.findByRole('heading', { name: 'Rankings' })).toBeInTheDocument();
-    expect(screen.getByText('Veja sua evolução e a da comunidade.')).toBeInTheDocument();
+    expect(screen.getByText('Veja sua evolução.')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Compartilhar' })).toBeInTheDocument();
     expect(screen.queryByText('Sua referência de performance no QuebraNunca.')).not.toBeInTheDocument();
 

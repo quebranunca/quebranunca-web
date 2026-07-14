@@ -911,14 +911,17 @@ export function PaginaGrupos() {
       <AppHero
         title="Grupos"
         subtitle="Organize partidas e acompanhe sua comunidade."
+        actions={
+          <GruposHomeCriarGrupoBotao
+            autenticado={autenticado}
+            podeCriarGrupo={podeCriarGrupo}
+            onCriarGrupo={iniciarCriacaoGrupo}
+          />
+        }
         autenticado={autenticado}
         showAccountActions={autenticado}
+        showBackButton
         variant="page"
-      />
-      <GruposHomeCriarGrupoBotao
-        autenticado={autenticado}
-        podeCriarGrupo={podeCriarGrupo}
-        onCriarGrupo={iniciarCriacaoGrupo}
       />
 
       {podeCriarGrupo && formularioAberto && (

@@ -14,22 +14,26 @@ function obterTextoLimpo(...valores) {
 }
 
 export function AppHero({
-  eyebrow = 'QuebraNunca',
+  eyebrow = '',
   title,
   subtitle,
   badge,
   actions,
+  children,
   className = '',
   accountUser,
+  user,
   autenticado: autenticadoProp,
   onSair,
   showAccountActions = true,
   showNotifications,
   showAvatar,
+  showUser,
   showBackButton = false,
   onBack,
   backLabel = 'Voltar',
   resumoNotificacoes,
+  notificationCount,
   testId,
   variant = 'page',
   height
@@ -39,7 +43,7 @@ export function AppHero({
   const tituloId = useId();
   const contaRef = useRef(null);
   const [menuContaAberto, setMenuContaAberto] = useState(false);
-  const usuario = accountUser || contextoAutenticacao?.usuario || {};
+  const usuario = accountUser || user || contextoAutenticacao?.usuario || {};
   const autenticado = autenticadoProp ?? Boolean(contextoAutenticacao?.token);
   const nomeUsuario = obterTextoLimpo(
     usuario?.nomeCompleto,
@@ -54,7 +58,9 @@ export function AppHero({
     obterFotoPerfilAvatar(usuario),
     obterFotoPerfilAvatar(contextoAutenticacao?.usuario)
   );
-  const resumoNotificacoesControlado = resumoNotificacoes !== undefined
+  const resumoNotificacoesControlado = notificationCount !== undefined
+    ? { total: notificationCount }
+    : resumoNotificacoes !== undefined
     ? resumoNotificacoes
     : (!contextoAutenticacao?.token && autenticadoProp !== undefined ? { total: 0 } : undefined);
 
@@ -95,8 +101,9 @@ export function AppHero({
   }
 
   const mostrarNotificacoes = (showNotifications ?? showAccountActions) && autenticado;
-  const mostrarAvatar = (showAvatar ?? showAccountActions) && autenticado;
-  const mostrarAcoesTopo = showBackButton || actions || mostrarNotificacoes || mostrarAvatar;
+  const mostrarAvatar = (showAvatar ?? showUser ?? showAccountActions) && autenticado;
+  const mostrarAcoesDireita = actions || mostrarNotificacoes || mostrarAvatar;
+  const mostrarTopo = showBackButton || eyebrow || mostrarAcoesDireita;
 
   function voltar() {
     if (onBack) {
@@ -104,7 +111,13 @@ export function AppHero({
       return;
     }
 
-    navegar(-1);
+    const indiceHistorico = window.history.state?.idx;
+    if (typeof indiceHistorico === 'number' && indiceHistorico > 0) {
+      navegar(-1);
+      return;
+    }
+
+    navegar('/app');
   }
 
   const classeVariante = `app-hero--${variant || height || 'page'}`;
@@ -116,11 +129,9 @@ export function AppHero({
       data-testid={testId}
       style={{ '--app-hero-image': `url(${homeHeroFutevolei})` }}
     >
-      <div className="app-hero__topbar">
-        {eyebrow && <span className="app-hero__eyebrow">{eyebrow}</span>}
-
-        {mostrarAcoesTopo && (
-          <div className="app-hero__top-actions">
+      {mostrarTopo && (
+        <div className="app-hero__topbar">
+          <div className="app-hero__leading">
             {showBackButton && (
               <button type="button" className="app-hero__back-button" onClick={voltar} aria-label={backLabel}>
                 <FaChevronLeft aria-hidden="true" />
@@ -128,52 +139,58 @@ export function AppHero({
               </button>
             )}
 
-            {actions && <div className="app-hero__custom-actions">{actions}</div>}
-
-            {mostrarNotificacoes && (
-              <NotificacoesBotao autenticado={autenticado} resumo={resumoNotificacoesControlado} />
-            )}
-
-            {mostrarAvatar && (
-              <div className="app-hero__account" ref={contaRef}>
-                <button
-                  type="button"
-                  className="app-hero__avatar-button"
-                  aria-label="Abrir menu da conta"
-                  aria-haspopup="menu"
-                  aria-expanded={menuContaAberto}
-                  onClick={() => setMenuContaAberto((aberto) => !aberto)}
-                >
-                  <AvatarUsuario
-                    nome={nomeUsuario}
-                    fotoPerfilUrl={fotoPerfilUrl}
-                    tamanho="sm"
-                    className="app-hero__avatar"
-                    alt=""
-                  />
-                </button>
-
-                {menuContaAberto && (
-                  <nav className="app-hero__account-menu" aria-label="Menu da conta">
-                    <Link to="/app/perfil" onClick={() => setMenuContaAberto(false)}>
-                      <FaUser aria-hidden="true" />
-                      <span>Meu perfil</span>
-                    </Link>
-                    <Link to="/app/perfil?aba=configuracoes" onClick={() => setMenuContaAberto(false)}>
-                      <FaCog aria-hidden="true" />
-                      <span>Configurações</span>
-                    </Link>
-                    <button type="button" onClick={sairDaConta}>
-                      <FaSignOutAlt aria-hidden="true" />
-                      <span>Sair</span>
-                    </button>
-                  </nav>
-                )}
-              </div>
-            )}
+            {eyebrow && <span className="app-hero__eyebrow">{eyebrow}</span>}
           </div>
-        )}
-      </div>
+
+          {mostrarAcoesDireita && (
+            <div className="app-hero__top-actions">
+              {actions && <div className="app-hero__custom-actions">{actions}</div>}
+
+              {mostrarNotificacoes && (
+                <NotificacoesBotao autenticado={autenticado} resumo={resumoNotificacoesControlado} />
+              )}
+
+              {mostrarAvatar && (
+                <div className="app-hero__account" ref={contaRef}>
+                  <button
+                    type="button"
+                    className="app-hero__avatar-button"
+                    aria-label="Abrir menu da conta"
+                    aria-haspopup="menu"
+                    aria-expanded={menuContaAberto}
+                    onClick={() => setMenuContaAberto((aberto) => !aberto)}
+                  >
+                    <AvatarUsuario
+                      nome={nomeUsuario}
+                      fotoPerfilUrl={fotoPerfilUrl}
+                      tamanho="sm"
+                      className="app-hero__avatar"
+                      alt=""
+                    />
+                  </button>
+
+                  {menuContaAberto && (
+                    <nav className="app-hero__account-menu" aria-label="Menu da conta">
+                      <Link to="/app/perfil" onClick={() => setMenuContaAberto(false)}>
+                        <FaUser aria-hidden="true" />
+                        <span>Meu perfil</span>
+                      </Link>
+                      <Link to="/app/perfil?aba=configuracoes" onClick={() => setMenuContaAberto(false)}>
+                        <FaCog aria-hidden="true" />
+                        <span>Configurações</span>
+                      </Link>
+                      <button type="button" onClick={sairDaConta}>
+                        <FaSignOutAlt aria-hidden="true" />
+                        <span>Sair</span>
+                      </button>
+                    </nav>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="app-hero__copy">
         {subtitle ? <span className="app-hero__subtitle">{subtitle}</span> : null}
@@ -183,6 +200,7 @@ export function AppHero({
             <span>{badge}</span>
           </div>
         )}
+        {children}
       </div>
     </section>
   );

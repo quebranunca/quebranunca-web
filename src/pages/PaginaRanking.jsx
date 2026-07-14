@@ -648,7 +648,7 @@ export function PaginaRanking() {
     <section className="pagina pagina-ranking ranking-app">
       <AppHero
         title="Rankings"
-        subtitle="Veja sua evolução e a da comunidade."
+        subtitle="Veja sua evolução."
         actions={
           <CompartilharRankingBotao
             contexto={resumoFiltro}
@@ -658,6 +658,7 @@ export function PaginaRanking() {
         }
         autenticado={autenticado}
         showAccountActions={autenticado}
+        showBackButton
         variant="page"
       />
 
