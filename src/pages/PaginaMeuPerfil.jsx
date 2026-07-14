@@ -25,6 +25,7 @@ import {
 } from 'react-icons/fa';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAutenticacao } from '../hooks/useAutenticacao';
+import { AppHero } from '../components/AppHero';
 import { AvatarUsuario, obterFotoPerfilAvatar } from '../components/AvatarUsuario';
 import { FotoPerfilUpload } from '../components/FotoPerfilUpload';
 import { arenaService } from '../services/arenaService';
@@ -1459,6 +1460,13 @@ export function PaginaMeuPerfil() {
 
   return (
     <section className="pagina perfil-premium">
+      <AppHero
+        title="Perfil"
+        subtitle="Sua identidade na comunidade."
+        badge={[nomePerfil, obterRotuloNivel(formularioAtleta.nivel)].filter(Boolean).join(' • ')}
+        autenticado={Boolean(usuarioDetalhe || usuario)}
+      />
+
       {primeiroAcessoPendente && !usuarioEhAtleta && (
         <article className="perfil-alerta">
           <div>

@@ -2934,6 +2934,15 @@ code {
   box-shadow: var(--sombra-suave);
 }
 
+.pontosqn-hero-resumo {
+  grid-template-columns: minmax(0, 1fr);
+  padding: 0.85rem;
+}
+
+.pontosqn-hero-resumo .pontosqn-saldo-card {
+  min-height: auto;
+}
+
 .pontosqn-hero h1 {
   margin-top: 0.45rem;
   max-width: 620px;
@@ -15892,7 +15901,20 @@ a.botao-terciario:active {
   gap: 0.72rem;
   width: min(100%, 920px);
   margin: 0 auto;
-  padding-top: max(0.2rem, env(safe-area-inset-top));
+  padding-top: 0;
+}
+
+.ranking-app .app-hero .botao-compartilhar-ranking {
+  min-height: 2.35rem;
+  padding-inline: 0.74rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.ranking-app .app-hero .botao-compartilhar-ranking svg {
+  width: 0.9rem;
+  height: 0.9rem;
+  color: currentColor;
 }
 
 .ranking-app .ranking-app-header {
@@ -17169,7 +17191,23 @@ a.botao-terciario:active {
   width: min(100%, 720px);
   margin: 0 auto;
   padding: 18px 14px calc(104px + env(safe-area-inset-bottom, 0px));
+  display: grid;
+  gap: 12px;
   color: var(--cor-texto, #f8fafc);
+}
+
+.pagina-partida-detalhe .app-hero {
+  margin-top: -18px;
+}
+
+.partida-detalhe-voltar-hero {
+  min-width: 2.35rem;
+  min-height: 2.35rem;
+  padding-inline: 0.62rem;
+  border-radius: 999px;
+  background: rgba(5, 6, 8, 0.56);
+  color: var(--cor-texto, #f8fafc);
+  backdrop-filter: blur(12px);
 }
 
 .partida-detalhe-topo {

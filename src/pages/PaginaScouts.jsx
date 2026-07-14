@@ -12,6 +12,7 @@ import {
   FaTrophy,
   FaUsers
 } from 'react-icons/fa';
+import { AppHero } from '../components/AppHero';
 import { AvatarUsuario, obterFotoPerfilAvatar } from '../components/AvatarUsuario';
 import { Avatar } from '../components/ui/Avatar';
 import { dashboardServico } from '../services/dashboardServico';
@@ -316,6 +317,13 @@ export function PaginaScouts() {
 
   return (
     <section className="pagina home-dashboard scouts-page">
+      <AppHero
+        title={tipoAtivo === TIPO_DUPLAS ? 'Scout de duplas' : 'Scout'}
+        subtitle={tipoAtivo === TIPO_DUPLAS ? 'Desempenho completo das suas parcerias.' : 'Seu desempenho completo.'}
+        badge={subtitulo || nomeCompleto}
+        autenticado={Boolean(usuario)}
+      />
+
       <header className="scouts-athlete-card">
         <AvatarUsuario
           nome={nomeCompleto}

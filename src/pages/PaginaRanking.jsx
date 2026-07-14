@@ -6,7 +6,6 @@ import {
   FaFilter,
   FaFutbol,
   FaTimes,
-  FaTrophy,
   FaUser,
   FaUserFriends,
   FaUsers
@@ -14,9 +13,9 @@ import {
 import { competicoesServico } from '../services/competicoesServico';
 import { gruposServico } from '../services/gruposServico';
 import { rankingServico } from '../services/rankingServico';
+import { AppHero } from '../components/AppHero';
 import { CompartilharRankingBotao } from '../components/ranking/CompartilharRankingBotao';
 import { AvatarUsuario, obterFotoPerfilAvatar } from '../components/AvatarUsuario';
-import { NotificacoesBotao } from '../components/NotificacoesBotao';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { useNavegacaoPerfilAtleta } from '../hooks/useNavegacaoPerfilAtleta';
 import { extrairMensagemErro } from '../utils/erros';
@@ -647,28 +646,19 @@ export function PaginaRanking() {
 
   return (
     <section className="pagina pagina-ranking ranking-app">
-      <header className="ranking-app-header">
-        <div className="ranking-hero-conteudo">
-          <span>QNF RANKING</span>
-          <h1>Ranking</h1>
-          <p>Acompanhe os atletas, duplas e grupos.</p>
-        </div>
-        <div className="ranking-app-header-acoes">
+      <AppHero
+        title="Rankings"
+        subtitle="Veja sua evolução e a da comunidade."
+        actions={
           <CompartilharRankingBotao
             contexto={resumoFiltro}
             titulo="Ranking QuebraNunca"
             ranking={rankingCompartilhavel}
           />
-        </div>
-        <div className="ranking-hero-arte" aria-hidden="true">
-          <FaTrophy />
-        </div>
-        {autenticado && (
-          <div className="ranking-hero-notificacoes">
-            <NotificacoesBotao autenticado={autenticado} />
-          </div>
-        )}
-      </header>
+        }
+        autenticado={autenticado}
+        showAccountActions={autenticado}
+      />
 
       <nav className="ranking-visao-tabs" aria-label="Visões do ranking">
         {VISOES_RANKING.map(({ valor, rotulo, descricao, Icone, disponivel }) => (

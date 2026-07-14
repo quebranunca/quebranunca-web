@@ -120,7 +120,7 @@ describe('PaginaGrupos - home de grupos', () => {
     renderizarPagina();
 
     expect(await screen.findByRole('heading', { name: 'Grupos' })).toBeInTheDocument();
-    expect(screen.getByText('Sua comunidade de partidas')).toBeInTheDocument();
+    expect(screen.getByText('Organize partidas e acompanhe sua comunidade.')).toBeInTheDocument();
     expect(screen.getAllByRole('button', { name: 'Criar grupo' })).toHaveLength(1);
 
     const principal = await screen.findByRole('button', { name: /Abrir grupo Fechadinho De Quinta/i });

@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   FaBan,
   FaCheckCircle,
-  FaCrown,
   FaEdit,
   FaExclamationTriangle,
   FaGamepad,
@@ -13,6 +12,7 @@ import {
   FaTrophy
 } from 'react-icons/fa';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { AppHero } from '../components/AppHero';
 import { CompartilharPartidaBotao } from '../components/partidas/CompartilharPartidaBotao';
 import { EditarPartidaRegistradaModal } from '../components/partidas/EditarPartidaRegistradaModal';
 import { PartidaCardPremium } from '../components/partidas/PartidaCardPremium';
@@ -976,14 +976,12 @@ export function PaginaMinhasPartidas() {
 
   return (
     <section className="pagina minhas-partidas-pagina">
-      <header className="minhas-partidas-hero">
-        <div>
-          <span>Histórico esportivo</span>
-          <h1>Minhas Partidas</h1>
-          <p>Veja seus jogos, partidas registradas, resultados e pendências.</p>
-        </div>
-        <FaCrown className="minhas-partidas-hero-icone" aria-hidden="true" />
-      </header>
+      <AppHero
+        title="Histórico"
+        subtitle="Todas as suas partidas em um só lugar."
+        badge="Partidas, resultados e pendências"
+        autenticado={Boolean(usuario)}
+      />
 
       {atletaLogadoId && (
         <article className="minhas-partidas-resumo-premium">

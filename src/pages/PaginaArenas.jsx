@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { AppHero } from '../components/AppHero';
 import { ArenasListPage } from '../components/arenas/ArenasListPage';
 import '../components/arenas/arena-publico.css';
 import { arenaService } from '../services/arenaService';
@@ -57,11 +58,11 @@ export function PaginaArenas() {
   }
 
   return (
-    <section className="pagina">
-      <div className="cabecalho-pagina">
-        <h2>Arenas</h2>
-        <p>Encontre locais para jogar, treinar e participar da comunidade do futevôlei.</p>
-      </div>
+    <section className="pagina arenas-pagina">
+      <AppHero
+        title="Arenas"
+        subtitle="Locais onde a comunidade joga."
+      />
 
       <ArenasListPage
         arenas={arenas}

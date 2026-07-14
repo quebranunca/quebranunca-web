@@ -8,13 +8,13 @@ import {
   FaShareAlt,
   FaShoppingBag,
   FaStar,
-  FaTrophy,
   FaUserFriends
 } from 'react-icons/fa';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { useNotification } from '../contexts/NotificationContext';
 import { gamificacaoServico } from '../services/gamificacaoServico';
 import { extrairMensagemErro } from '../utils/erros';
+import { AppHero } from '../components/AppHero';
 import { MedalhaNivel } from '../components/gamificacao/MedalhaNivel';
 import beneficioBoneQN from '../assets/pontos-qn/beneficio-bone-qn.png';
 import beneficioChaveiroQN from '../assets/pontos-qn/beneficio-chaveiro-qn.png';
@@ -745,12 +745,14 @@ export function PaginaPontosQN() {
 
   return (
     <main className="pagina pontosqn-pagina">
-      <section className="pontosqn-hero">
-        <div className="pontosqn-hero-texto">
-          <span className="pontosqn-selo"><FaTrophy aria-hidden="true" /> Pontos QN</span>
-          <h1>Bora jogar e somar pontos!</h1>
-          <p>Oi, {obterPrimeiroNome(usuario)}. Pontos QN medem participação, qualidade dos dados e ações úteis para a comunidade.</p>
-        </div>
+      <AppHero
+        title="Pontos QN"
+        subtitle="Evolua, conquiste benefícios e acompanhe seu progresso."
+        badge={`Oi, ${obterPrimeiroNome(usuario)}.`}
+        autenticado={Boolean(usuario)}
+      />
+
+      <section className="pontosqn-hero pontosqn-hero-resumo" aria-label="Resumo de Pontos QN">
         <div className="pontosqn-saldo-card">
           <div className="pontosqn-saldo-topo">
             <span>Pontos disponíveis</span>

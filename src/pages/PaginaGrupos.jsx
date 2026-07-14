@@ -15,6 +15,7 @@ import {
   FaUsers
 } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
+import { AppHero } from '../components/AppHero';
 import { AvatarGrupo } from '../components/grupos/AvatarGrupo';
 import { CriarGrupoFluxoModal } from '../components/grupos/CriarGrupoFluxoModal';
 import { useNotification } from '../contexts/NotificationContext';
@@ -246,22 +247,6 @@ function aguardarRecalculoViewport() {
       window.setTimeout(resolve, 90);
     });
   });
-}
-
-function GruposHomeHeader() {
-  return (
-    <header className="grupos-home-header">
-      <div className="grupos-home-header-titulo">
-        <span className="grupos-home-header-icone" aria-hidden="true">
-          <FaUsers />
-        </span>
-        <div>
-          <h1>Grupos</h1>
-          <p>Sua comunidade de partidas</p>
-        </div>
-      </div>
-    </header>
-  );
 }
 
 function GruposHomeCriarGrupoBotao({ autenticado, podeCriarGrupo, onCriarGrupo }) {
@@ -923,7 +908,12 @@ export function PaginaGrupos() {
 
   return (
     <section className="pagina grupos-dashboard-pagina">
-      <GruposHomeHeader />
+      <AppHero
+        title="Grupos"
+        subtitle="Organize partidas e acompanhe sua comunidade."
+        autenticado={autenticado}
+        showAccountActions={autenticado}
+      />
       <GruposHomeCriarGrupoBotao
         autenticado={autenticado}
         podeCriarGrupo={podeCriarGrupo}

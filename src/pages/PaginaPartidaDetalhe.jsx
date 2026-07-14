@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { FaBan, FaChevronLeft, FaEdit, FaRegTrashAlt, FaTimes, FaTrophy } from 'react-icons/fa';
+import { AppHero } from '../components/AppHero';
 import { CompartilharPartidaBotao } from '../components/partidas/CompartilharPartidaBotao';
 import { partidasServico } from '../services/partidasServico';
 import { formatarDataHoraCurta } from '../utils/formatacao';
@@ -186,16 +187,18 @@ export function PaginaPartidaDetalhe() {
 
   return (
     <main className="pagina-partida-detalhe">
-      <header className="partida-detalhe-topo">
-        <button type="button" className="botao-secundario botao-compacto" onClick={() => navigate(-1)} aria-label="Voltar">
-          <FaChevronLeft aria-hidden="true" />
-          Voltar
-        </button>
-        <div>
-          <span>{partida?.cancelada ? 'Partida cancelada' : 'Detalhe da partida'}</span>
-          <strong>{obterNomeGrupoPartidaExibicao(partida?.nomeGrupo)}</strong>
-        </div>
-      </header>
+      <AppHero
+        eyebrow={partida?.cancelada ? 'Partida cancelada' : 'Partida'}
+        title="Detalhes da partida"
+        subtitle="Resultado, atletas e estatísticas."
+        badge={obterNomeGrupoPartidaExibicao(partida?.nomeGrupo)}
+        actions={
+          <button type="button" className="botao-secundario botao-compacto partida-detalhe-voltar-hero" onClick={() => navigate(-1)} aria-label="Voltar">
+            <FaChevronLeft aria-hidden="true" />
+            <span>Voltar</span>
+          </button>
+        }
+      />
 
       {mensagem && <p className="partida-detalhe-feedback sucesso">{mensagem}</p>}
       {erro && <p className="partida-detalhe-feedback erro">{erro}</p>}

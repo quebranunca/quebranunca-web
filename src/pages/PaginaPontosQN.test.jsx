@@ -209,7 +209,8 @@ describe('PaginaPontosQN simplificada', () => {
     configurarApisComSucesso({ saldoAtual: 55, totalAcumulado: 120 });
     renderizarPagina();
 
-    await screen.findByText(/Bora jogar e somar pontos/i);
+    await screen.findByRole('heading', { name: 'Pontos QN' });
+    expect(screen.getByText('Evolua, conquiste benefícios e acompanhe seu progresso.')).toBeInTheDocument();
 
     expect(screen.getByText('Pontos disponíveis')).toBeInTheDocument();
     expect(screen.getByText('Bronze · 120 Pontos QN acumulados')).toBeInTheDocument();

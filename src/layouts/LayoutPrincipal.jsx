@@ -14,6 +14,23 @@ const ROTAS_SEM_BOTTOM_NAV = [
   /^\/grupos\/[^/]+\/atletas$/,
   /^\/grupos\/[^/]+\/configuracoes$/
 ];
+
+const ROTAS_COM_HERO_PROPRIO_APP = [
+  '/app',
+  '/app/pendencias',
+  '/app/perfil',
+  '/app/pontos-qn',
+  '/app/scouts',
+  '/arenas',
+  '/grupos',
+  '/minhas-partidas',
+  '/mais',
+  '/ranking'
+];
+
+const PADROES_COM_HERO_PROPRIO_APP = [
+  /^\/app\/partidas\/[^/]+$/
+];
  
 export function LayoutPrincipal() {
   const { token, usuario, sair } = useAutenticacao();
@@ -24,17 +41,10 @@ export function LayoutPrincipal() {
   const loginPublico = !autenticado && location.pathname === '/login';
   const homeDashboardApp = autenticado && location.pathname === '/app';
   const gruposDashboardApp = autenticado && location.pathname === '/grupos';
-  const paginaComHeroProprioApp = autenticado && [
-    '/app',
-    '/app/pendencias',
-    '/app/perfil',
-    '/app/pontos-qn',
-    '/app/scouts',
-    '/grupos',
-    '/minhas-partidas',
-    '/mais',
-    '/ranking'
-  ].includes(location.pathname);
+  const paginaComHeroProprioApp = autenticado && (
+    ROTAS_COM_HERO_PROPRIO_APP.includes(location.pathname) ||
+    PADROES_COM_HERO_PROPRIO_APP.some((rota) => rota.test(location.pathname))
+  );
   const mostrarBottomNavMobile = autenticado &&
     !ROTAS_SEM_BOTTOM_NAV.some((rota) => rota.test(location.pathname));
 

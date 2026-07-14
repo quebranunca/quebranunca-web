@@ -1,33 +1,29 @@
-import { Fragment, useEffect, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Fragment } from 'react';
+import { Link } from 'react-router-dom';
 import {
   FaCalendarAlt,
   FaChartLine,
   FaCheckCircle,
   FaChevronRight,
   FaClipboardCheck,
-  FaCog,
   FaEdit,
   FaFire,
   FaFutbol,
   FaGift,
   FaPlus,
-  FaSignOutAlt,
   FaTimes,
   FaTrophy,
-  FaUser,
   FaUsers
 } from 'react-icons/fa';
 import { useAutenticacao } from '../../hooks/useAutenticacao';
 import { obterNomeGrupoPartidaExibicao } from '../../utils/partidas';
 import { obterRotaDetalhePartida } from '../../utils/partidaRotas';
 import { formatarData } from '../../utils/formatacao';
-import { AvatarUsuario, obterFotoPerfilAvatar } from '../AvatarUsuario';
+import { obterFotoPerfilAvatar } from '../AvatarUsuario';
+import { AppHero } from '../AppHero';
 import { MedalhaNivel } from '../gamificacao/MedalhaNivel';
-import { NotificacoesBotao } from '../NotificacoesBotao';
 import { Avatar } from '../ui/Avatar';
 import { HomeSectionType, homeSectionsConfig } from './homeSectionsConfig';
-import homeHeroFutevolei from '../../assets/images/home/home-hero-futevolei.jpg';
 
 const HOME_NAVIGATION = Object.freeze({
   meusJogos: '/minhas-partidas',
@@ -448,8 +444,7 @@ export function HomeDashboard({
   carregando,
   erro
 }) {
-  const { usuario, sair } = useAutenticacao();
-  const navegar = useNavigate();
+  const { usuario } = useAutenticacao();
 
   if (carregando) {
     return <HomeDashboardSkeleton />;
@@ -555,11 +550,6 @@ export function HomeDashboard({
     )
   };
 
-  function sairDaConta() {
-    sair?.();
-    navegar('/', { replace: true });
-  }
-
   return (
     <section className="pagina home-dashboard">
       <HomeDashboardHero
@@ -568,7 +558,6 @@ export function HomeDashboard({
         gamificacao={gamificacaoModulo.dados}
         resumoPendencias={resumoPendencias}
         totalPendencias={totalPendencias}
-        onSair={sairDaConta}
       />
 
       {homeSectionsConfig
@@ -586,11 +575,8 @@ function HomeDashboardHero({
   perfil,
   gamificacao,
   resumoPendencias,
-  totalPendencias,
-  onSair
+  totalPendencias
 }) {
-  const [menuContaAberto, setMenuContaAberto] = useState(false);
-  const contaRef = useRef(null);
   const nomeCompleto = obterTextoLimpo(
     perfil?.nomeCompleto,
     perfil?.nome,
@@ -612,99 +598,18 @@ function HomeDashboardHero({
   const fotoPerfilUrl = obterFotoPerfilAvatar(usuario) || obterFotoPerfilAvatar(perfil);
   const resumoNotificacoes = resumoPendencias || { total: totalPendencias || 0 };
 
-  useEffect(() => {
-    if (!menuContaAberto) {
-      return undefined;
-    }
-
-    function aoClicarFora(evento) {
-      if (!contaRef.current?.contains(evento.target)) {
-        setMenuContaAberto(false);
-      }
-    }
-
-    function aoPressionarTecla(evento) {
-      if (evento.key === 'Escape') {
-        setMenuContaAberto(false);
-      }
-    }
-
-    document.addEventListener('mousedown', aoClicarFora);
-    window.addEventListener('keydown', aoPressionarTecla);
-
-    return () => {
-      document.removeEventListener('mousedown', aoClicarFora);
-      window.removeEventListener('keydown', aoPressionarTecla);
-    };
-  }, [menuContaAberto]);
-
-  function sairDaConta() {
-    setMenuContaAberto(false);
-    onSair?.();
-  }
-
   return (
-    <section
-      className="home-dashboard-hero"
-      aria-labelledby="home-hero-titulo"
-      data-testid="home-dashboard-hero"
-      style={{ '--home-hero-image': `url(${homeHeroFutevolei})` }}
-    >
-      <div className="home-dashboard-hero-topbar">
-        <span className="home-dashboard-hero-kicker">QuebraNunca</span>
-        <div className="home-dashboard-hero-acoes">
-          <NotificacoesBotao autenticado resumo={resumoNotificacoes} />
-
-          <div className="home-dashboard-avatar-menu" ref={contaRef}>
-            <button
-              type="button"
-              className="home-dashboard-avatar-botao"
-              aria-label="Abrir menu da conta"
-              aria-haspopup="menu"
-              aria-expanded={menuContaAberto}
-              onClick={() => setMenuContaAberto((aberto) => !aberto)}
-            >
-              <AvatarUsuario
-                nome={nomeCompleto}
-                fotoPerfilUrl={fotoPerfilUrl}
-                tamanho="sm"
-                className="home-dashboard-avatar"
-                alt=""
-              />
-            </button>
-
-            {menuContaAberto && (
-              <nav className="home-dashboard-menu-perfil" aria-label="Menu da conta">
-                <Link to={HOME_NAVIGATION.perfil} onClick={() => setMenuContaAberto(false)}>
-                  <FaUser aria-hidden="true" />
-                  <span>Meu perfil</span>
-                </Link>
-                <Link to={HOME_NAVIGATION.configuracoes} onClick={() => setMenuContaAberto(false)}>
-                  <FaCog aria-hidden="true" />
-                  <span>Configurações</span>
-                </Link>
-                <button type="button" onClick={sairDaConta}>
-                  <FaSignOutAlt aria-hidden="true" />
-                  <span>Sair</span>
-                </button>
-              </nav>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div className="home-dashboard-hero-identidade">
-        <div className="home-dashboard-hero-texto">
-          <span className="home-dashboard-hero-saudacao">{obterSaudacaoAtual()},</span>
-          <h1 id="home-hero-titulo" title={primeiroNome}>{primeiroNome}</h1>
-          {subtitulo && (
-            <div className="home-dashboard-hero-meta" aria-label="Resumo do atleta">
-              <span>{subtitulo}</span>
-            </div>
-          )}
-        </div>
-      </div>
-    </section>
+    <AppHero
+      eyebrow="QuebraNunca"
+      subtitle={`${obterSaudacaoAtual()},`}
+      title={primeiroNome}
+      badge={subtitulo}
+      accountUser={{ nome: nomeCompleto, fotoPerfilUrl }}
+      autenticado={Boolean(usuario)}
+      resumoNotificacoes={resumoNotificacoes}
+      testId="home-dashboard-hero"
+      height="default"
+    />
   );
 }
 
