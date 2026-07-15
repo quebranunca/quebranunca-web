@@ -979,7 +979,6 @@ export function PaginaMinhasPartidas() {
       <AppHero
         title="Histórico"
         subtitle="Todas as suas partidas em um só lugar."
-        badge="Partidas, resultados e pendências"
         actions={
           <button
             type="button"

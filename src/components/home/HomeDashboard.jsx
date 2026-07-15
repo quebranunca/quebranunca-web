@@ -82,19 +82,6 @@ function obterSaudacaoAtual() {
   return 'Boa noite';
 }
 
-function obterApelidoHero(usuario, perfil) {
-  const nome = obterTextoLimpo(perfil?.nome, perfil?.nomeCompleto, usuario?.nome, usuario?.nomeCompleto);
-  const apelido = obterTextoLimpo(
-    perfil?.apelido,
-    usuario?.apelido,
-    usuario?.apelidoAtleta,
-    usuario?.atleta?.apelido,
-    usuario?.atleta?.nomeExibicao
-  );
-
-  return apelido && apelido !== nome ? apelido : '';
-}
-
 function normalizarTextoComparacao(valor) {
   return obterTextoLimpo(valor)
     .toLowerCase()
@@ -586,15 +573,6 @@ function HomeDashboardHero({
     'Atleta'
   );
   const primeiroNome = obterPrimeiroNome(nomeCompleto);
-  const apelido = obterApelidoHero(usuario, perfil);
-  const nivel = obterTextoLimpo(
-    gamificacao?.nivel?.nome,
-    usuario?.nivelNome,
-    usuario?.nivel,
-    perfil?.nivelNome,
-    perfil?.nivel
-  );
-  const subtitulo = [apelido, nivel].filter(Boolean).join(' • ');
   const fotoPerfilUrl = obterFotoPerfilAvatar(usuario) || obterFotoPerfilAvatar(perfil);
   const resumoNotificacoes = resumoPendencias || { total: totalPendencias || 0 };
 
@@ -602,7 +580,6 @@ function HomeDashboardHero({
     <AppHero
       subtitle={`${obterSaudacaoAtual()},`}
       title={primeiroNome}
-      badge={subtitulo}
       accountUser={{ nome: nomeCompleto, fotoPerfilUrl }}
       autenticado={Boolean(usuario)}
       resumoNotificacoes={resumoNotificacoes}

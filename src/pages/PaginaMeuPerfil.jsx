@@ -1449,7 +1449,6 @@ export function PaginaMeuPerfil() {
         <AppHero
           title="Perfil"
           subtitle="Sua identidade na comunidade."
-          badge={`Oi, ${(usuario?.nome || usuario?.nomeCompleto || 'Atleta').split(/\s+/)[0]}.`}
           autenticado={Boolean(usuario)}
           showBackButton
           variant="page"
@@ -1471,7 +1470,6 @@ export function PaginaMeuPerfil() {
       <AppHero
         title="Perfil"
         subtitle="Sua identidade na comunidade."
-        badge={[nomePerfil, obterRotuloNivel(formularioAtleta.nivel)].filter(Boolean).join(' • ')}
         autenticado={Boolean(usuarioDetalhe || usuario)}
         showBackButton
         actions={

@@ -57,7 +57,6 @@ export function PaginaMais() {
       <AppHero
         title="Mais"
         subtitle="Perfil, histórico, benefícios e suporte."
-        badge="Hub do atleta"
         accountUser={usuario}
         autenticado={Boolean(usuario)}
         showBackButton

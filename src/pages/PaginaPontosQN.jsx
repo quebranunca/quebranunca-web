@@ -109,10 +109,6 @@ function normalizarNomeFaixa(nome) {
   return normalizarTextoBusca(nome).replace(/\s+/g, '-');
 }
 
-function obterPrimeiroNome(usuario) {
-  return (usuario?.nome || 'Atleta').split(' ')[0];
-}
-
 function filtrarHistorico(extrato, filtro) {
   if (filtro === 'ganhos') {
     return extrato.filter((item) => item.pontos > 0);
@@ -732,7 +728,6 @@ export function PaginaPontosQN() {
         <AppHero
           title="Pontos QN"
           subtitle="Evolua, conquiste benefícios e acompanhe seu progresso."
-          badge={`Oi, ${obterPrimeiroNome(usuario)}.`}
           autenticado={Boolean(usuario)}
           showBackButton
           variant="page"
@@ -748,7 +743,6 @@ export function PaginaPontosQN() {
         <AppHero
           title="Pontos QN"
           subtitle="Evolua, conquiste benefícios e acompanhe seu progresso."
-          badge={`Oi, ${obterPrimeiroNome(usuario)}.`}
           autenticado={Boolean(usuario)}
           showBackButton
           variant="page"
@@ -764,7 +758,6 @@ export function PaginaPontosQN() {
       <AppHero
         title="Pontos QN"
         subtitle="Evolua, conquiste benefícios e acompanhe seu progresso."
-        badge={`Oi, ${obterPrimeiroNome(usuario)}.`}
         autenticado={Boolean(usuario)}
         showBackButton
         variant="page"

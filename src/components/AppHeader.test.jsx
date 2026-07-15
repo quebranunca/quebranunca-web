@@ -52,7 +52,7 @@ describe('AppHeader', () => {
 
     expect(screen.getByText(/Bom dia|Boa tarde|Boa noite/i)).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /Primo/i })).toBeInTheDocument();
-    expect(screen.getByText('Primo • Bronze')).toBeInTheDocument();
+    expect(screen.queryByText(/Bronze/i)).not.toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Home' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Abrir pendências/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Abrir menu da conta/i })).toBeInTheDocument();

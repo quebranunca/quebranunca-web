@@ -286,7 +286,6 @@ export function PaginaScouts() {
         <AppHero
           title={tipoAtivo === TIPO_DUPLAS ? 'Scout da dupla' : 'Scout do atleta'}
           subtitle={tipoAtivo === TIPO_DUPLAS ? 'Desempenho completo das suas parcerias.' : 'Seu desempenho completo.'}
-          badge={subtitulo || nomeCompleto}
           autenticado={Boolean(usuario)}
           showBackButton
           variant="page"
@@ -304,7 +303,6 @@ export function PaginaScouts() {
         <AppHero
           title={tipoAtivo === TIPO_DUPLAS ? 'Scout da dupla' : 'Scout do atleta'}
           subtitle={tipoAtivo === TIPO_DUPLAS ? 'Desempenho completo das suas parcerias.' : 'Seu desempenho completo.'}
-          badge={subtitulo || nomeCompleto}
           autenticado={Boolean(usuario)}
           showBackButton
           variant="page"
@@ -324,7 +322,6 @@ export function PaginaScouts() {
         <AppHero
           title={tipoAtivo === TIPO_DUPLAS ? 'Scout da dupla' : 'Scout do atleta'}
           subtitle={tipoAtivo === TIPO_DUPLAS ? 'Desempenho completo das suas parcerias.' : 'Seu desempenho completo.'}
-          badge={subtitulo || nomeCompleto}
           autenticado={Boolean(usuario)}
           showBackButton
           variant="page"
@@ -344,7 +341,6 @@ export function PaginaScouts() {
       <AppHero
         title={tipoAtivo === TIPO_DUPLAS ? 'Scout da dupla' : 'Scout do atleta'}
         subtitle={tipoAtivo === TIPO_DUPLAS ? 'Desempenho completo das suas parcerias.' : 'Seu desempenho completo.'}
-        badge={subtitulo || nomeCompleto}
         autenticado={Boolean(usuario)}
         showBackButton
         variant="page"

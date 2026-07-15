@@ -39,27 +39,6 @@ function obterSaudacaoAtual() {
   return 'Boa noite';
 }
 
-function obterApelidoUsuario(usuario) {
-  const nome = obterTextoLimpo(usuario?.nome, usuario?.nomeCompleto);
-  const apelido = obterTextoLimpo(
-    usuario?.apelido,
-    usuario?.apelidoAtleta,
-    usuario?.atleta?.apelido,
-    usuario?.atleta?.nomeExibicao
-  );
-
-  return apelido && apelido !== nome ? apelido : '';
-}
-
-function obterNivelUsuario(usuario) {
-  return obterTextoLimpo(
-    usuario?.nivelNome,
-    usuario?.nivel,
-    usuario?.atleta?.nivelNome,
-    usuario?.atleta?.nivel?.nome
-  );
-}
-
 function obterConfiguracaoHeader(pathname) {
   return (
     ROTAS_APP_HEADER.find((rota) => (
@@ -114,15 +93,12 @@ export function AppHeader({
   const configuracao = obterConfiguracaoHeader(location.pathname);
   const telaHomeApp = autenticado && location.pathname === ROTA_HOME_APP;
   const telaInterna = autenticado && !ROTAS_PRINCIPAIS_SEM_VOLTAR.has(location.pathname);
-  const apelidoTopo = telaHomeApp ? obterApelidoUsuario(usuario) : '';
-  const nivelTopo = telaHomeApp ? obterNivelUsuario(usuario) : '';
 
   if (telaHomeApp) {
     return (
       <AppHero
         subtitle={`${obterSaudacaoAtual()},`}
         title={obterPrimeiroNomeUsuario(usuario)}
-        badge={[apelidoTopo, nivelTopo].filter(Boolean).join(' • ')}
         accountUser={usuario}
         autenticado={autenticado}
         showNotifications={mostrarNotificacoes}

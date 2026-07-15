@@ -174,9 +174,11 @@ describe('HomeDashboard nova experiencia', () => {
     const hero = screen.getByTestId('home-dashboard-hero');
 
     expect(hero.getAttribute('style')).toContain('home-hero-futevolei');
+    expect(hero).toHaveClass('app-hero--home');
     expect(within(hero).getByText(/Bo(m|a) (dia|tarde|noite)/i)).toBeInTheDocument();
     expect(within(hero).getByRole('heading', { name: 'Gustavo' })).toBeInTheDocument();
-    expect(within(hero).getByText('Primo • Bronze')).toBeInTheDocument();
+    expect(within(hero).queryByText(/Bronze/i)).not.toBeInTheDocument();
+    expect(within(hero).queryByText(/Primo/i)).not.toBeInTheDocument();
     expect(within(hero).getByRole('button', { name: /Abrir pendências/i })).toBeInTheDocument();
     expect(within(hero).getByRole('button', { name: /Abrir menu da conta/i })).toBeInTheDocument();
   });

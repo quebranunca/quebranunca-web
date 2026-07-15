@@ -1002,7 +1002,6 @@ export function PaginaPendenciasAtletas() {
       <AppHero
         title="Pendências"
         subtitle={metricas.abertas === 0 ? 'Tudo resolvido.' : 'Aprove partidas e resolva vínculos.'}
-        badge={metricas.abertas === 1 ? '1 ação aberta' : `${metricas.abertas} ações abertas`}
         autenticado={Boolean(usuario)}
         showBackButton
         variant="page"

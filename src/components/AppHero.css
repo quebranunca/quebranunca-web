@@ -2,40 +2,40 @@
   position: sticky;
   top: 0;
   z-index: 920;
-  min-height: clamp(9.5rem, 19dvh, 10.5rem);
+  min-height: clamp(6rem, 14dvh, 8rem);
   margin: 0 calc(-1 * clamp(0.85rem, 1.2vw, 1.3rem));
-  padding: calc(0.78rem + env(safe-area-inset-top, 0px)) clamp(0.9rem, 3.8vw, 1.18rem) 1rem;
+  padding: calc(0.5rem + env(safe-area-inset-top, 0px)) clamp(0.82rem, 3.4vw, 1.08rem) 0.62rem;
   display: grid;
   align-content: space-between;
   overflow: visible;
   isolation: isolate;
   background:
-    linear-gradient(90deg, rgba(4, 4, 5, 0.96) 0%, rgba(4, 4, 5, 0.78) 34%, rgba(4, 4, 5, 0.2) 68%, rgba(4, 4, 5, 0.32) 100%),
-    linear-gradient(180deg, rgba(0, 0, 0, 0.52) 0%, rgba(4, 5, 7, 0.16) 46%, rgba(8, 9, 11, 0.98) 100%),
-    var(--app-hero-image) 58% center / cover no-repeat;
-  border-radius: 0 0 28px 28px;
+    linear-gradient(90deg, rgba(4, 4, 5, 0.96) 0%, rgba(4, 4, 5, 0.72) 31%, rgba(4, 4, 5, 0.14) 66%, rgba(4, 4, 5, 0.24) 100%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.42) 0%, rgba(4, 5, 7, 0.1) 42%, rgba(8, 9, 11, 0.94) 100%),
+    var(--app-hero-image) 61% 55% / cover no-repeat;
+  border-radius: 0 0 22px 22px;
   color: var(--cor-texto);
   box-shadow: 0 18px 38px rgba(0, 0, 0, 0.4);
 }
 
 .app-hero--home,
 .app-hero--tall {
-  min-height: clamp(11.9rem, 25dvh, 13.1rem);
+  min-height: clamp(7.5rem, 18dvh, 9.375rem);
 }
 
 .app-hero--detail {
-  min-height: clamp(9.35rem, 18dvh, 10.65rem);
+  min-height: clamp(6rem, 13dvh, 8rem);
 }
 
 .app-hero--compact {
-  min-height: clamp(9.15rem, 18dvh, 10.45rem);
+  min-height: clamp(6rem, 13dvh, 7.5rem);
 }
 
 .app-hero::after {
   content: "";
   position: absolute;
   inset: auto 0 0;
-  height: 3.8rem;
+  height: 2.65rem;
   z-index: -1;
   background: linear-gradient(180deg, rgba(8, 9, 11, 0), var(--cor-fundo));
   pointer-events: none;
@@ -52,7 +52,7 @@
 
 .app-hero__topbar {
   justify-content: space-between;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 
 .app-hero__leading {
@@ -85,19 +85,19 @@
 .app-hero__top-actions {
   flex: 0 0 auto;
   justify-content: flex-end;
-  gap: 0.45rem;
+  gap: 0.38rem;
 }
 
 .app-hero__custom-actions {
-  gap: 0.45rem;
+  gap: 0.38rem;
 }
 
 .app-hero__top-actions .botao-notificacoes-topo,
 .app-hero__avatar-button,
 .app-hero__back-button {
-  width: 2.62rem;
-  min-width: 2.62rem;
-  height: 2.62rem;
+  width: 2.75rem;
+  min-width: 2.75rem;
+  height: 2.75rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -172,7 +172,7 @@
 }
 
 .app-hero__avatar {
-  --avatar-size: 2.5rem;
+  --avatar-size: 2.48rem;
   --qn-avatar-bg: #f4f4f1;
   --qn-avatar-color: #151515;
   border: 2px solid rgba(255, 196, 55, 0.92);
@@ -225,7 +225,7 @@
   min-width: 0;
   width: min(100%, 22rem);
   display: grid;
-  gap: 0.34rem;
+  gap: 0.16rem;
 }
 
 .app-hero__copy > * {
@@ -234,9 +234,9 @@
 
 .app-hero__subtitle {
   color: rgba(255, 255, 255, 0.86);
-  font-size: clamp(0.82rem, 3.2vw, 0.98rem);
+  font-size: clamp(0.76rem, 2.8vw, 0.9rem);
   font-weight: 850;
-  line-height: 1.22;
+  line-height: 1.08;
   text-shadow: 0 8px 22px rgba(0, 0, 0, 0.48);
 }
 
@@ -244,9 +244,9 @@
   margin: 0;
   overflow: hidden;
   color: var(--cor-texto);
-  font-size: clamp(1.65rem, 7vw, 2.35rem);
+  font-size: clamp(1.35rem, 5.8vw, 2.05rem);
   font-weight: 950;
-  line-height: 0.95;
+  line-height: 0.92;
   letter-spacing: 0;
   text-overflow: ellipsis;
   text-shadow: 0 10px 30px rgba(0, 0, 0, 0.58);
@@ -255,7 +255,7 @@
 
 .app-hero__custom-actions > button,
 .app-hero__custom-actions > a {
-  min-height: 2.44rem;
+  min-height: 2.75rem;
   border-color: rgba(255, 179, 0, 0.34);
   background: rgba(5, 6, 8, 0.62);
   color: var(--cor-texto);
@@ -269,7 +269,7 @@
 }
 
 .app-hero__custom-actions .grupos-home-criar-botao {
-  min-height: 2.44rem;
+  min-height: 2.75rem;
   padding: 0 0.72rem;
   border-color: rgba(255, 179, 0, 0.54);
   border-radius: 999px;
@@ -291,7 +291,7 @@
 }
 
 .app-hero--home .app-hero__copy h1 {
-  font-size: clamp(2.12rem, 10vw, 3.15rem);
+  font-size: clamp(1.9rem, 8vw, 2.72rem);
 }
 
 .app-hero__badge {
@@ -323,18 +323,19 @@
 @media (min-width: 768px) {
   .app-hero {
     margin-inline: 0;
-    border-radius: 28px;
+    border-radius: 22px;
   }
 }
 
 @media (max-width: 380px) {
   .app-hero {
-    min-height: 9.5rem;
+    min-height: 6rem;
     padding-inline: 0.82rem;
+    background-position: 64% 55%;
   }
 
   .app-hero--home {
-    min-height: 11.25rem;
+    min-height: 7.5rem;
   }
 
   .app-hero__eyebrow {
@@ -343,23 +344,23 @@
   }
 
   .app-hero__copy h1 {
-    font-size: clamp(1.86rem, 9vw, 2.35rem);
+    font-size: clamp(1.32rem, 6.5vw, 1.92rem);
   }
 
   .app-hero:not(.app-hero--home) .app-hero__copy h1 {
-    font-size: clamp(1.48rem, 7.5vw, 2.05rem);
+    font-size: clamp(1.2rem, 5.8vw, 1.72rem);
   }
 
   .app-hero__top-actions .botao-notificacoes-topo,
   .app-hero__avatar-button,
   .app-hero__back-button {
-    width: 2.42rem;
-    min-width: 2.42rem;
-    height: 2.42rem;
+    width: 2.75rem;
+    min-width: 2.75rem;
+    height: 2.75rem;
   }
 
   .app-hero__avatar {
-    --avatar-size: 2.3rem;
+    --avatar-size: 2.45rem;
   }
 }
 
