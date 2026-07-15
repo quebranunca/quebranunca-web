@@ -3127,6 +3127,12 @@ body.registrar-partida-modal-aberto {
 }
 
 .registrar-partida-pagina {
+  --registrar-partida-page-actions-space: calc(
+    clamp(5.75rem, 18vw, 7.75rem) +
+    var(--bottom-nav-height, 4.9rem) +
+    env(safe-area-inset-bottom, 0px) +
+    1rem
+  );
   display: grid;
   gap: 0;
   padding: 0;
@@ -3135,10 +3141,16 @@ body.registrar-partida-modal-aberto {
 .registrar-partida-pagina__conteudo {
   width: min(100%, 960px);
   margin: 0 auto;
-  padding: 0.75rem 0.75rem calc(6.5rem + env(safe-area-inset-bottom, 0px));
+  padding: 0.75rem 0.75rem var(--registrar-partida-page-actions-space);
 }
 
 .registrar-partida-novo-pagina.registrar-partida-novo-modal {
+  --registrar-partida-page-actions-space: calc(
+    clamp(5.75rem, 18vw, 7.75rem) +
+    var(--bottom-nav-height, 4.9rem) +
+    env(safe-area-inset-bottom, 0px) +
+    1rem
+  );
   width: 100%;
   max-width: none;
   height: auto;
@@ -3160,9 +3172,9 @@ body.registrar-partida-modal-aberto {
 
 .registrar-partida-novo-pagina .registrar-partida-novo-corpo {
   overflow: visible;
-  padding: 0 0 0.75rem;
+  padding: 0 0 calc(var(--registrar-partida-page-actions-space) + 0.75rem);
   overscroll-behavior: auto;
-  scroll-padding-block: calc(1rem + env(safe-area-inset-top, 0px)) calc(6rem + env(safe-area-inset-bottom, 0px));
+  scroll-padding-block: calc(1rem + env(safe-area-inset-top, 0px)) var(--registrar-partida-page-actions-space);
 }
 
 .registrar-partida-novo-pagina .registrar-partida-novo-stepper {
@@ -3212,7 +3224,7 @@ body.registrar-partida-modal-aberto {
 
 @media (max-width: 720px), (pointer: coarse) {
   .registrar-partida-pagina__conteudo {
-    padding: 0.62rem 0.62rem calc(6.75rem + env(safe-area-inset-bottom, 0px));
+    padding: 0.62rem 0.62rem var(--registrar-partida-page-actions-space);
   }
 
   .registrar-partida-novo-pagina.registrar-partida-novo-modal {
@@ -3225,14 +3237,14 @@ body.registrar-partida-modal-aberto {
 
   .registrar-partida-novo-pagina .registrar-partida-novo-corpo {
     padding-top: 0;
-    padding-bottom: 0.62rem;
-    scroll-padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(var(--registrar-partida-page-actions-space) + 0.62rem);
+    scroll-padding-bottom: var(--registrar-partida-page-actions-space);
   }
 
   .registrar-partida-novo-pagina.teclado-aberto .registrar-partida-novo-corpo,
   .registrar-partida-novo-pagina[data-teclado-aberto="true"] .registrar-partida-novo-corpo {
     padding-top: 0;
-    padding-bottom: 0.5rem;
+    padding-bottom: calc(var(--registrar-partida-page-actions-space) + 0.5rem);
   }
 
   .registrar-partida-novo-pagina .registrar-partida-novo-stepper {

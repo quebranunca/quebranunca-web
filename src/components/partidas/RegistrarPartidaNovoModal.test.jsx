@@ -162,6 +162,8 @@ describe('RegistrarPartidaNovoModal - revisão', () => {
     expect(pagina).not.toHaveAttribute('aria-modal');
     expect(screen.queryByRole('dialog', { name: /Registrar partida/i })).not.toBeInTheDocument();
     expect(container.querySelector('.registrar-partida-novo-sobreposicao')).toBeNull();
+    expect(container.querySelector('.registrar-partida-novo-pagina .registrar-partida-novo-corpo')).not.toBeNull();
+    expect(container.querySelector('.registrar-partida-novo-pagina .registrar-partida-novo-cta-sticky')).not.toBeNull();
   });
 
   it('não renderiza resumo parcial e mostra ação clara quando falta atleta preenchido', () => {
