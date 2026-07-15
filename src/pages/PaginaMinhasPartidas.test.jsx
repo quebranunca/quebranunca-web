@@ -52,7 +52,12 @@ vi.mock('../services/pendenciasServico', () => ({
 
 function LocalizacaoAtual() {
   const location = useLocation();
-  return <span data-testid="rota-atual">{`${location.pathname}${location.search}`}</span>;
+  return (
+    <>
+      <span data-testid="rota-atual">{`${location.pathname}${location.search}`}</span>
+      <span data-testid="origem-atual">{location.state?.origem || ''}</span>
+    </>
+  );
 }
 
 function criarPartida(sobrescritas = {}) {
@@ -439,5 +444,18 @@ describe('PaginaMinhasPartidas - cancelamento de partida', () => {
     expect(await screen.findByText('Grupo Cancelado')).toBeInTheDocument();
     expect(screen.queryByText('Grupo Ativo')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Editar partida' })).not.toBeInTheDocument();
+  });
+
+  it('leva o estado vazio para a página de registro preservando origem', async () => {
+    const usuario = userEvent.setup();
+    configurarPartidas([]);
+
+    renderizarPagina('/minhas-partidas?filtro=registradas');
+
+    await usuario.click(await screen.findByRole('link', { name: /Registrar partida/i }));
+
+    expect(screen.getByTestId('rota-atual')).toHaveTextContent('/partidas/registrar');
+    expect(screen.getByTestId('origem-atual')).toHaveTextContent('/minhas-partidas');
+    expect(screen.queryByRole('dialog', { name: /Registrar partida/i })).not.toBeInTheDocument();
   });
 });

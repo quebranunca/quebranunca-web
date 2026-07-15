@@ -1,5 +1,6 @@
 import { NavLink, matchPath, useLocation } from 'react-router-dom';
 import { obterMainNavigationItems } from './navigation/navigationConfig';
+import { criarNavegacaoRegistroPartida, obterOrigemAtualParaRegistro } from '../utils/partidaRotas';
 
 function itemAtivo(pathname, caminhos) {
   return caminhos.some((caminho) => matchPath({
@@ -11,11 +12,9 @@ function itemAtivo(pathname, caminhos) {
 export function MobileBottomNavigation() {
   const location = useLocation();
   const itens = obterMainNavigationItems();
-  const origemAtual = {
-    pathname: location.pathname,
-    search: location.search,
-    hash: location.hash
-  };
+  const navegacaoRegistro = criarNavegacaoRegistroPartida({
+    origem: obterOrigemAtualParaRegistro(location)
+  });
 
   return (
     <nav className="mobile-bottom-navigation" aria-label="Navegação principal">
@@ -26,8 +25,8 @@ export function MobileBottomNavigation() {
         return (
           <NavLink
             key={item.id}
-            to={item.route}
-            state={item.id === 'registrar' ? { origem: origemAtual } : undefined}
+            to={item.id === 'registrar' ? navegacaoRegistro.to : item.route}
+            state={item.id === 'registrar' ? navegacaoRegistro.state : undefined}
             end={item.route === '/app'}
             className={() => `mobile-bottom-item ${item.principal ? 'principal' : ''} ${ativo ? 'ativo' : ''}`.trim()}
             aria-label={item.principal ? 'Registrar partida' : item.label}

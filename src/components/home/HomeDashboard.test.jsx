@@ -124,7 +124,12 @@ function criarModulos(overrides = {}) {
 
 function LocalizacaoAtual() {
   const location = useLocation();
-  return <span data-testid="rota-atual">{location.pathname}</span>;
+  return (
+    <>
+      <span data-testid="rota-atual">{location.pathname}</span>
+      <span data-testid="origem-atual">{location.state?.origem || ''}</span>
+    </>
+  );
 }
 
 function esperarAntes(elementoAnterior, elementoPosterior) {
@@ -321,6 +326,7 @@ describe('HomeDashboard nova experiencia', () => {
 
     await usuario.click(registrar);
     expect(screen.getByTestId('rota-atual')).toHaveTextContent('/partidas/registrar');
+    expect(screen.getByTestId('origem-atual')).toHaveTextContent('/app');
   });
 
   it('mostra Seu desempenho com as quatro metricas principais', () => {

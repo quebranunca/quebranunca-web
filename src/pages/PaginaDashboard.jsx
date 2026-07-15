@@ -4,6 +4,7 @@ import { AvatarUsuario, obterFotoPerfilAvatar } from '../components/AvatarUsuari
 import { obterItensNavegacao } from './navagacao';
 import { ehAdministrador, ehAtleta, ehGestorCompeticao } from '../utils/perfis';
 import { ESTADOS_ACESSO } from '../utils/acesso';
+import { criarNavegacaoRegistroPartida, ROTA_REGISTRAR_PARTIDA } from '../utils/partidaRotas';
 
 export function PaginaDashboard() {
   const { usuario, estadoAcesso } = useAutenticacao();
@@ -25,6 +26,7 @@ export function PaginaDashboard() {
           ? '/partidas/registrar'
           : '/app/perfil';
   const atalhoPrincipal = atalhos.find((atalho) => atalho.rota === rotaAtalhoPrincipal) || atalhos[0];
+  const navegacaoRegistro = criarNavegacaoRegistroPartida({ origem: '/app' });
 
   return (
     <section className="pagina">
@@ -52,7 +54,8 @@ export function PaginaDashboard() {
         {atalhos.map((atalho) => (
           <Link
             key={atalho.rota}
-            to={atalho.rota}
+            to={atalho.rota === ROTA_REGISTRAR_PARTIDA ? navegacaoRegistro.to : atalho.rota}
+            state={atalho.rota === ROTA_REGISTRAR_PARTIDA ? navegacaoRegistro.state : undefined}
             className={`cartao cartao-atalho ${atalho.rota === atalhoPrincipal?.rota ? 'cartao-atalho-destaque' : ''}`}
           >
             <div className="cartao-atalho-cabecalho">

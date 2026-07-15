@@ -5,6 +5,7 @@ import { categoriasServico } from '../services/categoriasServico';
 import { competicoesServico } from '../services/competicoesServico';
 import { formatosCampeonatoServico } from '../services/formatosCampeonatoServico';
 import { extrairMensagemErro } from '../utils/erros';
+import { criarNavegacaoRegistroPartida } from '../utils/partidaRotas';
 import { rolarParaElemento, rolarParaTopo } from '../utils/rolagem';
 
 const estadoInicial = {
@@ -467,7 +468,14 @@ export function PaginaCategorias() {
                 <button
                   type="button"
                   className="botao-terciario"
-                  onClick={() => navegar(`/partidas/registrar?categoriaId=${categoria.id}`)}
+                  onClick={() => {
+                    const navegacaoRegistro = criarNavegacaoRegistroPartida({
+                      categoriaId: categoria.id,
+                      competicaoId: categoria.competicaoId,
+                      origem: `/categorias?competicaoId=${categoria.competicaoId}`
+                    });
+                    navegar(navegacaoRegistro.to, { state: navegacaoRegistro.state });
+                  }}
                 >
                   Partidas
                 </button>

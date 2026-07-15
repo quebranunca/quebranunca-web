@@ -16,6 +16,7 @@ import { gamificacaoServico } from '../services/gamificacaoServico';
 import { extrairMensagemErro } from '../utils/erros';
 import { AppHero } from '../components/AppHero';
 import { MedalhaNivel } from '../components/gamificacao/MedalhaNivel';
+import { criarNavegacaoRegistroPartida } from '../utils/partidaRotas';
 import beneficioBoneQN from '../assets/pontos-qn/beneficio-bone-qn.png';
 import beneficioChaveiroQN from '../assets/pontos-qn/beneficio-chaveiro-qn.png';
 
@@ -520,12 +521,19 @@ function HistoricoItem({ item }) {
 }
 
 function ComoGanharResumo() {
+  const registrarPartida = criarNavegacaoRegistroPartida({ origem: '/app/pontos-qn' });
+
   return (
     <section className="cartao pontosqn-como-ganhar" id="como-ganhar-pontos">
       <h2>Como ganhar mais pontos</h2>
       <div className="pontosqn-acoes-grid">
-        {regrasGanhoPontosQN.map(({ titulo, pontos, descricao, rota, Icone }) => (
-          <Link key={titulo} to={rota}>
+        {regrasGanhoPontosQN.map(({ titulo, pontos, descricao, rota, Icone }) => {
+          const navegacao = rota === '/partidas/registrar'
+            ? registrarPartida
+            : { to: rota, state: undefined };
+
+          return (
+          <Link key={titulo} to={navegacao.to} state={navegacao.state}>
             <Icone aria-hidden="true" />
             <span>
               <strong>{titulo}</strong>
@@ -533,7 +541,8 @@ function ComoGanharResumo() {
             </span>
             <b>+{pontos} QN</b>
           </Link>
-        ))}
+          );
+        })}
       </div>
     </section>
   );

@@ -24,10 +24,6 @@ vi.mock('../contexts/NotificationContext', () => ({
   })
 }));
 
-vi.mock('../containers/partidas/RegistrarPartidaNovoContainer', () => ({
-  RegistrarPartidaNovoContainer: () => <div data-testid="registrar-partida-modal" />
-}));
-
 vi.mock('../services/gruposServico', () => ({
   gruposServico: {
     obterDashboardGrupo: vi.fn()
@@ -42,7 +38,12 @@ vi.mock('../services/pendenciasServico', () => ({
 
 function LocalizacaoAtual() {
   const location = useLocation();
-  return <span data-testid="rota-atual">{location.pathname}</span>;
+  return (
+    <>
+      <span data-testid="rota-atual">{`${location.pathname}${location.search}`}</span>
+      <span data-testid="origem-atual">{location.state?.origem || ''}</span>
+    </>
+  );
 }
 
 function criarDashboard(sobrescritasGrupo = {}) {
@@ -83,6 +84,7 @@ function renderizarPagina() {
       <Routes>
         <Route path="/grupos/:grupoId" element={<><PaginaGrupoDashboard /><LocalizacaoAtual /></>} />
         <Route path="/grupos/:grupoId/configuracoes" element={<LocalizacaoAtual />} />
+        <Route path="/partidas/registrar" element={<LocalizacaoAtual />} />
       </Routes>
     </MemoryRouter>
   );
@@ -132,7 +134,7 @@ describe('PaginaGrupoDashboard', () => {
     expect(screen.queryByRole('button', { name: /Configurações/i })).not.toBeInTheDocument();
   });
 
-  it('exibe Registrar partida para usuário membro do grupo', async () => {
+  it('leva Registrar partida para a página com grupo e origem preservados', async () => {
     const usuario = userEvent.setup();
     gruposServico.obterDashboardGrupo.mockResolvedValue(criarDashboard());
     pendenciasServico.listar.mockResolvedValue([]);
@@ -141,7 +143,9 @@ describe('PaginaGrupoDashboard', () => {
 
     await usuario.click(await screen.findByRole('button', { name: /Registrar partida/i }));
 
-    expect(screen.getByTestId('registrar-partida-modal')).toBeInTheDocument();
+    expect(screen.getByTestId('rota-atual')).toHaveTextContent('/partidas/registrar?grupoId=grupo-1');
+    expect(screen.getByTestId('origem-atual')).toHaveTextContent('/grupos/grupo-1');
+    expect(screen.queryByRole('dialog', { name: /Registrar partida/i })).not.toBeInTheDocument();
   });
 
   it('não exibe registro nem ações administrativas para usuário fora de grupo público', async () => {

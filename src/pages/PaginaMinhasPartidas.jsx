@@ -24,7 +24,7 @@ import { formatarNomeDupla } from '../utils/atletaUtils';
 import { extrairMensagemErro } from '../utils/erros';
 import { formatarDataHoraCurta } from '../utils/formatacao';
 import { podeEditarPartida, podeExcluirPartida } from '../utils/permissoesPartida';
-import { obterRotaDetalhePartida } from '../utils/partidaRotas';
+import { criarNavegacaoRegistroPartida, obterRotaDetalhePartida } from '../utils/partidaRotas';
 import { scrollFocusedInputIntoView } from '../utils/tecladoMobile';
 import {
   atletaEstaNaDuplaA,
@@ -1154,6 +1154,7 @@ function ResumoMetrica({ rotulo, valor, rotuloCompleto }) {
 
 function EstadoVazio({ filtro }) {
   const estado = obterMensagemVazia(filtro);
+  const registrarPartida = criarNavegacaoRegistroPartida({ origem: '/minhas-partidas' });
 
   return (
     <article className="minhas-partidas-estado minhas-partidas-vazio">
@@ -1164,8 +1165,8 @@ function EstadoVazio({ filtro }) {
       </div>
       {estado.exibirCta && (
         <Link
-          to="/partidas/registrar"
-          state={{ origem: { pathname: '/minhas-partidas' } }}
+          to={registrarPartida.to}
+          state={registrarPartida.state}
           className="botao-secundario botao-compacto"
         >
           Registrar partida

@@ -16,7 +16,7 @@ import {
 } from 'react-icons/fa';
 import { useAutenticacao } from '../../hooks/useAutenticacao';
 import { obterNomeGrupoPartidaExibicao } from '../../utils/partidas';
-import { obterRotaDetalhePartida } from '../../utils/partidaRotas';
+import { criarNavegacaoRegistroPartida, obterRotaDetalhePartida } from '../../utils/partidaRotas';
 import { formatarData } from '../../utils/formatacao';
 import { obterFotoPerfilAvatar } from '../AvatarUsuario';
 import { AppHero } from '../AppHero';
@@ -727,11 +727,13 @@ function HomeDesempenhoCard({ scouts, erroDesempenho, temDados }) {
 }
 
 function HomeAcoesPrincipais() {
+  const registrarPartida = criarNavegacaoRegistroPartida({ origem: '/app' });
+
   return (
     <section className="home-dashboard-acoes-principais" aria-label="Ações principais">
       <HomeAcaoPrincipal
-        to={HOME_NAVIGATION.registrarPartida}
-        state={{ origem: { pathname: '/app' } }}
+        to={registrarPartida.to}
+        state={registrarPartida.state}
         icone={FaPlus}
         titulo="Registrar partida"
         descricao="Salve seu jogo e atualize sua evolução."
@@ -763,6 +765,8 @@ function HomeAcaoPrincipal({ to, state, icone: Icone, titulo, descricao, variant
 }
 
 function HomeUltimoJogo({ ultimasPartidas, erro, atletaId, nomeAtleta }) {
+  const registrarPartida = criarNavegacaoRegistroPartida({ origem: '/app' });
+
   return (
     <section className="home-dashboard-atividade" aria-labelledby="home-ultimo-jogo-titulo">
       <div className="home-dashboard-section-title home-dashboard-section-title-com-acao">
@@ -832,7 +836,7 @@ function HomeUltimoJogo({ ultimasPartidas, erro, atletaId, nomeAtleta }) {
         <div className="home-dashboard-empty-state">
           <FaFutbol aria-hidden="true" />
           <strong>Você ainda não registrou nenhum jogo.</strong>
-          <Link to={HOME_NAVIGATION.registrarPartida}>Registrar agora</Link>
+          <Link to={registrarPartida.to} state={registrarPartida.state}>Registrar agora</Link>
         </div>
       )}
     </section>

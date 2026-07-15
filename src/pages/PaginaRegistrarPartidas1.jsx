@@ -2,30 +2,11 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { AppHero } from '../components/AppHero';
 import { RegistrarPartidaNovoContainer } from '../containers/partidas/RegistrarPartidaNovoContainer';
 import { useAutenticacao } from '../hooks/useAutenticacao';
+import { normalizarOrigemInterna } from '../utils/partidaRotas';
 import '../components/partidas/registrar-partida-novo.css';
 
-function normalizarDestinoInterno(origem) {
-  if (!origem) {
-    return '';
-  }
-
-  if (typeof origem === 'string') {
-    const destino = origem.trim();
-    return destino.startsWith('/') && !destino.startsWith('//') ? destino : '';
-  }
-
-  const pathname = typeof origem.pathname === 'string' ? origem.pathname : '';
-  if (!pathname.startsWith('/') || pathname.startsWith('//')) {
-    return '';
-  }
-
-  const search = typeof origem.search === 'string' && origem.search.startsWith('?') ? origem.search : '';
-  const hash = typeof origem.hash === 'string' && origem.hash.startsWith('#') ? origem.hash : '';
-  return `${pathname}${search}${hash}`;
-}
-
 function obterOrigemEstado(location) {
-  return normalizarDestinoInterno(
+  return normalizarOrigemInterna(
     location.state?.origem ||
     location.state?.from ||
     location.state?.returnTo

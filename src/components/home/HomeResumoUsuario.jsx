@@ -4,6 +4,7 @@ import { partidasServico } from '../../services/partidasServico';
 import { usuariosServico } from '../../services/usuariosServico';
 import { formatarDataHora } from '../../utils/formatacao';
 import { formatarNomeDupla, obterNomeExibicaoAtleta, obterTituloAtleta } from '../../utils/atletaUtils';
+import { criarNavegacaoRegistroPartida } from '../../utils/partidaRotas';
 import {
   atletaEstaNaDuplaA,
   obterClasseStatusAprovacao,
@@ -118,6 +119,7 @@ export function HomeResumoUsuario({
   erroUltimoJogoUsuario
 }) {
   const navegar = useNavigate();
+  const registrarPartida = criarNavegacaoRegistroPartida({ origem: '/app' });
   const possuiDadosExternos = resumoUsuario !== undefined ||
     ultimoJogoUsuario !== undefined ||
     carregandoResumo !== undefined ||
@@ -297,7 +299,7 @@ export function HomeResumoUsuario({
               </div>                  
             </Link>   
                                            
-            <Link to="/partidas/registrar" className="botao-primario home-botao">
+            <Link to={registrarPartida.to} state={registrarPartida.state} className="botao-primario home-botao">
               Registrar partida
             </Link>                                                                 
           </>          

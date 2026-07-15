@@ -1,19 +1,16 @@
-import { useState } from 'react';
-import { RegistrarPartidaNovoContainer } from '../../containers/partidas/RegistrarPartidaNovoContainer';
+import { Link, useLocation } from 'react-router-dom';
+import { criarNavegacaoRegistroPartida, obterOrigemAtualParaRegistro } from '../../utils/partidaRotas';
 import './registrar-partida-novo.css';
 
-export function RegistrarPartidaNovo() {
-  const [aberto, setAberto] = useState(false);
+export function RegistrarPartidaNovo({ className = 'botao-primario', children = 'Registrar partida' }) {
+  const location = useLocation();
+  const navegacaoRegistro = criarNavegacaoRegistroPartida({
+    origem: obterOrigemAtualParaRegistro(location)
+  });
 
   return (
-    <>
-      <button type="button" className="botao-primario" onClick={() => setAberto(true)}>
-        Registrar partida
-      </button>
-
-      {aberto && (
-        <RegistrarPartidaNovoContainer onFechar={() => setAberto(false)} />
-      )}
-    </>
+    <Link to={navegacaoRegistro.to} state={navegacaoRegistro.state} className={className}>
+      {children}
+    </Link>
   );
 }

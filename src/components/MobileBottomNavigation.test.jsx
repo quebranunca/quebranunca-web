@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, render, screen } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import userEvent from '@testing-library/user-event';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { MobileBottomNavigation } from './MobileBottomNavigation';
 
 afterEach(() => {
@@ -11,6 +12,27 @@ function renderizar(rota = '/app') {
   return render(
     <MemoryRouter initialEntries={[rota]} future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
       <MobileBottomNavigation />
+    </MemoryRouter>
+  );
+}
+
+function LocalizacaoAtual() {
+  const location = useLocation();
+  return (
+    <>
+      <span data-testid="rota-atual">{`${location.pathname}${location.search}`}</span>
+      <span data-testid="origem-atual">{location.state?.origem || ''}</span>
+    </>
+  );
+}
+
+function renderizarComRotas(rota = '/app') {
+  return render(
+    <MemoryRouter initialEntries={[rota]} future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
+      <MobileBottomNavigation />
+      <Routes>
+        <Route path="*" element={<LocalizacaoAtual />} />
+      </Routes>
     </MemoryRouter>
   );
 }
@@ -40,5 +62,29 @@ describe('MobileBottomNavigation', () => {
 
     expect(screen.getByRole('link', { name: /Registrar partida/i })).toHaveClass('ativo');
     expect(screen.getByRole('link', { name: /Home/i })).not.toHaveClass('ativo');
+  });
+
+  it('preserva origem atual ao navegar para registrar, exceto na propria rota de registro', async () => {
+    const usuario = userEvent.setup();
+    const { rerender } = renderizarComRotas('/ranking?tipo=atletas');
+
+    await usuario.click(screen.getByRole('link', { name: /Registrar partida/i }));
+
+    expect(screen.getByTestId('rota-atual')).toHaveTextContent('/partidas/registrar');
+    expect(screen.getByTestId('origem-atual')).toHaveTextContent('/ranking?tipo=atletas');
+
+    rerender(
+      <MemoryRouter initialEntries={['/partidas/registrar']} future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
+        <MobileBottomNavigation />
+        <Routes>
+          <Route path="*" element={<LocalizacaoAtual />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await usuario.click(screen.getByRole('link', { name: /Registrar partida/i }));
+
+    expect(screen.getByTestId('rota-atual')).toHaveTextContent('/partidas/registrar');
+    expect(screen.getByTestId('origem-atual')).toBeEmptyDOMElement();
   });
 });

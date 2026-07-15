@@ -15,7 +15,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { AvatarUsuario, obterFotoPerfilAvatar } from '../components/AvatarUsuario';
 import { AvatarGrupo } from '../components/grupos/AvatarGrupo';
 import { AvatarGroup } from '../components/ui/AvatarGroup';
-import { RegistrarPartidaNovoContainer } from '../containers/partidas/RegistrarPartidaNovoContainer';
 import { useNotification } from '../contexts/NotificationContext';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { gruposServico } from '../services/gruposServico';
@@ -23,6 +22,7 @@ import { pendenciasServico } from '../services/pendenciasServico';
 import { obterNomeExibicaoAtleta } from '../utils/atletaUtils';
 import { extrairMensagemErro } from '../utils/erros';
 import { formatarData, formatarDataHora, formatarHora } from '../utils/formatacao';
+import { criarNavegacaoRegistroPartida } from '../utils/partidaRotas';
 
 const TIPOS_PENDENCIA = {
   aprovarPartida: 1,
@@ -269,7 +269,6 @@ export function PaginaGrupoDashboard() {
   const [pendencias, setPendencias] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState(false);
-  const [registroAberto, setRegistroAberto] = useState(false);
 
   const grupo = dashboard?.grupo;
   const resumo = dashboard?.resumo;
@@ -339,7 +338,12 @@ export function PaginaGrupoDashboard() {
       return;
     }
 
-    setRegistroAberto(true);
+    const navegacaoRegistro = criarNavegacaoRegistroPartida({
+      grupoId: grupo.id,
+      origem: `/grupos/${grupo.id}`
+    });
+
+    navegar(navegacaoRegistro.to, { state: navegacaoRegistro.state });
   }
 
   if (carregando) {
@@ -599,16 +603,6 @@ export function PaginaGrupoDashboard() {
           )}
         </div>
       </article>
-
-      {registroAberto && podeRegistrarPartida && (
-        <RegistrarPartidaNovoContainer
-          contextoInicial={{ grupoId: grupo.id }}
-          onFechar={() => {
-            setRegistroAberto(false);
-            carregarDashboard();
-          }}
-        />
-      )}
     </section>
   );
 }
