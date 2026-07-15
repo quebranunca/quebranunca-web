@@ -1163,7 +1163,11 @@ function EstadoVazio({ filtro }) {
         {estado.texto && <p>{estado.texto}</p>}
       </div>
       {estado.exibirCta && (
-        <Link to="/partidas/registrar" className="botao-secundario botao-compacto">
+        <Link
+          to="/partidas/registrar"
+          state={{ origem: { pathname: '/minhas-partidas' } }}
+          className="botao-secundario botao-compacto"
+        >
           Registrar partida
         </Link>
       )}

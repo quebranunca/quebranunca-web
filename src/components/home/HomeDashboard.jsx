@@ -731,6 +731,7 @@ function HomeAcoesPrincipais() {
     <section className="home-dashboard-acoes-principais" aria-label="Ações principais">
       <HomeAcaoPrincipal
         to={HOME_NAVIGATION.registrarPartida}
+        state={{ origem: { pathname: '/app' } }}
         icone={FaPlus}
         titulo="Registrar partida"
         descricao="Salve seu jogo e atualize sua evolução."
@@ -748,9 +749,9 @@ function HomeAcoesPrincipais() {
   );
 }
 
-function HomeAcaoPrincipal({ to, icone: Icone, titulo, descricao, variante = 'principal' }) {
+function HomeAcaoPrincipal({ to, state, icone: Icone, titulo, descricao, variante = 'principal' }) {
   return (
-    <Link to={to} className={`home-dashboard-cta home-dashboard-cta-${variante}`}>
+    <Link to={to} state={state} className={`home-dashboard-cta home-dashboard-cta-${variante}`}>
       <span className="home-dashboard-cta-icone"><Icone aria-hidden="true" /></span>
       <span>
         <strong>{titulo}</strong>

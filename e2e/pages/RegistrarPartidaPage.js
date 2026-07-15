@@ -3,12 +3,12 @@ import { expect } from '@playwright/test';
 export class RegistrarPartidaPage {
   constructor(page) {
     this.page = page;
-    this.dialog = page.getByRole('dialog', { name: 'Registrar partida' });
+    this.pagina = page.locator('.registrar-partida-novo-pagina');
     this.corpo = page.getByTestId('registrar-partida-corpo');
   }
 
   dupla(numero) {
-    return this.dialog.getByRole('region', { name: `Dupla ${numero}` });
+    return this.pagina.getByRole('region', { name: `Dupla ${numero}` });
   }
 
   campoAtleta(numeroDupla, rotulo) {
@@ -16,12 +16,24 @@ export class RegistrarPartidaPage {
   }
 
   campoAtletaContainer(nomeInput) {
-    return this.dialog.getByTestId(`campo-${nomeInput}`);
+    return this.pagina.getByTestId(`campo-${nomeInput}`);
   }
 
   async abrir() {
     await this.page.goto('/partidas/registrar');
-    await expect(this.dialog).toBeVisible();
+    await expect(this.page.getByRole('heading', { name: 'Registrar partida' })).toBeVisible();
+    await expect(this.page.getByRole('dialog', { name: 'Registrar partida' })).toHaveCount(0);
+    await expect(this.pagina).toBeVisible();
+  }
+
+  async continuar() {
+    await this.pagina.getByRole('button', { name: 'Continuar' }).click();
+  }
+
+  async avancarDoGrupo() {
+    await expect(this.pagina.getByRole('heading', { name: 'Onde foi a partida?' })).toBeVisible();
+    await this.continuar();
+    await expect(this.dupla(1)).toBeVisible();
   }
 
   async selecionarSugestaoRapida(numeroDupla, rotulo, nome) {
@@ -41,9 +53,15 @@ export class RegistrarPartidaPage {
   }
 
   async preencherPartidaValida() {
+    await this.avancarDoGrupo();
     await this.selecionarSugestaoRapida(1, 'Atleta 2', 'Marina Costa');
+    await this.continuar();
     await this.selecionarSugestaoRapida(2, 'Atleta 1', 'Bruna Alves');
     await this.selecionarSugestaoRapida(2, 'Atleta 2', 'Carlos Souza');
-    await this.dialog.getByRole('button', { name: /Dupla 1/i }).click();
+    await this.continuar();
+    await this.pagina.getByRole('button', { name: /Apenas vencedor/i }).click();
+    await this.continuar();
+    await this.pagina.getByRole('button', { name: /Dupla 1/i }).click();
+    await this.continuar();
   }
 }

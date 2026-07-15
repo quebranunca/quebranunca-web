@@ -523,7 +523,30 @@ class ErroRegistroPartidaBoundary extends Component {
   }
 }
 
-function FallbackErroRegistroPartida({ onFechar }) {
+function FallbackErroRegistroPartida({ onFechar, modoExibicao = 'modal' }) {
+  if (modoExibicao === 'pagina') {
+    return (
+      <section
+        className="registrar-partida-novo-pagina registrar-partida-novo-modal registrar-partida-novo-fallback-pagina"
+        aria-labelledby="registrar-partida-novo-fallback-titulo"
+      >
+        <div className="registrar-partida-novo-fallback">
+          <strong id="registrar-partida-novo-fallback-titulo">Registrar partida</strong>
+          <p className="texto-erro registrar-partida-novo-erro">
+            Encontramos um problema inesperado ao abrir o registro de partida.
+            Volte e tente novamente.
+          </p>
+
+          <div className="registrar-partida-novo-acoes">
+            <button type="button" className="botao-secundario" onClick={onFechar}>
+              Voltar
+            </button>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <div className="modal-sobreposicao registrar-partida-novo-sobreposicao" role="presentation">
       <section
@@ -560,6 +583,7 @@ export function RegistrarPartidaNovoContainer({
   onFechar,
   contextoInicial = {},
   modo = 'criacao',
+  modoExibicao = 'modal',
   partidaInicial = null,
   onSalvarEdicao = null,
   salvandoExterno = false,
@@ -1411,7 +1435,9 @@ export function RegistrarPartidaNovoContainer({
   function fecharSucesso() {
     resetarEstadoRegistro({ restaurarContextoInicial: true });
     onFechar?.();
-    navegar('/app', { replace: true });
+    if (modoExibicao !== 'pagina') {
+      navegar('/app', { replace: true });
+    }
   }
 
   function abrirGrupo() {
@@ -1440,7 +1466,7 @@ export function RegistrarPartidaNovoContainer({
   }
 
   return (
-    <ErroRegistroPartidaBoundary fallback={<FallbackErroRegistroPartida onFechar={onFechar} />}>
+    <ErroRegistroPartidaBoundary fallback={<FallbackErroRegistroPartida onFechar={onFechar} modoExibicao={modoExibicao} />}>
       <RegistrarPartidaNovoModal
         aberto
         etapas={etapas}
@@ -1491,6 +1517,7 @@ export function RegistrarPartidaNovoContainer({
         rotuloAcaoPrincipalSalvando={ehEdicao ? 'Salvando...' : 'Registrando...'}
         permitirRemoverGrupo={!ehEdicao}
         sucessoEdicao={ehEdicao}
+        modoExibicao={modoExibicao}
       />
 
       <PartidaMidiaUploadModal

@@ -1764,8 +1764,10 @@ export function RegistrarPartidaNovoModal({
   rotuloAcaoPrincipal = 'Registrar partida',
   rotuloAcaoPrincipalSalvando = 'Registrando...',
   permitirRemoverGrupo = true,
-  sucessoEdicao = false
+  sucessoEdicao = false,
+  modoExibicao = 'modal'
 }) {
+  const exibirComoPagina = modoExibicao === 'pagina';
   const campoRef = useRef(null);
   const dupla1Atleta2Ref = useRef(null);
   const dupla2Atleta1Ref = useRef(null);
@@ -1809,7 +1811,7 @@ export function RegistrarPartidaNovoModal({
       });
 
   useEffect(() => {
-    if (!aberto) {
+    if (!aberto || exibirComoPagina) {
       return undefined;
     }
 
@@ -1818,7 +1820,7 @@ export function RegistrarPartidaNovoModal({
     return () => {
       document.body.classList.remove('registrar-partida-modal-aberto');
     };
-  }, [aberto]);
+  }, [aberto, exibirComoPagina]);
 
   useEffect(() => {
     if (!aberto || sucesso) {
@@ -2118,32 +2120,35 @@ export function RegistrarPartidaNovoModal({
     );
   }
 
-  return (
-    <div className="modal-sobreposicao registrar-partida-novo-sobreposicao" role="presentation">
+  function renderizarFluxo() {
+    return (
       <section
         ref={modalRef}
         className={[
-          'modal-conteudo',
+          exibirComoPagina ? 'registrar-partida-novo-pagina' : 'modal-conteudo',
           'registrar-partida-novo-modal',
           inputEmFoco ? 'keyboard-active' : '',
           tecladoAberto ? 'teclado-aberto' : ''
         ].join(' ')}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="registrar-partida-novo-titulo"
+        {...(exibirComoPagina
+          ? { 'aria-label': titulo }
+          : { 'aria-labelledby': 'registrar-partida-novo-titulo' })}
+        data-modo-exibicao={modoExibicao}
       >
-        <HeaderModal
-          etapas={etapas}
-          indiceEtapa={indiceEtapa}
-          etapaAtual={etapaAtual}
-          salvando={salvando}
-          onVoltar={onVoltar}
-          onFechar={acaoFecharAtual}
-          sucesso={sucesso}
-          fluxoSimplificado={fluxoSimplificado}
-          titulo={titulo}
-          ariaFechar={ariaFechar}
-        />
+        {!exibirComoPagina && (
+          <HeaderModal
+            etapas={etapas}
+            indiceEtapa={indiceEtapa}
+            etapaAtual={etapaAtual}
+            salvando={salvando}
+            onVoltar={onVoltar}
+            onFechar={acaoFecharAtual}
+            sucesso={sucesso}
+            fluxoSimplificado={fluxoSimplificado}
+            titulo={titulo}
+            ariaFechar={ariaFechar}
+          />
+        )}
 
         {sucesso && sucessoEdicao ? (
           <TelaSucessoEdicao sucesso={sucesso} onFechar={onFechar} />
@@ -2234,6 +2239,31 @@ export function RegistrarPartidaNovoModal({
           </form>
         )}
       </section>
+    );
+  }
+
+  if (exibirComoPagina) {
+    return (
+      <>
+        {renderizarFluxo()}
+
+        {duplicidade && (
+          <ConfirmarDuplicidadePartidaModal
+            mensagem={duplicidade.mensagem}
+            duplicidade={duplicidade}
+            salvando={salvando}
+            onCancelar={onCancelarDuplicidade}
+            onConfirmar={onConfirmarDuplicidade}
+            onVerPartida={onVerPartida}
+          />
+        )}
+      </>
+    );
+  }
+
+  return (
+    <div className="modal-sobreposicao registrar-partida-novo-sobreposicao" role="presentation">
+      {renderizarFluxo()}
 
       {duplicidade && (
         <ConfirmarDuplicidadePartidaModal

@@ -153,6 +153,17 @@ function renderizarModal(props = {}) {
 }
 
 describe('RegistrarPartidaNovoModal - revisão', () => {
+  it('renderiza como página sem dialog principal quando solicitado', () => {
+    const { container } = renderizarModal({ modoExibicao: 'pagina' });
+
+    const pagina = container.querySelector('.registrar-partida-novo-pagina');
+    expect(pagina).not.toBeNull();
+    expect(pagina).toHaveAttribute('data-modo-exibicao', 'pagina');
+    expect(pagina).not.toHaveAttribute('aria-modal');
+    expect(screen.queryByRole('dialog', { name: /Registrar partida/i })).not.toBeInTheDocument();
+    expect(container.querySelector('.registrar-partida-novo-sobreposicao')).toBeNull();
+  });
+
   it('não renderiza resumo parcial e mostra ação clara quando falta atleta preenchido', () => {
     const onIrParaEtapa = vi.fn();
 

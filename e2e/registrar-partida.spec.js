@@ -13,16 +13,23 @@ test.describe('Registrar partida', () => {
     const fluxo = new RegistrarPartidaPage(page);
     await fluxo.abrir();
 
-    await expect(page.getByRole('heading', { name: 'Grupo' })).toBeVisible();
-    await expect(page.getByRole('region', { name: 'Dupla 1' })).toBeVisible();
-    await expect(page.getByRole('region', { name: 'Dupla 2' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Onde foi a partida?' })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Partida avulsa/i })).toBeVisible();
+    await fluxo.continuar();
+    await expect(fluxo.dupla(1)).toBeVisible();
+    await fluxo.selecionarSugestaoRapida(1, 'Atleta 2', 'Marina Costa');
+    await fluxo.continuar();
+    await expect(fluxo.dupla(2)).toBeVisible();
+    await fluxo.selecionarSugestaoRapida(2, 'Atleta 1', 'Bruna Alves');
+    await fluxo.selecionarSugestaoRapida(2, 'Atleta 2', 'Carlos Souza');
+    await fluxo.continuar();
     await expect(page.getByRole('group', { name: 'Como registrar o resultado' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Registrar partida' })).toBeVisible();
   });
 
   test('exibe o usuário logado automaticamente como Atleta 1 da Dupla 1', async ({ page }) => {
     const fluxo = new RegistrarPartidaPage(page);
     await fluxo.abrir();
+    await fluxo.avancarDoGrupo();
 
     await expect(page.getByTestId('campo-atleta1Dupla1').getByText('Gustavo Drager', { exact: true })).toBeVisible();
   });
@@ -30,6 +37,7 @@ test.describe('Registrar partida', () => {
   test('mantém o atleta selecionado ao clicar em sugestão rápida', async ({ page }) => {
     const fluxo = new RegistrarPartidaPage(page);
     await fluxo.abrir();
+    await fluxo.avancarDoGrupo();
 
     await fluxo.selecionarSugestaoRapida(1, 'Atleta 2', 'Marina Costa');
     await expect(fluxo.campoAtleta(1, 'Atleta 2')).toBeHidden();
@@ -39,6 +47,9 @@ test.describe('Registrar partida', () => {
   test('busca por início do nome e preenche o campo com a seleção correta', async ({ page }) => {
     const fluxo = new RegistrarPartidaPage(page);
     await fluxo.abrir();
+    await fluxo.avancarDoGrupo();
+    await fluxo.selecionarSugestaoRapida(1, 'Atleta 2', 'Marina Costa');
+    await fluxo.continuar();
 
     await fluxo.buscarESelecionar(2, 'Atleta 1', 'bru', 'Bruna Alves');
     await expect(fluxo.campoAtleta(2, 'Atleta 1')).toBeHidden();
@@ -48,27 +59,35 @@ test.describe('Registrar partida', () => {
   test('mantém conteúdo visível e topo alinhado ao focar campo de atleta', async ({ page }) => {
     const fluxo = new RegistrarPartidaPage(page);
     await fluxo.abrir();
+    await fluxo.avancarDoGrupo();
+    await fluxo.selecionarSugestaoRapida(1, 'Atleta 2', 'Marina Costa');
+    await fluxo.continuar();
 
-    const topoAntes = await fluxo.dialog.boundingBox();
+    const topoAntes = await fluxo.pagina.boundingBox();
     await fluxo.campoAtleta(2, 'Atleta 2').focus();
     await expect(fluxo.campoAtleta(2, 'Atleta 2')).toBeInViewport();
-    await expect(fluxo.dialog).toBeInViewport();
-    const topoDepois = await fluxo.dialog.boundingBox();
+    await expect(fluxo.pagina).toBeInViewport();
+    const topoDepois = await fluxo.pagina.boundingBox();
 
     expect(Math.abs((topoDepois?.y ?? 0) - (topoAntes?.y ?? 0))).toBeLessThanOrEqual(24);
   });
 
-  test('mantém ações acessíveis e formulário rolável no viewport mobile', async ({ page, isMobile }) => {
+test('mantém ações acessíveis e página sem bloqueio de modal no viewport mobile', async ({ page, isMobile }) => {
     test.skip(!isMobile, 'Cenário específico do projeto Mobile Chrome.');
 
     const fluxo = new RegistrarPartidaPage(page);
     await fluxo.abrir();
+    await fluxo.preencherPartidaValida();
 
     await expect(page.getByRole('button', { name: 'Registrar partida' })).toBeInViewport();
-    await expect(page.getByRole('button', { name: 'Cancelar' })).toBeInViewport();
+    await expect(fluxo.pagina.getByRole('button', { name: 'Voltar' })).toBeInViewport();
 
-    const scrollavel = await fluxo.corpo.evaluate((elemento) => elemento.scrollHeight > elemento.clientHeight);
-    expect(scrollavel).toBe(true);
+    const bloqueioModal = await page.evaluate(() => ({
+      bodyClass: document.body.classList.contains('registrar-partida-modal-aberto'),
+      overflowBody: getComputedStyle(document.body).overflow
+    }));
+    expect(bloqueioModal.bodyClass).toBe(false);
+    expect(bloqueioModal.overflowBody).not.toBe('hidden');
   });
 
   test('registra uma partida completa e exibe sucesso', async ({ page }) => {

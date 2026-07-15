@@ -26,6 +26,7 @@ const ROTAS_COM_HERO_PROPRIO_APP = [
   '/grupos',
   '/mais',
   '/minhas-partidas',
+  '/partidas/registrar',
   '/ranking'
 ];
 

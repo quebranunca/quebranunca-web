@@ -11,6 +11,11 @@ function itemAtivo(pathname, caminhos) {
 export function MobileBottomNavigation() {
   const location = useLocation();
   const itens = obterMainNavigationItems();
+  const origemAtual = {
+    pathname: location.pathname,
+    search: location.search,
+    hash: location.hash
+  };
 
   return (
     <nav className="mobile-bottom-navigation" aria-label="Navegação principal">
@@ -22,6 +27,7 @@ export function MobileBottomNavigation() {
           <NavLink
             key={item.id}
             to={item.route}
+            state={item.id === 'registrar' ? { origem: origemAtual } : undefined}
             end={item.route === '/app'}
             className={() => `mobile-bottom-item ${item.principal ? 'principal' : ''} ${ativo ? 'ativo' : ''}`.trim()}
             aria-label={item.principal ? 'Registrar partida' : item.label}
