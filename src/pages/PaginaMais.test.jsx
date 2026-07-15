@@ -13,7 +13,7 @@ const mocks = vi.hoisted(() => ({
     nome: 'Primo QN',
     perfil: 3
   },
-  estadoAcesso: 'ativo'
+  estadoAcesso: 'Ativo'
 }));
 
 vi.mock('../hooks/useAutenticacao', () => ({
@@ -63,7 +63,7 @@ beforeEach(() => {
     nome: 'Primo QN',
     perfil: PERFIS_USUARIO.atleta
   };
-  mocks.estadoAcesso = 'ativo';
+  mocks.estadoAcesso = 'Ativo';
   mocks.sair.mockReset();
   mocks.obterResumo.mockReset();
   mocks.obterResumo.mockResolvedValue({ total: 2 });
@@ -113,5 +113,29 @@ describe('PaginaMais', () => {
 
     expect(mocks.sair).toHaveBeenCalledTimes(1);
     expect(screen.getByTestId('rota-atual')).toHaveTextContent('/');
+  });
+
+  it('exibe administração somente para administrador ativo', async () => {
+    mocks.usuario = {
+      id: 'admin-1',
+      nome: 'Admin QN',
+      perfil: PERFIS_USUARIO.administrador
+    };
+    mocks.estadoAcesso = 'Ativo';
+
+    renderizarPagina();
+
+    const administracao = screen.getByRole('heading', { name: 'Administração' }).closest('section');
+    expect(administracao).not.toBeNull();
+    expect(within(administracao).getByRole('link', { name: /Painel Admin/i })).toHaveAttribute('href', '/admin');
+    expect(within(administracao).getByRole('link', { name: /Usuários/i })).toHaveAttribute('href', '/admin/usuarios');
+    expect(within(administracao).getByRole('link', { name: /Partidas/i })).toHaveAttribute('href', '/admin/partidas');
+  });
+
+  it('não exibe administração para usuário comum', () => {
+    renderizarPagina();
+
+    expect(screen.queryByRole('heading', { name: 'Administração' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /Painel Admin/i })).not.toBeInTheDocument();
   });
 });

@@ -47,17 +47,20 @@ afterEach(() => {
 });
 
 describe('AppHeader', () => {
-  it('mostra topo principal com saudacao, apelido, sino e avatar sem botão voltar', () => {
-    renderizarHeader('/app');
+  it.each(['/app', '/'])(
+    'mostra topo principal em %s com saudacao, apelido, sino e avatar sem botão voltar',
+    (rota) => {
+      renderizarHeader(rota);
 
-    expect(screen.getByText(/Bom dia|Boa tarde|Boa noite/i)).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: /Primo/i })).toBeInTheDocument();
-    expect(screen.queryByText(/Bronze/i)).not.toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: 'Home' })).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Abrir pendências/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Abrir menu da conta/i })).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: /Voltar/i })).not.toBeInTheDocument();
-  });
+      expect(screen.getByText(/Bom dia|Boa tarde|Boa noite/i)).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /Primo/i })).toBeInTheDocument();
+      expect(screen.queryByText(/Bronze/i)).not.toBeInTheDocument();
+      expect(screen.queryByRole('heading', { name: 'Home' })).not.toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Abrir pendências/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Abrir menu da conta/i })).toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: /Voltar/i })).not.toBeInTheDocument();
+    }
+  );
 
   it('abre e fecha o menu rápido de conta pelo avatar', async () => {
     const usuario = userEvent.setup();

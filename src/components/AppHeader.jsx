@@ -10,10 +10,16 @@ import {
   TIPOS_TELA
 } from '../pages/navagacao';
 
-const ROTA_HOME_APP = '/app';
+const ROTAS_HOME_APP = new Set(['/', '/app']);
 const ROTAS_PRINCIPAIS_SEM_VOLTAR = new Set([
+  '/',
   '/app'
 ]);
+
+function normalizarPathname(pathname) {
+  const pathnameLimpo = String(pathname || '').replace(/\/+$/, '');
+  return pathnameLimpo || '/';
+}
 
 function obterTextoLimpo(...valores) {
   return valores
@@ -90,9 +96,10 @@ export function AppHeader({
   aoSair
 }) {
   const location = useLocation();
-  const configuracao = obterConfiguracaoHeader(location.pathname);
-  const telaHomeApp = autenticado && location.pathname === ROTA_HOME_APP;
-  const telaInterna = autenticado && !ROTAS_PRINCIPAIS_SEM_VOLTAR.has(location.pathname);
+  const pathnameNormalizado = normalizarPathname(location.pathname);
+  const configuracao = obterConfiguracaoHeader(pathnameNormalizado);
+  const telaHomeApp = autenticado && ROTAS_HOME_APP.has(pathnameNormalizado);
+  const telaInterna = autenticado && !ROTAS_PRINCIPAIS_SEM_VOLTAR.has(pathnameNormalizado);
 
   if (telaHomeApp) {
     return (

@@ -4,7 +4,7 @@ import { useAutenticacao } from '../hooks/useAutenticacao';
 import { atletasServico } from '../services/atletasServico';
 import { usuariosServico } from '../services/usuariosServico';
 import { extrairMensagemErro } from '../utils/erros';
-import { nomePerfil, PERFIS_USUARIO } from '../utils/perfis';
+import { ehAdministrador, nomePerfil, PERFIS_USUARIO } from '../utils/perfis';
 import { rolarParaTopo } from '../utils/rolagem';
 import { obterNomeExibicaoAtleta } from '../utils/atletaUtils';
 
@@ -202,6 +202,7 @@ export function PaginaUsuarios() {
             const edicao = edicoes[usuario.id] || criarEdicao(usuario);
             const resultados = resultadosAtleta[usuario.id] || [];
             const usuarioAtual = usuario.id === usuarioLogado?.id;
+            const usuarioEhAdministrador = ehAdministrador(usuario);
 
             return (
               <article key={usuario.id} className="cartao-lista">
@@ -243,7 +244,9 @@ export function PaginaUsuarios() {
                       value={edicao.perfil}
                       onChange={(evento) => atualizarEdicao(usuario.id, 'perfil', evento.target.value)}
                     >
-                      <option value={PERFIS_USUARIO.administrador}>Administrador</option>
+                      {usuarioEhAdministrador && (
+                        <option value={PERFIS_USUARIO.administrador}>Administrador</option>
+                      )}
                       <option value={PERFIS_USUARIO.organizador}>Organizador</option>
                       <option value={PERFIS_USUARIO.atleta}>Atleta</option>
                     </select>

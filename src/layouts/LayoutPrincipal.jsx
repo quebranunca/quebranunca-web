@@ -16,6 +16,7 @@ const ROTAS_SEM_BOTTOM_NAV = [
 ];
 
 const ROTAS_COM_HERO_PROPRIO_APP = [
+  '/',
   '/app',
   '/app/pendencias',
   '/app/perfil',
@@ -37,6 +38,11 @@ function normalizarPathname(pathname) {
   return pathnameLimpo || '/';
 }
 
+function pathnameEhHomeAutenticada(pathname) {
+  const pathnameNormalizado = normalizarPathname(pathname);
+  return pathnameNormalizado === '/' || pathnameNormalizado === '/app';
+}
+
 export function paginaRenderizaHeroProprio(pathname) {
   const pathnameNormalizado = normalizarPathname(pathname);
 
@@ -54,7 +60,7 @@ export function LayoutPrincipal() {
   const homePublica = !autenticado && location.pathname === '/';
   const loginPublico = !autenticado && location.pathname === '/login';
   const pathnameNormalizado = normalizarPathname(location.pathname);
-  const homeDashboardApp = autenticado && pathnameNormalizado === '/app';
+  const homeDashboardApp = autenticado && pathnameEhHomeAutenticada(pathnameNormalizado);
   const gruposDashboardApp = autenticado && pathnameNormalizado === '/grupos';
   const paginaComHeroProprioApp = autenticado && paginaRenderizaHeroProprio(pathnameNormalizado);
   const mostrarBottomNavMobile = autenticado &&

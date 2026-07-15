@@ -15,6 +15,8 @@ import {
   FaUser,
   FaUsers
 } from 'react-icons/fa';
+import { ESTADOS_ACESSO } from '../../utils/acesso';
+import { ehAdministrador } from '../../utils/perfis';
 
 export const MAIN_NAVIGATION_ITEMS = [
   {
@@ -142,6 +144,45 @@ const MORE_SECTIONS = [
     ]
   },
   {
+    id: 'administracao',
+    title: 'Administração',
+    visible: ({ usuario, estadoAcesso }) => ehAdministrador(usuario) && estadoAcesso === ESTADOS_ACESSO.ativo,
+    items: [
+      {
+        id: 'admin-painel',
+        label: 'Painel Admin',
+        description: 'Visão administrativa',
+        route: '/admin',
+        icon: FaShieldAlt,
+        enabled: true
+      },
+      {
+        id: 'admin-usuarios',
+        label: 'Usuários',
+        description: 'Perfis, status e vínculos',
+        route: '/admin/usuarios',
+        icon: FaUsers,
+        enabled: true
+      },
+      {
+        id: 'admin-partidas',
+        label: 'Partidas',
+        description: 'Consulta global e ações administrativas',
+        route: '/admin/partidas',
+        icon: FaHistory,
+        enabled: true
+      },
+      {
+        id: 'admin-solicitacoes',
+        label: 'Solicitações',
+        description: 'Acesso, convites e pendências',
+        route: '/admin/solicitacoes-acesso',
+        icon: FaBell,
+        enabled: true
+      }
+    ]
+  },
+  {
     id: 'suporte',
     title: 'Suporte',
     items: [
@@ -186,13 +227,18 @@ export function obterMainNavigationItems() {
   return MAIN_NAVIGATION_ITEMS;
 }
 
-export function obterMoreNavigationSections() {
+export function obterMoreNavigationSections(contexto = {}) {
   return MORE_SECTIONS
+    .filter((section) => (
+      typeof section.visible === 'function'
+        ? section.visible(contexto)
+        : true
+    ))
     .map((section) => ({
       ...section,
       items: section.items.filter((item) => (
         typeof item.visible === 'function'
-          ? item.visible()
+          ? item.visible(contexto)
           : true
       ))
     }))

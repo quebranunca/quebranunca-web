@@ -51,6 +51,21 @@ vi.mock('../components/public/PublicFooter', () => ({
   PublicFooter: () => <footer data-testid="public-footer">Footer público</footer>
 }));
 
+function HomeHeroTeste() {
+  return (
+    <AppHero
+      variant="home"
+      subtitle="Boa noite,"
+      title="Gustavo"
+      accountUser={usuarioAutenticado}
+      autenticado
+      showNotifications
+      showBackButton={false}
+      testId="home-dashboard-hero"
+    />
+  );
+}
+
 function renderizarLayout(rota = '/app') {
   return render(
     <MemoryRouter
@@ -59,20 +74,10 @@ function renderizarLayout(rota = '/app') {
     >
       <Routes>
         <Route element={<LayoutPrincipal />}>
+          <Route path="/" element={<HomeHeroTeste />} />
           <Route
             path="/app"
-            element={(
-              <AppHero
-                variant="home"
-                subtitle="Boa noite,"
-                title="Gustavo"
-                accountUser={usuarioAutenticado}
-                autenticado
-                showNotifications
-                showBackButton={false}
-                testId="home-dashboard-hero"
-              />
-            )}
+            element={<HomeHeroTeste />}
           />
           <Route
             path="/ranking"
@@ -101,8 +106,24 @@ afterEach(() => {
 });
 
 describe('LayoutPrincipal com AppHero proprio da pagina', () => {
-  it('na Home renderiza apenas o hero da pagina, sem header global, titulo Home ou voltar', () => {
-    const { container } = renderizarLayout('/app');
+  it.each(['/app', '/'])(
+    'na Home autenticada em %s renderiza apenas o hero da pagina, sem header global, titulo Home ou voltar',
+    (rota) => {
+      const { container } = renderizarLayout(rota);
+      const hero = screen.getByTestId('home-dashboard-hero');
+
+      expect(screen.queryByTestId('global-app-header')).not.toBeInTheDocument();
+      expect(container.querySelectorAll('.app-hero')).toHaveLength(1);
+      expect(within(hero).getByRole('heading', { name: 'Gustavo' })).toBeInTheDocument();
+      expect(within(hero).queryByRole('heading', { name: 'Home' })).not.toBeInTheDocument();
+      expect(within(hero).queryByRole('button', { name: /Voltar/i })).not.toBeInTheDocument();
+      expect(within(hero).getAllByRole('button', { name: /Abrir pendências/i })).toHaveLength(1);
+      expect(within(hero).getAllByRole('button', { name: /Abrir menu da conta/i })).toHaveLength(1);
+    }
+  );
+
+  it('na Home autenticada em /app/ normaliza a rota e nao renderiza header global', () => {
+    const { container } = renderizarLayout('/app/');
     const hero = screen.getByTestId('home-dashboard-hero');
 
     expect(screen.queryByTestId('global-app-header')).not.toBeInTheDocument();
@@ -126,6 +147,7 @@ describe('LayoutPrincipal com AppHero proprio da pagina', () => {
   });
 
   it('normaliza rotas com barra final para manter um unico ponto de renderizacao', () => {
+    expect(paginaRenderizaHeroProprio('/')).toBe(true);
     expect(paginaRenderizaHeroProprio('/app/')).toBe(true);
     expect(paginaRenderizaHeroProprio('/ranking/')).toBe(true);
     expect(paginaRenderizaHeroProprio('/app/partidas/partida-1/')).toBe(true);
