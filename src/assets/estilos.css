@@ -157,18 +157,8 @@ textarea {
   gap: 0;
 }
 
-.layout-home-dashboard-app > .topo-app,
-.layout-home-dashboard-app > .app-hero {
-  display: none;
-}
-
 .layout-pagina-com-hero-proprio {
   gap: 0;
-}
-
-.layout-pagina-com-hero-proprio > .topo-app,
-.layout-pagina-com-hero-proprio > .app-hero {
-  display: none;
 }
 
 .layout-pagina-com-hero-proprio .conteudo-principal {
@@ -7817,10 +7807,6 @@ body.grupos-edicao-modal-aberto .layout-com-bottom-nav {
 
 .layout-grupos-dashboard-app {
   gap: 0;
-}
-
-.layout-grupos-dashboard-app > .topo-app {
-  display: none;
 }
 
 .layout-grupos-dashboard-app .conteudo-principal {
@@ -16736,15 +16722,6 @@ a.botao-terciario:active {
 .layout-autenticado {
   --app-header-offset-top: calc(env(safe-area-inset-top, 0px) + 0.5rem);
   --app-header-content-gap: 0.68rem;
-}
-
-.layout-home-dashboard-app > .topo-app,
-.layout-pagina-com-hero-proprio > .topo-app,
-.layout-grupos-dashboard-app > .topo-app,
-.layout-home-dashboard-app > .app-hero,
-.layout-pagina-com-hero-proprio > .app-hero,
-.layout-grupos-dashboard-app > .app-hero {
-  display: none;
 }
 
 .layout-autenticado .topo-app {

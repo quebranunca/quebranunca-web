@@ -31,6 +31,20 @@ const ROTAS_COM_HERO_PROPRIO_APP = [
 const PADROES_COM_HERO_PROPRIO_APP = [
   /^\/app\/partidas\/[^/]+$/
 ];
+
+function normalizarPathname(pathname) {
+  const pathnameLimpo = String(pathname || '').replace(/\/+$/, '');
+  return pathnameLimpo || '/';
+}
+
+export function paginaRenderizaHeroProprio(pathname) {
+  const pathnameNormalizado = normalizarPathname(pathname);
+
+  return (
+    ROTAS_COM_HERO_PROPRIO_APP.includes(pathnameNormalizado) ||
+    PADROES_COM_HERO_PROPRIO_APP.some((rota) => rota.test(pathnameNormalizado))
+  );
+}
  
 export function LayoutPrincipal() {
   const { token, usuario, sair } = useAutenticacao();
@@ -39,12 +53,10 @@ export function LayoutPrincipal() {
   const autenticado = Boolean(token);
   const homePublica = !autenticado && location.pathname === '/';
   const loginPublico = !autenticado && location.pathname === '/login';
-  const homeDashboardApp = autenticado && location.pathname === '/app';
-  const gruposDashboardApp = autenticado && location.pathname === '/grupos';
-  const paginaComHeroProprioApp = autenticado && (
-    ROTAS_COM_HERO_PROPRIO_APP.includes(location.pathname) ||
-    PADROES_COM_HERO_PROPRIO_APP.some((rota) => rota.test(location.pathname))
-  );
+  const pathnameNormalizado = normalizarPathname(location.pathname);
+  const homeDashboardApp = autenticado && pathnameNormalizado === '/app';
+  const gruposDashboardApp = autenticado && pathnameNormalizado === '/grupos';
+  const paginaComHeroProprioApp = autenticado && paginaRenderizaHeroProprio(pathnameNormalizado);
   const mostrarBottomNavMobile = autenticado &&
     !ROTAS_SEM_BOTTOM_NAV.some((rota) => rota.test(location.pathname));
 
