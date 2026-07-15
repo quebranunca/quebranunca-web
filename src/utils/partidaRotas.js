@@ -8,6 +8,14 @@ export function obterRotaDetalhePartida(partidaOuId) {
   return partidaId ? `/app/partidas/${partidaId}` : '/minhas-partidas';
 }
 
+export function obterRotaEditarPartida(partidaOuId) {
+  const partidaId = typeof partidaOuId === 'string'
+    ? partidaOuId
+    : partidaOuId?.id ?? partidaOuId?.partidaId;
+
+  return partidaId ? `/app/partidas/${partidaId}/editar` : '/minhas-partidas';
+}
+
 export function normalizarOrigemInterna(origem) {
   if (!origem) {
     return '';
@@ -68,6 +76,16 @@ export function criarNavegacaoRegistroPartida({
 
   return {
     to: queryString ? `${ROTA_REGISTRAR_PARTIDA}?${queryString}` : ROTA_REGISTRAR_PARTIDA,
+    state: origemNormalizada ? { origem: origemNormalizada } : undefined
+  };
+}
+
+export function criarNavegacaoEdicaoPartida({ partida, partidaId, origem } = {}) {
+  const id = partidaId || partida?.id || partida?.partidaId;
+  const origemNormalizada = normalizarOrigemInterna(origem);
+
+  return {
+    to: obterRotaEditarPartida(id),
     state: origemNormalizada ? { origem: origemNormalizada } : undefined
   };
 }

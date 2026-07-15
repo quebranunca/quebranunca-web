@@ -195,6 +195,17 @@ describe('PaginaMinhasPartidas - detalhes e exclusao', () => {
     expect(screen.getByTestId('rota-atual')).toHaveTextContent('/app/partidas/partida-1');
   });
 
+  it('navega para a página de edição preservando origem em vez de abrir modal', async () => {
+    const usuario = userEvent.setup();
+    renderizarPagina();
+
+    await usuario.click(await screen.findByRole('button', { name: 'Editar partida' }));
+
+    expect(screen.getByTestId('rota-atual')).toHaveTextContent('/app/partidas/partida-1/editar');
+    expect(screen.getByTestId('origem-atual')).toHaveTextContent('/minhas-partidas?filtro=registradas');
+    expect(screen.queryByRole('dialog', { name: /Editar partida/i })).not.toBeInTheDocument();
+  });
+
   it('navega para os detalhes com Enter e Espaco no card clicavel', async () => {
     renderizarPagina();
 

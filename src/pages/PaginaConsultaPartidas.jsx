@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { FaChevronRight, FaEdit, FaTrash } from 'react-icons/fa';
 import { gruposServico } from '../services/gruposServico';
 import { partidasServico } from '../services/partidasServico';
@@ -11,8 +11,7 @@ import { ehAdministrador } from '../utils/perfis';
 import { podeEditarPartida } from '../utils/permissoesPartida';
 import { PlacarDupla } from '../components/partidas/PlacarDupla';
 import { CompartilharPartidaBotao } from '../components/partidas/CompartilharPartidaBotao';
-import { EditarPartidaRegistradaModal } from '../components/partidas/EditarPartidaRegistradaModal';
-import { obterRotaDetalhePartida } from '../utils/partidaRotas';
+import { criarNavegacaoEdicaoPartida, normalizarOrigemInterna, obterRotaDetalhePartida } from '../utils/partidaRotas';
 
 function obterGrupoPartida(partida) {
   return partida?.nomeGrupo || 'Grupo';
@@ -21,6 +20,7 @@ function obterGrupoPartida(partida) {
 export function PaginaConsultaPartidas() {
   const { usuario } = useAutenticacao();
   const { showNotification } = useNotification();
+  const location = useLocation();
   const administradorLogado = ehAdministrador(usuario);
 
   const [params, setParams] = useSearchParams();
@@ -31,9 +31,7 @@ export function PaginaConsultaPartidas() {
   const [erro, setErro] = useState('');
   const [carregando, setCarregando] = useState(true);
   const [excluindoPartidaIds, setExcluindoPartidaIds] = useState({});
-  const [partidaEmEdicao, setPartidaEmEdicao] = useState(null);
-  const [salvandoEdicao, setSalvandoEdicao] = useState(false);
-  const [erroEdicao, setErroEdicao] = useState('');
+  const origemAtual = normalizarOrigemInterna(location);
 
   useEffect(() => {
     carregarBase();
@@ -139,49 +137,6 @@ export function PaginaConsultaPartidas() {
     return Boolean(partida?.id && administradorLogado);
   }
 
-  function abrirEdicao(partida) {
-    setErroEdicao('');
-    setPartidaEmEdicao(partida);
-  }
-
-  function fecharEdicao() {
-    if (!salvandoEdicao) {
-      setErroEdicao('');
-      setPartidaEmEdicao(null);
-    }
-  }
-
-  async function salvarEdicao(dados) {
-    if (!partidaEmEdicao) {
-      return;
-    }
-
-    setSalvandoEdicao(true);
-    setErroEdicao('');
-
-    try {
-      const partidaAtualizada = await partidasServico.atualizarBasica(partidaEmEdicao.id, dados);
-      await carregarPartidasPorGrupo(grupoId);
-      showNotification({
-        type: 'success',
-        title: 'Partida atualizada',
-        message: 'Partida atualizada com sucesso.'
-      });
-      return partidaAtualizada;
-    } catch (error) {
-      const mensagem = extrairMensagemErro(error);
-      setErroEdicao(mensagem);
-      showNotification({
-        type: 'error',
-        title: 'Erro ao editar partida',
-        message: mensagem
-      });
-      throw error;
-    } finally {
-      setSalvandoEdicao(false);
-    }
-  }
-
   return (
     <section className="pagina">
       <div className="formulario-grid filtro-partidas barra-selecao-fixa">
@@ -269,14 +224,13 @@ export function PaginaConsultaPartidas() {
                       <FaChevronRight aria-hidden="true" />
                     </Link>
                     {podeEditarPartida(partida, usuario) && (
-                      <button
-                        type="button"
+                      <Link
+                        {...criarNavegacaoEdicaoPartida({ partida, origem: origemAtual })}
                         className="botao-secundario botao-compacto botao-editar-partida-discreto"
-                        onClick={() => abrirEdicao(partida)}
                       >
                         <FaEdit aria-hidden="true" />
                         Editar
-                      </button>
+                      </Link>
                     )}
                     {podeRemoverPartida(partida) && (
                       <button
@@ -307,15 +261,6 @@ export function PaginaConsultaPartidas() {
         </section>
       )}
 
-      {partidaEmEdicao && (
-        <EditarPartidaRegistradaModal
-          partida={partidaEmEdicao}
-          salvando={salvandoEdicao}
-          erro={erroEdicao}
-          onSalvar={salvarEdicao}
-          onFechar={fecharEdicao}
-        />
-      )}
     </section>
   );
 }

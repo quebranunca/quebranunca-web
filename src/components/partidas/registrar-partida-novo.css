@@ -3222,6 +3222,59 @@ body.registrar-partida-modal-aberto {
   background: rgba(255, 255, 255, 0.04);
 }
 
+.editar-partida-estado {
+  display: grid;
+  justify-items: center;
+  gap: 0.85rem;
+  width: min(760px, 100%);
+  margin: 0 auto;
+  padding: 1.25rem;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.editar-partida-estado.erro svg {
+  color: #f8c14a;
+}
+
+.editar-partida-estado__acoes,
+.editar-partida-confirmacao__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.editar-partida-confirmacao-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: calc(1rem + env(safe-area-inset-top, 0px)) 1rem calc(1rem + env(safe-area-inset-bottom, 0px));
+  background: rgba(0, 0, 0, 0.68);
+}
+
+.editar-partida-confirmacao {
+  width: min(92vw, 420px);
+  padding: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 1rem;
+  background: #111317;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.36);
+}
+
+.editar-partida-confirmacao h3 {
+  margin: 0 0 0.35rem;
+}
+
+.editar-partida-confirmacao p {
+  margin: 0 0 1rem;
+  color: rgba(255, 255, 255, 0.74);
+}
+
 @media (max-width: 720px), (pointer: coarse) {
   .registrar-partida-pagina__conteudo {
     padding: 0.62rem 0.62rem var(--registrar-partida-page-actions-space);
@@ -3253,5 +3306,11 @@ body.registrar-partida-modal-aberto {
 
   .registrar-partida-novo-pagina .registrar-partida-novo-cta-sticky {
     bottom: calc(var(--bottom-nav-height, 4.9rem) + env(safe-area-inset-bottom, 0px));
+  }
+
+  .editar-partida-estado__acoes,
+  .editar-partida-confirmacao__acoes {
+    display: grid;
+    width: 100%;
   }
 }

@@ -25,7 +25,12 @@ vi.mock('../services/partidasServico', () => ({
 
 function LocalizacaoAtual() {
   const location = useLocation();
-  return <span data-testid="rota-atual">{`${location.pathname}${location.search}`}</span>;
+  return (
+    <>
+      <span data-testid="rota-atual">{`${location.pathname}${location.search}`}</span>
+      <span data-testid="origem-atual">{location.state?.origem || ''}</span>
+    </>
+  );
 }
 
 function criarPartida(sobrescritas = {}) {
@@ -80,6 +85,7 @@ function renderizarPagina(rota = '/app/partidas/partida-1') {
     <MemoryRouter initialEntries={[rota]} future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
       <Routes>
         <Route path="/app/partidas/:partidaId" element={<><PaginaPartidaDetalhe /><LocalizacaoAtual /></>} />
+        <Route path="/app/partidas/:partidaId/editar" element={<LocalizacaoAtual />} />
         <Route path="/minhas-partidas" element={<LocalizacaoAtual />} />
       </Routes>
     </MemoryRouter>
@@ -109,6 +115,16 @@ describe('PaginaPartidaDetalhe', () => {
     expect(screen.getByRole('button', { name: /Cancelar partida/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Excluir definitivamente/i })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Solicitar cancelamento/i })).not.toBeInTheDocument();
+  });
+
+  it('navega para a página de edição preservando origem do detalhe', async () => {
+    const usuario = userEvent.setup();
+    renderizarPagina();
+
+    await usuario.click(await screen.findByRole('link', { name: 'Editar partida' }));
+
+    expect(screen.getByTestId('rota-atual')).toHaveTextContent('/app/partidas/partida-1/editar');
+    expect(screen.getByTestId('origem-atual')).toHaveTextContent('/app/partidas/partida-1');
   });
 
   it('valida motivo obrigatório antes de cancelar diretamente', async () => {

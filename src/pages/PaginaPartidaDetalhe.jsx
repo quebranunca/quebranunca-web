@@ -1,10 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { FaBan, FaEdit, FaRegTrashAlt, FaTimes, FaTrophy } from 'react-icons/fa';
 import { AppHero } from '../components/AppHero';
 import { CompartilharPartidaBotao } from '../components/partidas/CompartilharPartidaBotao';
 import { partidasServico } from '../services/partidasServico';
 import { formatarDataHoraCurta } from '../utils/formatacao';
+import {
+  criarNavegacaoEdicaoPartida,
+  normalizarOrigemInterna
+} from '../utils/partidaRotas';
 import {
   obterNomeGrupoPartidaExibicao,
   obterNomeStatusAprovacao,
@@ -89,6 +93,7 @@ function obterMotivoSolicitacao(solicitacao) {
 export function PaginaPartidaDetalhe() {
   const { partidaId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [partida, setPartida] = useState(null);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState('');
@@ -98,6 +103,7 @@ export function PaginaPartidaDetalhe() {
 
   const permissoes = useMemo(() => obterPermissoes(partida), [partida]);
   const solicitacao = partida?.solicitacaoCancelamento;
+  const origemAtual = normalizarOrigemInterna(location);
 
   async function carregarPartida() {
     if (!partidaId) {
@@ -198,8 +204,8 @@ export function PaginaPartidaDetalhe() {
           <>
             {permissoes.podeEditar && !partida?.cancelada && (
               <Link
+                {...criarNavegacaoEdicaoPartida({ partida, origem: origemAtual })}
                 className="botao-secundario botao-compacto"
-                to={`/partidas/registrar?partidaId=${partida.id}`}
                 aria-label="Editar partida"
                 title="Editar partida"
               >

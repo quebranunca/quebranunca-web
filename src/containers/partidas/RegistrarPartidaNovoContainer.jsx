@@ -587,7 +587,8 @@ export function RegistrarPartidaNovoContainer({
   partidaInicial = null,
   onSalvarEdicao = null,
   salvandoExterno = false,
-  erroExterno = ''
+  erroExterno = '',
+  onAlteracaoPendente = null
 }) {
   const { usuario } = useAutenticacao();
   const navegar = useNavigate();
@@ -1013,6 +1014,7 @@ export function RegistrarPartidaNovoContainer({
   }, []);
 
   function alterarCampo(campo, valor) {
+    onAlteracaoPendente?.(true);
     setErro('');
     setDuplicidade(null);
     setPayloadPendente(null);
@@ -1122,6 +1124,7 @@ export function RegistrarPartidaNovoContainer({
   }
 
   function selecionarAtleta(campo, atleta) {
+    onAlteracaoPendente?.(true);
     const atletaSelecionado = criarAtletaSelecao(atleta);
 
     if (!atletaSelecionado) {
@@ -1154,6 +1157,7 @@ export function RegistrarPartidaNovoContainer({
       return;
     }
 
+    onAlteracaoPendente?.(true);
     clearTimeout(buscaTimersRef.current[campo]);
     setErro('');
     setDuplicidade(null);
@@ -1203,6 +1207,7 @@ export function RegistrarPartidaNovoContainer({
           salvoEm: new Date().toISOString()
         }
       });
+      onAlteracaoPendente?.(false);
       setPayloadPendente(null);
       setDuplicidade(null);
     } catch (falha) {
@@ -1327,6 +1332,7 @@ export function RegistrarPartidaNovoContainer({
   }
 
   function selecionarGrupo(grupo) {
+    onAlteracaoPendente?.(true);
     const grupoNormalizado = normalizarGrupoContexto(grupo);
     setContextoPartida((atual) => ({
       ...atual,
@@ -1358,6 +1364,7 @@ export function RegistrarPartidaNovoContainer({
   }
 
   function removerGrupo() {
+    onAlteracaoPendente?.(true);
     setContextoPartida((atual) => ({
       ...atual,
       grupoId: null

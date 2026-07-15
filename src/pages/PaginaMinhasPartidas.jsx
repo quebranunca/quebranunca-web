@@ -11,10 +11,9 @@ import {
   FaTrashAlt,
   FaTrophy
 } from 'react-icons/fa';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { AppHero } from '../components/AppHero';
 import { CompartilharPartidaBotao } from '../components/partidas/CompartilharPartidaBotao';
-import { EditarPartidaRegistradaModal } from '../components/partidas/EditarPartidaRegistradaModal';
 import { PartidaCardPremium } from '../components/partidas/PartidaCardPremium';
 import { useNotification } from '../contexts/NotificationContext';
 import { useAutenticacao } from '../hooks/useAutenticacao';
@@ -24,7 +23,7 @@ import { formatarNomeDupla } from '../utils/atletaUtils';
 import { extrairMensagemErro } from '../utils/erros';
 import { formatarDataHoraCurta } from '../utils/formatacao';
 import { podeEditarPartida, podeExcluirPartida } from '../utils/permissoesPartida';
-import { criarNavegacaoRegistroPartida, obterRotaDetalhePartida } from '../utils/partidaRotas';
+import { criarNavegacaoEdicaoPartida, criarNavegacaoRegistroPartida, normalizarOrigemInterna, obterRotaDetalhePartida } from '../utils/partidaRotas';
 import { scrollFocusedInputIntoView } from '../utils/tecladoMobile';
 import {
   atletaEstaNaDuplaA,
@@ -614,25 +613,24 @@ export function PaginaMinhasPartidas() {
   const { showNotification } = useNotification();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const atletaLogadoId = usuario?.atletaId;
   const usuarioId = usuario?.id;
   const [partidas, setPartidas] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState('');
-  const [erroEdicao, setErroEdicao] = useState('');
   const [filtroAtivo, setFiltroAtivo] = useState(() => normalizarFiltro(searchParams.get('filtro')));
   const [ordem, setOrdem] = useState('recentes');
   const [partidaDetalhe, setPartidaDetalhe] = useState(null);
-  const [partidaEmEdicao, setPartidaEmEdicao] = useState(null);
   const [partidaEmExclusao, setPartidaEmExclusao] = useState(null);
   const [erroExclusao, setErroExclusao] = useState('');
   const [partidaEmSolicitacaoCancelamento, setPartidaEmSolicitacaoCancelamento] = useState(null);
   const [partidaSolicitacaoDetalhe, setPartidaSolicitacaoDetalhe] = useState(null);
   const [confirmacaoCancelamento, setConfirmacaoCancelamento] = useState(null);
   const [erroCancelamento, setErroCancelamento] = useState('');
-  const [salvandoEdicao, setSalvandoEdicao] = useState(false);
   const [excluindoPartidaId, setExcluindoPartidaId] = useState('');
   const [processandoCancelamento, setProcessandoCancelamento] = useState('');
+  const origemAtual = normalizarOrigemInterna(location);
 
   useEffect(() => {
     setFiltroAtivo(normalizarFiltro(searchParams.get('filtro')));
@@ -706,17 +704,13 @@ export function PaginaMinhasPartidas() {
     carregarPartidas();
   }, [atletaLogadoId, usuarioId]);
 
-  function abrirEdicao(partida) {
-    setErroEdicao('');
+  function irParaEdicao(partida) {
+    const navegacao = criarNavegacaoEdicaoPartida({
+      partida,
+      origem: origemAtual || '/minhas-partidas'
+    });
     setPartidaDetalhe(null);
-    setPartidaEmEdicao(partida);
-  }
-
-  function fecharEdicao() {
-    if (!salvandoEdicao) {
-      setErroEdicao('');
-      setPartidaEmEdicao(null);
-    }
+    navigate(navegacao.to, { state: navegacao.state });
   }
 
   function abrirConfirmacaoExclusao(partida) {
@@ -913,37 +907,6 @@ export function PaginaMinhasPartidas() {
     }
   }
 
-  async function salvarEdicao(dados) {
-    if (!partidaEmEdicao) {
-      return;
-    }
-
-    setSalvandoEdicao(true);
-    setErroEdicao('');
-
-    try {
-      const partidaAtualizada = await partidasServico.atualizarBasica(partidaEmEdicao.id, dados);
-      await carregarPartidas({ manterCarregando: false });
-      showNotification({
-        type: 'success',
-        title: 'Partida atualizada',
-        message: 'Partida atualizada com sucesso.'
-      });
-      return partidaAtualizada;
-    } catch (error) {
-      const mensagem = extrairMensagemErro(error);
-      setErroEdicao(mensagem);
-      showNotification({
-        type: 'error',
-        title: 'Erro ao editar partida',
-        message: mensagem
-      });
-      throw error;
-    } finally {
-      setSalvandoEdicao(false);
-    }
-  }
-
   const filtrosDisponiveis = useMemo(() => (
     atletaLogadoId ? [...FILTROS_PRINCIPAIS, ...FILTROS_ATLETA] : FILTROS_PRINCIPAIS
   ), [atletaLogadoId]);
@@ -1062,7 +1025,7 @@ export function PaginaMinhasPartidas() {
               atletaLogadoId={atletaLogadoId}
               filtroAtivo={filtroAtivo}
               onDetalhes={() => setPartidaDetalhe(partida)}
-              onEditar={podeEditarPartida(partida, usuario) ? () => abrirEdicao(partida) : null}
+              onEditar={podeEditarPartida(partida, usuario) ? () => irParaEdicao(partida) : null}
               onSolicitarCancelamento={() => abrirSolicitacaoCancelamento(partida)}
               onVerSolicitacao={() => abrirDetalheSolicitacaoCancelamento(partida)}
               onAprovarCancelamento={() => abrirConfirmacaoAcaoCancelamento('aprovar', partida)}
@@ -1079,7 +1042,7 @@ export function PaginaMinhasPartidas() {
           partida={partidaDetalhe}
           atletaLogadoId={atletaLogadoId}
           onFechar={() => setPartidaDetalhe(null)}
-          onEditar={podeEditarPartida(partidaDetalhe, usuario) ? () => abrirEdicao(partidaDetalhe) : null}
+          onEditar={podeEditarPartida(partidaDetalhe, usuario) ? () => irParaEdicao(partidaDetalhe) : null}
           onExcluir={podeExcluirPartida(partidaDetalhe, usuario) ? () => abrirConfirmacaoExclusao(partidaDetalhe) : null}
           onSolicitarCancelamento={() => abrirSolicitacaoCancelamento(partidaDetalhe)}
           onVerSolicitacao={() => abrirDetalheSolicitacaoCancelamento(partidaDetalhe)}
@@ -1130,15 +1093,6 @@ export function PaginaMinhasPartidas() {
         />
       )}
 
-      {partidaEmEdicao && (
-        <EditarPartidaRegistradaModal
-          partida={partidaEmEdicao}
-          salvando={salvandoEdicao}
-          erro={erroEdicao}
-          onSalvar={salvarEdicao}
-          onFechar={fecharEdicao}
-        />
-      )}
     </section>
   );
 }
