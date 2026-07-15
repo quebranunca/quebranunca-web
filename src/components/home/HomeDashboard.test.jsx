@@ -367,8 +367,9 @@ describe('HomeDashboard nova experiencia', () => {
     expect(within(ultimoJogo).getByText('Primo / Gustavo')).toBeInTheDocument();
     expect(within(ultimoJogo).getByText('Rafa / Leo')).toBeInTheDocument();
     expect(within(ultimoJogo).getByText('Vitória')).toBeInTheDocument();
-    expect(within(ultimoJogo).getByText('Confirmada')).toBeInTheDocument();
-    expect(within(ultimoJogo).getByText('4 atletas')).toBeInTheDocument();
+    expect(within(ultimoJogo).queryByText('Confirmada')).not.toBeInTheDocument();
+    expect(within(ultimoJogo).queryByText('4 atletas')).not.toBeInTheDocument();
+    expect(ultimoJogo.querySelector('.home-dashboard-ultimo-jogo-rodape')).toBeNull();
     expect(within(ultimoJogo).queryByText('Derrota')).not.toBeInTheDocument();
     expect(within(ultimoJogo).queryByText('0 x 0')).not.toBeInTheDocument();
     expect(within(ultimoJogo).queryByText('Placar pendente')).not.toBeInTheDocument();
@@ -395,6 +396,9 @@ describe('HomeDashboard nova experiencia', () => {
     expect(within(ultimoJogo).getByText('Rafa / Leo')).toBeInTheDocument();
     expect(within(ultimoJogo).getByLabelText('Dupla vencedora')).toBeInTheDocument();
     expect(within(ultimoJogo).queryByText('Vitória sem placar')).not.toBeInTheDocument();
+    expect(within(ultimoJogo).queryByText('Confirmada')).not.toBeInTheDocument();
+    expect(within(ultimoJogo).queryByText('4 atletas')).not.toBeInTheDocument();
+    expect(ultimoJogo.querySelector('.home-dashboard-ultimo-jogo-rodape')).toBeNull();
     expect(within(ultimoJogo).queryByText('0 x 0')).not.toBeInTheDocument();
     expect(within(ultimoJogo).queryByLabelText('Resultado com placar')).not.toBeInTheDocument();
   });

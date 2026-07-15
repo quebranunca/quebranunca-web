@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import {
   FaCalendarAlt,
   FaChartLine,
-  FaCheckCircle,
   FaChevronRight,
   FaClipboardCheck,
   FaEdit,
@@ -218,28 +217,6 @@ function obterPlacarDetalhadoPartida(partida) {
   };
 }
 
-function obterStatusPartida(partida) {
-  const status = obterTextoLimpo(partida?.statusTexto, partida?.statusAprovacaoTexto, partida?.status);
-  const statusNormalizado = status
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '');
-
-  if (!status) {
-    return 'Confirmada';
-  }
-
-  if (statusNormalizado.includes('encerr') || statusNormalizado.includes('aprov') || statusNormalizado.includes('confirm')) {
-    return 'Confirmada';
-  }
-
-  if (statusNormalizado.includes('pend') || statusNormalizado.includes('aguard')) {
-    return 'Aguardando confirmação';
-  }
-
-  return status;
-}
-
 function formatarTextoDupla(valor) {
   return obterTextoLimpo(valor)
     .replace(/\s+e\s+/gi, ' / ')
@@ -401,17 +378,6 @@ function obterDataHoraAtividade(data) {
   }).format(referencia);
 
   return `${formatarDataAtividade(data)} ${hora}`;
-}
-
-function obterTotalAtletasDuplas(duplas) {
-  const nomes = [
-    ...(duplas?.suaDupla?.atletas || []),
-    ...(duplas?.adversarios?.atletas || [])
-  ]
-    .map((atleta) => obterTextoLimpo(atleta?.id, atleta?.nome))
-    .filter(Boolean);
-
-  return Math.max(0, new Set(nomes).size);
 }
 
 function HomeEstado({ titulo, mensagem }) {
@@ -819,13 +785,11 @@ function HomeUltimoJogo({ ultimasPartidas, erro, atletaId, nomeAtleta }) {
               partida.competicao
             ].filter(Boolean)[0] || 'Partida avulsa';
             const placar = obterPlacarDetalhadoPartida(partida);
-            const status = obterStatusPartida(partida);
             const duplas = obterDuplasUltimoJogo(partida, atletaId, nomeAtleta);
             const tituloPartida = obterTituloPartida(partida, contexto);
             const contextoSecundario = normalizarTextoComparacao(tituloPartida) !== normalizarTextoComparacao(contexto)
               ? contexto
               : '';
-            const totalAtletas = obterTotalAtletasDuplas(duplas) || 4;
 
             return (
               <Link
@@ -859,17 +823,6 @@ function HomeUltimoJogo({ ultimasPartidas, erro, atletaId, nomeAtleta }) {
                     classeResultado={classeResultado}
                   />
                 )}
-
-                <div className="home-dashboard-ultimo-jogo-rodape">
-                  <span>
-                    {status === 'Confirmada' ? <FaCheckCircle aria-hidden="true" /> : <FaClipboardCheck aria-hidden="true" />}
-                    {status}
-                  </span>
-                  <span>
-                    <FaUsers aria-hidden="true" />
-                    {totalAtletas} atletas
-                  </span>
-                </div>
               </Link>
             );
           })}
