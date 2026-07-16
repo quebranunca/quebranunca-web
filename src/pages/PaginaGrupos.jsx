@@ -249,9 +249,9 @@ function aguardarRecalculoViewport() {
   });
 }
 
-function GruposHomeCriarGrupoBotao({ autenticado, podeCriarGrupo, onCriarGrupo }) {
+function GruposHomeCriarGrupoBotao({ autenticado, podeCriarGrupo, onCriarGrupo, compacto = false }) {
   return (
-    <div className="grupos-home-criar-shell">
+    <div className={`grupos-home-criar-shell${compacto ? ' grupos-home-criar-shell-compacto' : ''}`}>
       <button
         type="button"
         className="grupos-home-criar-botao"
@@ -363,13 +363,21 @@ function GrupoPrincipalHomeCard({ grupo, onAbrir }) {
   );
 }
 
-function GruposHomeSemGrupos() {
+function GruposHomeSemGrupos({ autenticado, podeCriarGrupo, onCriarGrupo }) {
   return (
     <article className="grupos-home-card-vazio grupos-home-sem-grupos">
       <span className="grupos-dashboard-card-icone"><FaUsers aria-hidden="true" /></span>
       <div>
         <strong>Você ainda não participa de nenhum grupo.</strong>
         <p>Crie seu primeiro grupo para registrar partidas com sua galera.</p>
+        {podeCriarGrupo && (
+          <GruposHomeCriarGrupoBotao
+            autenticado={autenticado}
+            podeCriarGrupo={podeCriarGrupo}
+            onCriarGrupo={onCriarGrupo}
+            compacto
+          />
+        )}
       </div>
     </article>
   );
@@ -893,13 +901,6 @@ export function PaginaGrupos() {
       <AppHero
         title="Grupos"
         subtitle="Organize partidas e acompanhe sua comunidade."
-        actions={
-          <GruposHomeCriarGrupoBotao
-            autenticado={autenticado}
-            podeCriarGrupo={podeCriarGrupo}
-            onCriarGrupo={iniciarCriacaoGrupo}
-          />
-        }
         autenticado={autenticado}
         showAccountActions={autenticado}
         showBackButton
@@ -1107,7 +1108,11 @@ export function PaginaGrupos() {
         </article>
       ) : !possuiGrupos ? (
         <>
-          <GruposHomeSemGrupos />
+          <GruposHomeSemGrupos
+            autenticado={autenticado}
+            podeCriarGrupo={podeCriarGrupo}
+            onCriarGrupo={iniciarCriacaoGrupo}
+          />
           <GruposHomeAtividadeRecente atividades={[]} onAbrirGrupo={(grupoId) => grupoId && navegar(`/grupos/${grupoId}`)} />
         </>
       ) : (
