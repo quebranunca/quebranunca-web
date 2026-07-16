@@ -168,6 +168,45 @@ test.describe('Editar partida', () => {
     await expect(page.getByText('19 x 21')).toBeVisible();
   });
 
+  test('detalhe mobile mostra editar e compartilhar fora do hero e abaixo do resultado', async ({ page, isMobile }) => {
+    test.skip(!isMobile, 'Cenário específico do projeto Mobile Chrome.');
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await prepararApiEdicao(page);
+    await page.goto(`/app/partidas/${PARTIDA_ID}`);
+
+    const hero = page.locator('.app-hero');
+    const cardPrincipal = page.locator('.partida-detalhe-card.principal');
+    const secaoAcoes = page.getByRole('region', { name: 'Ações da partida' });
+
+    await expect(cardPrincipal).toBeVisible();
+    await expect(secaoAcoes).toBeVisible();
+    await expect(hero.getByRole('link', { name: 'Editar partida' })).toHaveCount(0);
+    await expect(hero.getByRole('button', { name: 'Compartilhar partida' })).toHaveCount(0);
+    await expect(secaoAcoes.getByRole('link', { name: 'Editar partida' })).toBeVisible();
+    await expect(secaoAcoes.getByRole('button', { name: 'Compartilhar partida' })).toBeVisible();
+
+    const posicoes = await page.evaluate(() => {
+      const principal = document.querySelector('.partida-detalhe-card.principal');
+      const acoes = document.querySelector('.partida-detalhe-card.acoes-partida');
+      const bottomNav = document.querySelector('.mobile-bottom-navigation');
+      const principalRect = principal?.getBoundingClientRect();
+      const acoesRect = acoes?.getBoundingClientRect();
+      const bottomNavRect = bottomNav?.getBoundingClientRect();
+
+      return {
+        acoesAbaixoResultado: Boolean(principalRect && acoesRect && acoesRect.top >= principalRect.bottom),
+        acoesSobrepoemNav: Boolean(acoesRect && bottomNavRect && acoesRect.bottom > bottomNavRect.top && acoesRect.top < bottomNavRect.bottom)
+      };
+    });
+
+    expect(posicoes.acoesAbaixoResultado).toBe(true);
+    expect(posicoes.acoesSobrepoemNav).toBe(false);
+
+    await secaoAcoes.getByRole('link', { name: 'Editar partida' }).click();
+    await expect(page).toHaveURL(new RegExp(`/app/partidas/${PARTIDA_ID}/editar$`));
+  });
+
   test('confirma volta sem salvar mantendo origem', async ({ page }) => {
     await prepararApiEdicao(page);
     await page.goto(`/app/partidas/${PARTIDA_ID}/editar`);

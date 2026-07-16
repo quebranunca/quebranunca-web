@@ -104,6 +104,9 @@ export function PaginaPartidaDetalhe() {
   const permissoes = useMemo(() => obterPermissoes(partida), [partida]);
   const solicitacao = partida?.solicitacaoCancelamento;
   const origemAtual = normalizarOrigemInterna(location);
+  const podeEditarPartidaDetalhe = permissoes.podeEditar && !partida?.cancelada;
+  const podeCompartilharPartidaDetalhe = !partida?.cancelada;
+  const podeExibirAcoesPartida = podeEditarPartidaDetalhe || podeCompartilharPartidaDetalhe;
 
   async function carregarPartida() {
     if (!partidaId) {
@@ -200,28 +203,6 @@ export function PaginaPartidaDetalhe() {
         title="Detalhes da partida"
         subtitle="Resultado, atletas e estatísticas."
         badge={[partida?.cancelada ? 'Partida cancelada' : '', obterNomeGrupoPartidaExibicao(partida?.nomeGrupo)].filter(Boolean).join(' • ')}
-        actions={
-          <>
-            {permissoes.podeEditar && !partida?.cancelada && (
-              <Link
-                {...criarNavegacaoEdicaoPartida({ partida, origem: origemAtual })}
-                className="botao-secundario botao-compacto"
-                aria-label="Editar partida"
-                title="Editar partida"
-              >
-                <FaEdit aria-hidden="true" />
-                <span>Editar</span>
-              </Link>
-            )}
-            {!partida?.cancelada && (
-              <CompartilharPartidaBotao
-                partidaId={partida.id}
-                registradoPor={partida.nomeCriadoPorUsuario}
-                className="botao-compartilhar-partida botao-compacto"
-              />
-            )}
-          </>
-        }
         showBackButton
         onBack={() => navigate(-1)}
         variant="detail"
@@ -250,6 +231,34 @@ export function PaginaPartidaDetalhe() {
           <DuplaDetalhe titulo="Dupla B" nomes={obterNomesDupla(partida, 'B')} vencedora={partida?.duplaVencedora === 2 || partida?.duplaVencedoraId === partida?.duplaBId} />
         </div>
       </section>
+
+      {podeExibirAcoesPartida && (
+        <section className="partida-detalhe-card acoes-partida" aria-labelledby="partida-detalhe-acoes-partida-titulo">
+          <div className="partida-detalhe-section-title">
+            <strong id="partida-detalhe-acoes-partida-titulo">Ações da partida</strong>
+          </div>
+          <div className="partida-detalhe-acoes-principais">
+            {podeEditarPartidaDetalhe && (
+              <Link
+                {...criarNavegacaoEdicaoPartida({ partida, origem: origemAtual })}
+                className="botao-primario"
+                aria-label="Editar partida"
+                title="Editar partida"
+              >
+                <FaEdit aria-hidden="true" />
+                <span>Editar</span>
+              </Link>
+            )}
+            {podeCompartilharPartidaDetalhe && (
+              <CompartilharPartidaBotao
+                partidaId={partida.id}
+                registradoPor={partida.nomeCriadoPorUsuario}
+                className="botao-secundario botao-compartilhar-partida"
+              />
+            )}
+          </div>
+        </section>
+      )}
 
       {partida?.cancelamentoPendente && (
         <section className="partida-detalhe-card pendente">

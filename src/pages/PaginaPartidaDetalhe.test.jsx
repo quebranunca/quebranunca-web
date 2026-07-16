@@ -6,8 +6,15 @@ import { PaginaPartidaDetalhe } from './PaginaPartidaDetalhe';
 import { partidasServico } from '../services/partidasServico';
 
 vi.mock('../components/partidas/CompartilharPartidaBotao', () => ({
-  CompartilharPartidaBotao: ({ partidaId }) => (
-    <button type="button">Compartilhar {partidaId}</button>
+  CompartilharPartidaBotao: ({
+    partidaId,
+    className,
+    ariaLabel = 'Compartilhar partida',
+    title = 'Compartilhar partida'
+  }) => (
+    <button type="button" className={className} aria-label={ariaLabel} title={title}>
+      Compartilhar {partidaId}
+    </button>
   )
 }));
 
@@ -117,6 +124,21 @@ describe('PaginaPartidaDetalhe', () => {
     expect(screen.queryByRole('button', { name: /Solicitar cancelamento/i })).not.toBeInTheDocument();
   });
 
+  it('renderiza editar e compartilhar na seção de ações da partida fora do hero', async () => {
+    const { container } = renderizarPagina();
+
+    expect(await screen.findByText('21 x 18')).toBeInTheDocument();
+
+    const secaoAcoes = screen.getByRole('region', { name: 'Ações da partida' });
+    expect(within(secaoAcoes).getByRole('link', { name: 'Editar partida' })).toBeInTheDocument();
+    expect(within(secaoAcoes).getByRole('button', { name: 'Compartilhar partida' })).toBeInTheDocument();
+
+    const hero = container.querySelector('.app-hero');
+    expect(hero).toBeInTheDocument();
+    expect(within(hero).queryByRole('link', { name: 'Editar partida' })).not.toBeInTheDocument();
+    expect(within(hero).queryByRole('button', { name: 'Compartilhar partida' })).not.toBeInTheDocument();
+  });
+
   it('navega para a página de edição preservando origem do detalhe', async () => {
     const usuario = userEvent.setup();
     renderizarPagina();
@@ -125,6 +147,46 @@ describe('PaginaPartidaDetalhe', () => {
 
     expect(screen.getByTestId('rota-atual')).toHaveTextContent('/app/partidas/partida-1/editar');
     expect(screen.getByTestId('origem-atual')).toHaveTextContent('/app/partidas/partida-1');
+  });
+
+  it('mantém apenas compartilhar na seção quando usuário não pode editar partida ativa', async () => {
+    partidasServico.obterPorId.mockResolvedValueOnce(criarPartida({
+      permissoes: {
+        podeEditar: false,
+        podeCancelar: false,
+        podeExcluirDefinitivamente: false,
+        podeSolicitarCancelamento: false,
+        podeResponderCancelamento: false,
+        podeCancelarSolicitacao: false
+      }
+    }));
+
+    renderizarPagina();
+
+    expect(await screen.findByText('21 x 18')).toBeInTheDocument();
+    const secaoAcoes = screen.getByRole('region', { name: 'Ações da partida' });
+    expect(within(secaoAcoes).queryByRole('link', { name: 'Editar partida' })).not.toBeInTheDocument();
+    expect(within(secaoAcoes).getByRole('button', { name: 'Compartilhar partida' })).toBeInTheDocument();
+  });
+
+  it('não renderiza a seção de ações da partida quando a partida cancelada não tem ações principais', async () => {
+    partidasServico.obterPorId.mockResolvedValueOnce(criarPartida({
+      cancelada: true,
+      canceladaEm: '2026-07-05T12:00:00Z',
+      permissoes: {
+        podeEditar: true,
+        podeCancelar: true,
+        podeExcluirDefinitivamente: true,
+        podeSolicitarCancelamento: false,
+        podeResponderCancelamento: false,
+        podeCancelarSolicitacao: false
+      }
+    }));
+
+    renderizarPagina();
+
+    expect(await screen.findByText(/Esta partida foi cancelada/i)).toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'Ações da partida' })).not.toBeInTheDocument();
   });
 
   it('valida motivo obrigatório antes de cancelar diretamente', async () => {

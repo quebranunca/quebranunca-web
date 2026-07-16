@@ -17365,6 +17365,28 @@ a.botao-terciario:active {
   min-height: 44px;
 }
 
+.partida-detalhe-acoes-principais {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.partida-detalhe-acoes-principais > a,
+.partida-detalhe-acoes-principais > button {
+  width: 100%;
+  min-height: 46px;
+  justify-content: center;
+}
+
+.partida-detalhe-acoes-principais > .compartilhar-partida-erro {
+  grid-column: 1 / -1;
+}
+
+.partida-detalhe-acoes-principais > .compartilhar-partida-render {
+  grid-column: 1 / -1;
+}
+
 .partida-detalhe-feedback {
   margin: 10px 0;
   padding: 12px 14px;
@@ -17480,6 +17502,10 @@ a.botao-terciario:active {
   }
 
   .partida-detalhe-lista {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .partida-detalhe-acoes-principais {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
