@@ -8,6 +8,33 @@ test.beforeEach(async ({ page }) => {
   await prepararApiRegistroPartida(page);
 });
 
+async function rolarConteudoAteFicarAcimaDasAcoes(page, seletorConteudo) {
+  await expect.poll(async () => {
+    return page.evaluate((seletor) => {
+      const conteudo = document.querySelector(seletor);
+      const acoes = document.querySelector('.registrar-partida-novo-cta-sticky');
+      const scroller = document.querySelector('.conteudo-principal') || document.scrollingElement;
+
+      if (!(conteudo instanceof HTMLElement) || !acoes || !scroller) {
+        return false;
+      }
+
+      const conteudoRect = conteudo.getBoundingClientRect();
+      const acoesRect = acoes.getBoundingClientRect();
+      const visivelAcimaDasAcoes = conteudoRect.bottom <= acoesRect.top;
+
+      if (!visivelAcimaDasAcoes) {
+        scroller.scrollBy({ top: 120, behavior: 'instant' });
+      }
+
+      return visivelAcimaDasAcoes;
+    }, seletorConteudo);
+  }, {
+    intervals: [100, 150, 200],
+    timeout: 3000
+  }).toBe(true);
+}
+
 test.describe('Registrar partida', () => {
   test('abre o fluxo e exibe os elementos principais', async ({ page }) => {
     const fluxo = new RegistrarPartidaPage(page);
@@ -75,12 +102,41 @@ test.describe('Registrar partida', () => {
 test('mantém ações acessíveis e página sem bloqueio de modal no viewport mobile', async ({ page, isMobile }) => {
     test.skip(!isMobile, 'Cenário específico do projeto Mobile Chrome.');
 
+    await page.setViewportSize({ width: 360, height: 740 });
     const fluxo = new RegistrarPartidaPage(page);
     await fluxo.abrir();
     await fluxo.preencherPartidaValida();
 
+    await rolarConteudoAteFicarAcimaDasAcoes(page, '.registrar-partida-novo-revisao');
     await expect(page.getByRole('button', { name: 'Registrar partida' })).toBeInViewport();
     await expect(fluxo.pagina.getByRole('button', { name: 'Voltar' })).toBeInViewport();
+
+    const geometria = await page.evaluate(() => {
+      const conteudoFinal = document.querySelector('.registrar-partida-novo-revisao-card') ||
+        document.querySelector('.registrar-partida-novo-revisao');
+      const acoes = document.querySelector('.registrar-partida-novo-cta-sticky');
+      const bottomNav = document.querySelector('.mobile-bottom-navigation');
+      const corpo = document.querySelector('.registrar-partida-novo-corpo');
+      const formulario = document.querySelector('.registrar-partida-novo-formulario');
+
+      const conteudoRect = conteudoFinal?.getBoundingClientRect();
+      const acoesRect = acoes?.getBoundingClientRect();
+      const bottomNavRect = bottomNav?.getBoundingClientRect();
+      const corpoStyle = corpo ? getComputedStyle(corpo) : null;
+      const formularioStyle = formulario ? getComputedStyle(formulario) : null;
+
+      return {
+        conteudoAcimaDasAcoes: Boolean(conteudoRect && acoesRect && conteudoRect.bottom <= acoesRect.top),
+        acoesAcimaDaNav: Boolean(acoesRect && bottomNavRect && acoesRect.bottom <= bottomNavRect.top + 1),
+        paddingCorpo: corpoStyle?.paddingBottom || '',
+        paddingFormulario: formularioStyle?.paddingBottom || ''
+      };
+    });
+
+    expect(geometria.conteudoAcimaDasAcoes).toBe(true);
+    expect(geometria.acoesAcimaDaNav).toBe(true);
+    expect(parseFloat(geometria.paddingCorpo)).toBeGreaterThan(120);
+    expect(parseFloat(geometria.paddingFormulario)).toBeGreaterThan(120);
 
     const bloqueioModal = await page.evaluate(() => ({
       bodyClass: document.body.classList.contains('registrar-partida-modal-aberto'),

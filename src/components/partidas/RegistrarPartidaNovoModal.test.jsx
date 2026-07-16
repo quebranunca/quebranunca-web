@@ -1,4 +1,5 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { readFileSync } from 'node:fs';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { RegistrarPartidaNovoModal } from './RegistrarPartidaNovoModal';
 
@@ -157,13 +158,23 @@ describe('RegistrarPartidaNovoModal - revisão', () => {
     const { container } = renderizarModal({ modoExibicao: 'pagina' });
 
     const pagina = container.querySelector('.registrar-partida-novo-pagina');
+    const formulario = container.querySelector('.registrar-partida-novo-pagina .registrar-partida-novo-formulario');
     expect(pagina).not.toBeNull();
     expect(pagina).toHaveAttribute('data-modo-exibicao', 'pagina');
     expect(pagina).not.toHaveAttribute('aria-modal');
     expect(screen.queryByRole('dialog', { name: /Registrar partida/i })).not.toBeInTheDocument();
     expect(container.querySelector('.registrar-partida-novo-sobreposicao')).toBeNull();
+    expect(formulario).not.toBeNull();
     expect(container.querySelector('.registrar-partida-novo-pagina .registrar-partida-novo-corpo')).not.toBeNull();
     expect(container.querySelector('.registrar-partida-novo-pagina .registrar-partida-novo-cta-sticky')).not.toBeNull();
+  });
+
+  it('mantém reserva inferior no formulário do modo página sem aplicar ao modal legado', () => {
+    const css = readFileSync(`${process.cwd()}/src/components/partidas/registrar-partida-novo.css`, 'utf8');
+
+    expect(css).toMatch(/\.registrar-partida-novo-pagina \.registrar-partida-novo-formulario\s*{[^}]*padding-bottom:\s*var\(--registrar-partida-page-actions-space\)/s);
+    expect(css).toMatch(/\.registrar-partida-novo-pagina \.registrar-partida-novo-corpo\s*{[^}]*padding:\s*0 0 calc\(var\(--registrar-partida-page-actions-space\) \+ 0\.75rem\)/s);
+    expect(css).not.toMatch(/\.modal-conteudo\.registrar-partida-novo-modal\s*{[^}]*registrar-partida-page-actions-space/s);
   });
 
   it('não renderiza resumo parcial e mostra ação clara quando falta atleta preenchido', () => {

@@ -94,6 +94,20 @@ function renderizarLayout(rota = '/app') {
               />
             )}
           />
+          <Route
+            path="/app/partidas/:partidaId/editar"
+            element={(
+              <AppHero
+                variant="page"
+                title="Editar partida"
+                subtitle="Ajuste atletas, grupo e resultado."
+                accountUser={usuarioAutenticado}
+                autenticado
+                showBackButton
+                testId="editar-partida-hero"
+              />
+            )}
+          />
         </Route>
       </Routes>
     </MemoryRouter>
@@ -146,10 +160,21 @@ describe('LayoutPrincipal com AppHero proprio da pagina', () => {
     expect(within(hero).getByText('Veja sua evolução.')).toBeInTheDocument();
   });
 
+  it('na edição de partida renderiza apenas o hero da página, sem hero global QuebraNunca', () => {
+    const { container } = renderizarLayout('/app/partidas/11111111-1111-4111-8111-111111111111/editar');
+    const hero = screen.getByTestId('editar-partida-hero');
+
+    expect(screen.queryByTestId('global-app-header')).not.toBeInTheDocument();
+    expect(container.querySelectorAll('.app-hero')).toHaveLength(1);
+    expect(within(hero).getAllByRole('heading', { name: 'Editar partida' })).toHaveLength(1);
+    expect(screen.queryByRole('heading', { name: 'QuebraNunca' })).not.toBeInTheDocument();
+  });
+
   it('normaliza rotas com barra final para manter um unico ponto de renderizacao', () => {
     expect(paginaRenderizaHeroProprio('/')).toBe(true);
     expect(paginaRenderizaHeroProprio('/app/')).toBe(true);
     expect(paginaRenderizaHeroProprio('/ranking/')).toBe(true);
     expect(paginaRenderizaHeroProprio('/app/partidas/partida-1/')).toBe(true);
+    expect(paginaRenderizaHeroProprio('/app/partidas/11111111-1111-4111-8111-111111111111/editar/')).toBe(true);
   });
 });

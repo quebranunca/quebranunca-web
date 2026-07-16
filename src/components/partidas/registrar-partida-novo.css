@@ -3168,6 +3168,8 @@ body.registrar-partida-modal-aberto {
 .registrar-partida-novo-pagina .registrar-partida-novo-formulario {
   min-height: 0;
   overflow: visible;
+  padding-bottom: var(--registrar-partida-page-actions-space);
+  scroll-padding-bottom: var(--registrar-partida-page-actions-space);
 }
 
 .registrar-partida-novo-pagina .registrar-partida-novo-corpo {
@@ -3175,6 +3177,14 @@ body.registrar-partida-modal-aberto {
   padding: 0 0 calc(var(--registrar-partida-page-actions-space) + 0.75rem);
   overscroll-behavior: auto;
   scroll-padding-block: calc(1rem + env(safe-area-inset-top, 0px)) var(--registrar-partida-page-actions-space);
+}
+
+.registrar-partida-novo-pagina .registrar-partida-novo-etapa,
+.registrar-partida-novo-pagina .registrar-partida-novo-dupla-card,
+.registrar-partida-novo-pagina .registrar-partida-novo-campo,
+.registrar-partida-novo-pagina .registrar-partida-novo-placar-central,
+.registrar-partida-novo-pagina .registrar-partida-novo-revisao {
+  scroll-margin-bottom: var(--registrar-partida-page-actions-space);
 }
 
 .registrar-partida-novo-pagina .registrar-partida-novo-stepper {
@@ -3292,6 +3302,10 @@ body.registrar-partida-modal-aberto {
     padding-top: 0;
     padding-bottom: calc(var(--registrar-partida-page-actions-space) + 0.62rem);
     scroll-padding-bottom: var(--registrar-partida-page-actions-space);
+  }
+
+  .registrar-partida-novo-pagina .registrar-partida-novo-formulario {
+    padding-bottom: var(--registrar-partida-page-actions-space);
   }
 
   .registrar-partida-novo-pagina.teclado-aberto .registrar-partida-novo-corpo,

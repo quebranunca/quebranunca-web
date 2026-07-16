@@ -48,6 +48,33 @@ const partidaBase = {
   historico: []
 };
 
+async function rolarConteudoAteFicarAcimaDasAcoes(page, seletorConteudo) {
+  await expect.poll(async () => {
+    return page.evaluate((seletor) => {
+      const conteudo = document.querySelector(seletor);
+      const acoes = document.querySelector('.registrar-partida-novo-cta-sticky');
+      const scroller = document.querySelector('.conteudo-principal') || document.scrollingElement;
+
+      if (!(conteudo instanceof HTMLElement) || !acoes || !scroller) {
+        return false;
+      }
+
+      const conteudoRect = conteudo.getBoundingClientRect();
+      const acoesRect = acoes.getBoundingClientRect();
+      const visivelAcimaDasAcoes = conteudoRect.bottom <= acoesRect.top;
+
+      if (!visivelAcimaDasAcoes) {
+        scroller.scrollBy({ top: 120, behavior: 'instant' });
+      }
+
+      return visivelAcimaDasAcoes;
+    }, seletorConteudo);
+  }, {
+    intervals: [100, 150, 200],
+    timeout: 3000
+  }).toBe(true);
+}
+
 async function prepararApiEdicao(page, { semPermissao = false } = {}) {
   let partidaAtual = {
     ...partidaBase,
@@ -127,6 +154,8 @@ test.describe('Editar partida', () => {
     await page.getByRole('button', { name: 'Editar partida' }).click();
     await expect(page).toHaveURL(new RegExp(`/app/partidas/${PARTIDA_ID}/editar$`));
     await expect(page.getByRole('heading', { name: 'Editar partida' })).toBeVisible();
+    await expect(page.locator('.app-hero')).toHaveCount(1);
+    await expect(page.getByRole('heading', { name: 'QuebraNunca' })).toHaveCount(0);
     await expect(page.getByRole('dialog', { name: 'Editar partida' })).toHaveCount(0);
 
     await page.getByLabel('Pontos da Dupla 1').fill('19');
@@ -152,10 +181,41 @@ test.describe('Editar partida', () => {
   test('mantém ações visíveis no mobile e não bloqueia body como modal', async ({ page, isMobile }) => {
     test.skip(!isMobile, 'Cenário específico do projeto Mobile Chrome.');
 
+    await page.setViewportSize({ width: 390, height: 844 });
     await prepararApiEdicao(page);
     await page.goto(`/app/partidas/${PARTIDA_ID}/editar`);
 
+    await page.locator('[data-testid="campo-atleta2Dupla2"]').scrollIntoViewIfNeeded();
+    await rolarConteudoAteFicarAcimaDasAcoes(page, '[data-testid="campo-atleta2Dupla2"]');
     await expect(page.getByRole('button', { name: 'Salvar alterações' })).toBeInViewport();
+    await expect(page.getByRole('button', { name: 'Cancelar' })).toBeInViewport();
+
+    const geometria = await page.evaluate(() => {
+      const ultimoCampo = document.querySelector('[data-testid="campo-atleta2Dupla2"]');
+      const acoes = document.querySelector('.registrar-partida-novo-cta-sticky');
+      const bottomNav = document.querySelector('.mobile-bottom-navigation');
+      const corpo = document.querySelector('.registrar-partida-novo-corpo');
+      const formulario = document.querySelector('.registrar-partida-novo-formulario');
+
+      const campoRect = ultimoCampo?.getBoundingClientRect();
+      const acoesRect = acoes?.getBoundingClientRect();
+      const bottomNavRect = bottomNav?.getBoundingClientRect();
+      const corpoStyle = corpo ? getComputedStyle(corpo) : null;
+      const formularioStyle = formulario ? getComputedStyle(formulario) : null;
+
+      return {
+        ultimoCampoAcimaDasAcoes: Boolean(campoRect && acoesRect && campoRect.bottom <= acoesRect.top),
+        acoesAcimaDaNav: Boolean(acoesRect && bottomNavRect && acoesRect.bottom <= bottomNavRect.top + 1),
+        paddingCorpo: corpoStyle?.paddingBottom || '',
+        paddingFormulario: formularioStyle?.paddingBottom || ''
+      };
+    });
+
+    expect(geometria.ultimoCampoAcimaDasAcoes).toBe(true);
+    expect(geometria.acoesAcimaDaNav).toBe(true);
+    expect(parseFloat(geometria.paddingCorpo)).toBeGreaterThan(120);
+    expect(parseFloat(geometria.paddingFormulario)).toBeGreaterThan(120);
+
     const bloqueioModal = await page.evaluate(() => ({
       bodyClass: document.body.classList.contains('registrar-partida-modal-aberto'),
       overflowBody: getComputedStyle(document.body).overflow

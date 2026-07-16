@@ -31,7 +31,8 @@ const ROTAS_COM_HERO_PROPRIO_APP = [
 ];
 
 const PADROES_COM_HERO_PROPRIO_APP = [
-  /^\/app\/partidas\/[^/]+$/
+  /^\/app\/partidas\/[^/]+$/,
+  /^\/app\/partidas\/[^/]+\/editar$/
 ];
 
 function normalizarPathname(pathname) {
