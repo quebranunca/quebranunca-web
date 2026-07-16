@@ -16,6 +16,7 @@ import { PaginaModelosImportacao } from './pages/PaginaModelosImportacao';
 import { PaginaCompeticoes } from './pages/PaginaCompeticoes';
 import { PaginaFormularioCampeonato } from './pages/PaginaFormularioCampeonato';
 import { PaginaGrupos } from './pages/PaginaGrupos';
+import { PaginaCriarGrupo } from './pages/PaginaCriarGrupo';
 import { PaginaGrupoDashboard } from './pages/PaginaGrupoDashboard';
 import { PaginaGrupoAtletas } from './pages/PaginaGrupoAtletas';
 import { PaginaGrupoConfiguracoes } from './pages/PaginaGrupoConfiguracoes';
@@ -95,6 +96,17 @@ export default function App() {
         <Route path="/app/registrar-partida" element={<Navigate to="/partidas/registrar" replace />} />
         <Route path="/app/meus-jogos" element={<Navigate to="/minhas-partidas" replace />} />
         <Route path="/app/minhas-partidas" element={<Navigate to="/minhas-partidas" replace />} />
+        <Route
+          path="/app/grupos/criar"
+          element={
+            <RotaProtegida
+              perfisPermitidos={[PERFIS_USUARIO.administrador, PERFIS_USUARIO.organizador, PERFIS_USUARIO.atleta]}
+              estadosPermitidos={[ESTADOS_ACESSO.ativo]}
+            >
+              <PaginaCriarGrupo />
+            </RotaProtegida>
+          }
+        />
         <Route
           path="/app/partidas/:partidaId"
           element={

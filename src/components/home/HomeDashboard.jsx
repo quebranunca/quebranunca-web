@@ -17,6 +17,7 @@ import {
 import { useAutenticacao } from '../../hooks/useAutenticacao';
 import { obterNomeGrupoPartidaExibicao } from '../../utils/partidas';
 import { criarNavegacaoRegistroPartida, obterRotaDetalhePartida } from '../../utils/partidaRotas';
+import { criarNavegacaoCriacaoGrupo } from '../../utils/grupoRotas';
 import { formatarData } from '../../utils/formatacao';
 import { obterFotoPerfilAvatar } from '../AvatarUsuario';
 import { AppHero } from '../AppHero';
@@ -728,6 +729,7 @@ function HomeDesempenhoCard({ scouts, erroDesempenho, temDados }) {
 
 function HomeAcoesPrincipais() {
   const registrarPartida = criarNavegacaoRegistroPartida({ origem: '/app' });
+  const criarGrupo = criarNavegacaoCriacaoGrupo({ origem: '/app' });
 
   return (
     <section className="home-dashboard-acoes-principais" aria-label="Ações principais">
@@ -741,7 +743,8 @@ function HomeAcoesPrincipais() {
       />
 
       <HomeAcaoPrincipal
-        to={HOME_NAVIGATION.grupos}
+        to={criarGrupo.to}
+        state={criarGrupo.state}
         icone={FaUsers}
         titulo="Criar grupo"
         descricao="Ranking, histórico e scouts."

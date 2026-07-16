@@ -329,6 +329,16 @@ describe('HomeDashboard nova experiencia', () => {
     expect(screen.getByTestId('origem-atual')).toHaveTextContent('/app');
   });
 
+  it('leva Criar grupo diretamente para a pagina interna com origem da Home', async () => {
+    const usuario = userEvent.setup();
+    renderizarHome();
+
+    await usuario.click(screen.getByRole('link', { name: /Criar grupo/i }));
+
+    expect(screen.getByTestId('rota-atual')).toHaveTextContent('/app/grupos/criar');
+    expect(screen.getByTestId('origem-atual')).toHaveTextContent('/app');
+  });
+
   it('mostra Seu desempenho com as quatro metricas principais', () => {
     renderizarHome();
 

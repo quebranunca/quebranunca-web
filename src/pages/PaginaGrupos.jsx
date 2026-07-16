@@ -14,10 +14,9 @@ import {
   FaUpload,
   FaUsers
 } from 'react-icons/fa';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { AppHero } from '../components/AppHero';
 import { AvatarGrupo } from '../components/grupos/AvatarGrupo';
-import { CriarGrupoFluxoModal } from '../components/grupos/CriarGrupoFluxoModal';
 import { useNotification } from '../contexts/NotificationContext';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { gruposServico } from '../services/gruposServico';
@@ -25,6 +24,7 @@ import { ESTADOS_ACESSO } from '../utils/acesso';
 import { comprimirImagemParaUpload, ehImagemNaoSuportada, ehImagemPermitida } from '../utils/compressaoImagem';
 import { extrairMensagemErro } from '../utils/erros';
 import { formatarDataHora } from '../utils/formatacao';
+import { criarNavegacaoCriacaoGrupo, obterOrigemAtualParaCriarGrupo } from '../utils/grupoRotas';
 import { obterNomeGrupoPartidaExibicao } from '../utils/partidas';
 import { PERFIS_USUARIO, ehAtleta } from '../utils/perfis';
 
@@ -464,6 +464,7 @@ function GruposHomeAtividadeRecente({ atividades, onAbrirGrupo }) {
 
 export function PaginaGrupos() {
   const navegar = useNavigate();
+  const location = useLocation();
   const { token, usuario, estadoAcesso } = useAutenticacao();
   const { showNotification, closeNotification } = useNotification();
   const usuarioAtivo = estadoAcesso === ESTADOS_ACESSO.ativo;
@@ -478,7 +479,6 @@ export function PaginaGrupos() {
   const [grupoEdicaoId, setGrupoEdicaoId] = useState(null);
   const [formularioAberto, setFormularioAberto] = useState(false);
   const [modalConfirmacaoSaidaAberto, setModalConfirmacaoSaidaAberto] = useState(false);
-  const [fluxoCriarAberto, setFluxoCriarAberto] = useState(false);
   const [carregando, setCarregando] = useState(true);
   const [erroCarregamento, setErroCarregamento] = useState(false);
   const [salvando, setSalvando] = useState(false);
@@ -648,17 +648,16 @@ export function PaginaGrupos() {
     return grupo.usuarioOrganizadorId === usuario?.id;
   }
 
-  function abrirNovoGrupo() {
-    setFluxoCriarAberto(true);
-  }
-
   function iniciarCriacaoGrupo() {
     if (!podeCriarGrupo) {
       navegar('/login');
       return;
     }
 
-    abrirNovoGrupo();
+    const navegacao = criarNavegacaoCriacaoGrupo({
+      origem: obterOrigemAtualParaCriarGrupo(location)
+    });
+    navegar(navegacao.to, { state: navegacao.state });
   }
 
   async function iniciarEdicao(grupo) {
@@ -686,23 +685,6 @@ export function PaginaGrupos() {
         title: 'Erro ao abrir grupo',
         message: extrairMensagemErro(error)
       });
-    }
-  }
-
-  async function aoCriarGrupoFluxo(grupo) {
-    await carregarDados();
-    const grupoId = obterIdGrupo(grupo || {});
-
-    showNotification({
-      type: 'success',
-      title: 'Grupo criado',
-      message: 'O grupo foi criado com sucesso.'
-    });
-
-    setFluxoCriarAberto(false);
-
-    if (grupoId) {
-      navegar(`/grupos/${grupoId}`);
     }
   }
 
@@ -1148,12 +1130,6 @@ export function PaginaGrupos() {
           />
         </>
       )}
-
-      <CriarGrupoFluxoModal
-        aberto={fluxoCriarAberto}
-        onFechar={() => setFluxoCriarAberto(false)}
-        onCriado={aoCriarGrupoFluxo}
-      />
     </section>
   );
 }

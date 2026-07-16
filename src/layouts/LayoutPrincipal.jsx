@@ -22,6 +22,7 @@ const ROTAS_COM_HERO_PROPRIO_APP = [
   '/app/perfil',
   '/app/pontos-qn',
   '/app/scouts',
+  '/app/grupos/criar',
   '/arenas',
   '/grupos',
   '/mais',
