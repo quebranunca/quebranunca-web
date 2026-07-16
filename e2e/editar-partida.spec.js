@@ -53,7 +53,9 @@ async function rolarConteudoAteFicarAcimaDasAcoes(page, seletorConteudo) {
     return page.evaluate((seletor) => {
       const conteudo = document.querySelector(seletor);
       const acoes = document.querySelector('.registrar-partida-novo-cta-sticky');
-      const scroller = document.querySelector('.conteudo-principal') || document.scrollingElement;
+      const scroller = document.querySelector('.editar-partida-pagina .registrar-partida-novo-corpo') ||
+        document.querySelector('.conteudo-principal') ||
+        document.scrollingElement;
 
       if (!(conteudo instanceof HTMLElement) || !acoes || !scroller) {
         return false;
@@ -190,31 +192,31 @@ test.describe('Editar partida', () => {
     await expect(page.getByRole('button', { name: 'Salvar alterações' })).toBeInViewport();
     await expect(page.getByRole('button', { name: 'Cancelar' })).toBeInViewport();
 
-    const geometria = await page.evaluate(() => {
+    const regioes = await page.evaluate(() => {
       const ultimoCampo = document.querySelector('[data-testid="campo-atleta2Dupla2"]');
       const acoes = document.querySelector('.registrar-partida-novo-cta-sticky');
       const bottomNav = document.querySelector('.mobile-bottom-navigation');
       const corpo = document.querySelector('.registrar-partida-novo-corpo');
-      const formulario = document.querySelector('.registrar-partida-novo-formulario');
 
       const campoRect = ultimoCampo?.getBoundingClientRect();
       const acoesRect = acoes?.getBoundingClientRect();
       const bottomNavRect = bottomNav?.getBoundingClientRect();
-      const corpoStyle = corpo ? getComputedStyle(corpo) : null;
-      const formularioStyle = formulario ? getComputedStyle(formulario) : null;
+      const corpoRect = corpo?.getBoundingClientRect();
 
       return {
-        ultimoCampoAcimaDasAcoes: Boolean(campoRect && acoesRect && campoRect.bottom <= acoesRect.top),
-        acoesAcimaDaNav: Boolean(acoesRect && bottomNavRect && acoesRect.bottom <= bottomNavRect.top + 1),
-        paddingCorpo: corpoStyle?.paddingBottom || '',
-        paddingFormulario: formularioStyle?.paddingBottom || ''
+        areaRolavelAntesDasAcoes: Boolean(corpoRect && acoesRect && corpoRect.bottom <= acoesRect.top + 1),
+        acoesAntesDaNav: Boolean(acoesRect && bottomNavRect && acoesRect.bottom <= bottomNavRect.top + 1),
+        campoVisivelNaAreaRolavel: Boolean(campoRect && corpoRect && campoRect.top >= corpoRect.top && campoRect.bottom <= corpoRect.bottom),
+        areaCruzaAcoes: Boolean(corpoRect && acoesRect && corpoRect.bottom > acoesRect.top && corpoRect.top < acoesRect.bottom),
+        acoesCruzamNav: Boolean(acoesRect && bottomNavRect && acoesRect.bottom > bottomNavRect.top && acoesRect.top < bottomNavRect.bottom)
       };
     });
 
-    expect(geometria.ultimoCampoAcimaDasAcoes).toBe(true);
-    expect(geometria.acoesAcimaDaNav).toBe(true);
-    expect(parseFloat(geometria.paddingCorpo)).toBeGreaterThan(120);
-    expect(parseFloat(geometria.paddingFormulario)).toBeGreaterThan(120);
+    expect(regioes.areaRolavelAntesDasAcoes).toBe(true);
+    expect(regioes.acoesAntesDaNav).toBe(true);
+    expect(regioes.campoVisivelNaAreaRolavel).toBe(true);
+    expect(regioes.areaCruzaAcoes).toBe(false);
+    expect(regioes.acoesCruzamNav).toBe(false);
 
     const bloqueioModal = await page.evaluate(() => ({
       bodyClass: document.body.classList.contains('registrar-partida-modal-aberto'),

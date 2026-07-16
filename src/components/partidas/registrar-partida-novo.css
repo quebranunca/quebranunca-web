@@ -3328,3 +3328,58 @@ body.registrar-partida-modal-aberto {
     width: 100%;
   }
 }
+
+.editar-partida-pagina {
+  --editar-partida-bottom-nav-space: calc(var(--bottom-nav-height, 5.85rem) + env(safe-area-inset-bottom, 0px));
+  --editar-partida-hero-space: clamp(6rem, 14dvh, 8rem);
+  min-height: calc(100dvh - var(--editar-partida-bottom-nav-space));
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.editar-partida-pagina .registrar-partida-pagina__conteudo {
+  min-height: 0;
+  height: calc(
+    100dvh -
+    var(--editar-partida-hero-space) -
+    var(--editar-partida-bottom-nav-space) -
+    1rem
+  );
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 0;
+}
+
+.editar-partida-pagina .registrar-partida-novo-pagina.registrar-partida-novo-modal {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  overflow: hidden;
+}
+
+.editar-partida-pagina .registrar-partida-novo-pagina .registrar-partida-novo-formulario {
+  height: 100%;
+  min-height: 0;
+  grid-template-rows: minmax(0, 1fr) auto;
+  overflow: hidden;
+  padding-bottom: 0;
+  scroll-padding-bottom: 0;
+}
+
+.editar-partida-pagina .registrar-partida-novo-pagina .registrar-partida-novo-corpo {
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-bottom: 0.75rem;
+  scroll-padding-bottom: 1rem;
+  overscroll-behavior: contain;
+}
+
+.editar-partida-pagina .registrar-partida-novo-pagina .registrar-partida-novo-cta-sticky {
+  position: relative;
+  right: auto;
+  bottom: auto;
+  left: auto;
+  flex: 0 0 auto;
+  z-index: 1;
+  margin: 0.5rem auto 0;
+}

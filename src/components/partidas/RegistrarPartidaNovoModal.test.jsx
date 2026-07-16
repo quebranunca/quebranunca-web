@@ -174,6 +174,8 @@ describe('RegistrarPartidaNovoModal - revisão', () => {
 
     expect(css).toMatch(/\.registrar-partida-novo-pagina \.registrar-partida-novo-formulario\s*{[^}]*padding-bottom:\s*var\(--registrar-partida-page-actions-space\)/s);
     expect(css).toMatch(/\.registrar-partida-novo-pagina \.registrar-partida-novo-corpo\s*{[^}]*padding:\s*0 0 calc\(var\(--registrar-partida-page-actions-space\) \+ 0\.75rem\)/s);
+    expect(css).toMatch(/\.editar-partida-pagina \.registrar-partida-novo-pagina \.registrar-partida-novo-corpo\s*{[^}]*overflow-y:\s*auto/s);
+    expect(css).toMatch(/\.editar-partida-pagina \.registrar-partida-novo-pagina \.registrar-partida-novo-cta-sticky\s*{[^}]*position:\s*relative/s);
     expect(css).not.toMatch(/\.modal-conteudo\.registrar-partida-novo-modal\s*{[^}]*registrar-partida-page-actions-space/s);
   });
 
