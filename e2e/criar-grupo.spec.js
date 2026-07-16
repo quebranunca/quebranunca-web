@@ -117,7 +117,7 @@ test.describe('Criar grupo', () => {
     await page.getByRole('button', { name: 'Criar grupo' }).click();
     await expect(page).toHaveURL(/\/app\/grupos\/criar$/);
 
-    await page.getByRole('button', { name: 'Cancelar' }).click();
+    await page.getByRole('button', { name: 'Cancelar', exact: true }).click();
 
     await expect(page).toHaveURL(/\/grupos$/);
   });
@@ -135,14 +135,14 @@ test.describe('Criar grupo', () => {
     await page.goto('/app/grupos/criar');
 
     await page.getByLabel('Nome do grupo').fill('Grupo Rascunho');
-    await page.getByRole('button', { name: 'Cancelar' }).click();
+    await page.getByRole('button', { name: 'Cancelar', exact: true }).click();
 
     const confirmacao = page.getByRole('dialog', { name: /Deseja sair da criação do grupo/i });
     await expect(confirmacao).toBeVisible();
     await confirmacao.getByRole('button', { name: 'Continuar editando' }).click();
     await expect(page).toHaveURL(/\/app\/grupos\/criar$/);
 
-    await page.getByRole('button', { name: 'Cancelar' }).click();
+    await page.getByRole('button', { name: 'Cancelar', exact: true }).click();
     await confirmacao.getByRole('button', { name: 'Sair' }).click();
     await expect(page).toHaveURL(/\/grupos$/);
   });
