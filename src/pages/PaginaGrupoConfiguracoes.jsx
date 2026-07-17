@@ -3,12 +3,10 @@ import {
   FaChevronLeft,
   FaChevronRight,
   FaCrown,
-  FaExclamationTriangle,
   FaGlobeAmericas,
   FaImage,
   FaLock,
   FaPencilAlt,
-  FaTrashAlt,
   FaUsers
 } from 'react-icons/fa';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -112,7 +110,6 @@ export function PaginaGrupoConfiguracoes() {
   const [nomeEdicao, setNomeEdicao] = useState('');
   const [erroNome, setErroNome] = useState('');
   const [tipoEdicao, setTipoEdicao] = useState('Privado');
-  const [erroExclusao, setErroExclusao] = useState('');
   const [processando, setProcessando] = useState(false);
 
   useEffect(() => {
@@ -126,7 +123,6 @@ export function PaginaGrupoConfiguracoes() {
   const usuarioAdministrador = ehAdministrador(usuario);
   const grupoAtivo = grupo?.ativo !== false;
   const podeConfigurar = Boolean(grupo) && grupoAtivo && (usuarioAdministrador || usuarioEhCriador);
-  const podeExcluir = Boolean(grupo) && grupoAtivo && (usuarioAdministrador || usuarioEhCriador);
   const privacidade = obterPrivacidadeGrupo(grupo);
   const PrivacidadeIcone = grupoEhPublico(grupo) ? FaGlobeAmericas : FaLock;
 
@@ -156,11 +152,6 @@ export function PaginaGrupoConfiguracoes() {
     setModalAtivo('tipo');
   }
 
-  function abrirModalExclusao() {
-    setErroExclusao('');
-    setModalAtivo('exclusao');
-  }
-
   function fecharModal() {
     if (processando) {
       return;
@@ -168,7 +159,6 @@ export function PaginaGrupoConfiguracoes() {
 
     setModalAtivo(null);
     setErroNome('');
-    setErroExclusao('');
   }
 
   async function salvarNome(evento) {
@@ -288,31 +278,6 @@ export function PaginaGrupoConfiguracoes() {
     }
   }
 
-  async function excluirGrupo(evento) {
-    evento.preventDefault();
-    if (!podeExcluir || processando) {
-      return;
-    }
-
-    setProcessando(true);
-    setErroExclusao('');
-
-    try {
-      await gruposServico.remover(grupo.id);
-      setModalAtivo(null);
-      showNotification({
-        type: 'success',
-        title: 'Grupo excluído com sucesso.',
-        message: 'O grupo foi arquivado e os históricos esportivos foram preservados.'
-      });
-      navegar('/grupos', { replace: true });
-    } catch (error) {
-      setErroExclusao(extrairMensagemErro(error));
-    } finally {
-      setProcessando(false);
-    }
-  }
-
   if (carregando) {
     return (
       <section className="pagina grupo-config-pagina">
@@ -423,21 +388,6 @@ export function PaginaGrupoConfiguracoes() {
           />
         </div>
       </section>
-
-      {podeExcluir && (
-        <section className="grupo-config-secao grupo-config-zona-perigo" aria-labelledby="grupo-config-perigo">
-          <h3 id="grupo-config-perigo">ZONA DE PERIGO</h3>
-          <div className="grupo-config-lista">
-            <ConfiguracaoLinha
-              icone={FaTrashAlt}
-              titulo="Excluir grupo"
-              descricao="Disponível para criador e administradores."
-              perigo
-              onClick={abrirModalExclusao}
-            />
-          </div>
-        </section>
-      )}
 
       <input
         ref={arquivoImagemRef}
@@ -579,37 +529,6 @@ export function PaginaGrupoConfiguracoes() {
         </ModalBase>
       )}
 
-      {modalAtivo === 'exclusao' && (
-        <ModalBase
-          titulo="Excluir grupo?"
-          onFechar={fecharModal}
-          labelledBy="grupo-config-modal-exclusao"
-        >
-          <form className="grupo-config-form grupo-config-exclusao-form" onSubmit={excluirGrupo}>
-            <div className="grupo-config-alerta-perigo">
-              <FaExclamationTriangle aria-hidden="true" />
-              <div>
-                <p>Esta ação removerá o grupo.</p>
-                <p>As partidas, histórico, rankings e scouts continuarão preservados.</p>
-              </div>
-            </div>
-            {erroExclusao && <p className="texto-erro">{erroExclusao}</p>}
-            <div className="grupo-config-modal-acoes">
-              <button type="button" className="botao-terciario" onClick={fecharModal} disabled={processando}>
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                className="botao-perigo"
-                disabled={processando}
-              >
-                <FaTrashAlt aria-hidden="true" />
-                {processando ? 'Excluindo...' : 'Excluir grupo'}
-              </button>
-            </div>
-          </form>
-        </ModalBase>
-      )}
     </section>
   );
 }

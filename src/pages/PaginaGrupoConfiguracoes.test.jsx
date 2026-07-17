@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { cleanup, render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { PaginaGrupoConfiguracoes } from './PaginaGrupoConfiguracoes';
 import { gruposServico } from '../services/gruposServico';
@@ -95,13 +94,13 @@ describe('PaginaGrupoConfiguracoes', () => {
     expect(screen.getByText('S')).toBeInTheDocument();
     expect(screen.getByText('Informações')).toBeInTheDocument();
     expect(screen.getByText('Participantes')).toBeInTheDocument();
-    expect(screen.getByText('ZONA DE PERIGO')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Excluir grupo/i })).toBeInTheDocument();
+    expect(screen.queryByText('ZONA DE PERIGO')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Excluir grupo/i })).not.toBeInTheDocument();
     expect(screen.queryByText(/Convidar/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/Compartilhar/i)).not.toBeInTheDocument();
   });
 
-  it('mostra Excluir grupo para administrador que não é criador', async () => {
+  it('mantém configurações sem ação de excluir para administrador que não é criador', async () => {
     estadoAutenticacao.usuario = {
       id: 'usuario-admin',
       nome: 'Admin',
@@ -113,8 +112,8 @@ describe('PaginaGrupoConfiguracoes', () => {
 
     expect(await screen.findByRole('heading', { name: 'Configurações do Grupo' })).toBeInTheDocument();
     expect(screen.getByText('Informações')).toBeInTheDocument();
-    expect(screen.getByText('ZONA DE PERIGO')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Excluir grupo/i })).toBeInTheDocument();
+    expect(screen.queryByText('ZONA DE PERIGO')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Excluir grupo/i })).not.toBeInTheDocument();
   });
 
   it('não mostra Excluir grupo para membro comum', async () => {
@@ -130,30 +129,5 @@ describe('PaginaGrupoConfiguracoes', () => {
     expect(await screen.findByRole('heading', { name: 'Configurações do Grupo' })).toBeInTheDocument();
     expect(screen.queryByText('ZONA DE PERIGO')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Excluir grupo/i })).not.toBeInTheDocument();
-  });
-
-  it('confirma exclusão sem apagar histórico esportivo', async () => {
-    const usuario = userEvent.setup();
-    gruposServico.obterPorId.mockResolvedValue(criarGrupo());
-    gruposServico.remover.mockResolvedValue();
-
-    renderizarPagina();
-
-    await usuario.click(await screen.findByRole('button', { name: /Excluir grupo/i }));
-
-    expect(screen.getByRole('dialog', { name: 'Excluir grupo?' })).toBeInTheDocument();
-    expect(screen.getByText('Esta ação removerá o grupo.')).toBeInTheDocument();
-    expect(screen.getByText('As partidas, histórico, rankings e scouts continuarão preservados.')).toBeInTheDocument();
-    const botaoExcluir = screen.getByRole('button', { name: /^Excluir grupo$/i });
-    expect(botaoExcluir).toBeEnabled();
-
-    await usuario.click(botaoExcluir);
-
-    await waitFor(() => expect(gruposServico.remover).toHaveBeenCalledWith('grupo-1'));
-    expect(notificacoes.showNotification).toHaveBeenCalledWith(expect.objectContaining({
-      type: 'success',
-      title: 'Grupo excluído com sucesso.'
-    }));
-    expect(screen.getByTestId('rota-atual')).toHaveTextContent('/grupos');
   });
 });
