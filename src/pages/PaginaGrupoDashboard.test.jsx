@@ -216,4 +216,36 @@ describe('PaginaGrupoDashboard', () => {
     expect(screen.queryByText(/^Dupla do momento$/i)).not.toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: /Últimas partidas/i })).not.toBeInTheDocument();
   });
+
+  it('não quebra quando partida do dashboard traz dupla em formato de objeto', async () => {
+    gruposServico.obterDashboardGrupo.mockResolvedValue({
+      ...criarDashboard(),
+      ultimasPartidas: [
+        {
+          id: 'partida-1',
+          data: '2026-07-01T12:00:00Z',
+          dupla1: {
+            atleta1: { atletaId: 'atleta-1', nome: 'Gustavo' },
+            atleta2: { atletaId: 'atleta-2', nome: 'João' }
+          },
+          dupla2: {
+            atletas: [
+              { atletaId: 'atleta-3', nome: 'Rafa' },
+              { atletaId: 'atleta-4', nome: 'Teteu' }
+            ]
+          },
+          duplaVencedora: 1,
+          possuiPlacarDetalhado: false,
+          status: 'Confirmada'
+        }
+      ]
+    });
+    pendenciasServico.listar.mockResolvedValue([]);
+
+    renderizarPagina();
+
+    expect(await screen.findByRole('heading', { name: 'Serie C' })).toBeInTheDocument();
+    expect(screen.getByText(/Gustavo \+ João contra Rafa \+ Teteu/i)).toBeInTheDocument();
+    expect(screen.getByText(/Gustavo \+ João venceu Rafa \+ Teteu/i)).toBeInTheDocument();
+  });
 });

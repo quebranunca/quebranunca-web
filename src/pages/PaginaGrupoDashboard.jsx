@@ -52,6 +52,50 @@ function nomeCurtoAtleta(atleta) {
   return nomeAtleta(atleta).split(/\s+/).filter(Boolean)[0] || 'Atleta';
 }
 
+function listaSegura(valor) {
+  return Array.isArray(valor) ? valor : [];
+}
+
+function normalizarAtletaPartida(atleta) {
+  if (!atleta) {
+    return null;
+  }
+
+  if (typeof atleta === 'string') {
+    return { nome: atleta };
+  }
+
+  return atleta;
+}
+
+function normalizarDupla(dupla) {
+  if (Array.isArray(dupla)) {
+    return dupla.map(normalizarAtletaPartida).filter(Boolean);
+  }
+
+  if (!dupla) {
+    return [];
+  }
+
+  if (typeof dupla === 'string') {
+    return [{ nome: dupla }];
+  }
+
+  const listaInterna = dupla.atletas || dupla.jogadores || dupla.membros || dupla.integrantes;
+  if (Array.isArray(listaInterna)) {
+    return listaInterna.map(normalizarAtletaPartida).filter(Boolean);
+  }
+
+  return [
+    dupla.atleta1,
+    dupla.atleta2,
+    dupla.jogador1,
+    dupla.jogador2,
+    dupla.primeiroAtleta,
+    dupla.segundoAtleta
+  ].map(normalizarAtletaPartida).filter(Boolean);
+}
+
 function formatarPosicaoDestaque(posicao) {
   if (!posicao) {
     return '';
@@ -62,16 +106,16 @@ function formatarPosicaoDestaque(posicao) {
 }
 
 function nomeDupla(dupla, separador = ' + ') {
-  return (dupla || []).map(nomeAtleta).join(separador) || 'Dupla';
+  return normalizarDupla(dupla).map(nomeAtleta).join(separador) || 'Dupla';
 }
 
 function obterDuplaVencedora(partida) {
   if (partida?.duplaVencedora === 1) {
-    return partida.dupla1 || [];
+    return normalizarDupla(partida.dupla1);
   }
 
   if (partida?.duplaVencedora === 2) {
-    return partida.dupla2 || [];
+    return normalizarDupla(partida.dupla2);
   }
 
   return [];
@@ -155,7 +199,7 @@ function obterPrivacidadeGrupo(privacidade) {
 }
 
 function obterChaveDupla(dupla) {
-  return (dupla || [])
+  return normalizarDupla(dupla)
     .map((atleta) => atleta?.atletaId || atleta?.id)
     .filter(Boolean)
     .sort()
@@ -163,7 +207,7 @@ function obterChaveDupla(dupla) {
 }
 
 function obterDuplasDaPartida(partida) {
-  return [partida?.dupla1 || [], partida?.dupla2 || []].filter((dupla) => dupla.length > 0);
+  return [normalizarDupla(partida?.dupla1), normalizarDupla(partida?.dupla2)].filter((dupla) => dupla.length > 0);
 }
 
 function montarAtletasPreview(dashboard) {
@@ -178,9 +222,9 @@ function montarAtletasPreview(dashboard) {
     mapa.set(atletaId, atleta);
   }
 
-  (dashboard?.ranking || []).forEach(adicionar);
-  (dashboard?.membrosMaisAtivos || []).forEach(adicionar);
-  (dashboard?.ultimasPartidas || []).forEach((partida) => {
+  listaSegura(dashboard?.ranking).forEach(adicionar);
+  listaSegura(dashboard?.membrosMaisAtivos).forEach(adicionar);
+  listaSegura(dashboard?.ultimasPartidas).forEach((partida) => {
     obterDuplasDaPartida(partida).forEach((dupla) => dupla.forEach(adicionar));
   });
 
@@ -190,7 +234,7 @@ function montarAtletasPreview(dashboard) {
 function calcularDuplaDoMomento(partidas = []) {
   const mapa = new Map();
 
-  partidas.forEach((partida) => {
+  listaSegura(partidas).forEach((partida) => {
     obterDuplasDaPartida(partida).forEach((dupla) => {
       const chave = obterChaveDupla(dupla);
       if (!chave) {
@@ -215,7 +259,7 @@ function calcularDuplaDoMomento(partidas = []) {
 }
 
 function AvatarDupla({ atletas }) {
-  const dupla = (atletas || []).slice(0, 2).map((atleta) => ({
+  const dupla = normalizarDupla(atletas).slice(0, 2).map((atleta) => ({
     id: atleta.atletaId || atleta.id || nomeAtleta(atleta),
     name: nomeAtleta(atleta),
     src: obterFotoPerfilAvatar(atleta),
@@ -278,9 +322,9 @@ export function PaginaGrupoDashboard() {
 
   const grupo = dashboard?.grupo;
   const resumo = dashboard?.resumo;
-  const rankingTop3 = useMemo(() => (dashboard?.ranking || []).slice(0, 3), [dashboard?.ranking]);
-  const membrosMaisAtivos = useMemo(() => (dashboard?.membrosMaisAtivos || []).slice(0, 5), [dashboard?.membrosMaisAtivos]);
-  const ultimasPartidas = dashboard?.ultimasPartidas || [];
+  const rankingTop3 = useMemo(() => listaSegura(dashboard?.ranking).slice(0, 3), [dashboard?.ranking]);
+  const membrosMaisAtivos = useMemo(() => listaSegura(dashboard?.membrosMaisAtivos).slice(0, 5), [dashboard?.membrosMaisAtivos]);
+  const ultimasPartidas = listaSegura(dashboard?.ultimasPartidas);
   const possuiPartidas = (resumo?.totalPartidas || grupo?.totalPartidas || ultimasPartidas.length || 0) > 0;
   const membrosPreview = useMemo(() => montarAtletasPreview(dashboard), [dashboard]);
   const membrosDestaque = useMemo(() => membrosPreview.slice(0, 3), [membrosPreview]);
