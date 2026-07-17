@@ -20,7 +20,6 @@ import { extrairMensagemErro } from '../utils/erros';
 import { ehAdministrador } from '../utils/perfis';
 
 const LIMITE_NOME_GRUPO = 50;
-const CONFIRMACAO_EXCLUSAO_GRUPO = 'EXCLUIR';
 
 function idsIguais(idA, idB) {
   return Boolean(idA && idB) && String(idA).toLowerCase() === String(idB).toLowerCase();
@@ -113,7 +112,6 @@ export function PaginaGrupoConfiguracoes() {
   const [nomeEdicao, setNomeEdicao] = useState('');
   const [erroNome, setErroNome] = useState('');
   const [tipoEdicao, setTipoEdicao] = useState('Privado');
-  const [confirmacaoExclusao, setConfirmacaoExclusao] = useState('');
   const [erroExclusao, setErroExclusao] = useState('');
   const [processando, setProcessando] = useState(false);
 
@@ -128,7 +126,7 @@ export function PaginaGrupoConfiguracoes() {
   const usuarioAdministrador = ehAdministrador(usuario);
   const grupoAtivo = grupo?.ativo !== false;
   const podeConfigurar = Boolean(grupo) && grupoAtivo && (usuarioAdministrador || usuarioEhCriador);
-  const podeExcluir = Boolean(grupo) && grupoAtivo && usuarioEhCriador;
+  const podeExcluir = Boolean(grupo) && grupoAtivo && (usuarioAdministrador || usuarioEhCriador);
   const privacidade = obterPrivacidadeGrupo(grupo);
   const PrivacidadeIcone = grupoEhPublico(grupo) ? FaGlobeAmericas : FaLock;
 
@@ -159,7 +157,6 @@ export function PaginaGrupoConfiguracoes() {
   }
 
   function abrirModalExclusao() {
-    setConfirmacaoExclusao('');
     setErroExclusao('');
     setModalAtivo('exclusao');
   }
@@ -293,7 +290,7 @@ export function PaginaGrupoConfiguracoes() {
 
   async function excluirGrupo(evento) {
     evento.preventDefault();
-    if (confirmacaoExclusao !== CONFIRMACAO_EXCLUSAO_GRUPO || processando) {
+    if (!podeExcluir || processando) {
       return;
     }
 
@@ -434,7 +431,7 @@ export function PaginaGrupoConfiguracoes() {
             <ConfiguracaoLinha
               icone={FaTrashAlt}
               titulo="Excluir grupo"
-              descricao="Disponível somente para o criador do grupo."
+              descricao="Disponível para criador e administradores."
               perigo
               onClick={abrirModalExclusao}
             />
@@ -584,8 +581,7 @@ export function PaginaGrupoConfiguracoes() {
 
       {modalAtivo === 'exclusao' && (
         <ModalBase
-          titulo="Excluir grupo"
-          descricao="Esta ação preserva todo o histórico esportivo."
+          titulo="Excluir grupo?"
           onFechar={fecharModal}
           labelledBy="grupo-config-modal-exclusao"
         >
@@ -593,21 +589,10 @@ export function PaginaGrupoConfiguracoes() {
             <div className="grupo-config-alerta-perigo">
               <FaExclamationTriangle aria-hidden="true" />
               <div>
-                <p>Tem certeza que deseja excluir este grupo?</p>
-                <p>O grupo deixará de aparecer na plataforma, porém todas as partidas, rankings, scouts e históricos continuarão preservados.</p>
-                <p>Esta ação não poderá ser desfeita.</p>
+                <p>Esta ação removerá o grupo.</p>
+                <p>As partidas, histórico, rankings e scouts continuarão preservados.</p>
               </div>
             </div>
-            <label>
-              Digite EXCLUIR para confirmar
-              <input
-                type="text"
-                value={confirmacaoExclusao}
-                onChange={(evento) => setConfirmacaoExclusao(evento.target.value)}
-                autoComplete="off"
-                autoFocus
-              />
-            </label>
             {erroExclusao && <p className="texto-erro">{erroExclusao}</p>}
             <div className="grupo-config-modal-acoes">
               <button type="button" className="botao-terciario" onClick={fecharModal} disabled={processando}>
@@ -616,7 +601,7 @@ export function PaginaGrupoConfiguracoes() {
               <button
                 type="submit"
                 className="botao-perigo"
-                disabled={processando || confirmacaoExclusao !== CONFIRMACAO_EXCLUSAO_GRUPO}
+                disabled={processando}
               >
                 <FaTrashAlt aria-hidden="true" />
                 {processando ? 'Excluindo...' : 'Excluir grupo'}

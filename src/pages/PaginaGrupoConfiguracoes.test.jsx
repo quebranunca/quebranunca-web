@@ -101,7 +101,7 @@ describe('PaginaGrupoConfiguracoes', () => {
     expect(screen.queryByText(/Compartilhar/i)).not.toBeInTheDocument();
   });
 
-  it('não mostra Excluir grupo para administrador que não é criador', async () => {
+  it('mostra Excluir grupo para administrador que não é criador', async () => {
     estadoAutenticacao.usuario = {
       id: 'usuario-admin',
       nome: 'Admin',
@@ -113,8 +113,8 @@ describe('PaginaGrupoConfiguracoes', () => {
 
     expect(await screen.findByRole('heading', { name: 'Configurações do Grupo' })).toBeInTheDocument();
     expect(screen.getByText('Informações')).toBeInTheDocument();
-    expect(screen.queryByText('ZONA DE PERIGO')).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /Excluir grupo/i })).not.toBeInTheDocument();
+    expect(screen.getByText('ZONA DE PERIGO')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Excluir grupo/i })).toBeInTheDocument();
   });
 
   it('não mostra Excluir grupo para membro comum', async () => {
@@ -132,7 +132,7 @@ describe('PaginaGrupoConfiguracoes', () => {
     expect(screen.queryByRole('button', { name: /Excluir grupo/i })).not.toBeInTheDocument();
   });
 
-  it('exige confirmação EXCLUIR antes de chamar exclusão', async () => {
+  it('confirma exclusão sem apagar histórico esportivo', async () => {
     const usuario = userEvent.setup();
     gruposServico.obterPorId.mockResolvedValue(criarGrupo());
     gruposServico.remover.mockResolvedValue();
@@ -141,12 +141,12 @@ describe('PaginaGrupoConfiguracoes', () => {
 
     await usuario.click(await screen.findByRole('button', { name: /Excluir grupo/i }));
 
-    const modal = screen.getByRole('dialog', { name: 'Excluir grupo' });
+    expect(screen.getByRole('dialog', { name: 'Excluir grupo?' })).toBeInTheDocument();
+    expect(screen.getByText('Esta ação removerá o grupo.')).toBeInTheDocument();
+    expect(screen.getByText('As partidas, histórico, rankings e scouts continuarão preservados.')).toBeInTheDocument();
     const botaoExcluir = screen.getByRole('button', { name: /^Excluir grupo$/i });
-    expect(botaoExcluir).toBeDisabled();
-
-    await usuario.type(withinModalInput(modal), 'EXCLUIR');
     expect(botaoExcluir).toBeEnabled();
+
     await usuario.click(botaoExcluir);
 
     await waitFor(() => expect(gruposServico.remover).toHaveBeenCalledWith('grupo-1'));
@@ -157,7 +157,3 @@ describe('PaginaGrupoConfiguracoes', () => {
     expect(screen.getByTestId('rota-atual')).toHaveTextContent('/grupos');
   });
 });
-
-function withinModalInput(modal) {
-  return modal.querySelector('input');
-}

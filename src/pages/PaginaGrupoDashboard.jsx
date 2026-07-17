@@ -2,11 +2,13 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   FaChevronRight,
   FaClock,
-  FaCog,
+  FaEllipsisV,
   FaExclamationTriangle,
   FaFire,
   FaGlobeAmericas,
   FaLock,
+  FaPencilAlt,
+  FaTrashAlt,
   FaTrophy,
   FaUsers,
   FaVolleyballBall
@@ -269,12 +271,17 @@ export function PaginaGrupoDashboard() {
   const [pendencias, setPendencias] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState(false);
+  const [menuAcoesAberto, setMenuAcoesAberto] = useState(false);
+  const [confirmandoExclusao, setConfirmandoExclusao] = useState(false);
+  const [excluindo, setExcluindo] = useState(false);
+  const [erroExclusao, setErroExclusao] = useState('');
 
   const grupo = dashboard?.grupo;
   const resumo = dashboard?.resumo;
   const rankingTop3 = useMemo(() => (dashboard?.ranking || []).slice(0, 3), [dashboard?.ranking]);
   const membrosMaisAtivos = useMemo(() => (dashboard?.membrosMaisAtivos || []).slice(0, 5), [dashboard?.membrosMaisAtivos]);
   const ultimasPartidas = dashboard?.ultimasPartidas || [];
+  const possuiPartidas = (resumo?.totalPartidas || grupo?.totalPartidas || ultimasPartidas.length || 0) > 0;
   const membrosPreview = useMemo(() => montarAtletasPreview(dashboard), [dashboard]);
   const membrosDestaque = useMemo(() => membrosPreview.slice(0, 3), [membrosPreview]);
   const membrosRestantes = Math.max((grupo?.totalMembros || 0) - membrosDestaque.length, 0);
@@ -282,7 +289,8 @@ export function PaginaGrupoDashboard() {
     ? 'Veja a lista completa para consultar os membros cadastrados.'
     : 'Nenhum membro no grupo ainda.';
   const podeRegistrarPartida = Boolean(grupo?.podeRegistrarPartida);
-  const podeExibirConfiguracoes = Boolean(grupo?.podeEditar) && Boolean(grupo?.pertenceAoGrupo);
+  const podeAdministrarGrupo = Boolean(grupo?.podeEditar || grupo?.podeExcluir);
+  const podeExcluirGrupo = Boolean(grupo?.podeExcluir);
   const duplaDoMomento = useMemo(() => calcularDuplaDoMomento(ultimasPartidas), [ultimasPartidas]);
   const pendenciasResumo = useMemo(() => {
     const lista = Array.isArray(pendencias) ? pendencias : [];
@@ -346,6 +354,60 @@ export function PaginaGrupoDashboard() {
     navegar(navegacaoRegistro.to, { state: navegacaoRegistro.state });
   }
 
+  function abrirConfiguracoes() {
+    setMenuAcoesAberto(false);
+    navegar(`/grupos/${grupo.id}/configuracoes`);
+  }
+
+  function abrirGerenciamentoMembros() {
+    setMenuAcoesAberto(false);
+    navegar(`/grupos/${grupo.id}/atletas`);
+  }
+
+  function abrirRegistroAdministrativo() {
+    setMenuAcoesAberto(false);
+    abrirRegistroPartida();
+  }
+
+  function abrirConfirmacaoExclusao() {
+    setMenuAcoesAberto(false);
+    setErroExclusao('');
+    setConfirmandoExclusao(true);
+  }
+
+  function fecharConfirmacaoExclusao() {
+    if (excluindo) {
+      return;
+    }
+
+    setConfirmandoExclusao(false);
+    setErroExclusao('');
+  }
+
+  async function excluirGrupo() {
+    if (!podeExcluirGrupo || excluindo) {
+      return;
+    }
+
+    setExcluindo(true);
+    setErroExclusao('');
+
+    try {
+      await gruposServico.remover(grupo.id);
+      setConfirmandoExclusao(false);
+      showNotification({
+        type: 'success',
+        title: 'Grupo excluído',
+        message: 'O grupo foi removido e o histórico esportivo foi preservado.'
+      });
+      navegar('/grupos', { replace: true });
+    } catch (error) {
+      setErroExclusao(extrairMensagemErro(error));
+    } finally {
+      setExcluindo(false);
+    }
+  }
+
   if (carregando) {
     return <section className="pagina grupo-dashboard-pagina"><article className="cartao-lista">Carregando dashboard do grupo...</article></section>;
   }
@@ -376,10 +438,50 @@ export function PaginaGrupoDashboard() {
             className="grupo-dashboard-hero-avatar"
             alt={`Imagem do grupo ${grupo.nome}`}
           />
-          <span className="grupo-dashboard-privacidade">
-            <PrivacidadeIcone aria-hidden="true" />
-            {privacidadeGrupo.texto}
-          </span>
+          <div className="grupo-dashboard-hero-acoes">
+            <span className="grupo-dashboard-privacidade">
+              <PrivacidadeIcone aria-hidden="true" />
+              {privacidadeGrupo.texto}
+            </span>
+            {podeAdministrarGrupo && (
+              <div className="grupo-dashboard-menu-acoes">
+                <button
+                  type="button"
+                  className="grupo-dashboard-menu-botao"
+                  onClick={() => setMenuAcoesAberto((aberto) => !aberto)}
+                  aria-haspopup="menu"
+                  aria-expanded={menuAcoesAberto}
+                  aria-label="Ações do grupo"
+                >
+                  <FaEllipsisV aria-hidden="true" />
+                </button>
+                {menuAcoesAberto && (
+                  <div className="grupo-dashboard-menu-lista" role="menu">
+                    <button type="button" role="menuitem" onClick={abrirConfiguracoes}>
+                      <FaPencilAlt aria-hidden="true" />
+                      Editar grupo
+                    </button>
+                    <button type="button" role="menuitem" onClick={abrirGerenciamentoMembros}>
+                      <FaUsers aria-hidden="true" />
+                      Gerenciar membros
+                    </button>
+                    {podeRegistrarPartida && (
+                      <button type="button" role="menuitem" onClick={abrirRegistroAdministrativo}>
+                        <FaVolleyballBall aria-hidden="true" />
+                        Registrar partida
+                      </button>
+                    )}
+                    {podeExcluirGrupo && (
+                      <button type="button" role="menuitem" className="perigo" onClick={abrirConfirmacaoExclusao}>
+                        <FaTrashAlt aria-hidden="true" />
+                        Excluir grupo
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="grupo-dashboard-hero-conteudo">
@@ -403,13 +505,14 @@ export function PaginaGrupoDashboard() {
           <span><FaUsers aria-hidden="true" /> Membros</span>
           <FaChevronRight aria-hidden="true" />
         </button>
-        <button type="button" className="grupo-dashboard-acao-rapida" onClick={() => navegar(`/ranking?tipo=grupos&grupoId=${grupo.id}`)}>
-          <span><FaTrophy aria-hidden="true" /> Ranking</span>
-          <FaChevronRight aria-hidden="true" />
-        </button>
-        {podeExibirConfiguracoes && (
-          <button type="button" className="grupo-dashboard-acao-rapida" onClick={() => navegar(`/grupos/${grupo.id}/configuracoes`)}>
-            <span><FaCog aria-hidden="true" /> Configurações</span>
+        {possuiPartidas ? (
+          <button type="button" className="grupo-dashboard-acao-rapida" onClick={() => navegar(`/ranking?tipo=grupos&grupoId=${grupo.id}`)}>
+            <span><FaTrophy aria-hidden="true" /> Ranking</span>
+            <FaChevronRight aria-hidden="true" />
+          </button>
+        ) : podeRegistrarPartida && (
+          <button type="button" className="grupo-dashboard-acao-rapida" onClick={abrirRegistroPartida}>
+            <span><FaVolleyballBall aria-hidden="true" /> Registrar primeira partida</span>
             <FaChevronRight aria-hidden="true" />
           </button>
         )}
@@ -467,55 +570,77 @@ export function PaginaGrupoDashboard() {
         </button>
       </section>
 
-      <article className="grupo-dashboard-bloco grupo-dashboard-ranking">
-        <div className="grupo-dashboard-bloco-topo">
+      {!possuiPartidas && (
+        <article className="grupo-dashboard-bloco grupo-dashboard-primeira-partida">
           <div>
-            <span className="grupo-dashboard-eyebrow"><FaTrophy aria-hidden="true" /> Ranking</span>
-            <h3>Top 3 do grupo</h3>
+            <span className="grupo-dashboard-eyebrow"><FaVolleyballBall aria-hidden="true" /> Comece pelo essencial</span>
+            <h3>Grupo pronto para receber partidas</h3>
+            <p className="grupo-dashboard-vazio">Ranking, dupla do momento, movimentação e últimas partidas aparecem automaticamente quando houver resultados.</p>
           </div>
-          <button type="button" onClick={() => navegar(`/ranking?tipo=grupos&grupoId=${grupo.id}`)}>Ver ranking completo →</button>
-        </div>
-        {rankingTop3.length > 0 ? (
-          <div className="ranking-lista-compacta grupo-dashboard-ranking-lista">
-            {rankingTop3.map((atleta, indice) => (
-              <AtletaRankingLinhaGrupo
-                key={atleta.atletaId}
-                atleta={atleta}
-                posicao={`${atleta.posicao || indice + 1}º`}
-                detalhe={`${atleta.vitorias} ${pluralizar(atleta.vitorias, 'vitória')} • ${atleta.jogos} jogos`}
-                pontos={atleta.pontos}
-                onClick={() => navegar(`/ranking?tipo=grupos&grupoId=${grupo.id}`)}
-              />
-            ))}
+          <div className="grupo-dashboard-primeira-partida-acoes">
+            {podeRegistrarPartida && (
+              <button type="button" className="botao-primario" onClick={abrirRegistroPartida}>Registrar primeira partida</button>
+            )}
+            {podeAdministrarGrupo && (
+              <button type="button" className="botao-secundario" onClick={() => navegar(`/grupos/${grupo.id}/atletas`)}>Adicionar membros</button>
+            )}
           </div>
-        ) : (
-          <p className="grupo-dashboard-vazio">O ranking aparece quando o grupo tiver partidas registradas.</p>
-        )}
-      </article>
+        </article>
+      )}
 
-      <article className="grupo-dashboard-bloco grupo-dashboard-dupla-momento">
-        <div className="grupo-dashboard-dupla-cabecalho">
-          <span className="grupo-dashboard-eyebrow"><FaFire aria-hidden="true" /> Dupla do momento</span>
-        </div>
-        {duplaDoMomento ? (
-          <>
-            <div className="grupo-dashboard-dupla-identidade">
-              <h3>{nomeDupla(duplaDoMomento.atletas)}</h3>
-              <AvatarDupla atletas={duplaDoMomento.atletas} />
+      {possuiPartidas && (
+        <>
+          <article className="grupo-dashboard-bloco grupo-dashboard-ranking">
+            <div className="grupo-dashboard-bloco-topo">
+              <div>
+                <span className="grupo-dashboard-eyebrow"><FaTrophy aria-hidden="true" /> Ranking</span>
+                <h3>Top 3 do grupo</h3>
+              </div>
+              <button type="button" onClick={() => navegar(`/ranking?tipo=grupos&grupoId=${grupo.id}`)}>Ver ranking completo →</button>
             </div>
-            <div className="grupo-dashboard-dupla-metricas">
-              <span><strong>{duplaDoMomento.jogos}</strong><small>jogos</small></span>
-              <span><strong>{duplaDoMomento.vitorias}</strong><small>vitórias</small></span>
-              <span><strong>{duplaDoMomento.jogos ? Math.round((duplaDoMomento.vitorias / duplaDoMomento.jogos) * 100) : 0}%</strong><small>aproveitamento</small></span>
+            {rankingTop3.length > 0 ? (
+              <div className="ranking-lista-compacta grupo-dashboard-ranking-lista">
+                {rankingTop3.map((atleta, indice) => (
+                  <AtletaRankingLinhaGrupo
+                    key={atleta.atletaId}
+                    atleta={atleta}
+                    posicao={`${atleta.posicao || indice + 1}º`}
+                    detalhe={`${atleta.vitorias} ${pluralizar(atleta.vitorias, 'vitória')} • ${atleta.jogos} jogos`}
+                    pontos={atleta.pontos}
+                    onClick={() => navegar(`/ranking?tipo=grupos&grupoId=${grupo.id}`)}
+                  />
+                ))}
+              </div>
+            ) : (
+              <p className="grupo-dashboard-vazio">O ranking aparece quando o grupo tiver partidas registradas.</p>
+            )}
+          </article>
+
+          <article className="grupo-dashboard-bloco grupo-dashboard-dupla-momento">
+            <div className="grupo-dashboard-dupla-cabecalho">
+              <span className="grupo-dashboard-eyebrow"><FaFire aria-hidden="true" /> Dupla do momento</span>
             </div>
-          </>
-        ) : (
-          <div className="grupo-dashboard-dupla-vazio">
-            <h3>Ainda não há dupla em destaque</h3>
-            <p className="grupo-dashboard-vazio">Registre partidas para gerar esse destaque.</p>
-          </div>
-        )}
-      </article>
+            {duplaDoMomento ? (
+              <>
+                <div className="grupo-dashboard-dupla-identidade">
+                  <h3>{nomeDupla(duplaDoMomento.atletas)}</h3>
+                  <AvatarDupla atletas={duplaDoMomento.atletas} />
+                </div>
+                <div className="grupo-dashboard-dupla-metricas">
+                  <span><strong>{duplaDoMomento.jogos}</strong><small>jogos</small></span>
+                  <span><strong>{duplaDoMomento.vitorias}</strong><small>vitórias</small></span>
+                  <span><strong>{duplaDoMomento.jogos ? Math.round((duplaDoMomento.vitorias / duplaDoMomento.jogos) * 100) : 0}%</strong><small>aproveitamento</small></span>
+                </div>
+              </>
+            ) : (
+              <div className="grupo-dashboard-dupla-vazio">
+                <h3>Ainda não há dupla em destaque</h3>
+                <p className="grupo-dashboard-vazio">Registre partidas para gerar esse destaque.</p>
+              </div>
+            )}
+          </article>
+        </>
+      )}
 
       {pendenciasResumo.total > 0 && (
         <article className="grupo-dashboard-bloco grupo-dashboard-pendencias">
@@ -537,72 +662,104 @@ export function PaginaGrupoDashboard() {
         </article>
       )}
 
-      <article className="grupo-dashboard-bloco">
-        <div className="grupo-dashboard-bloco-topo">
-          <div>
-            <span className="grupo-dashboard-eyebrow"><FaClock aria-hidden="true" /> Atividade recente</span>
-            <h3>Movimentação do grupo</h3>
-          </div>
-        </div>
-        {ultimasPartidas.length > 0 ? (
-          <div className="grupo-dashboard-atividade">
-            {ultimasPartidas.slice(0, 4).map((partida) => (
-              <div key={partida.id} className="grupo-dashboard-atividade-item">
-                <span>{formatarDiaAtividade(partida.data)}</span>
-                <strong>Partida registrada</strong>
-                <small>{nomeDupla(partida.dupla1)} contra {nomeDupla(partida.dupla2)}</small>
+      {possuiPartidas && (
+        <>
+          <article className="grupo-dashboard-bloco">
+            <div className="grupo-dashboard-bloco-topo">
+              <div>
+                <span className="grupo-dashboard-eyebrow"><FaClock aria-hidden="true" /> Atividade recente</span>
+                <h3>Movimentação do grupo</h3>
               </div>
-            ))}
-          </div>
-        ) : (
-          <p className="grupo-dashboard-vazio">Ainda não há movimentação esportiva no grupo.</p>
-        )}
-      </article>
-
-      <article className="grupo-dashboard-bloco">
-        <div className="grupo-dashboard-bloco-topo">
-          <h3>Membros mais ativos</h3>
-          <button type="button" onClick={() => navegar(`/grupos/${grupo.id}/atletas`)}>Ver todos →</button>
-        </div>
-        <div className="ranking-lista-compacta">
-          {membrosMaisAtivos.map((atleta, indice) => (
-            <AtletaRankingLinhaGrupo
-              key={atleta.atletaId}
-              atleta={atleta}
-              posicao={`${indice + 1}`}
-              detalhe={`${atleta.totalPartidas} partidas`}
-              onClick={() => navegar(`/grupos/${grupo.id}/atletas`)}
-            />
-          ))}
-        </div>
-      </article>
-
-      <article className="grupo-dashboard-bloco">
-        <h3>Últimas partidas</h3>
-        <div className="grupo-dashboard-partidas">
-          {ultimasPartidas.map((partida) => {
-            const statusPartida = obterStatusPartidaGrupo(partida);
-
-            return (
-              <div key={partida.id} className="grupo-dashboard-partida">
-                <span>{partida.data ? formatarData(partida.data) : 'Sem data'}</span>
-                <div className="grupo-dashboard-partida-placar">
-                  <strong>{nomeDupla(partida.dupla1)}</strong>
-                  <b>{formatarResultadoTexto(partida)}</b>
-                  <strong>{nomeDupla(partida.dupla2)}</strong>
+            </div>
+            <div className="grupo-dashboard-atividade">
+              {ultimasPartidas.slice(0, 4).map((partida) => (
+                <div key={partida.id} className="grupo-dashboard-atividade-item">
+                  <span>{formatarDiaAtividade(partida.data)}</span>
+                  <strong>Partida registrada</strong>
+                  <small>{nomeDupla(partida.dupla1)} contra {nomeDupla(partida.dupla2)}</small>
                 </div>
-                <small className={`grupo-dashboard-status ${statusPartida.classe}`}>{statusPartida.texto}</small>
-                {!partida.possuiPlacarDetalhado && (
-                  <em>Resultado informado sem placar detalhado</em>
-                )}
+              ))}
+            </div>
+          </article>
+
+          {membrosMaisAtivos.length > 0 && (
+            <article className="grupo-dashboard-bloco">
+              <div className="grupo-dashboard-bloco-topo">
+                <h3>Membros mais ativos</h3>
+                <button type="button" onClick={() => navegar(`/grupos/${grupo.id}/atletas`)}>Ver todos →</button>
               </div>
-            );
-          })}
-          {ultimasPartidas.length === 0 && (
-            <p className="grupo-dashboard-vazio">Nenhuma partida registrada neste grupo.</p>
+              <div className="ranking-lista-compacta">
+                {membrosMaisAtivos.map((atleta, indice) => (
+                  <AtletaRankingLinhaGrupo
+                    key={atleta.atletaId}
+                    atleta={atleta}
+                    posicao={`${indice + 1}`}
+                    detalhe={`${atleta.totalPartidas} partidas`}
+                    onClick={() => navegar(`/grupos/${grupo.id}/atletas`)}
+                  />
+                ))}
+              </div>
+            </article>
           )}
+
+          <article className="grupo-dashboard-bloco">
+            <h3>Últimas partidas</h3>
+            <div className="grupo-dashboard-partidas">
+              {ultimasPartidas.map((partida) => {
+                const statusPartida = obterStatusPartidaGrupo(partida);
+
+                return (
+                  <div key={partida.id} className="grupo-dashboard-partida">
+                    <span>{partida.data ? formatarData(partida.data) : 'Sem data'}</span>
+                    <div className="grupo-dashboard-partida-placar">
+                      <strong>{nomeDupla(partida.dupla1)}</strong>
+                      <b>{formatarResultadoTexto(partida)}</b>
+                      <strong>{nomeDupla(partida.dupla2)}</strong>
+                    </div>
+                    <small className={`grupo-dashboard-status ${statusPartida.classe}`}>{statusPartida.texto}</small>
+                    {!partida.possuiPlacarDetalhado && (
+                      <em>Resultado informado sem placar detalhado</em>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </article>
+        </>
+      )}
+
+      {confirmandoExclusao && (
+        <div className="modal-backdrop grupo-dashboard-confirmacao-backdrop" role="presentation" onClick={fecharConfirmacaoExclusao}>
+          <article
+            className="modal-conteudo grupo-dashboard-confirmacao"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="grupo-dashboard-excluir-titulo"
+            onClick={(evento) => evento.stopPropagation()}
+          >
+            <div className="grupo-dashboard-confirmacao-topo">
+              <span className="grupo-dashboard-confirmacao-icone" aria-hidden="true">
+                <FaExclamationTriangle />
+              </span>
+              <div>
+                <h3 id="grupo-dashboard-excluir-titulo">Excluir grupo?</h3>
+                <p>Esta ação removerá o grupo.</p>
+                <p>As partidas, histórico, rankings e scouts continuarão preservados.</p>
+              </div>
+            </div>
+            {erroExclusao && <p className="texto-erro">{erroExclusao}</p>}
+            <div className="grupo-dashboard-confirmacao-acoes">
+              <button type="button" className="botao-terciario" onClick={fecharConfirmacaoExclusao} disabled={excluindo}>
+                Cancelar
+              </button>
+              <button type="button" className="botao-perigo" onClick={excluirGrupo} disabled={excluindo}>
+                <FaTrashAlt aria-hidden="true" />
+                {excluindo ? 'Excluindo...' : 'Excluir grupo'}
+              </button>
+            </div>
+          </article>
         </div>
-      </article>
+      )}
     </section>
   );
 }
