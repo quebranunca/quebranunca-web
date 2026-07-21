@@ -475,7 +475,8 @@ export function PaginaGrupos() {
   const usuarioAdministrador = Number(usuario?.perfil) === PERFIS_USUARIO.administrador;
   const usuarioOrganizador = Number(usuario?.perfil) === PERFIS_USUARIO.organizador;
   const usuarioAtleta = ehAtleta(usuario);
-  const podeCriarGrupo = usuarioAtivo && (usuarioAdministrador || usuarioOrganizador || usuarioAtleta);
+  const possuiPerfilParaCriarGrupo = usuarioAdministrador || usuarioOrganizador || usuarioAtleta;
+  const podeCriarGrupo = Boolean(token) && possuiPerfilParaCriarGrupo;
 
   const [dashboard, setDashboard] = useState(dashboardVazio);
   const [formulario, setFormulario] = useState(estadoInicial);

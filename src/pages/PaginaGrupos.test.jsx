@@ -5,6 +5,8 @@ import { MemoryRouter, useLocation } from 'react-router-dom';
 import { PaginaGrupos } from './PaginaGrupos';
 import { gruposServico } from '../services/gruposServico';
 
+const autenticacaoMock = vi.hoisted(() => ({ estadoAcesso: 'Ativo' }));
+
 vi.mock('../hooks/useAutenticacao', () => ({
   useAutenticacao: () => ({
     token: 'token-teste',
@@ -14,7 +16,7 @@ vi.mock('../hooks/useAutenticacao', () => ({
       atletaId: 'atleta-1',
       perfil: 3
     },
-    estadoAcesso: 'Ativo'
+    estadoAcesso: autenticacaoMock.estadoAcesso
   })
 }));
 
@@ -94,6 +96,7 @@ function configurarDashboard(grupos, extras = {}) {
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
+  autenticacaoMock.estadoAcesso = 'Ativo';
 });
 
 describe('PaginaGrupos - home de grupos', () => {
@@ -275,5 +278,14 @@ describe('PaginaGrupos - home de grupos', () => {
     expect(screen.getByRole('button', { name: 'Criar grupo' })).toBeInTheDocument();
     expect(screen.getByText('Carregando grupos...')).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Ações rápidas' })).not.toBeInTheDocument();
+  });
+
+  it('mantém Criar grupo disponível com sessão válida enquanto o estado de acesso é normalizado', async () => {
+    autenticacaoMock.estadoAcesso = undefined;
+    configurarDashboard([criarGrupo({ grupoId: 'grupo-principal' })]);
+
+    renderizarPagina();
+
+    expect(await screen.findByRole('button', { name: 'Criar grupo' })).toBeInTheDocument();
   });
 });
