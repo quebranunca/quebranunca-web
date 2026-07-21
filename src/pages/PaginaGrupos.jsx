@@ -294,14 +294,14 @@ function GrupoPrivacidadeBadge({ privacidade }) {
   );
 }
 
-function GrupoHomeMetricas({ grupo, compacto = false }) {
+function GrupoHomeMetricas({ grupo, compacto = false, somentePrincipais = false }) {
   const metricas = [
     { id: 'atletas', rotulo: 'Atletas', valor: obterQuantidade(grupo?.quantidadeAtletas), icone: FaUsers },
     { id: 'partidas', rotulo: 'Partidas', valor: obterQuantidade(grupo?.quantidadePartidas), icone: FaGamepad }
   ];
   const pendencias = obterPendenciasGrupo(grupo);
 
-  if (pendencias > 0) {
+  if (!somentePrincipais && pendencias > 0) {
     metricas.push({ id: 'pendencias', rotulo: 'Pendências', valor: pendencias, icone: FaExclamationTriangle });
   }
 
@@ -325,25 +325,24 @@ function GrupoHomeMetricas({ grupo, compacto = false }) {
 }
 
 function GrupoPrincipalHomeCard({ grupo, onAbrir }) {
+  const descricao = String(grupo?.descricao || '').trim();
+
   return (
     <section className="grupos-home-principal" aria-labelledby="grupos-principal-titulo">
       <GruposHomeSecaoTitulo titulo="Seu grupo principal" destaque />
-      <button
-        type="button"
-        className="grupos-home-principal-card"
-        onClick={onAbrir}
-        aria-label={`Abrir grupo ${grupo.nome}`}
-      >
+      <article className="grupos-home-principal-card">
         <div className="grupos-home-principal-topo">
           <AvatarGrupo grupo={grupo} tamanho="xl" className="grupos-home-principal-avatar" />
           <div>
             <h2 id="grupos-principal-titulo">{grupo.nome}</h2>
             <GrupoPrivacidadeBadge privacidade={grupo.privacidade} />
           </div>
-          <FaChevronRight aria-hidden="true" />
+          <FaChevronRight className="grupos-home-principal-chevron" aria-hidden="true" />
         </div>
 
-        <GrupoHomeMetricas grupo={grupo} />
+        {descricao && <p className="grupos-home-principal-descricao">{descricao}</p>}
+
+        <GrupoHomeMetricas grupo={grupo} somentePrincipais />
 
         <div className="grupos-home-ultima-linha">
           <span className="grupos-home-ultima-icone" aria-hidden="true">
@@ -353,12 +352,17 @@ function GrupoPrincipalHomeCard({ grupo, onAbrir }) {
             <small>Última atividade</small>
             <strong>{obterTextoUltimaAtividadeGrupo(grupo)}</strong>
           </span>
-          <span className="grupos-home-abrir-cta">
+          <button
+            type="button"
+            className="grupos-home-abrir-cta"
+            onClick={onAbrir}
+            aria-label={`Abrir grupo ${grupo.nome}`}
+          >
             Abrir grupo
             <FaChevronRight aria-hidden="true" />
-          </span>
+          </button>
         </div>
-      </button>
+      </article>
     </section>
   );
 }

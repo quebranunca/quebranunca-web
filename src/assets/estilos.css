@@ -9133,29 +9133,15 @@ body.grupos-edicao-modal-aberto .layout-com-bottom-nav {
   min-width: 0;
   justify-self: center;
   display: grid;
-  gap: 0.58rem;
-  padding: 0.72rem;
-  border: 1px solid rgba(255, 179, 0, 0.56);
+  gap: 0.82rem;
+  padding: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom-color: rgba(255, 179, 0, 0.72);
   border-radius: 20px;
-  background:
-    radial-gradient(circle at 0 0, rgba(255, 179, 0, 0.13), transparent 36%),
-    linear-gradient(145deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.018)),
-    rgba(14, 15, 18, 0.97);
+  background: rgba(14, 15, 18, 0.97);
   color: var(--cor-texto);
   text-align: left;
-  box-shadow: 0 0 28px rgba(255, 179, 0, 0.08), 0 18px 36px rgba(0, 0, 0, 0.28);
-}
-
-button.grupos-home-principal-card {
-  cursor: pointer;
-  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
-}
-
-button.grupos-home-principal-card:hover,
-button.grupos-home-principal-card:focus-visible {
-  transform: translateY(-2px);
-  border-color: rgba(255, 210, 92, 0.82);
-  box-shadow: 0 0 30px rgba(255, 179, 0, 0.13), 0 20px 40px rgba(0, 0, 0, 0.32);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.2);
 }
 
 .grupos-home-principal-topo,
@@ -9175,9 +9161,13 @@ button.grupos-home-principal-card:focus-visible {
 }
 
 .grupos-home-principal-avatar {
-  --avatar-size: 3.24rem;
+  --avatar-size: 3.5rem;
   border: 2px solid rgba(255, 179, 0, 0.74);
   box-shadow: 0 0 0 4px rgba(255, 179, 0, 0.1);
+}
+
+.grupos-home-principal-chevron {
+  color: var(--cor-texto-suave);
 }
 
 .grupos-home-principal-card h2 {
@@ -9191,6 +9181,40 @@ button.grupos-home-principal-card:focus-visible {
   letter-spacing: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.grupos-home-principal-descricao {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  color: var(--cor-texto-suave);
+  font-size: 0.82rem;
+  line-height: 1.42;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.grupos-home-principal-card > .grupos-home-metricas {
+  padding-block: 0.78rem;
+  border-block: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.grupos-home-principal-card > .grupos-home-metricas span {
+  gap: 0.2rem;
+  padding-block: 0.18rem;
+}
+
+.grupos-home-principal-card > .grupos-home-metricas svg {
+  width: 1.08rem;
+  height: 1.08rem;
+}
+
+.grupos-home-principal-card > .grupos-home-metricas strong {
+  font-size: 1.5rem;
+}
+
+.grupos-home-principal-card > .grupos-home-metricas small {
+  font-size: 0.73rem;
 }
 
 .grupos-home-badge {
@@ -9329,18 +9353,34 @@ button.grupos-home-principal-card:focus-visible {
 }
 
 .grupos-home-abrir-cta {
-  min-height: 2.05rem;
+  min-height: 2.75rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.26rem;
   padding: 0.44rem 0.62rem;
-  border-radius: 999px;
-  background: linear-gradient(180deg, #ffcf57 0%, #f4a416 100%);
+  border: 0;
+  border-radius: 12px;
+  background: var(--cor-primaria);
   color: #11100c;
-  font-size: 0.78rem;
+  font-size: 0.82rem;
   font-weight: 950;
   white-space: nowrap;
+  cursor: pointer;
+  transition: filter 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+}
+
+.grupos-home-abrir-cta:hover {
+  filter: brightness(1.06);
+}
+
+.grupos-home-abrir-cta:active {
+  transform: translateY(1px);
+}
+
+.grupos-home-abrir-cta:focus-visible {
+  outline: 3px solid rgba(255, 255, 255, 0.92);
+  outline-offset: 2px;
 }
 
 .grupos-home-principal-vazio {
@@ -9758,13 +9798,13 @@ button.grupos-home-grupo-card:focus-visible,
   }
 
   .grupos-home-ultima-linha {
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: auto minmax(0, 1fr);
     gap: 0.42rem;
   }
 
   .grupos-home-abrir-cta {
-    grid-column: auto;
-    width: auto;
+    grid-column: 1 / -1;
+    width: 100%;
     padding-inline: 0.52rem;
   }
 
@@ -9854,12 +9894,11 @@ button.grupos-home-grupo-card:focus-visible,
   }
 
   .grupos-home-principal-card {
-    grid-template-columns: minmax(0, 1fr) minmax(15rem, 0.44fr);
-    align-items: center;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .grupos-home-principal-topo {
-    grid-column: 1 / -1;
+    grid-column: auto;
   }
 
   .grupos-home-ultima-linha {

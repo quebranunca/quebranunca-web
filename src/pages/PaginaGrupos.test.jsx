@@ -128,12 +128,12 @@ describe('PaginaGrupos - home de grupos', () => {
     expect(screen.getByText('Organize partidas e acompanhe sua comunidade.')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Criar grupo' })).not.toBeInTheDocument();
 
-    const principal = await screen.findByRole('button', { name: /Abrir grupo Fechadinho De Quinta/i });
+    const principal = (await screen.findByRole('button', { name: /Abrir grupo Fechadinho De Quinta/i })).closest('article');
     expect(within(principal).getByText('Fechadinho De Quinta')).toBeInTheDocument();
     expect(within(principal).getByText('Privado')).toBeInTheDocument();
     expect(within(principal).getByText('8')).toBeInTheDocument();
     expect(within(principal).getByText('11')).toBeInTheDocument();
-    expect(within(principal).getByText('2')).toBeInTheDocument();
+    expect(within(principal).queryByText('2')).not.toBeInTheDocument();
     expect(within(principal).getByText('Abrir grupo')).toBeInTheDocument();
 
     expect(screen.getByRole('heading', { name: 'Meus grupos' })).toBeInTheDocument();
@@ -150,7 +150,7 @@ describe('PaginaGrupos - home de grupos', () => {
     expect(screen.queryByText('Partidas avulsas')).not.toBeInTheDocument();
   });
 
-  it('abre o grupo pelo card inteiro', async () => {
+  it('abre o grupo pelo CTA acessível', async () => {
     const usuario = userEvent.setup();
     configurarDashboard([
       criarGrupo({
@@ -165,6 +165,37 @@ describe('PaginaGrupos - home de grupos', () => {
 
     expect(screen.getByTestId('rota-atual')).toHaveTextContent('/grupos/grupo-principal');
     expect(screen.queryByRole('heading', { name: 'Meus grupos' })).not.toBeInTheDocument();
+  });
+
+  it('exibe descrição quando existe e trata ausência de atividade sem data inválida', async () => {
+    configurarDashboard([
+      criarGrupo({
+        grupoId: 'grupo-principal',
+        descricao: 'Encontros semanais para jogar e evoluir juntos.',
+        ultimaAtividade: null,
+        ultimaPartidaEm: null,
+        dataAtualizacao: null,
+        criadoEm: null,
+        dataCriacao: null
+      })
+    ]);
+
+    renderizarPagina();
+
+    const cta = await screen.findByRole('button', { name: /Abrir grupo Fechadinho De Quinta/i });
+    const principal = cta.closest('article');
+    expect(within(principal).getByText('Encontros semanais para jogar e evoluir juntos.')).toBeInTheDocument();
+    expect(within(principal).getByText('Sem atividade recente')).toBeInTheDocument();
+    expect(within(principal).queryByText(/Invalid Date/i)).not.toBeInTheDocument();
+  });
+
+  it('omite completamente a descrição quando ela não foi informada', async () => {
+    configurarDashboard([criarGrupo({ grupoId: 'grupo-principal', descricao: '   ' })]);
+
+    renderizarPagina();
+
+    const cta = await screen.findByRole('button', { name: /Abrir grupo Fechadinho De Quinta/i });
+    expect(cta.closest('article').querySelector('.grupos-home-principal-descricao')).not.toBeInTheDocument();
   });
 
   it('trata estado sem grupos reais quando só existe grupo técnico', async () => {
