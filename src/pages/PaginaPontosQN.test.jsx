@@ -118,9 +118,10 @@ function criarNivelResumo(totalAcumulado) {
 
 function criarBeneficios() {
   return [
-    criarBeneficio('beneficio-500', 'R$ 5 off na loja', 500, {
+    criarBeneficio('beneficio-500', 'Cupom 10% OFF', 300, {
       tipo: 1,
-      tipoNome: 'Campanha promocional'
+      tipoNome: 'Desconto',
+      percentualDesconto: 10
     }),
     criarBeneficio('beneficio-chaveiro', 'Chaveiro QuebraNunca', 2000, {
       tipo: 4,
@@ -143,6 +144,7 @@ function criarBeneficio(id, titulo, pontosNecessarios, sobrescritas = {}) {
     tipo: sobrescritas.tipo ?? 1,
     tipoNome: sobrescritas.tipoNome ?? 'Campanha promocional',
     pontosNecessarios,
+    percentualDesconto: sobrescritas.percentualDesconto ?? null,
     ativo: sobrescritas.ativo ?? true,
     quantidadeDisponivel: sobrescritas.quantidadeDisponivel ?? null,
     imagemUrl: sobrescritas.imagemUrl ?? null,
@@ -325,8 +327,21 @@ describe('PaginaPontosQN simplificada', () => {
 
     expect(screen.getByText('Brinde QuebraNunca')).toBeInTheDocument();
     expect(screen.getByText('500 Pontos QN')).toBeInTheDocument();
+    expect(screen.getByText('Disponível')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Resgatar' })).toBeEnabled();
     expect(screen.queryByText('Novos benefícios em breve')).not.toBeInTheDocument();
+  });
+
+  it('mostra o saldo disponível dentro da vitrine e oferece atalho para ganhar mais', async () => {
+    configurarApisComSucesso({ saldoAtual: 1250 });
+    const usuario = userEvent.setup();
+    renderizarPagina('/app/pontos-qn?aba=beneficios');
+
+    await screen.findByRole('heading', { name: /Benefícios QN/i });
+
+    expect(screen.getByLabelText('1.250 Pontos QN disponíveis para resgate')).toBeInTheDocument();
+    await usuario.click(screen.getByRole('button', { name: 'Como ganhar mais' }));
+    expect(screen.getByRole('heading', { name: 'Como ganhar mais pontos' })).toBeInTheDocument();
   });
 
   it('mantém benefício com pontos insuficientes visível e não permite resgate', async () => {
@@ -415,14 +430,14 @@ describe('PaginaPontosQN simplificada', () => {
     const filtros = screen.getByRole('group', { name: /Filtros de benefícios/i });
 
     expect(within(filtros).getByRole('button', { name: 'Todos' })).toBeInTheDocument();
-    expect(within(filtros).getByRole('button', { name: 'Campanhas' })).toBeInTheDocument();
+    expect(within(filtros).getByRole('button', { name: 'Descontos' })).toBeInTheDocument();
     expect(within(filtros).getByRole('button', { name: 'Produtos' })).toBeInTheDocument();
     expect(within(filtros).queryByRole('button', { name: 'Brindes' })).not.toBeInTheDocument();
     expect(within(filtros).queryByRole('button', { name: 'Experiências' })).not.toBeInTheDocument();
     expect(within(filtros).queryByRole('button', { name: 'App' })).not.toBeInTheDocument();
-    expect(within(filtros).queryByRole('button', { name: 'Descontos' })).not.toBeInTheDocument();
 
-    expect(screen.getByText('Condição especial em campanha')).toBeInTheDocument();
+    expect(screen.getByText('Cupom 10% OFF')).toBeInTheDocument();
+    expect(screen.getByText('10% OFF')).toBeInTheDocument();
     expect(screen.getByText('Chaveiro QuebraNunca')).toBeInTheDocument();
     expect(screen.getByText('Boné QuebraNunca')).toBeInTheDocument();
 
@@ -430,7 +445,7 @@ describe('PaginaPontosQN simplificada', () => {
 
     expect(screen.getByText('Chaveiro QuebraNunca')).toBeInTheDocument();
     expect(screen.getByText('Boné QuebraNunca')).toBeInTheDocument();
-    expect(screen.queryByText('Condição especial em campanha')).not.toBeInTheDocument();
+    expect(screen.queryByText('Cupom 10% OFF')).not.toBeInTheDocument();
   });
 
   it('inclui nos filtros categorias com benefícios visíveis mesmo sem resgate disponível', async () => {
@@ -457,7 +472,7 @@ describe('PaginaPontosQN simplificada', () => {
     const filtros = screen.getByRole('group', { name: /Filtros de benefícios/i });
 
     expect(within(filtros).getByRole('button', { name: 'Todos' })).toBeInTheDocument();
-    expect(within(filtros).getByRole('button', { name: 'Campanhas' })).toBeInTheDocument();
+    expect(within(filtros).getByRole('button', { name: 'Descontos' })).toBeInTheDocument();
     expect(within(filtros).getByRole('button', { name: 'Produtos' })).toBeInTheDocument();
     expect(within(filtros).queryByRole('button', { name: 'Brindes' })).not.toBeInTheDocument();
 
@@ -498,19 +513,21 @@ describe('PaginaPontosQN simplificada', () => {
     expect(screen.getByRole('button', { name: 'Faltam 2.000 pontos' })).toBeDisabled();
   });
 
-  it('mantém cupons percentuais em Campanhas e produtos físicos em Produtos', async () => {
+  it('mantém cupons percentuais em Descontos e produtos físicos em Produtos', async () => {
     configurarApisComSucesso({
       saldoAtual: 1000,
       beneficios: [
         criarBeneficio('cupom-10', 'Cupom 10% OFF', 300, {
           tipo: 1,
-          tipoNome: 'Campanha promocional',
+          tipoNome: 'Desconto',
+          percentualDesconto: 10,
           saldoSuficiente: true,
           pontosFaltantes: 0
         }),
         criarBeneficio('cupom-20', 'Cupom 20% OFF', 600, {
           tipo: 1,
-          tipoNome: 'Campanha promocional',
+          tipoNome: 'Desconto',
+          percentualDesconto: 20,
           saldoSuficiente: true,
           pontosFaltantes: 0
         }),
@@ -529,12 +546,14 @@ describe('PaginaPontosQN simplificada', () => {
 
     expect(screen.getByText('Cupom 10% OFF')).toBeInTheDocument();
     expect(screen.getByText('Cupom 20% OFF')).toBeInTheDocument();
+    expect(screen.getByText('10% OFF')).toBeInTheDocument();
+    expect(screen.getByText('20% OFF')).toBeInTheDocument();
     expect(screen.getByText('Boné QuebraNunca')).toBeInTheDocument();
 
     const filtros = screen.getByRole('group', { name: /Filtros de benefícios/i });
     expect(within(filtros).queryByRole('button', { name: 'Brindes' })).not.toBeInTheDocument();
 
-    await usuario.click(within(filtros).getByRole('button', { name: 'Campanhas' }));
+    await usuario.click(within(filtros).getByRole('button', { name: 'Descontos' }));
 
     expect(screen.getByText('Cupom 10% OFF')).toBeInTheDocument();
     expect(screen.getByText('Cupom 20% OFF')).toBeInTheDocument();
@@ -545,6 +564,28 @@ describe('PaginaPontosQN simplificada', () => {
     expect(screen.getByText('Boné QuebraNunca')).toBeInTheDocument();
     expect(screen.queryByText('Cupom 10% OFF')).not.toBeInTheDocument();
     expect(screen.queryByText('Cupom 20% OFF')).not.toBeInTheDocument();
+  });
+
+  it('está preparado para exibir desconto de 30% quando a API publicar o benefício', async () => {
+    configurarApisComSucesso({
+      saldoAtual: 1000,
+      beneficios: [
+        criarBeneficio('cupom-30', 'Cupom 30% OFF', 1000, {
+          tipo: 1,
+          tipoNome: 'Desconto',
+          percentualDesconto: 30,
+          saldoSuficiente: true,
+          pontosFaltantes: 0
+        })
+      ]
+    });
+    renderizarPagina('/app/pontos-qn?aba=beneficios');
+
+    await screen.findByRole('heading', { name: /Benefícios QN/i });
+
+    expect(screen.getByText('Cupom 30% OFF')).toBeInTheDocument();
+    expect(screen.getByText('30% OFF')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Resgatar' })).toBeEnabled();
   });
 
   it('não mostra filtros se houver benefícios ativos em apenas uma categoria', async () => {
@@ -604,7 +645,7 @@ describe('PaginaPontosQN simplificada', () => {
     expect(screen.getByRole('heading', { name: 'Como ganhar mais pontos' })).toBeInTheDocument();
   });
 
-  it('não exibe linguagem financeira indevida na aba Benefícios', async () => {
+  it('exibe descontos percentuais sem linguagem de conversão financeira', async () => {
     configurarApisComSucesso();
     renderizarPagina('/app/pontos-qn?aba=beneficios');
 

@@ -3176,18 +3176,24 @@ code {
 }
 
 .pontosqn-filtros {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  display: flex;
   gap: 0.38rem;
-  overflow: visible;
+  overflow-x: auto;
   padding: 0.08rem 0 0.2rem;
   background: transparent;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.pontosqn-filtros::-webkit-scrollbar {
+  display: none;
 }
 
 .pontosqn-filtros button {
-  width: 100%;
-  min-width: 0;
-  white-space: normal;
+  flex: 0 0 auto;
+  min-width: max-content;
+  padding-inline: 0.85rem;
+  white-space: nowrap;
 }
 
 .pontosqn-secao {
@@ -3464,7 +3470,7 @@ code {
 
 .pontosqn-vitrine-topo {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 0.85rem;
   align-items: center;
   padding: 0.9rem;
@@ -3473,6 +3479,47 @@ code {
   background:
     linear-gradient(135deg, rgba(255, 179, 0, 0.1), rgba(255, 255, 255, 0.035)),
     var(--cor-superficie);
+}
+
+.pontosqn-vitrine-saldo {
+  display: grid;
+  min-width: 210px;
+  gap: 0.18rem;
+  padding: 0.7rem 0.78rem;
+  border: 1px solid rgba(255, 179, 0, 0.22);
+  border-radius: var(--raio-sm);
+  background: rgba(8, 9, 11, 0.48);
+}
+
+.pontosqn-vitrine-saldo > span {
+  color: var(--cor-texto-suave);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.pontosqn-vitrine-saldo strong {
+  color: #ffd56a;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.38rem;
+}
+
+.pontosqn-vitrine-saldo strong small {
+  color: var(--cor-texto-suave);
+  font-family: inherit;
+  font-size: 0.72rem;
+}
+
+.pontosqn-vitrine-saldo button {
+  justify-self: start;
+  min-height: 2rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #ffd56a;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 0.2rem;
 }
 
 .pontosqn-vitrine-topo h2 {
@@ -3494,7 +3541,7 @@ code {
 }
 
 .pontosqn-beneficios-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 0.62rem;
 }
 
@@ -3514,6 +3561,7 @@ code {
 }
 
 .pontosqn-beneficio-imagem {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3526,6 +3574,22 @@ code {
   background:
     radial-gradient(circle at 50% 34%, rgba(255, 179, 0, 0.12), transparent 48%),
     rgba(255, 255, 255, 0.035);
+}
+
+.pontosqn-beneficio-desconto {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 1;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid rgba(255, 213, 106, 0.42);
+  border-radius: 999px;
+  background: #ffb300;
+  color: #090909;
+  font-size: 0.75rem;
+  font-weight: 950;
+  line-height: 1;
+  box-shadow: 0 5px 14px rgba(0, 0, 0, 0.24);
 }
 
 .pontosqn-beneficio-imagem img {
@@ -3662,6 +3726,10 @@ code {
   width: 100%;
   cursor: not-allowed;
   opacity: 0.78;
+}
+
+.pontosqn-beneficio-rodape .botao-primario {
+  width: 100%;
 }
 
 .pontosqn-em-breve-grid {
@@ -3996,8 +4064,20 @@ code {
   }
 
   .pontosqn-beneficio-meta {
-    align-items: flex-start;
-    flex-direction: column;
+    align-items: center;
+    flex-direction: row;
+  }
+
+  .pontosqn-vitrine-topo {
+    grid-template-columns: 1fr;
+  }
+
+  .pontosqn-vitrine-saldo {
+    min-width: 0;
+  }
+
+  .pontosqn-beneficios-grid {
+    grid-template-columns: 1fr;
   }
 
   .pontosqn-sobre-card {

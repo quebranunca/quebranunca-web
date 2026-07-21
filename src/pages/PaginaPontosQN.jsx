@@ -28,7 +28,7 @@ const ABAS = [
 
 const filtrosBeneficios = [
   { id: 'todos', rotulo: 'Todos' },
-  { id: 'campanhas', rotulo: 'Campanhas' },
+  { id: 'descontos', rotulo: 'Descontos' },
   { id: 'produtos', rotulo: 'Produtos' },
   { id: 'experiencias', rotulo: 'Experiências' },
   { id: 'app', rotulo: 'App' }
@@ -81,7 +81,6 @@ const padroesCopyFinanceiraBeneficio = [
   /100\s*qn\s*=\s*r\$\s*1/i,
   /r\$\s*\d+/i,
   /\b\d+\s*reais?\b/i,
-  /\bdescontos?\b/i,
   /cashback/i,
   /saldo financeiro/i,
   /carteira/i,
@@ -140,7 +139,17 @@ function obterTextoBeneficio(beneficio) {
 
 function obterCategoriaBeneficio(beneficio) {
   const tipo = Number(beneficio?.tipo);
+  const percentualDesconto = Number(beneficio?.percentualDesconto);
   const texto = obterTextoBeneficio(beneficio);
+
+  if (
+    (percentualDesconto > 0 && percentualDesconto <= 30) ||
+    tipo === 1 ||
+    texto.includes('desconto') ||
+    texto.includes('cupom')
+  ) {
+    return 'descontos';
+  }
 
   if (
     texto.includes('chaveiro') ||
@@ -172,7 +181,7 @@ function obterCategoriaBeneficio(beneficio) {
     return 'produtos';
   }
 
-  if (tipo === 1 || texto.includes('campanha') || texto.includes('promocional') || texto.includes('cupom') || texto.includes('condicao')) {
+  if (texto.includes('campanha') || texto.includes('promocional') || texto.includes('condicao')) {
     return 'campanhas';
   }
 
@@ -302,6 +311,11 @@ function obterTipoBeneficioSeguro(beneficio, produtoFisico) {
   return 'Benefício promocional';
 }
 
+function obterPercentualDesconto(beneficio) {
+  const percentual = Number(beneficio?.percentualDesconto);
+  return percentual > 0 && percentual <= 30 ? percentual : null;
+}
+
 function obterStatusResgate(resgates, beneficioId) {
   return resgates.find((resgate) =>
     resgate.beneficioId === beneficioId &&
@@ -426,6 +440,7 @@ function BeneficioCard({ beneficio, resgateSolicitado, resgatando, onResgatar })
   const tituloBeneficio = obterTituloBeneficioSeguro(beneficio);
   const descricaoBeneficio = obterDescricaoBeneficioSegura(beneficio);
   const tipoBeneficio = obterTipoBeneficioSeguro(beneficio, produtoFisico);
+  const percentualDesconto = obterPercentualDesconto(beneficio);
   const emBreve = beneficioEmBreve(beneficio);
   const disponivel = beneficioDisponivelParaResgate(beneficio);
   const pontosFaltantes = Math.max(0, Number(beneficio.pontosFaltantes || 0));
@@ -462,6 +477,9 @@ function BeneficioCard({ beneficio, resgateSolicitado, resgatando, onResgatar })
         className={`pontosqn-beneficio-imagem ${imagemBeneficio ? '' : 'pontosqn-beneficio-imagem-fallback'}`}
         {...(!imagemBeneficio ? { role: 'img', 'aria-label': `Benefício QN: ${tituloBeneficio}` } : {})}
       >
+        {percentualDesconto && (
+          <span className="pontosqn-beneficio-desconto">{percentualDesconto}% OFF</span>
+        )}
         {imagemBeneficio ? (
           <img src={imagemBeneficio} alt={tituloBeneficio} loading="lazy" />
         ) : (
@@ -473,9 +491,7 @@ function BeneficioCard({ beneficio, resgateSolicitado, resgatando, onResgatar })
           <FaGift aria-hidden="true" />
           {tipoBeneficio}
         </span>
-        {!podeResgatar && (
-          <span className={`pontosqn-status ${classeEstado}`}>{estado}</span>
-        )}
+        <span className={`pontosqn-status ${classeEstado}`}>{estado}</span>
       </div>
       <h3>{tituloBeneficio}</h3>
       <p>{descricaoBeneficio}</p>
@@ -837,7 +853,12 @@ export function PaginaPontosQN() {
             <div>
               <span className="pontosqn-selo"><FaShoppingBag aria-hidden="true" /> Benefícios da comunidade</span>
               <h2>Benefícios QN</h2>
-              <p>Campanhas, brindes e vantagens da comunidade aparecem aqui quando estiverem disponíveis.</p>
+              <p>Troque seus pontos por campanhas, produtos e experiências disponíveis na comunidade.</p>
+            </div>
+            <div className="pontosqn-vitrine-saldo" aria-label={`${formatarPontos(saldo)} Pontos QN disponíveis para resgate`}>
+              <span>Seu saldo para resgates</span>
+              <strong>{formatarPontos(saldo)} <small>Pontos QN</small></strong>
+              <button type="button" onClick={irParaComoGanharResumo}>Como ganhar mais</button>
             </div>
           </div>
 
