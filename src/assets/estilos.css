@@ -9027,29 +9027,25 @@ body.grupos-edicao-modal-aberto .layout-com-bottom-nav {
   padding-inline: clamp(0.78rem, 3vw, 1rem);
 }
 
-.grupos-home-criar-shell-compacto {
-  width: min(100%, 12.5rem);
-  padding: 0.4rem 0 0;
-}
-
 .grupos-home-criar-botao {
   width: 100%;
-  min-height: 2.85rem;
+  min-height: 3rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.52rem;
   padding: 0.76rem 0.95rem;
-  border: 1px solid rgba(255, 225, 128, 0.8);
-  border-radius: 999px;
-  background: linear-gradient(180deg, #ffd35f 0%, #ffb51f 54%, #f0a012 100%);
+  border: 0;
+  border-radius: 14px;
+  background: var(--cor-primaria);
   color: #11100c;
   font-family: 'Space Grotesk', sans-serif;
   font-size: 0.9rem;
   font-weight: 950;
   line-height: 1;
   letter-spacing: 0;
-  box-shadow: 0 14px 30px rgba(255, 179, 0, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.32);
+  box-shadow: 0 8px 18px rgba(255, 179, 0, 0.14);
+  cursor: pointer;
   transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
 }
 
@@ -9059,11 +9055,15 @@ body.grupos-edicao-modal-aberto .layout-com-bottom-nav {
   flex: 0 0 auto;
 }
 
-.grupos-home-criar-botao:hover,
-.grupos-home-criar-botao:focus-visible {
+.grupos-home-criar-botao:hover {
   transform: translateY(-1px);
   filter: brightness(1.03);
-  box-shadow: 0 18px 34px rgba(255, 179, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.36);
+  box-shadow: 0 10px 22px rgba(255, 179, 0, 0.2);
+}
+
+.grupos-home-criar-botao:focus-visible {
+  outline: 3px solid rgba(255, 255, 255, 0.92);
+  outline-offset: 2px;
 }
 
 .grupos-home-criar-botao:active {
@@ -9837,7 +9837,7 @@ button.grupos-home-grupo-card:focus-visible,
   }
 
   .grupos-home-criar-botao {
-    width: min(100%, 30rem);
+    width: 100%;
   }
 
   .grupos-home-header h1 {

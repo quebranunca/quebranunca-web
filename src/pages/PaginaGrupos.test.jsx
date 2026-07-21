@@ -126,7 +126,9 @@ describe('PaginaGrupos - home de grupos', () => {
 
     expect(await screen.findByRole('heading', { name: 'Grupos' })).toBeInTheDocument();
     expect(screen.getByText('Organize partidas e acompanhe sua comunidade.')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Criar grupo' })).not.toBeInTheDocument();
+    const botaoCriarGrupo = screen.getByRole('button', { name: 'Criar grupo' });
+    const tituloPrincipal = screen.getByRole('heading', { name: 'Seu grupo principal' });
+    expect(botaoCriarGrupo.compareDocumentPosition(tituloPrincipal) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 
     const principal = (await screen.findByRole('button', { name: /Abrir grupo Fechadinho De Quinta/i })).closest('article');
     expect(within(principal).getByText('Fechadinho De Quinta')).toBeInTheDocument();
@@ -263,5 +265,15 @@ describe('PaginaGrupos - home de grupos', () => {
 
     expect(screen.getByTestId('rota-atual')).toHaveTextContent('/app/grupos/criar');
     expect(screen.getByTestId('origem-atual')).toHaveTextContent('/grupos');
+  });
+
+  it('mantém Criar grupo visível enquanto a lista está carregando', () => {
+    gruposServico.obterDashboard.mockReturnValue(new Promise(() => {}));
+
+    renderizarPagina();
+
+    expect(screen.getByRole('button', { name: 'Criar grupo' })).toBeInTheDocument();
+    expect(screen.getByText('Carregando grupos...')).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Ações rápidas' })).not.toBeInTheDocument();
   });
 });
