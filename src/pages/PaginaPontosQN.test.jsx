@@ -36,6 +36,8 @@ vi.mock('../services/gamificacaoServico', () => ({
 function configurarApisComSucesso({
   beneficios = criarBeneficios(),
   saldoAtual = 0,
+  pontosDisponiveis,
+  pontosPendentesCompensacao = 0,
   totalAcumulado = saldoAtual,
   nivel = criarNivelResumo(totalAcumulado),
   extrato = []
@@ -43,6 +45,8 @@ function configurarApisComSucesso({
   gamificacaoServico.obterResumo.mockResolvedValue({
     pontuacao: {
       saldoAtual,
+      ...(pontosDisponiveis === undefined ? {} : { pontosDisponiveis }),
+      pontosPendentesCompensacao,
       totalAcumulado,
       temAtletaVinculado: true
     },
@@ -227,6 +231,33 @@ describe('PaginaPontosQN simplificada', () => {
     expect(screen.getByText(/Eles não são dinheiro, não têm saque/i)).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: /Resumo do programa/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: /Atalhos/i })).not.toBeInTheDocument();
+  });
+
+  it('usa pontos disponíveis da API e avisa sobre saldo pendente sem exibir saldo negativo', async () => {
+    configurarApisComSucesso({
+      saldoAtual: -20,
+      pontosDisponiveis: 0,
+      pontosPendentesCompensacao: 20,
+      totalAcumulado: 0
+    });
+    renderizarPagina();
+
+    await screen.findByRole('heading', { name: 'Pontos QN' });
+    expect(screen.getByText('Pontos disponíveis')).toBeInTheDocument();
+    expect(screen.getAllByText('0').length).toBeGreaterThan(0);
+    expect(screen.queryByText('-20')).not.toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Você possui 20 Pontos QN pendentes de compensação. Novos pontos recebidos serão usados primeiro para regularizar esse saldo.'
+    );
+  });
+
+  it('mantém fallback defensivo em zero para API antiga com saldo atual negativo', async () => {
+    configurarApisComSucesso({ saldoAtual: -20, totalAcumulado: 0 });
+    renderizarPagina('/app/pontos-qn?aba=beneficios');
+
+    await screen.findByRole('heading', { name: /Benefícios QN/i });
+    expect(screen.getByLabelText('0 Pontos QN disponíveis para resgate')).toBeInTheDocument();
+    expect(screen.queryByText('-20')).not.toBeInTheDocument();
   });
 
   it('renderiza as medalhas QN oficiais e explica que resgate nao reduz medalha', async () => {

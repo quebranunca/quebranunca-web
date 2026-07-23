@@ -665,7 +665,12 @@ export function PaginaPontosQN() {
     setAba((abaAtual) => (abaAtual === abaUrl ? abaAtual : abaUrl));
   }, [searchParams]);
 
-  const saldo = resumo?.pontuacao?.saldoAtual || 0;
+  const saldo = resumo?.pontuacao?.pontosDisponiveis
+    ?? Math.max(0, Number(resumo?.pontuacao?.saldoAtual || 0));
+  const pontosPendentesCompensacao = Math.max(
+    0,
+    Number(resumo?.pontuacao?.pontosPendentesCompensacao || 0)
+  );
   const totalAcumulado = resumo?.pontuacao?.totalAcumulado || 0;
   const nivel = resumo?.nivel;
   const faixasMedalha = useMemo(
@@ -803,6 +808,13 @@ export function PaginaPontosQN() {
           </em>
         </div>
       </section>
+
+      {pontosPendentesCompensacao > 0 && (
+        <section className="cartao pontosqn-compensacao-aviso" role="status">
+          Você possui {formatarPontos(pontosPendentesCompensacao)} Pontos QN pendentes de compensação.
+          {' '}Novos pontos recebidos serão usados primeiro para regularizar esse saldo.
+        </section>
+      )}
 
       {!temAtletaVinculado && (
         <EstadoPainel
