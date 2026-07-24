@@ -13,8 +13,8 @@ Este é um projeto existente; não tratar como app novo. Reutilizar padrões atu
 - Não versionar `.env` local nem embutir URL de API de ambiente real direto no código; usar `.env.example` e variáveis de build quando necessário
 - Para execução local sem Docker, apontar o frontend para a API local via `.env.local` com `VITE_API_BASE_URL=http://localhost:5080`
 - Não versionar `.env.local`; não commitar URLs temporárias de API local ou configuração sensível
-- Massa técnica `[AI TESTE]` pode ser usada em validações manuais/E2E com usuário comum `gustavodrager+qnf-ai-tester@gmail.com` e senha técnica `QnfAiTeste@2026`
-- Enquanto não houver produção, essa credencial técnica de app pode ser documentada/versionada; não hardcodar secrets de infraestrutura no frontend
+- Massa técnica `[AI TESTE]` pode ser usada em validações manuais/E2E somente em janela explícita de auditoria; credenciais devem ficar fora do repositório
+- Em produção, a conta técnica deve permanecer inativa fora dessas janelas; não hardcodar senha ou secrets de infraestrutura no frontend
 - Não versionar connection string, senha do Railway, `DATABASE_URL`, `Jwt:Chave`, API keys, `.env.local` ou credenciais de serviços externos
 - Antes de ajustar integração, conferir primeiro `src/services/http.js`, `vite.config.js` e os arquivos `.env*` para não mascarar problema de ambiente com mudança de código
 - Toda feature criada ou alterada deve avaliar se `AGENTS.md`, `AGENTS.override.md` ou `ai/` precisam registrar uma decisão recorrente
