@@ -7,6 +7,7 @@ import { autenticacaoServico } from '../services/autenticacaoServico';
 
 const mocks = vi.hoisted(() => ({
   iniciarAcesso: vi.fn(),
+  cadastrarPublicoComSenha: vi.fn(),
   confirmarCodigoAcesso: vi.fn(),
   completarCadastroPublico: vi.fn(),
   criarSenhaComToken: vi.fn(),
@@ -16,6 +17,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock('../hooks/useAutenticacao', () => ({
   useAutenticacao: () => ({
     iniciarAcesso: mocks.iniciarAcesso,
+    cadastrarPublicoComSenha: mocks.cadastrarPublicoComSenha,
     confirmarCodigoAcesso: mocks.confirmarCodigoAcesso,
     completarCadastroPublico: mocks.completarCadastroPublico,
     criarSenhaComToken: mocks.criarSenhaComToken,
@@ -77,6 +79,7 @@ beforeEach(() => {
     urlPoliticaPrivacidade: '/privacidade'
   });
   mocks.iniciarAcesso.mockReset();
+  mocks.cadastrarPublicoComSenha.mockReset();
   mocks.confirmarCodigoAcesso.mockReset();
   mocks.completarCadastroPublico.mockReset();
   mocks.criarSenhaComToken.mockReset();
@@ -123,6 +126,101 @@ describe('PaginaLogin - entrar ou criar conta', () => {
 
     expect(await screen.findByText(/Informe um e-mail válido/i)).toBeInTheDocument();
     expect(mocks.iniciarAcesso).not.toHaveBeenCalled();
+  });
+
+  it('e-mail novo conduz ao cadastro direto com senha e confirmação sem código', async () => {
+    mocks.iniciarAcesso.mockResolvedValue({
+      status: 'CriarContaComSenha',
+      mensagem: 'Crie uma senha para começar.',
+      podeEntrarComSenha: false,
+      cadastroNovo: true
+    });
+
+    renderizar();
+    await preencherEmailEContinuar('novo@example.com');
+
+    expect(await screen.findByRole('heading', { name: /Crie sua conta/i })).toBeInTheDocument();
+    expect(screen.getByText('novo@example.com')).toBeInTheDocument();
+    expect(screen.getByLabelText(/^Senha$/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Confirmar senha/i)).toBeInTheDocument();
+    expect(screen.queryByLabelText(/Código de acesso/i)).not.toBeInTheDocument();
+  });
+
+  it('senhas diferentes impedem o cadastro público', async () => {
+    mocks.iniciarAcesso.mockResolvedValue({
+      status: 'CriarContaComSenha',
+      cadastroNovo: true
+    });
+
+    renderizar();
+    const usuario = await preencherEmailEContinuar('novo@example.com');
+    await usuario.type(await screen.findByLabelText(/^Senha$/i), 'Senha123');
+    await usuario.type(screen.getByLabelText(/Confirmar senha/i), 'OutraSenha');
+    await usuario.click(screen.getByLabelText(/Termos de Uso/i));
+    await usuario.click(screen.getByLabelText(/18 anos ou mais/i));
+    await usuario.click(screen.getByRole('button', { name: /^Criar conta$/i }));
+
+    expect(await screen.findByText(/Senha e confirmação devem ser iguais/i)).toBeInTheDocument();
+    expect(mocks.cadastrarPublicoComSenha).not.toHaveBeenCalled();
+  });
+
+  it('cadastro válido usa o endpoint por senha e cria a sessão pelo contexto', async () => {
+    mocks.iniciarAcesso.mockResolvedValue({
+      status: 'CriarContaComSenha',
+      cadastroNovo: true
+    });
+    mocks.cadastrarPublicoComSenha.mockResolvedValue({
+      token: 'token',
+      refreshToken: 'refresh',
+      usuario: { id: 'usuario-1' }
+    });
+
+    renderizar();
+    const usuario = await preencherEmailEContinuar('Novo@Example.com');
+    await usuario.type(await screen.findByLabelText(/^Senha$/i), 'Senha123');
+    await usuario.type(screen.getByLabelText(/Confirmar senha/i), 'Senha123');
+    await usuario.click(screen.getByLabelText(/Termos de Uso/i));
+    await usuario.click(screen.getByLabelText(/18 anos ou mais/i));
+    await usuario.click(screen.getByRole('button', { name: /^Criar conta$/i }));
+
+    expect(mocks.cadastrarPublicoComSenha).toHaveBeenCalledWith({
+      email: 'Novo@Example.com',
+      senha: 'Senha123',
+      confirmacaoSenha: 'Senha123',
+      aceitouTermos: true,
+      versaoTermos: '2026-05-18',
+      aceitouPoliticaPrivacidade: true,
+      versaoPoliticaPrivacidade: '2026-05-18',
+      declarouMaiorDe18: true
+    });
+  });
+
+  it('cliques repetidos não duplicam a requisição de cadastro', async () => {
+    mocks.iniciarAcesso.mockResolvedValue({
+      status: 'CriarContaComSenha',
+      cadastroNovo: true
+    });
+    let concluirCadastro;
+    mocks.cadastrarPublicoComSenha.mockImplementation(() => new Promise((resolve) => {
+      concluirCadastro = resolve;
+    }));
+
+    renderizar();
+    const usuario = await preencherEmailEContinuar('novo@example.com');
+    await usuario.type(await screen.findByLabelText(/^Senha$/i), 'Senha123');
+    await usuario.type(screen.getByLabelText(/Confirmar senha/i), 'Senha123');
+    await usuario.click(screen.getByLabelText(/Termos de Uso/i));
+    await usuario.click(screen.getByLabelText(/18 anos ou mais/i));
+    const botao = screen.getByRole('button', { name: /^Criar conta$/i });
+    await usuario.click(botao);
+    await usuario.click(botao);
+
+    expect(mocks.cadastrarPublicoComSenha).toHaveBeenCalledTimes(1);
+    concluirCadastro({
+      token: 'token',
+      refreshToken: 'refresh',
+      usuario: { id: 'usuario-1' }
+    });
   });
 
   it('não mostra nem preenche código de desenvolvimento na tela pública', async () => {
@@ -275,7 +373,46 @@ describe('PaginaLogin - entrar ou criar conta', () => {
     await preencherEmailEContinuar('atleta@example.com');
 
     expect(await screen.findByLabelText(/Senha/i)).toBeInTheDocument();
+    expect(screen.getByText('atleta@example.com')).toBeInTheDocument();
+    expect(screen.queryByLabelText(/Confirmar senha/i)).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Entrar com código enviado por e-mail/i })).not.toBeInTheDocument();
+  });
+
+  it('credenciais inválidas exibem mensagem adequada no login recorrente', async () => {
+    mocks.iniciarAcesso.mockResolvedValue({
+      status: 'EntrarComSenha',
+      podeEntrarComSenha: true,
+      cadastroNovo: false
+    });
+    mocks.entrarComSenha.mockRejectedValue({
+      response: {
+        data: {
+          erro: 'Credenciais inválidas.'
+        }
+      }
+    });
+
+    renderizar();
+    const usuario = await preencherEmailEContinuar('atleta@example.com');
+    await usuario.type(await screen.findByLabelText(/^Senha$/i), 'senha-incorreta');
+    await usuario.click(screen.getByRole('button', { name: /^Entrar$/i }));
+
+    expect(await screen.findByText('Credenciais inválidas.')).toBeInTheDocument();
+  });
+
+  it('recuperação de senha permanece acessível separadamente', async () => {
+    mocks.iniciarAcesso.mockResolvedValue({
+      status: 'EntrarComSenha',
+      podeEntrarComSenha: true,
+      cadastroNovo: false
+    });
+
+    renderizar();
+    const usuario = await preencherEmailEContinuar('atleta@example.com');
+    await usuario.click(await screen.findByRole('button', { name: /Esqueci minha senha/i }));
+
+    expect(await screen.findByRole('heading', { name: /Redefinir senha/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Enviar código/i })).toBeInTheDocument();
   });
 
   it('usuário antigo sem senha confirma e-mail e cria senha antes de entrar', async () => {

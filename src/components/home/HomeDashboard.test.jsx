@@ -215,6 +215,43 @@ describe('HomeDashboard nova experiencia', () => {
     expect(screen.getByRole('region', { name: /Pontos QN/i })).toBeInTheDocument();
   });
 
+  it('orienta usuario sem atleta e conduz o CTA para Meu Perfil', async () => {
+    autenticacaoMock.usuario = criarUsuarioPadrao({ atletaId: null, nome: 'Novo atleta', apelido: '' });
+    const usuario = userEvent.setup();
+
+    renderizarHome({
+      modulos: criarModulos({
+        perfil: criarModulo(null),
+        resumo: criarModulo(null),
+        ultimasPartidas: criarModulo([])
+      })
+    });
+
+    const orientacao = screen.getByRole('region', { name: /Sua conta está pronta/i });
+    const hero = screen.getByTestId('home-dashboard-hero');
+    expect(within(hero).getByRole('heading', { name: 'Bem-vindo ao QuebraNunca' })).toBeInTheDocument();
+    expect(within(hero).getByText('Sua conta está pronta.')).toBeInTheDocument();
+    expect(within(hero).getByRole('img', { name: 'QuebraNunca' })).toHaveTextContent('Q');
+    expect(within(hero).queryByText('Novo atleta')).not.toBeInTheDocument();
+    expect(within(orientacao).getByText(/Complete seu perfil para liberar scouts/i)).toBeInTheDocument();
+    await usuario.click(within(orientacao).getByRole('link', { name: /Completar meu perfil/i }));
+    expect(screen.getByTestId('rota-atual')).toHaveTextContent('/app/perfil');
+    expect(screen.queryByRole('region', { name: /Seu desempenho/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: /Último jogo/i })).not.toBeInTheDocument();
+    expect(screen.queryByText(/HTTP 400|atleta não encontrado|requisição inválida/i)).not.toBeInTheDocument();
+    expect(screen.getByRole('region', { name: /Pontos QN/i })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: /Ações principais/i })).toBeInTheDocument();
+  });
+
+  it('mantem logout disponivel para usuario sem atleta', async () => {
+    autenticacaoMock.usuario = criarUsuarioPadrao({ atletaId: null, nome: 'Novo atleta', apelido: '' });
+    const usuario = userEvent.setup();
+    renderizarHome();
+
+    await usuario.click(screen.getByRole('button', { name: /Abrir menu da conta/i }));
+    expect(screen.getByRole('button', { name: /^Sair$/i })).toBeInTheDocument();
+  });
+
   it('mostra resumo compacto de pendencias com link para a lista completa', () => {
     const pendencia = {
       id: 'pendencia-1',
@@ -476,6 +513,7 @@ describe('homeSectionsConfig', () => {
       .map((secao) => secao.type);
 
     expect(secoesAtivas).toEqual([
+      HomeSectionType.ProfileCompletion,
       HomeSectionType.Gamification,
       HomeSectionType.Performance,
       HomeSectionType.PendingConfirmation,

@@ -1,6 +1,7 @@
 export const HomeSectionType = Object.freeze({
   MainDashboard: 'mainDashboard',
   Identity: 'identity',
+  ProfileCompletion: 'profileCompletion',
   PendingConfirmation: 'pendingConfirmation',
   Gamification: 'gamification',
   PrimaryAction: 'primaryAction',
@@ -10,6 +11,7 @@ export const HomeSectionType = Object.freeze({
 });
 
 export const homeSectionsConfig = [
+  { type: HomeSectionType.ProfileCompletion, enabled: true },
   { type: HomeSectionType.Gamification, enabled: true },
   { type: HomeSectionType.Performance, enabled: true },
   { type: HomeSectionType.PendingConfirmation, enabled: true },

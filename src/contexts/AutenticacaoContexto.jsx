@@ -264,6 +264,12 @@ export function ProvedorAutenticacao({ children }) {
     return autenticacaoServico.iniciarAcesso({ email });
   }, []);
 
+  const cadastrarPublicoComSenha = useCallback(async (dados) => {
+    const resposta = await autenticacaoServico.cadastrarPublicoComSenha(dados);
+    salvarAutenticacao(resposta);
+    return resposta;
+  }, [salvarAutenticacao]);
+
   const confirmarCodigoAcesso = useCallback(async (email, codigo, finalidade = null) => {
     const resposta = await autenticacaoServico.confirmarCodigoAcesso({ email, codigo, finalidade });
     if (resposta?.status === 'Autenticado' && resposta?.token) {
@@ -370,6 +376,7 @@ export function ProvedorAutenticacao({ children }) {
       rotaInicial,
       carregando,
       iniciarAcesso,
+      cadastrarPublicoComSenha,
       confirmarCodigoAcesso,
       completarCadastroPublico,
       criarSenha,
@@ -391,6 +398,7 @@ export function ProvedorAutenticacao({ children }) {
       rotaInicial,
       carregando,
       iniciarAcesso,
+      cadastrarPublicoComSenha,
       confirmarCodigoAcesso,
       completarCadastroPublico,
       criarSenha,

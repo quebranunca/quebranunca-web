@@ -11999,6 +11999,28 @@ button.grupos-home-grupo-card:focus-visible,
   box-shadow: none;
 }
 
+.login-email-informado {
+  display: grid;
+  gap: 0.18rem;
+  margin: 0;
+  padding: 0.72rem 0.85rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.95rem;
+  background: rgba(255, 255, 255, 0.055);
+  overflow-wrap: anywhere;
+}
+
+.login-email-informado span {
+  color: var(--cor-texto-suave);
+  font-size: 0.78rem;
+}
+
+.login-email-informado strong {
+  color: var(--cor-texto);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
 .login-metodo-toggle {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

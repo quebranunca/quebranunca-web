@@ -13,6 +13,55 @@
   padding: 0;
 }
 
+.home-dashboard-completar-perfil {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid rgba(255, 179, 0, 0.24);
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(255, 179, 0, 0.11), rgba(19, 20, 23, 0.86));
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.18);
+}
+
+.home-dashboard-completar-perfil > div {
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.78rem;
+}
+
+.home-dashboard-completar-perfil-icone {
+  width: 2.35rem;
+  min-width: 2.35rem;
+  height: 2.35rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: rgba(255, 179, 0, 0.16);
+  color: var(--cor-primaria);
+}
+
+.home-dashboard-completar-perfil h2 {
+  margin: 0;
+  font-size: clamp(1rem, 3.8vw, 1.16rem);
+}
+
+.home-dashboard-completar-perfil p {
+  max-width: 36rem;
+  margin: 0.28rem 0 0;
+  color: var(--cor-texto-suave);
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.home-dashboard-completar-perfil .botao-primario {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
 .home-dashboard-hero {
   position: relative;
   min-height: clamp(14rem, 31dvh, 17rem);
@@ -1671,6 +1720,15 @@
 }
 
 @media (max-width: 420px) {
+  .home-dashboard-completar-perfil {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .home-dashboard-completar-perfil .botao-primario {
+    width: 100%;
+  }
+
   .home-dashboard-identidade-card {
     grid-template-columns: auto minmax(0, 1fr);
   }

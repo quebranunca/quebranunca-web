@@ -428,9 +428,14 @@ function validarDataNascimento(dataNascimento) {
 }
 
 function criarEstadoInicialAtleta(usuario) {
+  const nomeUsuario = String(usuario?.nome || '').trim();
+  const nomeInicial = !usuario?.atletaId && nomeUsuario === 'Novo atleta'
+    ? ''
+    : nomeUsuario;
+
   return {
     ...estadoInicialAtleta,
-    nome: usuario?.nome || '',
+    nome: nomeInicial,
     email: usuario?.email || ''
   };
 }
@@ -1417,9 +1422,18 @@ export function PaginaMeuPerfil() {
   const perfilDashboard = dashboardAtleta?.perfil || {};
   const ultimasPartidas = Array.isArray(dashboardAtleta?.ultimasPartidas) ? dashboardAtleta.ultimasPartidas : [];
   const localizacaoCompacta = obterLocalizacaoCompacta(formularioAtleta);
-  const nomePerfil = formularioAtleta.nome || usuarioDetalhe?.nome || usuario?.nome || 'Atleta QNF';
-  const fotoPerfilUrl = obterFotoPerfilAvatar(usuarioDetalhe) || obterFotoPerfilAvatar(usuario);
-  const apelidoPerfil = formularioAtleta.apelido || perfilDashboard.apelido || 'Apelido a definir';
+  const nomePerfilReal = formularioAtleta.nome || usuarioDetalhe?.nome || usuario?.nome || 'Atleta QNF';
+  const nomePerfil = possuiAtleta ? nomePerfilReal : 'Sua conta está pronta';
+  const nomeAvatarPerfil = possuiAtleta ? nomePerfilReal : 'QuebraNunca';
+  const fotoPerfilUrl = possuiAtleta
+    ? obterFotoPerfilAvatar(usuarioDetalhe) || obterFotoPerfilAvatar(usuario)
+    : '';
+  const apelidoPerfil = possuiAtleta
+    ? formularioAtleta.apelido || perfilDashboard.apelido || 'Apelido a definir'
+    : 'Complete seu perfil para começar';
+  const contaHero = possuiAtleta
+    ? undefined
+    : { nome: 'QuebraNunca', fotoPerfilUrl: '' };
   const aproveitamento = Number(resumoDashboard.aproveitamento ?? perfilDashboard.aproveitamento ?? 0);
   const melhorSequencia = obterMelhorSequencia(dashboardAtleta?.evolucao);
   const pendenciaCriarSenha = Array.isArray(usuarioDetalhe?.pendenciasConta)
@@ -1449,6 +1463,7 @@ export function PaginaMeuPerfil() {
         <AppHero
           title="Perfil"
           subtitle="Sua identidade na comunidade."
+          accountUser={usuario?.atletaId ? undefined : { nome: 'QuebraNunca', fotoPerfilUrl: '' }}
           autenticado={Boolean(usuario)}
           showBackButton
           variant="page"
@@ -1470,6 +1485,7 @@ export function PaginaMeuPerfil() {
       <AppHero
         title="Perfil"
         subtitle="Sua identidade na comunidade."
+        accountUser={contaHero}
         autenticado={Boolean(usuarioDetalhe || usuario)}
         showBackButton
         actions={
@@ -1548,7 +1564,7 @@ export function PaginaMeuPerfil() {
         <div className="perfil-hero-topo">
           <FotoPerfilUpload
             fotoPerfilUrl={fotoPerfilUrl}
-            nome={nomePerfil}
+            nome={nomeAvatarPerfil}
             onFotoAtualizada={atualizarFotoPerfilLocal}
           />
 

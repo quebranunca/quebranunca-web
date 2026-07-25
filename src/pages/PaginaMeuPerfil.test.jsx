@@ -214,3 +214,26 @@ describe('PaginaMeuPerfil - medidas e uniformes', () => {
     }));
   });
 });
+
+describe('PaginaMeuPerfil - conta sem atleta', () => {
+  it('usa apresentacao neutra sem exibir o nome provisorio', async () => {
+    mocks.usuario = {
+      id: 'usuario-novo',
+      nome: 'Novo atleta',
+      email: 'novo@example.test',
+      atletaId: null,
+      perfil: PERFIS_USUARIO.atleta
+    };
+    mocks.recarregarUsuario.mockResolvedValue(mocks.usuario);
+    privacidadeServico.obterMinhasPreferencias.mockResolvedValue({});
+
+    renderizarPagina();
+
+    expect(await screen.findByRole('heading', { name: 'Sua conta está pronta' })).toBeInTheDocument();
+    expect(screen.getAllByRole('img', { name: 'QuebraNunca' }).length).toBeGreaterThan(0);
+    expect(screen.queryByText('Novo atleta')).not.toBeInTheDocument();
+    expect(screen.getByText('Complete seu perfil para começar')).toBeInTheDocument();
+    expect(atletasServico.obterMeu).not.toHaveBeenCalled();
+    expect(dashboardServico.obterDashboardAtleta).not.toHaveBeenCalled();
+  });
+});

@@ -11,6 +11,11 @@ export const autenticacaoServico = {
     return resposta.data;
   },
 
+  async cadastrarPublicoComSenha(dados) {
+    const resposta = await http.post('/autenticacao/cadastro-publico/senha', dados);
+    return resposta.data;
+  },
+
   async confirmarCodigoAcesso(dados) {
     const resposta = await http.post('/autenticacao/confirmar-codigo', dados);
     return resposta.data;

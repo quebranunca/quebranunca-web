@@ -10,6 +10,7 @@ import { aoPressionarEnterParaProximo, focusNextField, scrollFocusedInputIntoVie
 const ETAPAS = {
   email: 'email',
   senha: 'senha',
+  cadastroSenha: 'cadastroSenha',
   codigo: 'codigo',
   cadastro: 'cadastro',
   criarSenha: 'criarSenha',
@@ -68,6 +69,7 @@ export function PaginaLogin() {
 
   const {
     iniciarAcesso,
+    cadastrarPublicoComSenha,
     confirmarCodigoAcesso,
     completarCadastroPublico,
     criarSenhaComToken,
@@ -160,6 +162,9 @@ export function PaginaLogin() {
 
   async function aoContinuarEmail(evento) {
     evento.preventDefault();
+    if (carregando) {
+      return;
+    }
     setErro('');
     setMensagem('');
 
@@ -176,6 +181,12 @@ export function PaginaLogin() {
       if (resposta?.status === 'EntrarComSenha' || resposta?.podeEntrarComSenha) {
         setEtapa(ETAPAS.senha);
         setTimeout(() => senhaRef.current?.focus(), 0);
+        return;
+      }
+
+      if (resposta?.status === 'CriarContaComSenha') {
+        setEtapa(ETAPAS.cadastroSenha);
+        setTimeout(() => senhaCadastroRef.current?.focus(), 0);
         return;
       }
 
@@ -196,6 +207,9 @@ export function PaginaLogin() {
 
   async function aoEntrarComSenha(evento) {
     evento.preventDefault();
+    if (carregando) {
+      return;
+    }
     setErro('');
 
     if (!senha.trim()) {
@@ -206,6 +220,53 @@ export function PaginaLogin() {
     setCarregando(true);
     try {
       await entrarComSenha(email.trim(), senha);
+      navegar(destinoAposLogin, { replace: true });
+    } catch (error) {
+      setErro(extrairMensagemErro(error));
+    } finally {
+      setCarregando(false);
+    }
+  }
+
+  async function aoCadastrarPublicoComSenha(evento) {
+    evento.preventDefault();
+    if (carregando) {
+      return;
+    }
+    setErro('');
+
+    if (!senhaCadastro.trim()) {
+      setErro('Crie uma senha para entrar.');
+      return;
+    }
+
+    if (senhaCadastro !== confirmacaoSenhaCadastro) {
+      setErro('Senha e confirmação devem ser iguais.');
+      return;
+    }
+
+    if (!aceitouDocumentos) {
+      setErro('É necessário aceitar os Termos de Uso e a Política de Privacidade.');
+      return;
+    }
+
+    if (!declarouMaiorDe18) {
+      setErro('É necessário declarar que você tem 18 anos ou mais.');
+      return;
+    }
+
+    setCarregando(true);
+    try {
+      await cadastrarPublicoComSenha({
+        email: email.trim(),
+        senha: senhaCadastro,
+        confirmacaoSenha: confirmacaoSenhaCadastro,
+        aceitouTermos: aceitouDocumentos,
+        versaoTermos: termos.versaoTermos,
+        aceitouPoliticaPrivacidade: aceitouDocumentos,
+        versaoPoliticaPrivacidade: termos.versaoPoliticaPrivacidade,
+        declarouMaiorDe18
+      });
       navegar(destinoAposLogin, { replace: true });
     } catch (error) {
       setErro(extrairMensagemErro(error));
@@ -469,6 +530,11 @@ export function PaginaLogin() {
   function renderizarFormularioSenha() {
     return (
       <form onSubmit={aoEntrarComSenha} className="formulario-grid unico">
+        <p className="login-email-informado">
+          <span>E-mail</span>
+          <strong>{email}</strong>
+        </p>
+
         <label className="campo-login-icone">
           Senha
           <span>
@@ -511,6 +577,85 @@ export function PaginaLogin() {
             Esqueci minha senha
           </button>
         </div>
+      </form>
+    );
+  }
+
+  function renderizarFormularioCadastroSenha() {
+    return (
+      <form onSubmit={aoCadastrarPublicoComSenha} className="formulario-grid unico">
+        <p className="login-email-informado">
+          <span>E-mail</span>
+          <strong>{email}</strong>
+        </p>
+
+        <label className="campo-login-icone">
+          Senha
+          <span>
+            <FaLock aria-hidden="true" />
+            <input
+              ref={senhaCadastroRef}
+              type="password"
+              autoComplete="new-password"
+              enterKeyHint="next"
+              value={senhaCadastro}
+              onChange={(evento) => setSenhaCadastro(evento.target.value)}
+              onFocus={scrollFocusedInputIntoView}
+              placeholder="Mínimo 6 caracteres"
+              required
+            />
+          </span>
+        </label>
+
+        <label className="campo-login-icone">
+          Confirmar senha
+          <span>
+            <FaLock aria-hidden="true" />
+            <input
+              type="password"
+              autoComplete="new-password"
+              enterKeyHint="done"
+              value={confirmacaoSenhaCadastro}
+              onChange={(evento) => setConfirmacaoSenhaCadastro(evento.target.value)}
+              onFocus={scrollFocusedInputIntoView}
+              placeholder="Digite a senha novamente"
+              required
+            />
+          </span>
+        </label>
+
+        <label className="campo-checkbox">
+          <input
+            type="checkbox"
+            checked={aceitouDocumentos}
+            onChange={(evento) => setAceitouDocumentos(evento.target.checked)}
+            required
+          />
+          <span>
+            Li e aceito os <Link to={termos.urlTermos} target="_blank" rel="noreferrer">Termos de Uso</Link> e a{' '}
+            <Link to={termos.urlPoliticaPrivacidade} target="_blank" rel="noreferrer">Política de Privacidade</Link>.
+          </span>
+        </label>
+
+        <label className="campo-checkbox">
+          <input
+            type="checkbox"
+            checked={declarouMaiorDe18}
+            onChange={(evento) => setDeclarouMaiorDe18(evento.target.checked)}
+            required
+          />
+          <span>Declaro que tenho 18 anos ou mais.</span>
+        </label>
+
+        {erro && <p className="texto-erro">{erro}</p>}
+
+        <button type="submit" className="botao-primario" disabled={carregando}>
+          {carregando ? 'Criando conta...' : 'Criar conta'}
+        </button>
+
+        <button type="button" className="botao-link login-recuperacao-link" onClick={voltarParaEmail} disabled={carregando}>
+          Usar outro e-mail
+        </button>
       </form>
     );
   }
@@ -838,11 +983,13 @@ export function PaginaLogin() {
     ? (fluxoCodigo === 'criarSenha' ? 'Encontramos sua conta' : 'Confira seu e-mail')
     : etapa === ETAPAS.cadastro
       ? 'Complete seu cadastro'
-      : etapa === ETAPAS.criarSenha
-        ? 'Crie sua senha'
-        : etapa === ETAPAS.recuperacao
-          ? 'Redefinir senha'
-          : 'Entrar no QuebraNunca';
+      : etapa === ETAPAS.cadastroSenha
+        ? 'Crie sua conta'
+        : etapa === ETAPAS.criarSenha
+          ? 'Crie sua senha'
+          : etapa === ETAPAS.recuperacao
+            ? 'Redefinir senha'
+            : 'Entrar no QuebraNunca';
 
   const subtitulo = etapa === ETAPAS.codigo
     ? (fluxoCodigo === 'criarSenha'
@@ -850,11 +997,13 @@ export function PaginaLogin() {
       : 'Enviamos um código de acesso para seu e-mail.')
     : etapa === ETAPAS.cadastro
       ? 'Só precisamos dessas informações para criar seu perfil no QuebraNunca.'
-      : etapa === ETAPAS.criarSenha
-        ? 'Você usará essa senha para acessar o QuebraNunca nas próximas vezes.'
-        : emRecuperacao
-          ? 'Redefina sua senha com o código recebido por e-mail.'
-          : 'Use seu e-mail para entrar ou criar sua conta.';
+      : etapa === ETAPAS.cadastroSenha
+        ? 'Crie uma senha para começar a usar o QuebraNunca.'
+        : etapa === ETAPAS.criarSenha
+          ? 'Você usará essa senha para acessar o QuebraNunca nas próximas vezes.'
+          : emRecuperacao
+            ? 'Redefina sua senha com o código recebido por e-mail.'
+            : 'Use seu e-mail para entrar ou criar sua conta.';
 
   return (
     <section className="pagina-login">
@@ -873,6 +1022,7 @@ export function PaginaLogin() {
 
         {etapa === ETAPAS.email && renderizarFormularioEmail()}
         {etapa === ETAPAS.senha && renderizarFormularioSenha()}
+        {etapa === ETAPAS.cadastroSenha && renderizarFormularioCadastroSenha()}
         {etapa === ETAPAS.codigo && renderizarFormularioCodigo()}
         {etapa === ETAPAS.cadastro && renderizarFormularioCadastro()}
         {etapa === ETAPAS.criarSenha && renderizarFormularioCriarSenha()}

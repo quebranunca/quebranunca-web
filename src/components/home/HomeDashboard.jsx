@@ -399,6 +399,7 @@ export function HomeDashboard({
   erro
 }) {
   const { usuario } = useAutenticacao();
+  const possuiAtletaVinculado = Boolean(usuario?.atletaId);
 
   if (carregando) {
     return <HomeDashboardSkeleton />;
@@ -464,17 +465,22 @@ export function HomeDashboard({
   ];
 
   const renderizadoresSecao = {
+    [HomeSectionType.ProfileCompletion]: () => (
+      possuiAtletaVinculado ? null : <HomeCompletarPerfilCard />
+    ),
     [HomeSectionType.Gamification]: () => (
       <HomePontosQNCard
         gamificacaoModulo={gamificacaoModulo}
       />
     ),
     [HomeSectionType.Performance]: () => (
-      <HomeDesempenhoCard
-        scouts={scouts}
-        erroDesempenho={resumoModulo.erro}
-        temDados={temDadosDesempenho}
-      />
+      possuiAtletaVinculado ? (
+        <HomeDesempenhoCard
+          scouts={scouts}
+          erroDesempenho={resumoModulo.erro}
+          temDados={temDadosDesempenho}
+        />
+      ) : null
     ),
     [HomeSectionType.PendingConfirmation]: () => (
       <HomeConfirmarPartidaCard
@@ -495,12 +501,14 @@ export function HomeDashboard({
       </>
     ),
     [HomeSectionType.RecentMatches]: () => (
-      <HomeUltimoJogo
-        ultimasPartidas={ultimasPartidas}
-        erro={ultimasPartidasModulo.erro}
-        atletaId={usuario?.atletaId || perfil.atletaId}
-        nomeAtleta={obterTextoLimpo(perfil.apelido, usuario?.apelido, perfil.nome, usuario?.nome)}
-      />
+      possuiAtletaVinculado ? (
+        <HomeUltimoJogo
+          ultimasPartidas={ultimasPartidas}
+          erro={ultimasPartidasModulo.erro}
+          atletaId={usuario?.atletaId || perfil.atletaId}
+          nomeAtleta={obterTextoLimpo(perfil.apelido, usuario?.apelido, perfil.nome, usuario?.nome)}
+        />
+      ) : null
     )
   };
 
@@ -509,7 +517,6 @@ export function HomeDashboard({
       <HomeDashboardHero
         usuario={usuario}
         perfil={perfil}
-        gamificacao={gamificacaoModulo.dados}
         resumoPendencias={resumoPendencias}
         totalPendencias={totalPendencias}
       />
@@ -524,13 +531,33 @@ export function HomeDashboard({
   );
 }
 
+function HomeCompletarPerfilCard() {
+  return (
+    <section className="home-dashboard-completar-perfil" aria-labelledby="home-completar-perfil-titulo">
+      <div>
+        <span className="home-dashboard-completar-perfil-icone" aria-hidden="true">
+          <FaEdit />
+        </span>
+        <div>
+          <h2 id="home-completar-perfil-titulo">Sua conta está pronta</h2>
+          <p>Complete seu perfil para liberar scouts, histórico e informações esportivas.</p>
+        </div>
+      </div>
+      <Link to={HOME_NAVIGATION.perfil} className="botao-primario botao-compacto">
+        Completar meu perfil
+        <FaChevronRight aria-hidden="true" />
+      </Link>
+    </section>
+  );
+}
+
 function HomeDashboardHero({
   usuario,
   perfil,
-  gamificacao,
   resumoPendencias,
   totalPendencias
 }) {
+  const possuiAtletaVinculado = Boolean(usuario?.atletaId || perfil?.atletaId);
   const nomeCompleto = obterTextoLimpo(
     perfil?.nomeCompleto,
     perfil?.nome,
@@ -539,15 +566,28 @@ function HomeDashboardHero({
     usuario?.apelido,
     'Atleta'
   );
-  const primeiroNome = obterPrimeiroNome(nomeCompleto);
-  const fotoPerfilUrl = obterFotoPerfilAvatar(usuario) || obterFotoPerfilAvatar(perfil);
+  const titulo = possuiAtletaVinculado
+    ? obterPrimeiroNome(nomeCompleto)
+    : 'Bem-vindo ao QuebraNunca';
+  const subtitulo = possuiAtletaVinculado
+    ? `${obterSaudacaoAtual()},`
+    : 'Sua conta está pronta.';
+  const contaHero = possuiAtletaVinculado
+    ? {
+        nome: nomeCompleto,
+        fotoPerfilUrl: obterFotoPerfilAvatar(usuario) || obterFotoPerfilAvatar(perfil)
+      }
+    : {
+        nome: 'QuebraNunca',
+        fotoPerfilUrl: ''
+      };
   const resumoNotificacoes = resumoPendencias || { total: totalPendencias || 0 };
 
   return (
     <AppHero
-      subtitle={`${obterSaudacaoAtual()},`}
-      title={primeiroNome}
-      accountUser={{ nome: nomeCompleto, fotoPerfilUrl }}
+      subtitle={subtitulo}
+      title={titulo}
+      accountUser={contaHero}
       autenticado={Boolean(usuario)}
       resumoNotificacoes={resumoNotificacoes}
       testId="home-dashboard-hero"

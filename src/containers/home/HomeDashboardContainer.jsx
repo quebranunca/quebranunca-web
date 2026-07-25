@@ -24,12 +24,21 @@ function criarEstadoInicialModulos() {
   };
 }
 
+function criarModuloDisponivelSemAtleta(dados) {
+  return {
+    dados,
+    carregando: false,
+    erro: ''
+  };
+}
+
 export function HomeDashboardContainer() {
   const [modulos, setModulos] = useState(criarEstadoInicialModulos);
   const [confirmandoPendenciaId, setConfirmandoPendenciaId] = useState(null);
   const [contestandoPendenciaId, setContestandoPendenciaId] = useState(null);
   const { showNotification } = useNotification();
   const { usuario, atualizarUsuarioLocal } = useAutenticacao();
+  const possuiAtletaVinculado = Boolean(usuario?.atletaId);
 
   async function carregarModulo(chave, carregador, estaAtivo = () => true) {
     setModulos((anteriores) => ({
@@ -65,12 +74,24 @@ export function HomeDashboardContainer() {
 
   function carregarModulos(estaAtivo = () => true) {
     const carregamentos = [
-      carregarModulo('perfil', dashboardServico.obterPerfilAtleta, estaAtivo),
       carregarModulo('pendencias', pendenciasServico.obterResumo, estaAtivo),
-      carregarModulo('gamificacao', gamificacaoServico.obterResumo, estaAtivo),
-      carregarModulo('resumo', dashboardServico.obterResumoAtleta, estaAtivo),
-      carregarModulo('ultimasPartidas', dashboardServico.listarUltimasPartidasAtleta, estaAtivo)
+      carregarModulo('gamificacao', gamificacaoServico.obterResumo, estaAtivo)
     ];
+
+    if (possuiAtletaVinculado) {
+      carregamentos.push(
+        carregarModulo('perfil', dashboardServico.obterPerfilAtleta, estaAtivo),
+        carregarModulo('resumo', dashboardServico.obterResumoAtleta, estaAtivo),
+        carregarModulo('ultimasPartidas', dashboardServico.listarUltimasPartidasAtleta, estaAtivo)
+      );
+    } else {
+      setModulos((anteriores) => ({
+        ...anteriores,
+        perfil: criarModuloDisponivelSemAtleta(null),
+        resumo: criarModuloDisponivelSemAtleta(null),
+        ultimasPartidas: criarModuloDisponivelSemAtleta([])
+      }));
+    }
 
     return Promise.allSettled(carregamentos);
   }
@@ -82,7 +103,7 @@ export function HomeDashboardContainer() {
     return () => {
       ativo = false;
     };
-  }, []);
+  }, [possuiAtletaVinculado]);
 
   useEffect(() => {
     function atualizarPendencias() {
