@@ -40,6 +40,7 @@ import { MinhasArenasPage } from './pages/arena/MinhasArenasPage';
 import { ArenaAdminDashboardPage } from './pages/arena/ArenaAdminDashboardPage';
 import { PaginaPerfilUsuario } from './pages/PaginaPerfilUsuario';
 import { PaginaPrivacidade } from './pages/PaginaPrivacidade';
+import { PaginaTermosUso } from './pages/PaginaTermosUso';
 import { PaginaPendenciasAtletas } from './pages/PaginaPendenciasAtletas';
 import { PaginaUsuarios } from './pages/PaginaUsuarios';
 import { PaginaConvitesCadastro } from './pages/PaginaConvitesCadastro';
@@ -62,6 +63,7 @@ export default function App() {
           <Route path="/" element={<PaginaHome />} />
           <Route path="/login" element={<PaginaLogin />} />        
           <Route path="/privacidade" element={<PaginaPrivacidade />} />
+          <Route path="/termos" element={<PaginaTermosUso />} />
           <Route path="/ranking" element={<PaginaRanking />} />
           <Route path="/ranking/liga" element={<RankingLiga />} />
           <Route path="/competicoes" element={<PaginaCompeticoes />} />
