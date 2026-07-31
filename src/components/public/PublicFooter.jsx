@@ -2,7 +2,7 @@ export function PublicFooter() {
   const links = [
     { href: 'https://www.quebranunca.com/quebranunca', label: 'Instagram', externo: true },
     { href: 'mailto:contato@quebranunca.com.br', label: 'Contato' },
-    { href: '/#termos', label: 'Termos' },
+    { href: '/termos', label: 'Termos' },
     { href: '/privacidade', label: 'Privacidade' }
   ];
 
