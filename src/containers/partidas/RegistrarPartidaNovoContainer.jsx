@@ -106,8 +106,8 @@ function limparTexto(valor) {
   return limparTextoRegistro(valor);
 }
 
-function obterAtletaSelecaoId(atleta) {
-  return atleta?.id || atleta?.atletaId || atleta?.usuarioAtletaId || null;
+export function obterAtletaSelecaoId(atleta) {
+  return atleta?.atletaId || atleta?.usuarioAtletaId || atleta?.id || null;
 }
 
 function obterAtletaSelecaoNome(atleta) {
@@ -227,7 +227,7 @@ function obterAtletaIdPayload(selecoes, campo, campoAtletaUsuario, atletaUsuario
     : selecoes[campo]?.id || null;
 }
 
-function criarPayload(dados, selecoes, usuario, atletaUsuario, contextoInicial) {
+export function criarPayloadRegistroPartida(dados, selecoes, usuario, atletaUsuario, contextoInicial) {
   const fixarAtletaUsuario = deveFixarAtletaUsuario(usuario, contextoInicial);
   const atletaUsuarioId = obterAtletaUsuarioId(usuario, atletaUsuario);
   const campoAtletaUsuario = obterCampoAtletaUsuario(obterAtletaUsuarioLado(usuario, atletaUsuario));
@@ -1258,7 +1258,7 @@ export function RegistrarPartidaNovoContainer({
     const payload = ehEdicao
       ? criarPayloadEdicao(partidaInicial, dados, selecoes, contextoPartida)
       : {
-          ...criarPayload(dados, selecoes, usuario, atletaUsuario, contextoPartida),
+          ...criarPayloadRegistroPartida(dados, selecoes, usuario, atletaUsuario, contextoPartida),
           confirmarDuplicidade
         };
 

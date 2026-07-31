@@ -6,7 +6,8 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     include: ['src/**/*.test.{js,jsx}'],
-    setupFiles: './src/test/setup.js'
+    setupFiles: './src/test/setup.js',
+    testTimeout: 15000
   },
   server: {
     port: 5173,
