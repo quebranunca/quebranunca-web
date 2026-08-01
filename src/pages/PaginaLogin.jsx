@@ -20,7 +20,7 @@ const ETAPAS = {
 const TERMOS_PADRAO = {
   versaoTermos: '2026-05-18',
   urlTermos: '/termos',
-  versaoPoliticaPrivacidade: '2026-05-18',
+  versaoPoliticaPrivacidade: '2026-07-31',
   urlPoliticaPrivacidade: '/privacidade'
 };
 
