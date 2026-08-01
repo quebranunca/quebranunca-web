@@ -16,6 +16,8 @@ jobs:
   test-and-build:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      TZ: America/Sao_Paulo
 
     steps:
       - name: Checkout
