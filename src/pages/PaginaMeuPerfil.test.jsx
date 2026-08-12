@@ -216,7 +216,7 @@ describe('PaginaMeuPerfil - medidas e uniformes', () => {
 });
 
 describe('PaginaMeuPerfil - conta sem atleta', () => {
-  it('usa apresentacao neutra sem exibir o nome provisorio', async () => {
+  it('mostra somente os campos essenciais para criar o perfil', async () => {
     mocks.usuario = {
       id: 'usuario-novo',
       nome: 'Novo atleta',
@@ -229,11 +229,51 @@ describe('PaginaMeuPerfil - conta sem atleta', () => {
 
     renderizarPagina();
 
-    expect(await screen.findByRole('heading', { name: 'Sua conta está pronta' })).toBeInTheDocument();
-    expect(screen.getAllByRole('img', { name: 'QuebraNunca' }).length).toBeGreaterThan(0);
-    expect(screen.queryByText('Novo atleta')).not.toBeInTheDocument();
-    expect(screen.getByText('Complete seu perfil para começar')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Comece com o essencial' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Nome de exibição')).toHaveValue('');
+    expect(screen.getByLabelText('Apelido (opcional)')).toBeInTheDocument();
+    expect(screen.getByLabelText('Nível (opcional)')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Criar meu perfil' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Agora não' })).toBeInTheDocument();
+    expect(screen.queryByLabelText('CPF')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Pé dominante')).not.toBeInTheDocument();
     expect(atletasServico.obterMeu).not.toHaveBeenCalled();
     expect(dashboardServico.obterDashboardAtleta).not.toHaveBeenCalled();
+  });
+
+  it('cria o perfil sem exigir dados complementares', async () => {
+    const usuario = userEvent.setup();
+    mocks.usuario = {
+      id: 'usuario-novo',
+      nome: 'Novo atleta',
+      email: 'novo@example.test',
+      atletaId: null,
+      perfil: PERFIS_USUARIO.atleta
+    };
+    mocks.recarregarUsuario.mockResolvedValue(mocks.usuario);
+    privacidadeServico.obterMinhasPreferencias.mockResolvedValue({});
+    atletasServico.verificarEmail.mockResolvedValue({ disponivel: true });
+    atletasServico.salvarMeu.mockImplementation(async (dados) => ({
+      ...criarAtleta(dados),
+      id: 'atleta-novo'
+    }));
+    dashboardServico.obterDashboardAtleta.mockResolvedValue({ resumo: {}, perfil: {}, ultimasPartidas: [] });
+
+    renderizarPagina();
+
+    await usuario.type(await screen.findByLabelText('Nome de exibição'), 'Gustavo');
+    await usuario.click(screen.getByRole('button', { name: 'Criar meu perfil' }));
+
+    await waitFor(() => {
+      expect(atletasServico.salvarMeu).toHaveBeenCalledWith(expect.objectContaining({
+        nome: 'Gustavo',
+        email: 'novo@example.test',
+        apelido: null,
+        nivel: null,
+        peDominante: null,
+        tempoPratica: null,
+        objetivoAtual: null
+      }));
+    });
   });
 });

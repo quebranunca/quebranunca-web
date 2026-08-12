@@ -867,8 +867,10 @@ input[type="text"]:focus {
 .criar-grupo-pagina__conteudo {
   width: 100%;
   max-width: 560px;
+  height: 100%;
+  min-height: 0;
   margin: 0 auto;
-  padding: 0 1rem calc(var(--bottom-nav-height, 5.85rem) + env(safe-area-inset-bottom, 0px) + 1rem);
+  padding: 0 1rem 1rem;
 }
 
 .criar-grupo-fluxo-pagina.criar-grupo-modal {
@@ -876,23 +878,24 @@ input[type="text"]:focus {
   inset: auto;
   width: 100%;
   max-width: 560px;
-  min-height: min(38rem, calc(100dvh - var(--bottom-nav-height, 5.85rem) - 2rem));
-  height: auto;
-  max-height: none;
+  min-height: 0;
+  height: 100%;
+  max-height: 100%;
   margin: 0 auto;
   border-radius: 0.95rem;
-  overflow: visible;
+  overflow: hidden;
   background: linear-gradient(180deg, rgba(27, 29, 33, 0.98), rgba(11, 12, 14, 0.99));
 }
 
 .criar-grupo-fluxo-pagina .criar-grupo-corpo {
-  overflow: visible;
-  max-height: none;
+  min-height: 0;
+  overflow-y: auto;
+  max-height: 100%;
 }
 
 .criar-grupo-fluxo-pagina .criar-grupo-acoes {
-  position: sticky;
-  bottom: calc(var(--bottom-nav-height, 5.85rem) + env(safe-area-inset-bottom, 0px));
+  position: relative;
+  bottom: auto;
   z-index: 2;
   border-radius: 0 0 0.95rem 0.95rem;
 }
@@ -918,7 +921,8 @@ input[type="text"]:focus {
     left: auto;
     right: auto;
     width: 100%;
-    max-height: none;
-    overflow: visible;
+    height: 100%;
+    max-height: 100%;
+    overflow: hidden;
   }
 }

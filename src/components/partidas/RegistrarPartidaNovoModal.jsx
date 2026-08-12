@@ -1570,7 +1570,7 @@ function RodapeAcoesPartida({
   return (
     <footer
       ref={ctaRef}
-      className="registrar-partida-novo-acoes registrar-partida-novo-cta-sticky"
+      className="app-flow-actions registrar-partida-novo-acoes registrar-partida-novo-cta-sticky"
       data-estado={salvando ? 'loading' : desabilitado ? 'disabled' : 'enabled'}
       aria-busy={salvando}
     >

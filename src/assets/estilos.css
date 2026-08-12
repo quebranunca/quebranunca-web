@@ -13972,6 +13972,7 @@ a.botao-terciario:active {
 
 .perfil-carregando,
 .perfil-alerta,
+.perfil-onboarding-card,
 .perfil-hero,
 .perfil-conteudo-tab,
 .perfil-config-card {
@@ -14053,6 +14054,69 @@ a.botao-terciario:active {
 .perfil-alerta-senha-form button {
   min-height: 2.45rem;
   white-space: nowrap;
+}
+
+.perfil-onboarding-card {
+  display: grid;
+  gap: 1rem;
+  width: min(100%, 36rem);
+  margin-inline: auto;
+  padding: 1rem;
+  border-radius: 20px;
+}
+
+.perfil-onboarding-topo {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.perfil-onboarding-topo span {
+  color: var(--color-primary);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.perfil-onboarding-topo h1 {
+  margin: 0.12rem 0 0;
+  color: var(--cor-texto);
+  font-size: clamp(1.2rem, 4vw, 1.55rem);
+}
+
+.perfil-onboarding-topo p,
+.perfil-onboarding-nota {
+  margin: 0.28rem 0 0;
+  color: var(--cor-texto-suave);
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.perfil-onboarding-form {
+  display: grid;
+  gap: 0.72rem;
+}
+
+.perfil-onboarding-acoes {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.2rem;
+}
+
+.perfil-onboarding-acoes .botao-primario {
+  width: 100%;
+}
+
+.perfil-onboarding-acoes .botao-link {
+  justify-self: center;
+}
+
+.perfil-onboarding-nota {
+  padding-top: 0.85rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  text-align: center;
 }
 
 @media (max-width: 720px) {
@@ -14799,6 +14863,20 @@ a.botao-terciario:active {
   background: rgba(255, 255, 255, 0.055);
   color: var(--cor-texto);
   transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
+}
+
+.perfil-campo-edicao select {
+  color-scheme: dark;
+}
+
+.perfil-campo-edicao select option {
+  background: #181a1f;
+  color: #f5f5f5;
+}
+
+.perfil-campo-edicao select option:checked {
+  background: #3a3219;
+  color: #ffd166;
 }
 
 .perfil-campo-edicao input:focus,

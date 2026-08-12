@@ -1,5 +1,6 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AppHero } from '../components/AppHero';
+import { AppFlowLayout } from '../components/layout/AppFlowLayout';
 import { RegistrarPartidaNovoContainer } from '../containers/partidas/RegistrarPartidaNovoContainer';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { normalizarOrigemInterna } from '../utils/partidaRotas';
@@ -50,8 +51,9 @@ export function PaginaRegistrarPartidas() {
   }
 
   return (
-    <section className="pagina registrar-partida-pagina">
-      <AppHero
+    <AppFlowLayout
+      className="registrar-partida-pagina"
+      header={<AppHero
         title="Registrar partida"
         subtitle="Informe grupo, atletas e resultado."
         accountUser={usuario}
@@ -59,7 +61,8 @@ export function PaginaRegistrarPartidas() {
         showBackButton
         onBack={fecharModal}
         variant="page"
-      />
+      />}
+    >
 
       <div className="registrar-partida-pagina__conteudo">
         <RegistrarPartidaNovoContainer
@@ -68,6 +71,6 @@ export function PaginaRegistrarPartidas() {
           modoExibicao="pagina"
         />
       </div>
-    </section>
+    </AppFlowLayout>
   );
 }

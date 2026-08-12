@@ -1,0 +1,29 @@
+.app-flow-page {
+  height: 100%;
+  min-height: 0;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+}
+
+.app-flow-page__body {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.app-flow-actions {
+  position: relative;
+  z-index: 2;
+  flex: 0 0 auto;
+}
+
+.app-flow-actions--embedded {
+  position: static;
+}
+
+@media (max-width: 720px), (pointer: coarse) {
+  .app-flow-actions.app-flow-actions--embedded {
+    position: static;
+    bottom: auto;
+  }
+}

@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AppHero } from '../components/AppHero';
+import { AppFlowLayout } from '../components/layout/AppFlowLayout';
 import { CriarGrupoFluxo } from '../components/grupos/CriarGrupoFluxo';
 import { useNotification } from '../contexts/NotificationContext';
 import { useAutenticacao } from '../hooks/useAutenticacao';
@@ -41,8 +42,9 @@ export function PaginaCriarGrupo() {
   }
 
   return (
-    <section className="pagina criar-grupo-pagina">
-      <AppHero
+    <AppFlowLayout
+      className="criar-grupo-pagina"
+      header={<AppHero
         title="Criar grupo"
         subtitle="Configure nome, visibilidade e imagem."
         accountUser={usuario}
@@ -50,7 +52,8 @@ export function PaginaCriarGrupo() {
         showBackButton
         onBack={voltar}
         variant="page"
-      />
+      />}
+    >
 
       <div className="criar-grupo-pagina__conteudo">
         <CriarGrupoFluxo
@@ -60,6 +63,6 @@ export function PaginaCriarGrupo() {
           fecharAoCriar={false}
         />
       </div>
-    </section>
+    </AppFlowLayout>
   );
 }

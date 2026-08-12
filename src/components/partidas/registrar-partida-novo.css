@@ -3127,12 +3127,6 @@ body.registrar-partida-modal-aberto {
 }
 
 .registrar-partida-pagina {
-  --registrar-partida-page-actions-space: calc(
-    clamp(5.75rem, 18vw, 7.75rem) +
-    var(--bottom-nav-height, 4.9rem) +
-    env(safe-area-inset-bottom, 0px) +
-    1rem
-  );
   display: grid;
   gap: 0;
   padding: 0;
@@ -3140,23 +3134,20 @@ body.registrar-partida-modal-aberto {
 
 .registrar-partida-pagina__conteudo {
   width: min(100%, 960px);
+  height: 100%;
+  min-height: 0;
   margin: 0 auto;
-  padding: 0.75rem 0.75rem var(--registrar-partida-page-actions-space);
+  padding: 0.75rem;
 }
 
 .registrar-partida-novo-pagina.registrar-partida-novo-modal {
-  --registrar-partida-page-actions-space: calc(
-    clamp(5.75rem, 18vw, 7.75rem) +
-    var(--bottom-nav-height, 4.9rem) +
-    env(safe-area-inset-bottom, 0px) +
-    1rem
-  );
   width: 100%;
   max-width: none;
-  height: auto;
-  max-height: none;
+  height: 100%;
+  max-height: 100%;
   min-height: 0;
-  overflow: visible;
+  display: flex;
+  overflow: hidden;
   overscroll-behavior: auto;
   border: 0;
   border-radius: 0;
@@ -3166,17 +3157,21 @@ body.registrar-partida-modal-aberto {
 }
 
 .registrar-partida-novo-pagina .registrar-partida-novo-formulario {
+  height: 100%;
   min-height: 0;
-  overflow: visible;
-  padding-bottom: var(--registrar-partida-page-actions-space);
-  scroll-padding-bottom: var(--registrar-partida-page-actions-space);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  overflow: hidden;
+  padding-bottom: 0;
 }
 
 .registrar-partida-novo-pagina .registrar-partida-novo-corpo {
-  overflow: visible;
-  padding: 0 0 calc(var(--registrar-partida-page-actions-space) + 0.75rem);
-  overscroll-behavior: auto;
-  scroll-padding-block: calc(1rem + env(safe-area-inset-top, 0px)) var(--registrar-partida-page-actions-space);
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 0 0.75rem;
+  overscroll-behavior: contain;
+  scroll-padding-block: 1rem;
 }
 
 .registrar-partida-novo-pagina .registrar-partida-novo-etapa,
@@ -3184,7 +3179,7 @@ body.registrar-partida-modal-aberto {
 .registrar-partida-novo-pagina .registrar-partida-novo-campo,
 .registrar-partida-novo-pagina .registrar-partida-novo-placar-central,
 .registrar-partida-novo-pagina .registrar-partida-novo-revisao {
-  scroll-margin-bottom: var(--registrar-partida-page-actions-space);
+  scroll-margin-bottom: 1rem;
 }
 
 .registrar-partida-novo-pagina .registrar-partida-novo-stepper {
@@ -3200,9 +3195,9 @@ body.registrar-partida-modal-aberto {
 }
 
 .registrar-partida-novo-pagina .registrar-partida-novo-cta-sticky {
-  position: sticky;
+  position: relative;
   right: auto;
-  bottom: calc(var(--bottom-nav-height, 4.9rem) + env(safe-area-inset-bottom, 0px));
+  bottom: auto;
   left: auto;
   z-index: 12;
   width: min(760px, 100%);
@@ -3287,12 +3282,12 @@ body.registrar-partida-modal-aberto {
 
 @media (max-width: 720px), (pointer: coarse) {
   .registrar-partida-pagina__conteudo {
-    padding: 0.62rem 0.62rem var(--registrar-partida-page-actions-space);
+    padding: 0.62rem;
   }
 
   .registrar-partida-novo-pagina.registrar-partida-novo-modal {
-    height: auto;
-    max-height: none;
+    height: 100%;
+    max-height: 100%;
     margin: 0;
     border: 0;
     border-radius: 0;
@@ -3300,18 +3295,18 @@ body.registrar-partida-modal-aberto {
 
   .registrar-partida-novo-pagina .registrar-partida-novo-corpo {
     padding-top: 0;
-    padding-bottom: calc(var(--registrar-partida-page-actions-space) + 0.62rem);
-    scroll-padding-bottom: var(--registrar-partida-page-actions-space);
+    padding-bottom: 0.62rem;
+    scroll-padding-bottom: 1rem;
   }
 
   .registrar-partida-novo-pagina .registrar-partida-novo-formulario {
-    padding-bottom: var(--registrar-partida-page-actions-space);
+    padding-bottom: 0;
   }
 
   .registrar-partida-novo-pagina.teclado-aberto .registrar-partida-novo-corpo,
   .registrar-partida-novo-pagina[data-teclado-aberto="true"] .registrar-partida-novo-corpo {
     padding-top: 0;
-    padding-bottom: calc(var(--registrar-partida-page-actions-space) + 0.5rem);
+    padding-bottom: 0.5rem;
   }
 
   .registrar-partida-novo-pagina .registrar-partida-novo-stepper {
@@ -3319,7 +3314,7 @@ body.registrar-partida-modal-aberto {
   }
 
   .registrar-partida-novo-pagina .registrar-partida-novo-cta-sticky {
-    bottom: calc(var(--bottom-nav-height, 4.9rem) + env(safe-area-inset-bottom, 0px));
+    bottom: auto;
   }
 
   .editar-partida-estado__acoes,
