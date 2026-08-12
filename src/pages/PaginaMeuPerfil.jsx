@@ -36,15 +36,12 @@ import { usuariosServico } from '../services/usuariosServico';
 import { useNotification } from '../contexts/NotificationContext';
 import { extrairMensagemErro } from '../utils/erros';
 import {
-  formatarCpfParaInput,
   formatarData,
   formatarHora,
   formatarTelefoneParaInput,
-  limparCpf,
   limparTelefone,
   normalizarDataParaApi,
-  paraInputData,
-  validarCpf
+  paraInputData
 } from '../utils/formatacao';
 import { opcoesNivelAtleta } from '../utils/niveisAtleta';
 import { PERFIS_USUARIO } from '../utils/perfis';
@@ -466,7 +463,7 @@ function criarResumoAtleta(atleta) {
     telefone: formatarTelefoneParaInput(atleta.telefone),
     email: atleta.email,
     instagram: atleta.instagram,
-    cpf: formatarCpfParaInput(atleta.cpf),
+    cpf: atleta.cpf || '',
     cadastroPendente: Boolean(atleta.cadastroPendente),
     bairro: atleta.bairro,
     cidade: atleta.cidade,
@@ -941,7 +938,7 @@ export function PaginaMeuPerfil() {
       telefone: formatarTelefoneParaInput(atleta.telefone),
       email: emailUsuarioPerfil || usuarioBase?.email || '',
       instagram: atleta.instagram || '',
-      cpf: formatarCpfParaInput(atleta.cpf),
+      cpf: atleta.cpf || '',
       bairro: atleta.bairro || '',
       cidade: atleta.cidade || '',
       estado: normalizarEstadoParaUf(atleta.estado || ''),
@@ -962,11 +959,6 @@ export function PaginaMeuPerfil() {
   function atualizarCampoAtleta(campo, valor) {
     if (campo === 'telefone') {
       setFormularioAtleta((anterior) => ({ ...anterior, telefone: formatarTelefoneParaInput(valor) }));
-      return;
-    }
-
-    if (campo === 'cpf') {
-      setFormularioAtleta((anterior) => ({ ...anterior, cpf: formatarCpfParaInput(valor) }));
       return;
     }
 
@@ -1115,15 +1107,6 @@ export function PaginaMeuPerfil() {
 
   async function salvarAtleta(evento) {
     evento?.preventDefault();
-    const cpfLimpo = limparCpf(formularioAtleta.cpf);
-    if (cpfLimpo && !validarCpf(cpfLimpo)) {
-      showNotification({
-        type: 'warning',
-        title: 'CPF inválido',
-        message: 'Informe um CPF válido para continuar.'
-      });
-      return;
-    }
 
     const erroDataNascimento = validarDataNascimento(formularioAtleta.dataNascimento);
     if (erroDataNascimento) {
@@ -1131,15 +1114,6 @@ export function PaginaMeuPerfil() {
         type: 'warning',
         title: 'Data inválida',
         message: erroDataNascimento
-      });
-      return;
-    }
-
-    if (!formularioAtleta.peDominante || !formularioAtleta.tempoPratica || !formularioAtleta.objetivoAtual) {
-      showNotification({
-        type: 'warning',
-        title: 'Perfil esportivo incompleto',
-        message: 'Informe pé dominante, tempo de prática e objetivo atual.'
       });
       return;
     }
@@ -1163,7 +1137,7 @@ export function PaginaMeuPerfil() {
       telefone: limparTelefone(formularioAtleta.telefone) || null,
       email: emailUsuarioPerfil || null,
       instagram: formularioAtleta.instagram.trim() || null,
-      cpf: cpfLimpo || null,
+      cpf: formularioAtleta.cpf || null,
       bairro: formularioAtleta.bairro.trim() || null,
       cidade: formularioAtleta.cidade.trim() || null,
       estado: normalizarEstadoParaUf(formularioAtleta.estado.trim()) || null,
@@ -1172,10 +1146,10 @@ export function PaginaMeuPerfil() {
       nivel: formularioAtleta.nivel ? Number(formularioAtleta.nivel) : null,
       lado: Number(formularioAtleta.lado),
       dataNascimento: normalizarDataParaApi(formularioAtleta.dataNascimento),
-      peDominante: Number(formularioAtleta.peDominante),
-      tempoPratica: Number(formularioAtleta.tempoPratica),
+      peDominante: formularioAtleta.peDominante ? Number(formularioAtleta.peDominante) : null,
+      tempoPratica: formularioAtleta.tempoPratica ? Number(formularioAtleta.tempoPratica) : null,
       arenaPrincipalId: formularioAtleta.arenaPrincipalId || null,
-      objetivoAtual: Number(formularioAtleta.objetivoAtual)
+      objetivoAtual: formularioAtleta.objetivoAtual ? Number(formularioAtleta.objetivoAtual) : null
     };
 
     try {
@@ -1346,6 +1320,14 @@ export function PaginaMeuPerfil() {
     navigate('/login', { replace: true });
   }
 
+  function adiarCriacaoPerfil() {
+    if (primeiroAcessoPendente) {
+      concluirPrimeiroAcesso();
+    }
+
+    navigate('/app', { replace: true });
+  }
+
   function atualizarAplicativo() {
     window.location.reload();
   }
@@ -1479,6 +1461,128 @@ export function PaginaMeuPerfil() {
   const textoBotao = possuiAtleta
     ? 'Salvar perfil'
     : (usuarioEhAtleta ? 'Criar meu atleta' : 'Criar e vincular atleta');
+
+  if (!possuiAtleta) {
+    return (
+      <section className="pagina perfil-premium">
+        <AppHero
+          title="Perfil"
+          subtitle="Sua identidade na comunidade."
+          accountUser={{ nome: 'QuebraNunca', fotoPerfilUrl: '' }}
+          autenticado={Boolean(usuarioDetalhe || usuario)}
+          showBackButton
+          variant="page"
+        />
+
+        {deveCriarSenhaConta && (
+          <article className="perfil-alerta perfil-alerta-senha">
+            <div>
+              <strong>Crie sua senha</strong>
+              <p>{pendenciaCriarSenha?.mensagem || 'Crie uma senha para continuar acessando sua conta com segurança.'}</p>
+            </div>
+            <form className="perfil-alerta-senha-form" onSubmit={salvarSenhaConta}>
+              <label>
+                <span>Senha</span>
+                <input
+                  type="password"
+                  autoComplete="new-password"
+                  value={senhaConta}
+                  onChange={(evento) => setSenhaConta(evento.target.value)}
+                  onFocus={scrollFocusedInputIntoView}
+                  placeholder="Mínimo 6 caracteres"
+                  required
+                />
+              </label>
+              <label>
+                <span>Confirmação</span>
+                <input
+                  type="password"
+                  autoComplete="new-password"
+                  value={confirmacaoSenhaConta}
+                  onChange={(evento) => setConfirmacaoSenhaConta(evento.target.value)}
+                  onFocus={scrollFocusedInputIntoView}
+                  placeholder="Digite novamente"
+                  required
+                />
+              </label>
+              <button type="submit" className="botao-primario" disabled={salvandoSenhaConta}>
+                <FaLock aria-hidden="true" />
+                {salvandoSenhaConta ? 'Criando...' : 'Criar senha agora'}
+              </button>
+            </form>
+          </article>
+        )}
+
+        {erro && <p className="mensagem-erro">{erro}</p>}
+
+        <article className="perfil-onboarding-card">
+          <div className="perfil-onboarding-topo">
+            <AvatarUsuario nome={formularioAtleta.nome || 'QuebraNunca'} tamanho="lg" alt="" />
+            <div>
+              <span>Seu perfil de atleta</span>
+              <h1>Comece com o essencial</h1>
+              <p>Crie sua identidade esportiva para participar de grupos, partidas e rankings.</p>
+            </div>
+          </div>
+
+          <form onSubmit={salvarAtleta} className="perfil-onboarding-form">
+            <CampoEdicao label="Nome de exibição" largo>
+              <input
+                type="text"
+                autoComplete="name"
+                enterKeyHint="next"
+                value={formularioAtleta.nome}
+                onChange={(evento) => atualizarCampoAtleta('nome', evento.target.value)}
+                onFocus={scrollFocusedInputIntoView}
+                placeholder="Como você quer aparecer no app"
+                required
+              />
+            </CampoEdicao>
+
+            <CampoEdicao label="Apelido (opcional)" largo>
+              <input
+                type="text"
+                autoComplete="nickname"
+                enterKeyHint="next"
+                value={formularioAtleta.apelido}
+                onChange={(evento) => atualizarCampoAtleta('apelido', evento.target.value)}
+                onFocus={scrollFocusedInputIntoView}
+                placeholder="Seu apelido no futevôlei"
+              />
+            </CampoEdicao>
+
+            <CampoEdicao label="Nível (opcional)" largo>
+              <select
+                value={formularioAtleta.nivel}
+                onChange={(evento) => atualizarCampoAtleta('nivel', evento.target.value)}
+                onFocus={scrollFocusedInputIntoView}
+              >
+                <option value="">Selecione depois, se preferir</option>
+                {opcoesNivelAtleta.map((opcao) => (
+                  <option key={opcao.valor} value={opcao.valor}>
+                    {opcao.rotulo}
+                  </option>
+                ))}
+              </select>
+            </CampoEdicao>
+
+            <div className="perfil-onboarding-acoes">
+              <button type="submit" className="botao-primario" disabled={salvandoAtleta}>
+                {salvandoAtleta ? 'Criando perfil...' : 'Criar meu perfil'}
+              </button>
+              <button type="button" className="botao-link" onClick={adiarCriacaoPerfil} disabled={salvandoAtleta}>
+                Agora não
+              </button>
+            </div>
+          </form>
+
+          <p className="perfil-onboarding-nota">
+            Depois você pode adicionar contato, preferências de jogo, localização e medidas — tudo no seu tempo.
+          </p>
+        </article>
+      </section>
+    );
+  }
 
   return (
     <section className="pagina perfil-premium">
@@ -1681,7 +1785,6 @@ export function PaginaMeuPerfil() {
                 <InfoItem rotulo="Nome completo" valor={formularioAtleta.nome} />
                 <InfoItem rotulo="Apelido" valor={formularioAtleta.apelido} />
                 <InfoItem rotulo="Nascimento" valor={formularioAtleta.dataNascimento ? formatarData(formularioAtleta.dataNascimento) : ''} />
-                <InfoItem rotulo="CPF" valor={formularioAtleta.cpf} />
                 <InfoItem rotulo="Sexo/gênero" valor={obterRotuloOpcao(opcoesSexoAtleta, formularioAtleta.sexo)} />
                 <InfoItem rotulo="Lado preferido" valor={obterRotuloLado(formularioAtleta.lado)} />
                 <InfoItem rotulo="Nível" valor={obterRotuloNivel(formularioAtleta.nivel)} />
@@ -1720,18 +1823,6 @@ export function PaginaMeuPerfil() {
                     onFocus={scrollFocusedInputIntoView}
                     min={dataMinimaNascimento}
                     max={obterDataMaximaNascimento()}
-                  />
-                </CampoEdicao>
-
-                <CampoEdicao label="CPF">
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    enterKeyHint="next"
-                    value={formularioAtleta.cpf}
-                    onChange={(evento) => atualizarCampoAtleta('cpf', evento.target.value)}
-                    onFocus={scrollFocusedInputIntoView}
                   />
                 </CampoEdicao>
 
@@ -1812,7 +1903,6 @@ export function PaginaMeuPerfil() {
                       value={formularioAtleta.peDominante}
                       onChange={(evento) => atualizarCampoAtleta('peDominante', evento.target.value)}
                       onFocus={scrollFocusedInputIntoView}
-                      required
                     >
                       <option value="">Selecione</option>
                       {opcoesPeDominante.map((opcao) => (
@@ -1828,7 +1918,6 @@ export function PaginaMeuPerfil() {
                       value={formularioAtleta.tempoPratica}
                       onChange={(evento) => atualizarCampoAtleta('tempoPratica', evento.target.value)}
                       onFocus={scrollFocusedInputIntoView}
-                      required
                     >
                       <option value="">Selecione</option>
                       {opcoesTempoPratica.map((opcao) => (
@@ -1876,7 +1965,6 @@ export function PaginaMeuPerfil() {
                       value={formularioAtleta.objetivoAtual}
                       onChange={(evento) => atualizarCampoAtleta('objetivoAtual', evento.target.value)}
                       onFocus={scrollFocusedInputIntoView}
-                      required
                     >
                       <option value="">Selecione</option>
                       {opcoesObjetivoAtual.map((opcao) => (

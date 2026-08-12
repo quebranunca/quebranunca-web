@@ -4,6 +4,7 @@ import { FaCheck, FaChevronLeft, FaPlus, FaSearch, FaUserPlus } from 'react-icon
 import { AtletaPerfilLink } from '../components/AtletaPerfilLink';
 import { AvatarUsuario, obterFotoPerfilAvatar } from '../components/AvatarUsuario';
 import { EmailDomainSuggestions } from '../components/formularios/EmailDomainSuggestions';
+import { AppFlowActions } from '../components/layout/AppFlowLayout';
 import { useNotification } from '../contexts/NotificationContext';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { atletasServico } from '../services/atletasServico';
@@ -551,7 +552,7 @@ export function PaginaGrupoAtletas() {
                 </div>
               )}
 
-              <div className="acoes-formulario grupo-atletas-acoes-principais">
+              <AppFlowActions className="app-flow-actions--embedded acoes-formulario grupo-atletas-acoes-principais">
                 <button type="submit" className="botao-primario" disabled={salvandoGrupoAtleta || !podeSubmeterAdicaoAtleta}>
                   <FaUserPlus aria-hidden="true" />
                   {salvandoGrupoAtleta
@@ -560,7 +561,7 @@ export function PaginaGrupoAtletas() {
                       ? 'Adicionar atleta ao grupo'
                       : 'Cadastrar e adicionar'}
                 </button>
-              </div>
+              </AppFlowActions>
             </form>
           )}
 

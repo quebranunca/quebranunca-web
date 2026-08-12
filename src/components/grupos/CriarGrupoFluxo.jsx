@@ -676,7 +676,7 @@ export function CriarGrupoFluxo({
           {erro && <p className="criar-grupo-erro">{erro}</p>}
         </main>
 
-        <footer className="criar-grupo-acoes">
+        <footer className="app-flow-actions criar-grupo-acoes">
           <button
             type="button"
             className="botao-secundario"

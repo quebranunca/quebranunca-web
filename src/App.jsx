@@ -62,6 +62,9 @@ export default function App() {
         <Route element={<LayoutPrincipal />}>
           <Route path="/" element={<PaginaHome />} />
           <Route path="/login" element={<PaginaLogin />} />        
+          {import.meta.env.DEV && (
+            <Route path="/preview/perfil-onboarding" element={<PaginaMeuPerfil />} />
+          )}
           <Route path="/privacidade" element={<PaginaPrivacidade />} />
           <Route path="/termos" element={<PaginaTermosUso />} />
           <Route path="/ranking" element={<PaginaRanking />} />

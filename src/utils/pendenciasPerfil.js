@@ -3,14 +3,8 @@ import { PERFIS_USUARIO } from './perfis';
 
 const CAMPOS_ATLETA_PERFIL = [
   { id: 'nome', rotulo: 'nome completo', obterValor: (atleta) => atleta?.nome },
-  { id: 'apelido', rotulo: 'apelido', obterValor: (atleta) => atleta?.apelido },
   { id: 'dataNascimento', rotulo: 'data de nascimento', obterValor: (atleta) => atleta?.dataNascimento },
-  { id: 'cpf', rotulo: 'CPF', obterValor: (atleta) => atleta?.cpf },
-  { id: 'telefone', rotulo: 'telefone', obterValor: (atleta) => atleta?.telefone },
-  { id: 'instagram', rotulo: 'Instagram', obterValor: (atleta) => atleta?.instagram },
-  { id: 'estado', rotulo: 'estado', obterValor: (atleta) => atleta?.estado },
-  { id: 'cidade', rotulo: 'cidade', obterValor: (atleta) => atleta?.cidade },
-  { id: 'bairro', rotulo: 'bairro', obterValor: (atleta) => atleta?.bairro },
+  { id: 'sexo', rotulo: 'sexo/gênero', obterValor: (atleta) => atleta?.sexo },
   { id: 'nivel', rotulo: 'nível', obterValor: (atleta) => atleta?.nivel }
 ];
 

@@ -1,4 +1,4 @@
-import { ehAtleta, temPerfil } from './perfis';
+import { temPerfil } from './perfis';
 
 export const ESTADOS_ACESSO = {
   convitePendente: 'ConvitePendente',
@@ -30,10 +30,6 @@ export function obterEstadoAcessoUsuario(usuario, opcoes = {}) {
   const { primeiroAcessoPendente = false } = opcoes;
   if (primeiroAcessoPendente) {
     return ESTADOS_ACESSO.primeiroAcesso;
-  }
-
-  if (ehAtleta(usuario) && !usuario?.atletaId) {
-    return ESTADOS_ACESSO.cadastroIncompleto;
   }
 
   return ESTADOS_ACESSO.ativo;

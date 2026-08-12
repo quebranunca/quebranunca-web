@@ -13,7 +13,7 @@ async function rolarConteudoAteFicarAcimaDasAcoes(page, seletorConteudo) {
     return page.evaluate((seletor) => {
       const conteudo = document.querySelector(seletor);
       const acoes = document.querySelector('.registrar-partida-novo-cta-sticky');
-      const scroller = document.querySelector('.conteudo-principal') || document.scrollingElement;
+      const scroller = document.querySelector('.registrar-partida-novo-corpo');
 
       if (!(conteudo instanceof HTMLElement) || !acoes || !scroller) {
         return false;
@@ -128,15 +128,15 @@ test('mantém ações acessíveis e página sem bloqueio de modal no viewport mo
       return {
         conteudoAcimaDasAcoes: Boolean(conteudoRect && acoesRect && conteudoRect.bottom <= acoesRect.top),
         acoesAcimaDaNav: Boolean(acoesRect && bottomNavRect && acoesRect.bottom <= bottomNavRect.top + 1),
-        paddingCorpo: corpoStyle?.paddingBottom || '',
-        paddingFormulario: formularioStyle?.paddingBottom || ''
+        corpoRolavel: corpoStyle?.overflowY === 'auto',
+        formularioOcultaOverflow: formularioStyle?.overflow === 'hidden'
       };
     });
 
     expect(geometria.conteudoAcimaDasAcoes).toBe(true);
     expect(geometria.acoesAcimaDaNav).toBe(true);
-    expect(parseFloat(geometria.paddingCorpo)).toBeGreaterThan(120);
-    expect(parseFloat(geometria.paddingFormulario)).toBeGreaterThan(120);
+    expect(geometria.corpoRolavel).toBe(true);
+    expect(geometria.formularioOcultaOverflow).toBe(true);
 
     const bloqueioModal = await page.evaluate(() => ({
       bodyClass: document.body.classList.contains('registrar-partida-modal-aberto'),

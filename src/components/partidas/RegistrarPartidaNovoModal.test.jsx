@@ -169,14 +169,15 @@ describe('RegistrarPartidaNovoModal - revisão', () => {
     expect(container.querySelector('.registrar-partida-novo-pagina .registrar-partida-novo-cta-sticky')).not.toBeNull();
   });
 
-  it('mantém reserva inferior no formulário do modo página sem aplicar ao modal legado', () => {
+  it('mantém ações fora da área rolável no modo página sem alterar o modal legado', () => {
     const css = readFileSync(`${process.cwd()}/src/components/partidas/registrar-partida-novo.css`, 'utf8');
 
-    expect(css).toMatch(/\.registrar-partida-novo-pagina \.registrar-partida-novo-formulario\s*{[^}]*padding-bottom:\s*var\(--registrar-partida-page-actions-space\)/s);
-    expect(css).toMatch(/\.registrar-partida-novo-pagina \.registrar-partida-novo-corpo\s*{[^}]*padding:\s*0 0 calc\(var\(--registrar-partida-page-actions-space\) \+ 0\.75rem\)/s);
+    expect(css).toMatch(/\.registrar-partida-novo-pagina \.registrar-partida-novo-formulario\s*{[^}]*grid-template-rows:\s*auto minmax\(0, 1fr\) auto/s);
+    expect(css).toMatch(/\.registrar-partida-novo-pagina \.registrar-partida-novo-corpo\s*{[^}]*overflow-y:\s*auto/s);
+    expect(css).toMatch(/\.registrar-partida-novo-pagina \.registrar-partida-novo-cta-sticky\s*{[^}]*position:\s*relative/s);
     expect(css).toMatch(/\.editar-partida-pagina \.registrar-partida-novo-pagina \.registrar-partida-novo-corpo\s*{[^}]*overflow-y:\s*auto/s);
     expect(css).toMatch(/\.editar-partida-pagina \.registrar-partida-novo-pagina \.registrar-partida-novo-cta-sticky\s*{[^}]*position:\s*relative/s);
-    expect(css).not.toMatch(/\.modal-conteudo\.registrar-partida-novo-modal\s*{[^}]*registrar-partida-page-actions-space/s);
+    expect(css).not.toMatch(/registrar-partida-page-actions-space/);
   });
 
   it('não renderiza resumo parcial e mostra ação clara quando falta atleta preenchido', () => {
