@@ -200,6 +200,7 @@ describe('LayoutPrincipal com AppHero proprio da pagina', () => {
     expect(css).toMatch(/\.app-flow-page\s*{[^}]*display:\s*grid/s);
     expect(css).toMatch(/\.app-flow-page\s*{[^}]*grid-template-rows:\s*auto minmax\(0, 1fr\)/s);
     expect(css).toMatch(/\.layout-fluxo-app \.conteudo-principal > \.app-flow-page\s*{[^}]*height:\s*100%/s);
+    expect(css).toMatch(/\.layout-fluxo-app \.conteudo-principal > \.app-flow-page\s*{[^}]*padding-bottom:\s*0/s);
     expect(css).not.toMatch(/\.layout-fluxo-app \.conteudo-principal > \.app-flow-page\s*{[^}]*height:\s*auto/s);
   });
 });
