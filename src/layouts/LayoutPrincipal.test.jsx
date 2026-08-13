@@ -196,11 +196,13 @@ describe('LayoutPrincipal com AppHero proprio da pagina', () => {
 
   it('define o fluxo como grid para ocupar toda a altura entre hero e navegacao', () => {
     const css = readFileSync(`${process.cwd()}/src/components/layout/app-flow-layout.css`, 'utf8');
+    const estilosGlobais = readFileSync(`${process.cwd()}/src/assets/estilos.css`, 'utf8');
 
     expect(css).toMatch(/\.app-flow-page\s*{[^}]*display:\s*grid/s);
     expect(css).toMatch(/\.app-flow-page\s*{[^}]*grid-template-rows:\s*auto minmax\(0, 1fr\)/s);
     expect(css).toMatch(/\.layout-fluxo-app \.conteudo-principal > \.app-flow-page\s*{[^}]*height:\s*100%/s);
     expect(css).toMatch(/\.layout-fluxo-app \.conteudo-principal > \.app-flow-page\s*{[^}]*padding-bottom:\s*0/s);
     expect(css).not.toMatch(/\.layout-fluxo-app \.conteudo-principal > \.app-flow-page\s*{[^}]*height:\s*auto/s);
+    expect(estilosGlobais).toMatch(/\.layout-autenticado \.pagina:not\(\.app-flow-page\)[^{]*{\s*padding-bottom:/s);
   });
 });
