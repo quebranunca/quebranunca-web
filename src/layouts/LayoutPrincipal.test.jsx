@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, screen, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { AppHero } from '../components/AppHero';
-import { LayoutPrincipal, paginaRenderizaHeroProprio } from './LayoutPrincipal';
+import { LayoutPrincipal, paginaRenderizaHeroProprio, paginaUsaLayoutFluxo } from './LayoutPrincipal';
 
 const usuarioAutenticado = {
   id: 'usuario-1',
@@ -108,6 +108,10 @@ function renderizarLayout(rota = '/app') {
               />
             )}
           />
+          <Route
+            path="/partidas/registrar"
+            element={<section className="pagina app-flow-page">Fluxo de registro</section>}
+          />
         </Route>
       </Routes>
     </MemoryRouter>
@@ -176,5 +180,16 @@ describe('LayoutPrincipal com AppHero proprio da pagina', () => {
     expect(paginaRenderizaHeroProprio('/ranking/')).toBe(true);
     expect(paginaRenderizaHeroProprio('/app/partidas/partida-1/')).toBe(true);
     expect(paginaRenderizaHeroProprio('/app/partidas/11111111-1111-4111-8111-111111111111/editar/')).toBe(true);
+  });
+
+  it('remove o scroll e o padding externos nas paginas de fluxo', () => {
+    const { container } = renderizarLayout('/partidas/registrar');
+    const layout = container.querySelector('.layout-app');
+
+    expect(layout).toHaveClass('layout-fluxo-app');
+    expect(layout).toHaveClass('layout-com-bottom-nav');
+    expect(paginaUsaLayoutFluxo('/partidas/registrar/')).toBe(true);
+    expect(paginaUsaLayoutFluxo('/app/grupos/criar')).toBe(true);
+    expect(paginaUsaLayoutFluxo('/ranking')).toBe(false);
   });
 });

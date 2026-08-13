@@ -36,6 +36,11 @@ const PADROES_COM_HERO_PROPRIO_APP = [
   /^\/app\/partidas\/[^/]+\/editar$/
 ];
 
+const ROTAS_COM_FLUXO_APP = [
+  '/app/grupos/criar',
+  '/partidas/registrar'
+];
+
 function normalizarPathname(pathname) {
   const pathnameLimpo = String(pathname || '').replace(/\/+$/, '');
   return pathnameLimpo || '/';
@@ -54,6 +59,10 @@ export function paginaRenderizaHeroProprio(pathname) {
     PADROES_COM_HERO_PROPRIO_APP.some((rota) => rota.test(pathnameNormalizado))
   );
 }
+
+export function paginaUsaLayoutFluxo(pathname) {
+  return ROTAS_COM_FLUXO_APP.includes(normalizarPathname(pathname));
+}
  
 export function LayoutPrincipal() {
   const { token, usuario, sair } = useAutenticacao();
@@ -66,6 +75,7 @@ export function LayoutPrincipal() {
   const homeDashboardApp = autenticado && pathnameEhHomeAutenticada(pathnameNormalizado);
   const gruposDashboardApp = autenticado && pathnameNormalizado === '/grupos';
   const paginaComHeroProprioApp = autenticado && paginaRenderizaHeroProprio(pathnameNormalizado);
+  const paginaComFluxoApp = autenticado && paginaUsaLayoutFluxo(pathnameNormalizado);
   const mostrarBottomNavMobile = autenticado &&
     !ROTAS_SEM_BOTTOM_NAV.some((rota) => rota.test(location.pathname));
 
@@ -101,6 +111,8 @@ export function LayoutPrincipal() {
         gruposDashboardApp ? ' layout-grupos-dashboard-app' : ''
       }${
         paginaComHeroProprioApp ? ' layout-pagina-com-hero-proprio' : ''
+      }${
+        paginaComFluxoApp ? ' layout-fluxo-app' : ''
       }`}
     >
       {!paginaComHeroProprioApp && (
