@@ -61,6 +61,33 @@ test.describe('Registrar partida', () => {
     await expect(page.getByTestId('campo-atleta1Dupla1').getByText('Gustavo Drager', { exact: true })).toBeVisible();
   });
 
+  test('mantém as ações próximas da navegação na etapa Dupla 1', async ({ page, isMobile }) => {
+    test.skip(!isMobile, 'Cenário específico do layout mobile.');
+
+    await page.setViewportSize({ width: 390, height: 664 });
+    const fluxo = new RegistrarPartidaPage(page);
+    await fluxo.abrir();
+    await fluxo.avancarDoGrupo();
+
+    const geometria = await page.evaluate(() => {
+      const pagina = document.querySelector('.app-flow-page');
+      const acoes = document.querySelector('.registrar-partida-novo-cta-sticky');
+      const bottomNav = document.querySelector('.mobile-bottom-navigation');
+      const paginaStyle = pagina ? getComputedStyle(pagina) : null;
+      const acoesRect = acoes?.getBoundingClientRect();
+      const bottomNavRect = bottomNav?.getBoundingClientRect();
+
+      return {
+        displayPagina: paginaStyle?.display || '',
+        distanciaAcoesNav: acoesRect && bottomNavRect ? bottomNavRect.top - acoesRect.bottom : null
+      };
+    });
+
+    expect(geometria.displayPagina).toBe('grid');
+    expect(geometria.distanciaAcoesNav).toBeGreaterThanOrEqual(0);
+    expect(geometria.distanciaAcoesNav).toBeLessThanOrEqual(32);
+  });
+
   test('mantém o atleta selecionado ao clicar em sugestão rápida', async ({ page }) => {
     const fluxo = new RegistrarPartidaPage(page);
     await fluxo.abrir();

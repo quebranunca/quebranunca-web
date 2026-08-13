@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, screen, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
@@ -191,5 +192,12 @@ describe('LayoutPrincipal com AppHero proprio da pagina', () => {
     expect(paginaUsaLayoutFluxo('/partidas/registrar/')).toBe(true);
     expect(paginaUsaLayoutFluxo('/app/grupos/criar')).toBe(true);
     expect(paginaUsaLayoutFluxo('/ranking')).toBe(false);
+  });
+
+  it('define o fluxo como grid para ocupar toda a altura entre hero e navegacao', () => {
+    const css = readFileSync(`${process.cwd()}/src/components/layout/app-flow-layout.css`, 'utf8');
+
+    expect(css).toMatch(/\.app-flow-page\s*{[^}]*display:\s*grid/s);
+    expect(css).toMatch(/\.app-flow-page\s*{[^}]*grid-template-rows:\s*auto minmax\(0, 1fr\)/s);
   });
 });
