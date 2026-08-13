@@ -5,6 +5,17 @@
   overflow: hidden;
 }
 
+.layout-fluxo-app .conteudo-principal {
+  display: flex;
+  overflow: hidden;
+  padding-bottom: 0;
+}
+
+.layout-fluxo-app .conteudo-principal > .app-flow-page {
+  flex: 1 1 auto;
+  height: auto;
+}
+
 .app-flow-page__body {
   min-width: 0;
   min-height: 0;

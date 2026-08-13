@@ -118,25 +118,37 @@ test('mantém ações acessíveis e página sem bloqueio de modal no viewport mo
       const bottomNav = document.querySelector('.mobile-bottom-navigation');
       const corpo = document.querySelector('.registrar-partida-novo-corpo');
       const formulario = document.querySelector('.registrar-partida-novo-formulario');
+      const conteudoPrincipal = document.querySelector('.conteudo-principal');
 
       const conteudoRect = conteudoFinal?.getBoundingClientRect();
       const acoesRect = acoes?.getBoundingClientRect();
       const bottomNavRect = bottomNav?.getBoundingClientRect();
       const corpoStyle = corpo ? getComputedStyle(corpo) : null;
       const formularioStyle = formulario ? getComputedStyle(formulario) : null;
+      const conteudoPrincipalStyle = conteudoPrincipal ? getComputedStyle(conteudoPrincipal) : null;
 
       return {
         conteudoAcimaDasAcoes: Boolean(conteudoRect && acoesRect && conteudoRect.bottom <= acoesRect.top),
         acoesAcimaDaNav: Boolean(acoesRect && bottomNavRect && acoesRect.bottom <= bottomNavRect.top + 1),
+        distanciaAcoesNav: acoesRect && bottomNavRect ? bottomNavRect.top - acoesRect.bottom : null,
         corpoRolavel: corpoStyle?.overflowY === 'auto',
-        formularioOcultaOverflow: formularioStyle?.overflow === 'hidden'
+        formularioOcultaOverflow: formularioStyle?.overflow === 'hidden',
+        conteudoPrincipalSemScroll: Boolean(
+          conteudoPrincipal &&
+          conteudoPrincipalStyle?.overflowY === 'hidden' &&
+          conteudoPrincipal.scrollHeight <= conteudoPrincipal.clientHeight + 1
+        ),
+        paddingInferiorExterno: conteudoPrincipalStyle?.paddingBottom || ''
       };
     });
 
     expect(geometria.conteudoAcimaDasAcoes).toBe(true);
     expect(geometria.acoesAcimaDaNav).toBe(true);
+    expect(geometria.distanciaAcoesNav).toBeLessThanOrEqual(32);
     expect(geometria.corpoRolavel).toBe(true);
     expect(geometria.formularioOcultaOverflow).toBe(true);
+    expect(geometria.conteudoPrincipalSemScroll).toBe(true);
+    expect(parseFloat(geometria.paddingInferiorExterno)).toBe(0);
 
     const bloqueioModal = await page.evaluate(() => ({
       bodyClass: document.body.classList.contains('registrar-partida-modal-aberto'),
