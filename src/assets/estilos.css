@@ -12806,7 +12806,7 @@ a.botao-terciario:active {
 }
 
 @media (max-width: 720px) {
-  .layout-autenticado .pagina:not(.home-dashboard):not(.pontosqn-pagina):not(.perfil-premium):not(.pendencias-pagina):not(.minhas-partidas-pagina) {
+  .layout-autenticado .pagina:not(.app-flow-page):not(.home-dashboard):not(.pontosqn-pagina):not(.perfil-premium):not(.pendencias-pagina):not(.minhas-partidas-pagina) {
     padding-bottom: calc(var(--altura-bottom-nav, 4.7rem) + 1rem + env(safe-area-inset-bottom, 0px));
   }
 
