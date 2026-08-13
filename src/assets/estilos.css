@@ -2107,7 +2107,7 @@ textarea {
   padding-bottom: calc(5.85rem + env(safe-area-inset-bottom));
 }
 
-.layout-com-bottom-nav .conteudo-principal {
+.layout-com-bottom-nav:not(.layout-fluxo-app) .conteudo-principal {
   padding-bottom: calc(1rem + env(safe-area-inset-bottom));
 }
 
@@ -13150,7 +13150,7 @@ a.botao-terciario:active {
     padding-bottom: calc(5.85rem + env(safe-area-inset-bottom));
   }
 
-  .layout-com-bottom-nav .conteudo-principal {
+  .layout-com-bottom-nav:not(.layout-fluxo-app) .conteudo-principal {
     padding-bottom: calc(1rem + env(safe-area-inset-bottom));
   }
 
