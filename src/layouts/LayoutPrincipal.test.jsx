@@ -204,5 +204,6 @@ describe('LayoutPrincipal com AppHero proprio da pagina', () => {
     expect(css).toMatch(/\.layout-fluxo-app \.conteudo-principal > \.app-flow-page\s*{[^}]*padding-bottom:\s*0/s);
     expect(css).not.toMatch(/\.layout-fluxo-app \.conteudo-principal > \.app-flow-page\s*{[^}]*height:\s*auto/s);
     expect(estilosGlobais).toMatch(/\.layout-autenticado \.pagina:not\(\.app-flow-page\)[^{]*{\s*padding-bottom:/s);
+    expect(estilosGlobais.match(/\.layout-com-bottom-nav:not\(\.layout-fluxo-app\) \.conteudo-principal\s*{/g)).toHaveLength(2);
   });
 });
