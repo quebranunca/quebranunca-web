@@ -109,6 +109,9 @@ test.describe('Criar grupo', () => {
     await expect(page).toHaveURL(/\/app\/grupos\/criar$/);
     await expect(page.getByRole('heading', { name: 'Criar grupo' })).toBeVisible();
     await expect(page.getByRole('dialog', { name: /^Criar grupo$/ })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Cancelar criação de grupo' })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Fechar', exact: true })).toHaveCount(0);
+    await expect(page.getByLabel('Nome do grupo')).not.toBeFocused();
     await expect(page.locator('body')).not.toHaveClass(/criar-grupo-wizard-aberto/);
   });
 
@@ -182,11 +185,16 @@ test.describe('Criar grupo', () => {
 
       return {
         campoAcimaDasAcoes: Boolean(campoRect && acoesRect && campoRect.bottom <= acoesRect.top),
-        acoesAcimaDaNav: Boolean(acoesRect && bottomNavRect && acoesRect.bottom <= bottomNavRect.top + 1)
+        acoesAcimaDaNav: Boolean(acoesRect && bottomNavRect && acoesRect.bottom <= bottomNavRect.top + 1),
+        paginaPreencheArea: Math.abs(
+          (document.querySelector('.criar-grupo-pagina')?.getBoundingClientRect().height || 0) -
+          (document.querySelector('.conteudo-principal')?.getBoundingClientRect().height || 0)
+        ) <= 1
       };
     });
 
     expect(geometria.campoAcimaDasAcoes).toBe(true);
     expect(geometria.acoesAcimaDaNav).toBe(true);
+    expect(geometria.paginaPreencheArea).toBe(true);
   });
 });

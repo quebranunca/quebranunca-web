@@ -446,7 +446,7 @@ export function CriarGrupoFluxo({
               onBlur={(evento) => atualizarCampo('nome', normalizarNome(evento.target.value))}
               onFocus={rolarCampoParaVisivel}
               placeholder="Ex: Fechadinho de Quinta"
-              autoFocus
+              autoFocus={modoExibicao === 'modal'}
               required
               maxLength="50"
             />
@@ -636,20 +636,28 @@ export function CriarGrupoFluxo({
           'aria-labelledby': 'criar-grupo-titulo'
         })}
       >
-        <header className="criar-grupo-header">
-          <button
-            type="button"
-            className="criar-grupo-header-acao criar-grupo-header-voltar"
-            onClick={etapa === 0 ? fechar : voltar}
-            disabled={salvando || verificando}
-            aria-label={etapa === 0 ? 'Cancelar criação de grupo' : 'Voltar'}
-            title={etapa === 0 ? 'Cancelar' : 'Voltar'}
-          >
-            <FaChevronLeft aria-hidden="true" />
-          </button>
+        <header className={`criar-grupo-header ${ehModal ? '' : 'criar-grupo-header--pagina'}`.trim()}>
+          {ehModal && (
+            <button
+              type="button"
+              className="criar-grupo-header-acao criar-grupo-header-voltar"
+              onClick={etapa === 0 ? fechar : voltar}
+              disabled={salvando || verificando}
+              aria-label={etapa === 0 ? 'Cancelar criação de grupo' : 'Voltar'}
+              title={etapa === 0 ? 'Cancelar' : 'Voltar'}
+            >
+              <FaChevronLeft aria-hidden="true" />
+            </button>
+          )}
           <div>
-            <strong id="criar-grupo-titulo">{tituloFluxo}</strong>
-            <span>{etapasCriacaoGrupo[etapa]?.titulo || 'Grupo'}</span>
+            {ehModal ? (
+              <>
+                <strong id="criar-grupo-titulo">{tituloFluxo}</strong>
+                <span>{etapasCriacaoGrupo[etapa]?.titulo || 'Grupo'}</span>
+              </>
+            ) : (
+              <span id="criar-grupo-titulo">{etapasCriacaoGrupo[etapa]?.titulo || 'Grupo'}</span>
+            )}
             <div className="criar-grupo-progresso" aria-label={`Etapa ${etapa + 1} de ${etapasCriacaoGrupo.length}`}>
               <div className="criar-grupo-pontos" aria-hidden="true">
                 {etapasCriacaoGrupo.map((item, indice) => (
@@ -659,16 +667,18 @@ export function CriarGrupoFluxo({
               <small>Etapa {etapa + 1} de {etapasCriacaoGrupo.length}</small>
             </div>
           </div>
-          <button
-            type="button"
-            className="criar-grupo-header-acao criar-grupo-header-fechar"
-            onClick={fechar}
-            disabled={salvando || verificando}
-            aria-label="Fechar"
-            title="Fechar"
-          >
-            <FaTimes aria-hidden="true" />
-          </button>
+          {ehModal && (
+            <button
+              type="button"
+              className="criar-grupo-header-acao criar-grupo-header-fechar"
+              onClick={fechar}
+              disabled={salvando || verificando}
+              aria-label="Fechar"
+              title="Fechar"
+            >
+              <FaTimes aria-hidden="true" />
+            </button>
+          )}
         </header>
 
         <main className="criar-grupo-corpo" ref={corpoRef}>

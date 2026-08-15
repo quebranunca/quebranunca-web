@@ -67,6 +67,17 @@ body.criar-grupo-wizard-aberto .layout-com-bottom-nav {
   text-align: center;
 }
 
+.criar-grupo-header--pagina {
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 3.25rem;
+  padding-block: 0.48rem;
+}
+
+.criar-grupo-header--pagina > div > span {
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
 .criar-grupo-header strong {
   color: var(--color-text-primary);
   font-size: 0.96rem;
@@ -861,7 +872,8 @@ input[type="text"]:focus {
 }
 
 .criar-grupo-pagina {
-  min-height: 100dvh;
+  height: 100%;
+  min-height: 0;
 }
 
 .criar-grupo-pagina__conteudo {
@@ -924,5 +936,13 @@ input[type="text"]:focus {
     height: 100%;
     max-height: 100%;
     overflow: hidden;
+  }
+}
+
+@supports selector(body:has(input:focus)) {
+  body:has(.criar-grupo-fluxo-pagina[data-teclado-aberto="false"]) .mobile-bottom-navigation {
+    transform: none;
+    opacity: 1;
+    pointer-events: auto;
   }
 }

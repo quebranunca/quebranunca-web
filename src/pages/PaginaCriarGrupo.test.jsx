@@ -103,6 +103,9 @@ describe('PaginaCriarGrupo', () => {
 
     expect(screen.getByRole('heading', { name: 'Criar grupo' })).toBeInTheDocument();
     expect(screen.queryByRole('dialog', { name: /Criar grupo/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Cancelar criação de grupo' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Fechar' })).not.toBeInTheDocument();
+    expect(screen.getByLabelText(/Nome do grupo/i)).not.toHaveFocus();
     expect(document.body).not.toHaveClass('criar-grupo-wizard-aberto');
     expect(document.documentElement).not.toHaveClass('criar-grupo-wizard-aberto');
   });
