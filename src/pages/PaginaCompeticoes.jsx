@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useConfirmacao } from '../contexts/ConfirmacaoContext';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { categoriasServico } from '../services/categoriasServico';
 import { competicoesServico } from '../services/competicoesServico';
@@ -95,6 +96,7 @@ const filtrosIniciais = {
 
 export function PaginaCompeticoes() {
   const { token, usuario, estadoAcesso } = useAutenticacao();
+  const { confirmar } = useConfirmacao();
 
   const gestorCompeticao = ehGestorCompeticao(usuario);
   const usuarioAtleta = ehAtleta(usuario);
@@ -458,7 +460,13 @@ export function PaginaCompeticoes() {
   }
 
   async function removerCategoria(id) {
-    if (!window.confirm('Deseja remover esta categoria?')) {
+    const confirmado = await confirmar({
+      titulo: 'Remover categoria?',
+      mensagem: 'Deseja remover esta categoria?',
+      textoConfirmar: 'Remover'
+    });
+
+    if (!confirmado) {
       return;
     }
 
@@ -486,11 +494,14 @@ export function PaginaCompeticoes() {
       const mensagemErro = extrairMensagemErro(error);
 
       if (!substituirTabelaExistente && mensagemErro.toLowerCase().includes('substituição')) {
-        const confirmar = window.confirm(
-          'Esta categoria já possui uma tabela de jogos gerada. Deseja substituir os confrontos agendados?'
-        );
+        const confirmado = await confirmar({
+          titulo: 'Substituir tabela?',
+          mensagem: 'Esta categoria já possui uma tabela de jogos gerada. Deseja substituir os confrontos agendados?',
+          textoConfirmar: 'Substituir',
+          variante: 'primario'
+        });
 
-        if (confirmar) {
+        if (confirmado) {
           await sortearJogosCategoria(competicao, categoria, true);
           return;
         }
@@ -549,7 +560,13 @@ export function PaginaCompeticoes() {
   }
 
   async function removerCompeticao(id) {
-    if (!window.confirm('Deseja remover este campeonato?')) {
+    const confirmado = await confirmar({
+      titulo: 'Remover campeonato?',
+      mensagem: 'Deseja remover este campeonato?',
+      textoConfirmar: 'Remover'
+    });
+
+    if (!confirmado) {
       return;
     }
 

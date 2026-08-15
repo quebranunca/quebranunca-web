@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { IconeAcao } from '../components/ConteudoBotao';
 import { DuplaLink } from '../components/duplas/DuplaLink';
 import { CompartilharPartidaBotao } from '../components/partidas/CompartilharPartidaBotao';
+import { useConfirmacao } from '../contexts/ConfirmacaoContext';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { categoriasServico } from '../services/categoriasServico';
 import { competicoesServico } from '../services/competicoesServico';
@@ -280,6 +281,7 @@ function aguardarProximoCicloInterface() {
 
 export function PaginaPartidasCampeonato() {
   const { usuario } = useAutenticacao();
+  const { confirmar } = useConfirmacao();
   const gestorCompeticao = ehGestorCompeticao(usuario);
   const [params, setParams] = useSearchParams();
   const [competicoes, setCompeticoes] = useState([]);
@@ -722,11 +724,14 @@ export function PaginaPartidasCampeonato() {
       return;
     }
 
-    const confirmar = window.confirm(
-      'Deseja aprovar os jogos desta categoria? Depois disso, o lançamento dos resultados ficará liberado.'
-    );
+    const confirmado = await confirmar({
+      titulo: 'Aprovar jogos?',
+      mensagem: 'Deseja aprovar os jogos desta categoria? Depois disso, o lançamento dos resultados ficará liberado.',
+      textoConfirmar: 'Aprovar jogos',
+      variante: 'primario'
+    });
 
-    if (!confirmar) {
+    if (!confirmado) {
       return;
     }
 

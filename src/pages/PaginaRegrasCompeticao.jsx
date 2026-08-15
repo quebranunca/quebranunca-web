@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { ConteudoBotao } from '../components/ConteudoBotao';
+import { useConfirmacao } from '../contexts/ConfirmacaoContext';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { regrasCompeticaoServico } from '../services/regrasCompeticaoServico';
 import { extrairMensagemErro } from '../utils/erros';
@@ -22,6 +23,7 @@ const estadoInicial = {
 
 export function PaginaRegrasCompeticao() {
   const { usuario } = useAutenticacao();
+  const { confirmar } = useConfirmacao();
   const usuarioAdministrador = ehAdministrador(usuario);
   const [regras, setRegras] = useState([]);
   const [formulario, setFormulario] = useState(estadoInicial);
@@ -160,7 +162,13 @@ export function PaginaRegrasCompeticao() {
       return;
     }
 
-    if (!window.confirm('Deseja remover esta regra?')) {
+    const confirmado = await confirmar({
+      titulo: 'Remover regra?',
+      mensagem: 'Deseja remover esta regra?',
+      textoConfirmar: 'Remover'
+    });
+
+    if (!confirmado) {
       return;
     }
 

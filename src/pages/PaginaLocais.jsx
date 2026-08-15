@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { ConteudoBotao } from '../components/ConteudoBotao';
+import { useConfirmacao } from '../contexts/ConfirmacaoContext';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { locaisServico } from '../services/locaisServico';
 import { extrairMensagemErro } from '../utils/erros';
@@ -22,6 +23,7 @@ const tiposLocal = [
 
 export function PaginaLocais() {
   const { usuario } = useAutenticacao();
+  const { confirmar } = useConfirmacao();
   const usuarioAdministrador = ehAdministrador(usuario);
   const [locais, setLocais] = useState([]);
   const [formulario, setFormulario] = useState(estadoInicial);
@@ -118,8 +120,13 @@ export function PaginaLocais() {
       return;
     }
 
-    const confirmar = window.confirm('Deseja realmente remover este local?');
-    if (!confirmar) {
+    const confirmado = await confirmar({
+      titulo: 'Remover local?',
+      mensagem: 'Deseja realmente remover este local?',
+      textoConfirmar: 'Remover'
+    });
+
+    if (!confirmado) {
       return;
     }
 

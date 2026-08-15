@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { ConteudoBotao } from '../components/ConteudoBotao';
+import { useConfirmacao } from '../contexts/ConfirmacaoContext';
 import { formatosCampeonatoServico } from '../services/formatosCampeonatoServico';
 import { extrairMensagemErro } from '../utils/erros';
 import { formatarDataHora } from '../utils/formatacao';
@@ -65,6 +66,7 @@ function descreverTipo(tipoFormato) {
 }
 
 export function PaginaFormatosCampeonato() {
+  const { confirmar } = useConfirmacao();
   const [formatos, setFormatos] = useState([]);
   const [formulario, setFormulario] = useState(estadoInicial);
   const [formularioAberto, setFormularioAberto] = useState(false);
@@ -197,7 +199,13 @@ export function PaginaFormatosCampeonato() {
       return;
     }
 
-    if (!window.confirm('Deseja remover este formato de campeonato?')) {
+    const confirmado = await confirmar({
+      titulo: 'Remover formato?',
+      mensagem: 'Deseja remover este formato de campeonato?',
+      textoConfirmar: 'Remover'
+    });
+
+    if (!confirmado) {
       return;
     }
 

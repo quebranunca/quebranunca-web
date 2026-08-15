@@ -1,8 +1,3 @@
-import {
-  badgesGamificacao,
-  medalhasGamificacao
-} from '../assets/gamificacao/medalhas/index.js';
-
 const NIVEL_FALLBACK = 'bronze';
 
 const NOMES_NIVEIS = Object.freeze({
@@ -47,6 +42,22 @@ const ALIASES_NIVEIS = Object.freeze({
   6: 'lenda'
 });
 
+const medalhasGamificacaoLoaders = Object.freeze({
+  bronze: () => import('../assets/gamificacao/medalhas/bronze.webp'),
+  prata: () => import('../assets/gamificacao/medalhas/prata.webp'),
+  ouro: () => import('../assets/gamificacao/medalhas/ouro.webp'),
+  platina: () => import('../assets/gamificacao/medalhas/platina.webp'),
+  diamante: () => import('../assets/gamificacao/medalhas/diamante.webp')
+});
+
+const badgesGamificacaoLoaders = Object.freeze({
+  bronze: () => import('../assets/gamificacao/medalhas/badges/bronze-badge.webp'),
+  prata: () => import('../assets/gamificacao/medalhas/badges/prata-badge.webp'),
+  ouro: () => import('../assets/gamificacao/medalhas/badges/ouro-badge.webp'),
+  platina: () => import('../assets/gamificacao/medalhas/badges/platina-badge.webp'),
+  diamante: () => import('../assets/gamificacao/medalhas/badges/diamante-badge.webp')
+});
+
 function obterValorNivel(nivel) {
   if (nivel && typeof nivel === 'object') {
     return nivel.nome ?? nivel.nivel ?? nivel.chave ?? nivel.id ?? '';
@@ -73,12 +84,33 @@ export function obterNomeNivelGamificacao(nivel) {
   return NOMES_NIVEIS[chave] || NOMES_NIVEIS[NIVEL_FALLBACK];
 }
 
-export function getMedalhaPorNivel(nivel) {
-  const chave = normalizarNivelGamificacao(nivel);
-  return medalhasGamificacao[chave] || (chave === NIVEL_FALLBACK ? medalhasGamificacao[NIVEL_FALLBACK] : null);
+function obterLoaderSeguro(loaders, chave) {
+  return loaders[chave] || (chave === NIVEL_FALLBACK ? loaders[NIVEL_FALLBACK] : null);
 }
 
-export function getBadgePorNivel(nivel) {
+async function carregarAsset(loader) {
+  if (!loader) {
+    return null;
+  }
+
+  const modulo = await loader();
+  return modulo?.default || null;
+}
+
+export function getMedalhaLoaderPorNivel(nivel) {
   const chave = normalizarNivelGamificacao(nivel);
-  return badgesGamificacao[chave] || (chave === NIVEL_FALLBACK ? badgesGamificacao[NIVEL_FALLBACK] : null);
+  return obterLoaderSeguro(medalhasGamificacaoLoaders, chave);
+}
+
+export function getBadgeLoaderPorNivel(nivel) {
+  const chave = normalizarNivelGamificacao(nivel);
+  return obterLoaderSeguro(badgesGamificacaoLoaders, chave);
+}
+
+export async function getMedalhaPorNivel(nivel) {
+  return carregarAsset(getMedalhaLoaderPorNivel(nivel));
+}
+
+export async function getBadgePorNivel(nivel) {
+  return carregarAsset(getBadgeLoaderPorNivel(nivel));
 }

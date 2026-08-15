@@ -1,61 +1,72 @@
+import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { RotaProtegida } from './routes/RotaProtegida';
 import { LayoutPrincipal } from './layouts/LayoutPrincipal';
-import { PaginaLogin } from './pages/PaginaLogin';
-import { PaginaHome } from './pages/PaginaHome';
-import { PaginaDashboard } from './pages/PaginaDashboard';
-import { PaginaAtletas } from './pages/PaginaAtletas';
-import { PaginaAtletaDashboard } from './pages/PaginaAtletaDashboard';
-import { PaginaDuplaDashboard } from './pages/PaginaDuplaDashboard';
-import { PaginaDuplas } from './pages/PaginaDuplas';
-import { PaginaLigas } from './pages/PaginaLigas';
-import { PaginaLocais } from './pages/PaginaLocais';
-import { PaginaFormatosCampeonato } from './pages/PaginaFormatosCampeonato';
-import { PaginaRegrasCompeticao } from './pages/PaginaRegrasCompeticao';
-import { PaginaModelosImportacao } from './pages/PaginaModelosImportacao';
-import { PaginaCompeticoes } from './pages/PaginaCompeticoes';
-import { PaginaFormularioCampeonato } from './pages/PaginaFormularioCampeonato';
-import { PaginaGrupos } from './pages/PaginaGrupos';
-import { PaginaCriarGrupo } from './pages/PaginaCriarGrupo';
-import { PaginaGrupoDashboard } from './pages/PaginaGrupoDashboard';
-import { PaginaGrupoAtletas } from './pages/PaginaGrupoAtletas';
-import { PaginaGrupoConfiguracoes } from './pages/PaginaGrupoConfiguracoes';
-import { PaginaRanking } from './pages/PaginaRanking';
-import { RankingLiga } from './pages/PaginaRankingLiga';
-import { PaginaCategorias } from './pages/PaginaCategorias';
-import { PaginaInscricoesCampeonato } from './pages/PaginaInscricoesCampeonato';
-import { PaginaRegistrarPartidas } from './pages/PaginaRegistrarPartidas1';
-import { PaginaConsultaPartidas } from './pages/PaginaConsultaPartidas';
-import { PaginaPartidasCampeonato } from './pages/PaginaPartidasCampeonato';
-import { PaginaPartidaDetalhe } from './pages/PaginaPartidaDetalhe';
-import { PaginaEditarPartida } from './pages/PaginaEditarPartida';
-import { PaginaMinhasPartidas } from './pages/PaginaMinhasPartidas';
-import { PaginaMeuPerfil } from './pages/PaginaMeuPerfil';
-import { PaginaMais } from './pages/PaginaMais';
-import { PaginaPontosQN } from './pages/PaginaPontosQN';
-import { PaginaScouts } from './pages/PaginaScouts';
-import { PaginaArenas } from './pages/PaginaArenas';
-import { PaginaArenaPublica } from './pages/PaginaArenaPublica';
-import { MinhasArenasPage } from './pages/arena/MinhasArenasPage';
-import { ArenaAdminDashboardPage } from './pages/arena/ArenaAdminDashboardPage';
-import { PaginaPerfilUsuario } from './pages/PaginaPerfilUsuario';
-import { PaginaPrivacidade } from './pages/PaginaPrivacidade';
-import { PaginaTermosUso } from './pages/PaginaTermosUso';
-import { PaginaPendenciasAtletas } from './pages/PaginaPendenciasAtletas';
-import { PaginaUsuarios } from './pages/PaginaUsuarios';
-import { PaginaConvitesCadastro } from './pages/PaginaConvitesCadastro';
-import { PaginaSolicitacoesAcessoAdmin } from './pages/PaginaSolicitacoesAcessoAdmin';
-import { PaginaCadastroConvite } from './pages/PaginaCadastroConvite';
-import { RedirecionamentoPartidas } from './pages/RedirecionamentoPartidas';
-import { FeedPartidasPage } from './pages/FeedPartidasPage';
 import { PERFIS_USUARIO } from './utils/perfis';
 import { ESTADOS_ACESSO } from './utils/acesso';
 import { AtualizacaoAplicativoModal } from './components/AtualizacaoAplicativoModal';
+
+function carregarPagina(importador, exportacao) {
+  return lazy(() => importador().then((modulo) => ({ default: modulo[exportacao] })));
+}
+
+function CarregandoRota() {
+  return <div className="ranking-estado">Carregando tela...</div>;
+}
+
+const PaginaLogin = carregarPagina(() => import('./pages/PaginaLogin'), 'PaginaLogin');
+const PaginaHome = carregarPagina(() => import('./pages/PaginaHome'), 'PaginaHome');
+const PaginaDashboard = carregarPagina(() => import('./pages/PaginaDashboard'), 'PaginaDashboard');
+const PaginaAtletas = carregarPagina(() => import('./pages/PaginaAtletas'), 'PaginaAtletas');
+const PaginaAtletaDashboard = carregarPagina(() => import('./pages/PaginaAtletaDashboard'), 'PaginaAtletaDashboard');
+const PaginaDuplaDashboard = carregarPagina(() => import('./pages/PaginaDuplaDashboard'), 'PaginaDuplaDashboard');
+const PaginaDuplas = carregarPagina(() => import('./pages/PaginaDuplas'), 'PaginaDuplas');
+const PaginaLigas = carregarPagina(() => import('./pages/PaginaLigas'), 'PaginaLigas');
+const PaginaLocais = carregarPagina(() => import('./pages/PaginaLocais'), 'PaginaLocais');
+const PaginaFormatosCampeonato = carregarPagina(() => import('./pages/PaginaFormatosCampeonato'), 'PaginaFormatosCampeonato');
+const PaginaRegrasCompeticao = carregarPagina(() => import('./pages/PaginaRegrasCompeticao'), 'PaginaRegrasCompeticao');
+const PaginaModelosImportacao = carregarPagina(() => import('./pages/PaginaModelosImportacao'), 'PaginaModelosImportacao');
+const PaginaCompeticoes = carregarPagina(() => import('./pages/PaginaCompeticoes'), 'PaginaCompeticoes');
+const PaginaFormularioCampeonato = carregarPagina(() => import('./pages/PaginaFormularioCampeonato'), 'PaginaFormularioCampeonato');
+const PaginaGrupos = carregarPagina(() => import('./pages/PaginaGrupos'), 'PaginaGrupos');
+const PaginaCriarGrupo = carregarPagina(() => import('./pages/PaginaCriarGrupo'), 'PaginaCriarGrupo');
+const PaginaGrupoDashboard = carregarPagina(() => import('./pages/PaginaGrupoDashboard'), 'PaginaGrupoDashboard');
+const PaginaGrupoAtletas = carregarPagina(() => import('./pages/PaginaGrupoAtletas'), 'PaginaGrupoAtletas');
+const PaginaGrupoConfiguracoes = carregarPagina(() => import('./pages/PaginaGrupoConfiguracoes'), 'PaginaGrupoConfiguracoes');
+const PaginaRanking = carregarPagina(() => import('./pages/PaginaRanking'), 'PaginaRanking');
+const RankingLiga = carregarPagina(() => import('./pages/PaginaRankingLiga'), 'RankingLiga');
+const PaginaCategorias = carregarPagina(() => import('./pages/PaginaCategorias'), 'PaginaCategorias');
+const PaginaInscricoesCampeonato = carregarPagina(() => import('./pages/PaginaInscricoesCampeonato'), 'PaginaInscricoesCampeonato');
+const PaginaRegistrarPartidas = carregarPagina(() => import('./pages/PaginaRegistrarPartidas1'), 'PaginaRegistrarPartidas');
+const PaginaConsultaPartidas = carregarPagina(() => import('./pages/PaginaConsultaPartidas'), 'PaginaConsultaPartidas');
+const PaginaPartidasCampeonato = carregarPagina(() => import('./pages/PaginaPartidasCampeonato'), 'PaginaPartidasCampeonato');
+const PaginaPartidaDetalhe = carregarPagina(() => import('./pages/PaginaPartidaDetalhe'), 'PaginaPartidaDetalhe');
+const PaginaEditarPartida = carregarPagina(() => import('./pages/PaginaEditarPartida'), 'PaginaEditarPartida');
+const PaginaMinhasPartidas = carregarPagina(() => import('./pages/PaginaMinhasPartidas'), 'PaginaMinhasPartidas');
+const PaginaMeuPerfil = carregarPagina(() => import('./pages/PaginaMeuPerfil'), 'PaginaMeuPerfil');
+const PaginaMais = carregarPagina(() => import('./pages/PaginaMais'), 'PaginaMais');
+const PaginaPontosQN = carregarPagina(() => import('./pages/PaginaPontosQN'), 'PaginaPontosQN');
+const PaginaScouts = carregarPagina(() => import('./pages/PaginaScouts'), 'PaginaScouts');
+const PaginaArenas = carregarPagina(() => import('./pages/PaginaArenas'), 'PaginaArenas');
+const PaginaArenaPublica = carregarPagina(() => import('./pages/PaginaArenaPublica'), 'PaginaArenaPublica');
+const MinhasArenasPage = carregarPagina(() => import('./pages/arena/MinhasArenasPage'), 'MinhasArenasPage');
+const ArenaAdminDashboardPage = carregarPagina(() => import('./pages/arena/ArenaAdminDashboardPage'), 'ArenaAdminDashboardPage');
+const PaginaPerfilUsuario = carregarPagina(() => import('./pages/PaginaPerfilUsuario'), 'PaginaPerfilUsuario');
+const PaginaPrivacidade = carregarPagina(() => import('./pages/PaginaPrivacidade'), 'PaginaPrivacidade');
+const PaginaTermosUso = carregarPagina(() => import('./pages/PaginaTermosUso'), 'PaginaTermosUso');
+const PaginaPendenciasAtletas = carregarPagina(() => import('./pages/PaginaPendenciasAtletas'), 'PaginaPendenciasAtletas');
+const PaginaUsuarios = carregarPagina(() => import('./pages/PaginaUsuarios'), 'PaginaUsuarios');
+const PaginaConvitesCadastro = carregarPagina(() => import('./pages/PaginaConvitesCadastro'), 'PaginaConvitesCadastro');
+const PaginaSolicitacoesAcessoAdmin = carregarPagina(() => import('./pages/PaginaSolicitacoesAcessoAdmin'), 'PaginaSolicitacoesAcessoAdmin');
+const PaginaCadastroConvite = carregarPagina(() => import('./pages/PaginaCadastroConvite'), 'PaginaCadastroConvite');
+const RedirecionamentoPartidas = carregarPagina(() => import('./pages/RedirecionamentoPartidas'), 'RedirecionamentoPartidas');
+const FeedPartidasPage = carregarPagina(() => import('./pages/FeedPartidasPage'), 'FeedPartidasPage');
 
 export default function App() {
   return (
     <>
       <AtualizacaoAplicativoModal />
+      <Suspense fallback={<CarregandoRota />}>
       <Routes>
         <Route path="/cadastro/convite" element={<PaginaCadastroConvite />} />
         <Route path="/cadastro/convite/:identificadorPublico" element={<PaginaCadastroConvite />} />
@@ -500,6 +511,7 @@ export default function App() {
 
       <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </Suspense>
     </>
   );
 }

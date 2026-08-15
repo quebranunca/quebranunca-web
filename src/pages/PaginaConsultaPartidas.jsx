@@ -3,6 +3,7 @@ import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { FaChevronRight, FaEdit, FaTrash } from 'react-icons/fa';
 import { gruposServico } from '../services/gruposServico';
 import { partidasServico } from '../services/partidasServico';
+import { useConfirmacao } from '../contexts/ConfirmacaoContext';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { useNotification } from '../contexts/NotificationContext';
 import { extrairMensagemErro } from '../utils/erros';
@@ -19,6 +20,7 @@ function obterGrupoPartida(partida) {
 
 export function PaginaConsultaPartidas() {
   const { usuario } = useAutenticacao();
+  const { confirmar } = useConfirmacao();
   const { showNotification } = useNotification();
   const location = useLocation();
   const administradorLogado = ehAdministrador(usuario);
@@ -101,7 +103,13 @@ export function PaginaConsultaPartidas() {
       return;
     }
 
-    if (!window.confirm('Tem certeza que deseja apagar esta partida? Essa ação pode impactar rankings e estatísticas.')) {
+    const confirmado = await confirmar({
+      titulo: 'Apagar partida?',
+      mensagem: 'Tem certeza que deseja apagar esta partida? Essa ação pode impactar rankings e estatísticas.',
+      textoConfirmar: 'Apagar partida'
+    });
+
+    if (!confirmado) {
       return;
     }
 

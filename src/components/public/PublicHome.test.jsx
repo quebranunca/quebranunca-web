@@ -66,7 +66,7 @@ describe('PublicHome', () => {
     expect(screen.getByRole('heading', { name: /Do jogo ao ranking em três passos/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /Tudo que o grupo precisa para evoluir/i })).toBeInTheDocument();
     expect(screen.queryByText(/Campeonatos em andamento/i)).not.toBeInTheDocument();
-    expect(container.querySelector('.public-hero')).toHaveStyle('--public-hero-image: url(/src/assets/home-futevolei-hero.jpg)');
+    expect(container.querySelector('.public-hero')).toHaveStyle('--public-hero-image: url(/src/assets/home-futevolei-hero.webp)');
   });
 
   it('mostra números, últimas partidas e apenas o Top 5 do ranking geral', () => {

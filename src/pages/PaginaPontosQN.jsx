@@ -17,8 +17,8 @@ import { extrairMensagemErro } from '../utils/erros';
 import { AppHero } from '../components/AppHero';
 import { MedalhaNivel } from '../components/gamificacao/MedalhaNivel';
 import { criarNavegacaoRegistroPartida } from '../utils/partidaRotas';
-import beneficioBoneQN from '../assets/pontos-qn/beneficio-bone-qn.png';
-import beneficioChaveiroQN from '../assets/pontos-qn/beneficio-chaveiro-qn.png';
+import beneficioBoneQN from '../assets/pontos-qn/beneficio-bone-qn.webp';
+import beneficioChaveiroQN from '../assets/pontos-qn/beneficio-chaveiro-qn.webp';
 
 const ABAS = [
   { id: 'resumo', rotulo: 'Resumo' },
@@ -36,7 +36,9 @@ const filtrosBeneficios = [
 
 const imagensBeneficiosPontosQN = {
   'pontos-qn/beneficio-bone-qn.png': beneficioBoneQN,
-  'pontos-qn/beneficio-chaveiro-qn.png': beneficioChaveiroQN
+  'pontos-qn/beneficio-bone-qn.webp': beneficioBoneQN,
+  'pontos-qn/beneficio-chaveiro-qn.png': beneficioChaveiroQN,
+  'pontos-qn/beneficio-chaveiro-qn.webp': beneficioChaveiroQN
 };
 
 const filtrosHistorico = [
@@ -633,6 +635,7 @@ export function PaginaPontosQN() {
   const [filtroBeneficio, setFiltroBeneficio] = useState('todos');
   const [filtroHistorico, setFiltroHistorico] = useState('todos');
   const [resgatandoId, setResgatandoId] = useState('');
+  const [beneficioResgatePendente, setBeneficioResgatePendente] = useState(null);
 
   async function carregar() {
     setCarregando(true);
@@ -710,9 +713,34 @@ export function PaginaPontosQN() {
     () => filtrarHistorico(extrato, filtroHistorico),
     [extrato, filtroHistorico]
   );
+
+  function abrirConfirmacaoResgate(beneficio) {
+    if (!beneficio?.id) {
+      return;
+    }
+
+    setBeneficioResgatePendente(beneficio);
+  }
+
+  function cancelarConfirmacaoResgate() {
+    if (!resgatandoId) {
+      setBeneficioResgatePendente(null);
+    }
+  }
+
+  async function confirmarResgate() {
+    const beneficio = beneficioResgatePendente;
+    if (!beneficio?.id) {
+      return;
+    }
+
+    await solicitarResgate(beneficio);
+    setBeneficioResgatePendente(null);
+  }
+
   async function solicitarResgate(beneficio) {
     const tituloBeneficio = obterTituloBeneficioSeguro(beneficio);
-    if (!beneficio?.id || !window.confirm(`Solicitar resgate de ${tituloBeneficio} por ${beneficio.pontosNecessarios} Pontos QN?`)) {
+    if (!beneficio?.id) {
       return;
     }
 
@@ -913,7 +941,7 @@ export function PaginaPontosQN() {
                   beneficio={beneficio}
                   resgateSolicitado={obterStatusResgate(resgates, beneficio.id)}
                   resgatando={resgatandoId === beneficio.id}
-                  onResgatar={solicitarResgate}
+                  onResgatar={abrirConfirmacaoResgate}
                 />
               ))}
             </div>
@@ -946,6 +974,62 @@ export function PaginaPontosQN() {
         </section>
       )}
 
+      {beneficioResgatePendente && (
+        <ConfirmacaoResgateModal
+          beneficio={beneficioResgatePendente}
+          processando={resgatandoId === beneficioResgatePendente.id}
+          onCancelar={cancelarConfirmacaoResgate}
+          onConfirmar={confirmarResgate}
+        />
+      )}
     </main>
+  );
+}
+
+function ConfirmacaoResgateModal({ beneficio, processando, onCancelar, onConfirmar }) {
+  const tituloBeneficio = obterTituloBeneficioSeguro(beneficio);
+
+  useEffect(() => {
+    function aoPressionarTecla(evento) {
+      if (evento.key === 'Escape') {
+        onCancelar();
+      }
+    }
+
+    window.addEventListener('keydown', aoPressionarTecla);
+
+    return () => window.removeEventListener('keydown', aoPressionarTecla);
+  }, [onCancelar]);
+
+  return (
+    <div className="pontosqn-resgate-sobreposicao" role="presentation" onClick={onCancelar}>
+      <section
+        className="pontosqn-resgate-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="pontosqn-resgate-titulo"
+        onClick={(evento) => evento.stopPropagation()}
+      >
+        <div className="pontosqn-resgate-icone">
+          <FaGift aria-hidden="true" />
+        </div>
+        <div className="pontosqn-resgate-corpo">
+          <span>Confirmar resgate</span>
+          <h2 id="pontosqn-resgate-titulo">{tituloBeneficio}</h2>
+          <p>
+            Você vai solicitar este benefício por {formatarPontos(beneficio.pontosNecessarios)} Pontos QN.
+            A equipe QuebraNunca ainda precisa aprovar o resgate.
+          </p>
+        </div>
+        <div className="pontosqn-resgate-acoes">
+          <button type="button" className="botao-secundario" onClick={onCancelar} disabled={processando}>
+            Agora não
+          </button>
+          <button type="button" className="botao-primario" onClick={onConfirmar} disabled={processando}>
+            {processando ? 'Solicitando...' : 'Solicitar resgate'}
+          </button>
+        </div>
+      </section>
+    </div>
   );
 }

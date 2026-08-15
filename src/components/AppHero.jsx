@@ -4,7 +4,7 @@ import { FaChevronLeft, FaCog, FaSignOutAlt, FaUser } from 'react-icons/fa';
 import { AutenticacaoContexto } from '../contexts/AutenticacaoContexto';
 import { AvatarUsuario, obterFotoPerfilAvatar } from './AvatarUsuario';
 import { NotificacoesBotao } from './NotificacoesBotao';
-import homeHeroFutevolei from '../assets/images/home/home-hero-futevolei.jpg';
+import homeHeroFutevolei from '../assets/images/home/home-hero-futevolei.webp';
 import './AppHero.css';
 
 function obterTextoLimpo(...valores) {

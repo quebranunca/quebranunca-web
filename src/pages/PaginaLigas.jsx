@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { ConteudoBotao } from '../components/ConteudoBotao';
+import { useConfirmacao } from '../contexts/ConfirmacaoContext';
 import { ligasServico } from '../services/ligasServico';
 import { extrairMensagemErro } from '../utils/erros';
 import { formatarDataHora } from '../utils/formatacao';
@@ -11,6 +12,7 @@ const estadoInicial = {
 };
 
 export function PaginaLigas() {
+  const { confirmar } = useConfirmacao();
   const [ligas, setLigas] = useState([]);
   const [formulario, setFormulario] = useState(estadoInicial);
   const [formularioAberto, setFormularioAberto] = useState(false);
@@ -93,8 +95,13 @@ export function PaginaLigas() {
   }
 
   async function removerLiga(id) {
-    const confirmar = window.confirm('Deseja realmente remover esta liga?');
-    if (!confirmar) {
+    const confirmado = await confirmar({
+      titulo: 'Remover liga?',
+      mensagem: 'Deseja realmente remover esta liga?',
+      textoConfirmar: 'Remover'
+    });
+
+    if (!confirmado) {
       return;
     }
 

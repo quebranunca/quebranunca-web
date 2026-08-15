@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
-  getBadgePorNivel,
-  getMedalhaPorNivel,
+  getBadgeLoaderPorNivel,
+  getMedalhaLoaderPorNivel,
   obterNomeNivelGamificacao
 } from '../../utils/gamificacaoMedalhas';
 import './MedalhaNivel.css';
@@ -18,9 +18,10 @@ export function MedalhaNivel({
   const varianteNormalizada = VARIANTES_SUPORTADAS.has(variant) ? variant : 'medalha';
   const tamanhoNormalizado = TAMANHOS_SUPORTADOS.has(size) ? size : 'md';
   const [falhaImagem, setFalhaImagem] = useState(false);
+  const [src, setSrc] = useState('');
   const nomeNivel = obterNomeNivelGamificacao(nivel);
-  const src = useMemo(
-    () => varianteNormalizada === 'badge' ? getBadgePorNivel(nivel) : getMedalhaPorNivel(nivel),
+  const carregarAsset = useMemo(
+    () => varianteNormalizada === 'badge' ? getBadgeLoaderPorNivel(nivel) : getMedalhaLoaderPorNivel(nivel),
     [nivel, varianteNormalizada]
   );
   const textoAlternativo = varianteNormalizada === 'badge'
@@ -34,8 +35,31 @@ export function MedalhaNivel({
   ].filter(Boolean).join(' ');
 
   useEffect(() => {
+    let ativo = true;
+
     setFalhaImagem(false);
-  }, [src]);
+    setSrc('');
+
+    if (!carregarAsset) {
+      return undefined;
+    }
+
+    carregarAsset()
+      .then((modulo) => {
+        if (ativo) {
+          setSrc(modulo?.default || '');
+        }
+      })
+      .catch(() => {
+        if (ativo) {
+          setFalhaImagem(true);
+        }
+      });
+
+    return () => {
+      ativo = false;
+    };
+  }, [carregarAsset]);
 
   return (
     <span className={classes}>

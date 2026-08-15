@@ -14,7 +14,7 @@ import {
 import { AtletaPerfilLink } from '../AtletaPerfilLink';
 import { AvatarUsuario, obterFotoPerfilAvatar } from '../AvatarUsuario';
 import { obterNomeExibicaoAtletaPerfil } from '../../utils/atletaUtils';
-import heroFutevolei from '../../assets/home-futevolei-hero.jpg';
+import heroFutevolei from '../../assets/home-futevolei-hero.webp';
 
 const estadoCriarConta = {
   mensagem: 'Use seu e-mail para entrar ou criar sua conta grátis.',

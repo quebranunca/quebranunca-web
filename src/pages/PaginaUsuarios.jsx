@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ConteudoBotao } from '../components/ConteudoBotao';
+import { useConfirmacao } from '../contexts/ConfirmacaoContext';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { atletasServico } from '../services/atletasServico';
 import { usuariosServico } from '../services/usuariosServico';
@@ -21,6 +22,7 @@ function criarEdicao(usuario) {
 
 export function PaginaUsuarios() {
   const { usuario: usuarioLogado } = useAutenticacao();
+  const { confirmar } = useConfirmacao();
   const [usuarios, setUsuarios] = useState([]);
   const [edicoes, setEdicoes] = useState({});
   const [filtros, setFiltros] = useState({ nome: '', email: '' });
@@ -104,11 +106,13 @@ export function PaginaUsuarios() {
       return;
     }
 
-    const confirmar = window.confirm(
-      `Deseja excluir o usuário ${usuarioSelecionado.nome}? A conta será desativada e os dados pessoais serão anonimizados. Partidas, rankings e históricos compartilhados serão preservados.`
-    );
+    const confirmado = await confirmar({
+      titulo: 'Excluir usuário?',
+      mensagem: `Deseja excluir o usuário ${usuarioSelecionado.nome}? A conta será desativada e os dados pessoais serão anonimizados. Partidas, rankings e históricos compartilhados serão preservados.`,
+      textoConfirmar: 'Excluir usuário'
+    });
 
-    if (!confirmar) {
+    if (!confirmado) {
       return;
     }
 

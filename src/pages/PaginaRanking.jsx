@@ -218,6 +218,17 @@ function normalizarPaginaRanking(resposta) {
   };
 }
 
+function obterMensagemEstadoVazio(visaoRanking) {
+  switch (visaoRanking) {
+    case 'duplas':
+      return 'Nenhuma dupla encontrada para o filtro selecionado.';
+    case 'grupos':
+      return 'Nenhum grupo encontrado para o filtro selecionado.';
+    default:
+      return 'Nenhuma pontuação encontrada para o filtro selecionado.';
+  }
+}
+
 function formatarPercentual(valor) {
   const numero = Number(valor || 0);
   return `${numero.toLocaleString('pt-BR', {
@@ -658,7 +669,7 @@ export function PaginaRanking() {
         }
         autenticado={autenticado}
         showAccountActions={autenticado}
-        showBackButton
+        showBackButton={autenticado}
         variant="page"
       />
 
@@ -825,12 +836,18 @@ export function PaginaRanking() {
         )}
       </section>
 
-      {erro && <p className="texto-erro">{erro}</p>}
-
       {carregandoBase || carregandoRanking ? (
         <div className="ranking-estado">Carregando ranking...</div>
+      ) : erro ? (
+        <div className="ranking-estado ranking-estado-erro" role="alert">
+          <strong>Não foi possível carregar agora.</strong>
+          <span>{erro}</span>
+          <button type="button" className="botao-secundario botao-compacto" onClick={carregarBase}>
+            Tentar novamente
+          </button>
+        </div>
       ) : visaoRanking === 'atletas' && rankingComAtletas.length === 0 ? (
-        <div className="ranking-estado">Nenhuma pontuação encontrada para o filtro selecionado.</div>
+        <div className="ranking-estado">{obterMensagemEstadoVazio(visaoRanking)}</div>
       ) : visaoRanking === 'atletas' ? (
         <div className="ranking-secoes">
           {rankingComAtletas.map((grupo) => (
@@ -843,7 +860,7 @@ export function PaginaRanking() {
           ))}
         </div>
       ) : rankingEntidadeFiltrado.length === 0 ? (
-        <div className="ranking-estado">Nenhuma pontuação encontrada para o filtro selecionado.</div>
+        <div className="ranking-estado">{obterMensagemEstadoVazio(visaoRanking)}</div>
       ) : (
         <div className="ranking-secoes">
           {visaoRanking === 'duplas' ? (

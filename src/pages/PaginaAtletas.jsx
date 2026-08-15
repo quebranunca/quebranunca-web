@@ -4,6 +4,7 @@ import { ConteudoBotao } from '../components/ConteudoBotao';
 import { AtletaPerfilLink } from '../components/AtletaPerfilLink';
 import { AvatarUsuario, obterFotoPerfilAvatar } from '../components/AvatarUsuario';
 import { EmailDomainSuggestions } from '../components/formularios/EmailDomainSuggestions';
+import { useConfirmacao } from '../contexts/ConfirmacaoContext';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { atletasServico } from '../services/atletasServico';
 import { ESTADOS_ACESSO } from '../utils/acesso';
@@ -39,6 +40,7 @@ const lados = [
 
 export function PaginaAtletas() {
   const { usuario, estadoAcesso } = useAutenticacao();
+  const { confirmar } = useConfirmacao();
   const usuarioAtivo = estadoAcesso === ESTADOS_ACESSO.ativo;
   const usuarioAdministrador = ehAdministrador(usuario);
   const usuarioOrganizador = ehOrganizador(usuario);
@@ -200,8 +202,13 @@ export function PaginaAtletas() {
   }
 
   async function removerAtleta(id) {
-    const confirmar = window.confirm('Deseja realmente remover este atleta?');
-    if (!confirmar) {
+    const confirmado = await confirmar({
+      titulo: 'Remover atleta?',
+      mensagem: 'Deseja realmente remover este atleta?',
+      textoConfirmar: 'Remover'
+    });
+
+    if (!confirmado) {
       return;
     }
 

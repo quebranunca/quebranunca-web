@@ -23,11 +23,11 @@ describe('gamificacaoMedalhas', () => {
     expect(obterNomeNivelGamificacao(null)).toBe('Bronze');
   });
 
-  it('retorna assets de medalha e badge por nivel', () => {
-    expect(getMedalhaPorNivel('Ouro')).toBeTruthy();
-    expect(getBadgePorNivel('Diamante')).toBeTruthy();
+  it('retorna assets de medalha e badge por nivel', async () => {
+    expect(await getMedalhaPorNivel('Ouro')).toBeTruthy();
+    expect(await getBadgePorNivel('Diamante')).toBeTruthy();
     expect(obterNomeNivelGamificacao('Lenda QN')).toBe('Lenda QN');
-    expect(getMedalhaPorNivel('Lenda QN')).toBeNull();
-    expect(getMedalhaPorNivel('nivel desconhecido')).toBe(getMedalhaPorNivel('Bronze'));
+    expect(await getMedalhaPorNivel('Lenda QN')).toBeNull();
+    expect(await getMedalhaPorNivel('nivel desconhecido')).toBe(await getMedalhaPorNivel('Bronze'));
   });
 });

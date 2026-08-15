@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { useConfirmacao } from '../contexts/ConfirmacaoContext';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { atletasServico } from '../services/atletasServico';
 import { categoriasServico } from '../services/categoriasServico';
@@ -152,6 +153,7 @@ function montarOpcoesOrganizador(inscricoes) {
 
 export function PaginaInscricoesCampeonato() {
   const { usuario, recarregarUsuario } = useAutenticacao();
+  const { confirmar } = useConfirmacao();
   const usuarioAutenticado = Boolean(usuario?.id);
   const atletaLogado = Number(usuario?.perfil) === PERFIS_USUARIO.atleta;
   const organizadorLogado = Number(usuario?.perfil) === PERFIS_USUARIO.organizador;
@@ -691,7 +693,13 @@ export function PaginaInscricoesCampeonato() {
   }
 
   async function removerInscricao(inscricao) {
-    if (!window.confirm('Deseja excluir esta inscrição?')) {
+    const confirmado = await confirmar({
+      titulo: 'Excluir inscrição?',
+      mensagem: 'Deseja excluir esta inscrição?',
+      textoConfirmar: 'Excluir'
+    });
+
+    if (!confirmado) {
       return;
     }
 
@@ -739,7 +747,13 @@ export function PaginaInscricoesCampeonato() {
   }
 
   async function removerDuplaInscrita(inscricao) {
-    if (!window.confirm('Deseja excluir a dupla desta inscrição? A inscrição atual será removida antes da exclusão da dupla.')) {
+    const confirmado = await confirmar({
+      titulo: 'Excluir dupla inscrita?',
+      mensagem: 'Deseja excluir a dupla desta inscrição? A inscrição atual será removida antes da exclusão da dupla.',
+      textoConfirmar: 'Excluir dupla'
+    });
+
+    if (!confirmado) {
       return;
     }
 

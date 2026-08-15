@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ConteudoBotao } from '../components/ConteudoBotao';
+import { useConfirmacao } from '../contexts/ConfirmacaoContext';
 import { categoriasServico } from '../services/categoriasServico';
 import { competicoesServico } from '../services/competicoesServico';
 import { formatosCampeonatoServico } from '../services/formatosCampeonatoServico';
@@ -36,6 +37,7 @@ const opcoesNivel = [
 
 export function PaginaCategorias() {
   const exibirCampoFormatoCompeticao = false;
+  const { confirmar } = useConfirmacao();
   const [competicoes, setCompeticoes] = useState([]);
   const [categorias, setCategorias] = useState([]);
   const [formatosCampeonato, setFormatosCampeonato] = useState([]);
@@ -253,7 +255,13 @@ export function PaginaCategorias() {
   }
 
   async function removerCategoria(id) {
-    if (!window.confirm('Deseja remover esta categoria?')) {
+    const confirmado = await confirmar({
+      titulo: 'Remover categoria?',
+      mensagem: 'Deseja remover esta categoria?',
+      textoConfirmar: 'Remover'
+    });
+
+    if (!confirmado) {
       return;
     }
 
@@ -271,7 +279,14 @@ export function PaginaCategorias() {
       ? 'Deseja encerrar as inscrições desta categoria?'
       : 'Deseja reabrir as inscrições desta categoria?';
 
-    if (!window.confirm(mensagemConfirmacao)) {
+    const confirmado = await confirmar({
+      titulo: proximoEncerramento ? 'Encerrar inscrições?' : 'Reabrir inscrições?',
+      mensagem: mensagemConfirmacao,
+      textoConfirmar: proximoEncerramento ? 'Encerrar' : 'Reabrir',
+      variante: 'primario'
+    });
+
+    if (!confirmado) {
       return;
     }
 

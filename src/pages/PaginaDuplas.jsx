@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ConteudoBotao } from '../components/ConteudoBotao';
+import { useConfirmacao } from '../contexts/ConfirmacaoContext';
 import { useAutenticacao } from '../hooks/useAutenticacao';
 import { atletasServico } from '../services/atletasServico';
 import { duplasServico } from '../services/duplasServico';
@@ -17,6 +18,7 @@ const estadoInicial = {
 
 export function PaginaDuplas() {
   const { usuario } = useAutenticacao();
+  const { confirmar } = useConfirmacao();
   const usuarioOrganizador = ehOrganizador(usuario);
   const [params] = useSearchParams();
   const [duplas, setDuplas] = useState([]);
@@ -124,7 +126,13 @@ export function PaginaDuplas() {
   }
 
   async function removerDupla(id) {
-    if (!window.confirm('Deseja remover esta dupla?')) {
+    const confirmado = await confirmar({
+      titulo: 'Remover dupla?',
+      mensagem: 'Deseja remover esta dupla?',
+      textoConfirmar: 'Remover'
+    });
+
+    if (!confirmado) {
       return;
     }
 
