@@ -320,8 +320,8 @@ describe('RegistrarPartidaNovoModal - etapa Grupo', () => {
     expect(screen.getByRole('button', { name: /Beach Friends/i })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Partidas avulsas/i })).not.toBeInTheDocument();
 
-    expect(screen.getByText('Sem grupo, sem problema.')).toBeInTheDocument();
-    expect(screen.getByText(/poderá ser vinculada a um grupo futuramente/i)).toBeInTheDocument();
+    expect(screen.queryByText('Sem grupo, sem problema.')).not.toBeInTheDocument();
+    expect(screen.queryByText(/poderá ser vinculada a um grupo futuramente/i)).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Continuar' })).toBeEnabled();
 
     fireEvent.click(screen.getByRole('button', { name: /Ver todos/i }));

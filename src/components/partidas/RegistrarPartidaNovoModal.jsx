@@ -9,7 +9,6 @@ import {
   FaEllipsisH,
   FaFutbol,
   FaLayerGroup,
-  FaShieldAlt,
   FaTimes,
   FaTrophy,
   FaUserFriends
@@ -842,15 +841,6 @@ function EtapaGrupo({
           })}
         </div>
 
-        <div className="registrar-partida-novo-info-card">
-          <span className="registrar-partida-novo-info-icone" aria-hidden="true">
-            <FaShieldAlt />
-          </span>
-          <span>
-            <strong>Sem grupo, sem problema.</strong>
-            <small>A partida será registrada normalmente e poderá ser vinculada a um grupo futuramente, se necessário.</small>
-          </span>
-        </div>
       </div>
     </section>
   );

@@ -696,50 +696,6 @@ body.registrar-partida-modal-aberto {
   background: rgba(255, 255, 255, 0.032);
 }
 
-.registrar-partida-novo-info-card {
-  display: grid;
-  grid-template-columns: 2.25rem minmax(0, 1fr);
-  align-items: start;
-  gap: 0.65rem;
-  padding: 0.72rem;
-  border: 1px solid rgba(255, 255, 255, 0.075);
-  border-radius: 0.9rem;
-  background: rgba(255, 255, 255, 0.035);
-  color: var(--color-text-secondary);
-}
-
-.registrar-partida-novo-info-icone {
-  width: 2.25rem;
-  height: 2.25rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid rgba(248, 195, 0, 0.16);
-  border-radius: 0.75rem;
-  background: rgba(248, 195, 0, 0.06);
-  color: rgba(248, 195, 0, 0.72);
-}
-
-.registrar-partida-novo-info-card > span:last-child {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.18rem;
-}
-
-.registrar-partida-novo-info-card strong {
-  color: var(--color-text-primary);
-  font-size: 0.84rem;
-  font-weight: 850;
-}
-
-.registrar-partida-novo-info-card small {
-  color: var(--color-text-secondary);
-  font-size: 0.75rem;
-  font-weight: 700;
-  line-height: 1.35;
-}
-
 .registrar-partida-novo-intro {
   display: flex;
   flex-direction: column;
@@ -2796,18 +2752,6 @@ body.registrar-partida-modal-aberto {
 
 .registrar-partida-novo-corpo-simples .registrar-partida-novo-grupo-lista {
   gap: 0.42rem;
-}
-
-.registrar-partida-novo-corpo-simples .registrar-partida-novo-info-card {
-  grid-template-columns: 2rem minmax(0, 1fr);
-  gap: 0.55rem;
-  padding: 0.58rem;
-  border-radius: 0.75rem;
-}
-
-.registrar-partida-novo-corpo-simples .registrar-partida-novo-info-icone {
-  width: 2rem;
-  height: 2rem;
 }
 
 .registrar-partida-novo-duplas-unicas {
