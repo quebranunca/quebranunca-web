@@ -3,6 +3,7 @@
     "rewrite": "/index.html",
     "exclude": [
       "/assets/*",
+      "/og/*",
       "/*.css",
       "/*.js",
       "/*.json",
