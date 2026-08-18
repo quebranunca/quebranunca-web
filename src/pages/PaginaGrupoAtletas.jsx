@@ -400,7 +400,7 @@ export function PaginaGrupoAtletas() {
   }
 
   return (
-    <section className="pagina">
+    <section className="pagina grupo-atletas-pagina">
       <div className="cabecalho-pagina grupo-atletas-cabecalho">
         <button type="button" className="botao-voltar" onClick={() => navegar(`/grupos/${idGrupo}`)}>
           <span className="botao-voltar-icone"><FaChevronLeft aria-hidden="true" /></span>
@@ -603,49 +603,58 @@ export function PaginaGrupoAtletas() {
             <p className="texto-sucesso">Seu atleta já está vinculado a este grupo.</p>
           )}
 
-          <div className="lista-cartoes">
-            {grupoAtletas.map((item) => {
-              const atletaEhUsuarioAtual = Boolean(usuario?.atletaId && item.atletaId === usuario.atletaId);
+          <section className="grupo-atletas-lista-secao" aria-labelledby="grupo-atletas-lista-titulo">
+            <div className="grupo-atletas-lista-topo">
+              <div>
+                <h3 id="grupo-atletas-lista-titulo">Lista de membros</h3>
+                <p>{grupoAtletas.length} {grupoAtletas.length === 1 ? 'membro cadastrado' : 'membros cadastrados'}</p>
+              </div>
+            </div>
 
-              return (
-                <article key={item.id} className="cartao-lista">
-                  <div>
-                    <div className="atleta-lista-identidade">
-                      <AvatarUsuario
-                        nome={obterNomeExibicaoAtleta(item)}
-                        fotoPerfilUrl={obterFotoPerfilAvatar(item)}
-                        tamanho="sm"
-                        className="atleta-lista-avatar"
-                      />
-                      <h3>
-                        <AtletaPerfilLink atleta={item} className="atleta-nome-link">
-                          {obterNomeExibicaoAtleta(item)}
-                        </AtletaPerfilLink>
-                      </h3>
+            <div className="lista-cartoes grupo-atletas-lista">
+              {grupoAtletas.map((item) => {
+                const atletaEhUsuarioAtual = Boolean(usuario?.atletaId && item.atletaId === usuario.atletaId);
+
+                return (
+                  <article key={item.id} className="cartao-lista">
+                    <div>
+                      <div className="atleta-lista-identidade">
+                        <AvatarUsuario
+                          nome={obterNomeExibicaoAtleta(item)}
+                          fotoPerfilUrl={obterFotoPerfilAvatar(item)}
+                          tamanho="sm"
+                          className="atleta-lista-avatar"
+                        />
+                        <h3>
+                          <AtletaPerfilLink atleta={item} className="atleta-nome-link">
+                            {obterNomeExibicaoAtleta(item)}
+                          </AtletaPerfilLink>
+                        </h3>
+                      </div>
+                      <p>Apelido: {item.apelidoAtleta || '-'}</p>
+                      {gerenciavel && <p>Email: {item.emailAtleta || 'Pendente'}</p>}
+                      {gerenciavel && <p>Cadastro no sistema: {item.cadastroPendente ? 'Pendente' : 'Completo'}</p>}
+                      <p>Usuário vinculado: {item.vinculadoAUsuario ? 'Sim' : 'Não'}</p>
                     </div>
-                    <p>Apelido: {item.apelidoAtleta || '-'}</p>
-                    {gerenciavel && <p>Email: {item.emailAtleta || 'Pendente'}</p>}
-                    {gerenciavel && <p>Cadastro no sistema: {item.cadastroPendente ? 'Pendente' : 'Completo'}</p>}
-                    <p>Usuário vinculado: {item.vinculadoAUsuario ? 'Sim' : 'Não'}</p>
-                  </div>
 
-                  {gerenciavel && (
-                    <div className="acoes-item">
-                      {atletaEhUsuarioAtual ? (
-                        <span className="texto-aviso">Você não pode remover seu próprio atleta do grupo.</span>
-                      ) : (
-                        <button type="button" className="botao-perigo" onClick={() => confirmarRemocaoGrupoAtleta(item.id)}>
-                          Remover
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </article>
-              );
-            })}
+                    {gerenciavel && (
+                      <div className="acoes-item">
+                        {atletaEhUsuarioAtual ? (
+                          <span className="texto-aviso">Você não pode remover seu próprio atleta do grupo.</span>
+                        ) : (
+                          <button type="button" className="botao-perigo" onClick={() => confirmarRemocaoGrupoAtleta(item.id)}>
+                            Remover
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </article>
+                );
+              })}
 
-            {grupoAtletas.length === 0 && <p>Nenhum atleta cadastrado neste grupo.</p>}
-          </div>
+              {grupoAtletas.length === 0 && <p>Nenhum atleta cadastrado neste grupo.</p>}
+            </div>
+          </section>
         </>
       )}
     </section>
