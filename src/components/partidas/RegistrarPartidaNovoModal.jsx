@@ -1377,7 +1377,7 @@ function TelaSucesso({ sucesso, grupo, onFechar }) {
 
       <h3>🏆 Partida registrada</h3>
 
-      <div className="registrar-partida-novo-sucesso-card">
+      <div className="registrar-partida-novo-sucesso-card registrar-partida-novo-sucesso-card-final">
         <div className="registrar-partida-novo-sucesso-dupla vencedora">
           <span>Venceram</span>
           {vencedora.map((nome, indice) => (

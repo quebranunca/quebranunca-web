@@ -1617,6 +1617,18 @@ body.registrar-partida-modal-aberto {
   text-align: center;
 }
 
+.registrar-partida-novo-revisao .registrar-partida-novo-intro {
+  gap: 0.24rem;
+}
+
+.registrar-partida-novo-revisao .registrar-partida-novo-intro h3 {
+  font-size: clamp(1.42rem, 5.8vw, 2rem);
+}
+
+.registrar-partida-novo-revisao .registrar-partida-novo-intro p {
+  font-size: 0.9rem;
+}
+
 .registrar-partida-novo-revisao-topo {
   display: inline-flex;
   align-items: center;
@@ -1769,8 +1781,8 @@ body.registrar-partida-modal-aberto {
 }
 
 .registrar-partida-novo-revisao-meta-lista {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.55rem;
 }
 
@@ -1819,14 +1831,14 @@ body.registrar-partida-modal-aberto {
   color: var(--color-text-primary);
   font-size: 0.94rem;
   font-weight: 900;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.18;
+  overflow-wrap: anywhere;
 }
 
 .registrar-partida-novo-revisao {
   min-height: 0;
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   justify-content: center;
 }
 
@@ -1834,12 +1846,12 @@ body.registrar-partida-modal-aberto {
   width: min(560px, 100%);
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.84rem;
   padding: 1rem;
   border: 1px solid rgba(255, 255, 255, 0.11);
-  border-radius: 1.15rem 1.15rem 0 0;
+  border-radius: 1.15rem;
   background: rgba(16, 18, 22, 0.98);
-  box-shadow: 0 -18px 50px rgba(0, 0, 0, 0.34);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.34);
 }
 
 .registrar-partida-novo-acoes {
@@ -2067,22 +2079,22 @@ body.registrar-partida-modal-aberto {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  gap: 0.8rem;
-  padding: 0.85rem 1rem calc(env(safe-area-inset-bottom, 0px) + 1rem);
+  gap: 0.72rem;
+  padding: 0.9rem 1rem calc(env(safe-area-inset-bottom, 0px) + 1rem);
   text-align: center;
   -webkit-overflow-scrolling: touch;
 }
 
 .registrar-partida-novo-check {
-  width: 4rem;
-  height: 4rem;
+  width: 3.2rem;
+  height: 3.2rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 999px;
   background: rgba(50, 205, 120, 0.16);
   color: #58d68d;
-  font-size: 1.75rem;
+  font-size: 1.45rem;
   box-shadow: 0 0 36px rgba(50, 205, 120, 0.22);
   animation: registrarPartidaCheck 420ms cubic-bezier(0.2, 0.9, 0.2, 1.2) both;
 }
@@ -2146,6 +2158,15 @@ body.registrar-partida-modal-aberto {
   animation: registrarPartidaEntrada 220ms ease both;
 }
 
+.registrar-partida-novo-sucesso-card-final {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: stretch;
+  gap: 0.72rem;
+  padding: 0.78rem;
+  text-align: center;
+}
+
 .registrar-partida-novo-sucesso-card-topo {
   display: flex;
   align-items: center;
@@ -2188,6 +2209,11 @@ body.registrar-partida-modal-aberto {
   background: rgba(0, 0, 0, 0.12);
 }
 
+.registrar-partida-novo-sucesso-card-final .registrar-partida-novo-sucesso-dupla {
+  justify-content: center;
+  min-height: 7rem;
+}
+
 .registrar-partida-novo-sucesso-dupla.vencedora {
   border-color: rgba(88, 214, 141, 0.34);
   background: rgba(88, 214, 141, 0.09);
@@ -2227,16 +2253,21 @@ body.registrar-partida-modal-aberto {
   white-space: nowrap;
 }
 
+.registrar-partida-novo-sucesso-card-final .registrar-partida-novo-sucesso-dupla strong {
+  font-size: 0.9rem;
+}
+
 .registrar-partida-novo-sucesso-placar {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   color: var(--color-primary);
   line-height: 0.92;
 }
 
 .registrar-partida-novo-sucesso-placar strong {
-  font-size: 2.35rem;
+  font-size: 2.18rem;
   font-weight: 950;
 }
 
@@ -2244,6 +2275,10 @@ body.registrar-partida-modal-aberto {
   color: var(--color-text-secondary);
   font-size: 0.82rem;
   font-weight: 900;
+}
+
+.registrar-partida-novo-sucesso > h3 {
+  font-size: clamp(1.7rem, 6.4vw, 2.25rem);
 }
 
 .registrar-partida-novo-meta-sucesso {
@@ -2550,6 +2585,17 @@ body.registrar-partida-modal-aberto {
     padding-bottom: 0.58rem;
   }
 
+  .registrar-partida-novo-sheet {
+    gap: 0.68rem;
+    padding: 0.82rem;
+  }
+
+  .registrar-partida-novo-check {
+    width: 2.8rem;
+    height: 2.8rem;
+    font-size: 1.25rem;
+  }
+
   .registrar-partida-novo-acoes {
     padding-top: 0.55rem;
   }
@@ -2565,8 +2611,9 @@ body.registrar-partida-modal-aberto {
   }
 
   .registrar-partida-novo-revisao-card {
-    gap: 0.72rem;
-    padding: 1rem 0.82rem;
+    gap: 0.58rem;
+    padding: 0.82rem 0.72rem;
+    border-radius: 1rem;
   }
 
   .registrar-partida-novo-revisao-atleta {
@@ -2578,11 +2625,11 @@ body.registrar-partida-modal-aberto {
   }
 
   .registrar-partida-novo-revisao-atleta.vencedor strong {
-    font-size: 1.18rem;
+    font-size: 1.08rem;
   }
 
   .registrar-partida-novo-revisao-placar strong {
-    font-size: 2.22rem;
+    font-size: 2.05rem;
   }
 
   .registrar-partida-novo-revisao-versus {
@@ -2590,19 +2637,24 @@ body.registrar-partida-modal-aberto {
   }
 
   .registrar-partida-novo-revisao-versus strong {
-    width: 2.2rem;
-    height: 2.2rem;
+    width: 2rem;
+    height: 2rem;
     font-size: 0.72rem;
   }
 
+  .registrar-partida-novo-revisao-meta-lista {
+    gap: 0.45rem;
+  }
+
   .registrar-partida-novo-revisao-meta {
-    grid-template-columns: 2.35rem minmax(0, 1fr);
-    padding: 0.64rem 0.72rem;
+    grid-template-columns: 2rem minmax(0, 1fr);
+    gap: 0.52rem;
+    padding: 0.56rem 0.6rem;
   }
 
   .registrar-partida-novo-revisao-meta-icone {
-    width: 2.35rem;
-    height: 2.35rem;
+    width: 2rem;
+    height: 2rem;
   }
 
   .registrar-partida-novo-placar {
@@ -2619,6 +2671,20 @@ body.registrar-partida-modal-aberto {
 
   .registrar-partida-novo-sucesso-placar strong {
     font-size: 2rem;
+  }
+
+  .registrar-partida-novo-sucesso-card-final {
+    gap: 0.48rem;
+    padding: 0.62rem;
+  }
+
+  .registrar-partida-novo-sucesso-card-final .registrar-partida-novo-sucesso-dupla {
+    min-height: 6.35rem;
+    padding: 0.56rem;
+  }
+
+  .registrar-partida-novo-sucesso-card-final .registrar-partida-novo-sucesso-dupla strong {
+    font-size: 0.82rem;
   }
 }
 
@@ -3113,9 +3179,10 @@ body.registrar-partida-modal-aberto {
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 0 0 0.75rem;
+  padding: 0 0 max(1rem, calc(var(--registrar-partida-cta-height, 0px) * 0.18));
   overscroll-behavior: contain;
-  scroll-padding-block: 1rem;
+  scroll-padding-top: 1rem;
+  scroll-padding-bottom: max(1.25rem, calc(var(--registrar-partida-cta-height, 0px) + 0.75rem));
 }
 
 .registrar-partida-novo-pagina .registrar-partida-novo-etapa,
@@ -3151,9 +3218,14 @@ body.registrar-partida-modal-aberto {
   background:
     linear-gradient(180deg, rgba(16, 18, 21, 0.82), rgba(9, 10, 12, 0.96)),
     rgba(9, 10, 12, 0.96);
-  box-shadow: 0 -16px 34px rgba(0, 0, 0, 0.28);
+  box-shadow: 0 -10px 26px rgba(0, 0, 0, 0.24);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
+}
+
+.registrar-partida-novo-pagina .registrar-partida-novo-sucesso {
+  padding-bottom: calc(var(--altura-bottom-nav, 4.7rem) + 1.1rem + env(safe-area-inset-bottom, 0px));
+  scroll-padding-bottom: calc(var(--altura-bottom-nav, 4.7rem) + 1.1rem + env(safe-area-inset-bottom, 0px));
 }
 
 .registrar-partida-novo-pagina.keyboard-active .registrar-partida-novo-acoes {
@@ -3239,8 +3311,8 @@ body.registrar-partida-modal-aberto {
 
   .registrar-partida-novo-pagina .registrar-partida-novo-corpo {
     padding-top: 0;
-    padding-bottom: 0.62rem;
-    scroll-padding-bottom: 1rem;
+    padding-bottom: max(0.9rem, calc(var(--registrar-partida-cta-height, 0px) * 0.16));
+    scroll-padding-bottom: max(1rem, calc(var(--registrar-partida-cta-height, 0px) + 0.7rem));
   }
 
   .registrar-partida-novo-pagina .registrar-partida-novo-formulario {
@@ -3259,6 +3331,15 @@ body.registrar-partida-modal-aberto {
 
   .registrar-partida-novo-pagina .registrar-partida-novo-cta-sticky {
     bottom: auto;
+  }
+
+  .registrar-partida-novo-pagina .registrar-partida-novo-acoes {
+    padding: 0.58rem 0.72rem calc(0.58rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .registrar-partida-novo-pagina .registrar-partida-novo-acoes .botao-primario,
+  .registrar-partida-novo-pagina .registrar-partida-novo-acoes .botao-secundario {
+    min-height: 2.88rem;
   }
 
   .editar-partida-estado__acoes,
