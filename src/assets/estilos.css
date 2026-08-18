@@ -1450,23 +1450,42 @@ textarea {
   min-width: 0;
 }
 
-.grupo-atletas-cabecalho {
-  display: grid;
-  gap: 0.65rem;
-}
-
-.grupo-atletas-cabecalho h2,
-.grupo-atletas-cabecalho p {
-  margin: 0;
-}
-
-.grupo-atletas-cabecalho p {
-  color: var(--color-text-secondary);
-  font-weight: 700;
-}
-
 .grupo-atletas-pagina {
   scroll-padding-bottom: clamp(2rem, 8vh, 4rem);
+}
+
+.grupo-atletas-contexto {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  width: fit-content;
+  max-width: 100%;
+  min-width: 0;
+  margin-top: -0.2rem;
+  padding: 0.46rem 0.72rem;
+  border: 1px solid rgba(255, 179, 0, 0.18);
+  border-radius: var(--qn-radius-pill);
+  background: rgba(255, 255, 255, 0.045);
+  color: var(--cor-texto-suave);
+  font-size: 0.86rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.grupo-atletas-contexto span {
+  flex: 0 0 auto;
+  color: var(--qn-gold);
+  font-size: 0.74rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.grupo-atletas-contexto strong {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--cor-texto);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .grupo-atletas-lista-secao {

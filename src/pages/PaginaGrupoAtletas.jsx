@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { FaCheck, FaChevronLeft, FaPlus, FaSearch, FaUserPlus } from 'react-icons/fa';
+import { useParams } from 'react-router-dom';
+import { FaCheck, FaPlus, FaSearch, FaUserPlus } from 'react-icons/fa';
 import { AtletaPerfilLink } from '../components/AtletaPerfilLink';
 import { AvatarUsuario, obterFotoPerfilAvatar } from '../components/AvatarUsuario';
 import { EmailDomainSuggestions } from '../components/formularios/EmailDomainSuggestions';
@@ -33,7 +33,6 @@ const TEMPO_DEBOUNCE_BUSCA_ATLETA_MS = 300;
 export function PaginaGrupoAtletas() {
   const { grupoId, competicaoId } = useParams();
   const idGrupo = grupoId || competicaoId;
-  const navegar = useNavigate();
   const { usuario, estadoAcesso, atualizarUsuarioLocal } = useAutenticacao();
   const { showNotification, closeNotification } = useNotification();
   const usuarioAtleta = ehAtleta(usuario);
@@ -401,15 +400,9 @@ export function PaginaGrupoAtletas() {
 
   return (
     <section className="pagina grupo-atletas-pagina">
-      <div className="cabecalho-pagina grupo-atletas-cabecalho">
-        <button type="button" className="botao-voltar" onClick={() => navegar(`/grupos/${idGrupo}`)}>
-          <span className="botao-voltar-icone"><FaChevronLeft aria-hidden="true" /></span>
-          Voltar
-        </button>
-        <div>
-          <h2>Membros</h2>
-          <p>{grupo?.nome || 'Carregando grupo...'}</p>
-        </div>
+      <div className="grupo-atletas-contexto" aria-live="polite">
+        <span>Grupo</span>
+        <strong>{grupo?.nome || 'Carregando grupo...'}</strong>
       </div>
 
       {carregando ? (
@@ -606,8 +599,8 @@ export function PaginaGrupoAtletas() {
           <section className="grupo-atletas-lista-secao" aria-labelledby="grupo-atletas-lista-titulo">
             <div className="grupo-atletas-lista-topo">
               <div>
-                <h3 id="grupo-atletas-lista-titulo">Lista de membros</h3>
-                <p>{grupoAtletas.length} {grupoAtletas.length === 1 ? 'membro cadastrado' : 'membros cadastrados'}</p>
+                <h3 id="grupo-atletas-lista-titulo">Atletas do grupo</h3>
+                <p>{grupoAtletas.length} {grupoAtletas.length === 1 ? 'atleta cadastrado' : 'atletas cadastrados'}</p>
               </div>
             </div>
 
