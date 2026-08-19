@@ -359,6 +359,12 @@ export function PaginaRanking() {
   });
   const visaoAtual = VISOES_RANKING.find((visao) => visao.valor === visaoRanking) || VISOES_RANKING[0];
   const filtroPrincipal = obterRotuloEscopo(visaoRanking, abaRanking, resumoFiltro);
+  const periodoSelecionado = PERIODOS_RANKING.find((periodo) => periodo.valor === periodoRanking) || PERIODOS_RANKING[0];
+  const filtrosResumo = [
+    { rotulo: 'Visão', valor: visaoAtual.rotulo },
+    { rotulo: 'Contexto', valor: filtroPrincipal },
+    { rotulo: 'Período', valor: periodoSelecionado.rotulo }
+  ];
   const autenticado = Boolean(token);
   const opcoesContexto = visaoRanking === 'atletas' ? ABAS_RANKING : ABAS_RANKING_ENTIDADES;
   const rankingCompartilhavel = visaoRanking === 'atletas' ? rankingComAtletas : [];
@@ -598,6 +604,7 @@ export function PaginaRanking() {
   }
 
   function limparFiltrosAvancados() {
+    setPeriodoRanking('');
     setCategoriaId('');
 
     if (abaRanking === 'regiao') {
@@ -611,7 +618,7 @@ export function PaginaRanking() {
     atualizarParametros(abaRanking, grupoId, competicaoId, estadoRegiao, cidadeRegiao, bairroRegiao, '');
   }
 
-  function aplicarFiltrosAvancados() {
+  function fecharFiltros() {
     setFiltrosAbertos(false);
   }
 
@@ -716,6 +723,15 @@ export function PaginaRanking() {
           </button>
         </div>
 
+        <div className="ranking-filtros-ativos" aria-label="Filtros ativos">
+          {filtrosResumo.map((filtro) => (
+            <span key={filtro.rotulo} className="ranking-filtro-chip">
+              <small>{filtro.rotulo}</small>
+              <strong>{filtro.valor}</strong>
+            </span>
+          ))}
+        </div>
+
         {filtrosAbertos && (
           <div className="ranking-filtros-backdrop" onClick={() => setFiltrosAbertos(false)}>
             <section
@@ -739,6 +755,9 @@ export function PaginaRanking() {
                   <FaTimes aria-hidden="true" />
                 </button>
               </div>
+              <p className="ranking-filtros-nota">
+                Ao alterar um campo, o ranking atualiza automaticamente.
+              </p>
 
               {abaRanking === 'grupos' && (
                 <label>
@@ -827,8 +846,8 @@ export function PaginaRanking() {
                 <button type="button" className="botao-secundario" onClick={limparFiltrosAvancados}>
                   Limpar filtros
                 </button>
-                <button type="button" className="botao-primario" onClick={aplicarFiltrosAvancados}>
-                  Aplicar filtros
+                <button type="button" className="botao-primario" onClick={fecharFiltros}>
+                  Fechar
                 </button>
               </div>
             </section>

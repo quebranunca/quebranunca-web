@@ -16727,6 +16727,54 @@ a.botao-terciario:active {
   white-space: nowrap;
 }
 
+.ranking-filtros-ativos {
+  display: flex;
+  gap: 0.45rem;
+  min-width: 0;
+  overflow-x: auto;
+  padding: 0.08rem 0.02rem 0.16rem;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+}
+
+.ranking-filtros-ativos::-webkit-scrollbar {
+  display: none;
+}
+
+.ranking-filtro-chip {
+  flex: 0 0 auto;
+  display: grid;
+  gap: 0.08rem;
+  min-width: 5.85rem;
+  max-width: 10.25rem;
+  padding: 0.48rem 0.62rem;
+  border: 1px solid rgba(255, 179, 0, 0.18);
+  border-radius: 999px;
+  background:
+    linear-gradient(135deg, rgba(255, 179, 0, 0.12), rgba(255, 255, 255, 0.035)),
+    rgba(17, 18, 20, 0.82);
+  color: var(--qn-text-primary);
+  scroll-snap-align: start;
+}
+
+.ranking-filtro-chip small {
+  color: var(--qn-gold);
+  font-size: 0.62rem;
+  font-weight: 900;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.ranking-filtro-chip strong {
+  overflow: hidden;
+  color: var(--qn-text-primary);
+  font-size: 0.76rem;
+  font-weight: 900;
+  line-height: 1.12;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .ranking-filtros-backdrop {
   position: fixed;
   inset: 0;
@@ -16785,6 +16833,14 @@ a.botao-terciario:active {
   min-height: 2.15rem;
   padding: 0;
   border-radius: 999px;
+}
+
+.ranking-filtros-nota {
+  margin: -0.2rem 0 0;
+  color: var(--qn-text-secondary);
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.35;
 }
 
 .ranking-filtros-acoes {
