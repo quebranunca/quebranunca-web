@@ -1,10 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
-  FaChevronDown,
   FaChevronRight,
   FaFilter,
-  FaFutbol,
   FaTimes,
   FaUser,
   FaUserFriends,
@@ -553,14 +551,12 @@ export function PaginaRanking() {
       setAbaRanking('geral');
       atualizarParametros('geral', grupoId, competicaoId, estadoRegiao, cidadeRegiao, bairroRegiao, '');
     }
-    setFiltrosAbertos(false);
   }
 
   function selecionarAba(valor) {
     setAbaRanking(valor);
     setCategoriaId('');
     setDetalheRanking(null);
-    setFiltrosAbertos(false);
     atualizarParametros(valor, grupoId, competicaoId, estadoRegiao, cidadeRegiao, bairroRegiao, '');
   }
 
@@ -680,38 +676,16 @@ export function PaginaRanking() {
         variant="page"
       />
 
-      <nav className="ranking-visao-tabs" aria-label="Visões do ranking">
-        {VISOES_RANKING.map(({ valor, rotulo, descricao, Icone, disponivel }) => (
-          <button
-            key={valor}
-            type="button"
-            className={visaoRanking === valor ? 'ativo' : ''}
-            onClick={() => selecionarVisao(valor)}
-            aria-pressed={visaoRanking === valor}
-          >
-            <Icone aria-hidden="true" />
-            <span>{rotulo}</span>
-            <small>{disponivel ? descricao : 'Em breve'}</small>
-          </button>
-        ))}
-      </nav>
-
       <section className="ranking-filtros-shell">
-        <div className="ranking-contexto-linha">
-          <label className="ranking-contexto-seletor">
-            <span className="sr-only">Contexto do ranking</span>
-            <FaFutbol aria-hidden="true" />
-            <select
-              aria-label="Contexto do ranking"
-              value={abaRanking}
-              onChange={(evento) => selecionarAba(evento.target.value)}
-            >
-              {opcoesContexto.map((aba) => (
-                <option key={aba.valor} value={aba.valor}>{aba.rotulo}</option>
-              ))}
-            </select>
-            <FaChevronDown className="ranking-contexto-seta" aria-hidden="true" />
-          </label>
+        <div className="ranking-filtros-unificado">
+          <div className="ranking-filtros-ativos" aria-label="Filtros ativos">
+            {filtrosResumo.map((filtro) => (
+              <span key={filtro.rotulo} className="ranking-filtro-chip">
+                <small>{filtro.rotulo}</small>
+                <strong>{filtro.valor}</strong>
+              </span>
+            ))}
+          </div>
           <button
             type="button"
             className="botao-secundario botao-compacto"
@@ -721,15 +695,6 @@ export function PaginaRanking() {
           >
             <FaFilter aria-hidden="true" /> Filtros
           </button>
-        </div>
-
-        <div className="ranking-filtros-ativos" aria-label="Filtros ativos">
-          {filtrosResumo.map((filtro) => (
-            <span key={filtro.rotulo} className="ranking-filtro-chip">
-              <small>{filtro.rotulo}</small>
-              <strong>{filtro.valor}</strong>
-            </span>
-          ))}
         </div>
 
         {filtrosAbertos && (
@@ -758,6 +723,32 @@ export function PaginaRanking() {
               <p className="ranking-filtros-nota">
                 Ao alterar um campo, o ranking atualiza automaticamente.
               </p>
+
+              <label>
+                Visão
+                <select
+                  aria-label="Visão do ranking"
+                  value={visaoRanking}
+                  onChange={(evento) => selecionarVisao(evento.target.value)}
+                >
+                  {VISOES_RANKING.map((visao) => (
+                    <option key={visao.valor} value={visao.valor}>{visao.rotulo}</option>
+                  ))}
+                </select>
+              </label>
+
+              <label>
+                Contexto
+                <select
+                  aria-label="Contexto do ranking"
+                  value={abaRanking}
+                  onChange={(evento) => selecionarAba(evento.target.value)}
+                >
+                  {opcoesContexto.map((aba) => (
+                    <option key={aba.valor} value={aba.valor}>{aba.rotulo}</option>
+                  ))}
+                </select>
+              </label>
 
               {abaRanking === 'grupos' && (
                 <label>

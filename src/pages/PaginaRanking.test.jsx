@@ -278,7 +278,7 @@ afterEach(() => {
 });
 
 describe('PaginaRanking redesenhada', () => {
-  it('renderiza hero compacto, abas principais e ranking de atletas sem destacar competicao no geral', async () => {
+  it('renderiza hero compacto, filtro unico e ranking de atletas sem destacar competicao no geral', async () => {
     const usuario = userEvent.setup();
 
     renderizarPagina();
@@ -288,17 +288,9 @@ describe('PaginaRanking redesenhada', () => {
     expect(screen.getByRole('button', { name: 'Compartilhar' })).toBeInTheDocument();
     expect(screen.queryByText('Sua referência de performance no QuebraNunca.')).not.toBeInTheDocument();
 
-    const visoes = screen.getByRole('navigation', { name: 'Visões do ranking' });
-    expect(within(visoes).getByRole('button', { name: /Atletas/i })).toHaveClass('ativo');
-    expect(within(visoes).getByRole('button', { name: /Duplas/i })).toBeInTheDocument();
-    expect(within(visoes).getByRole('button', { name: /Grupos/i })).toBeInTheDocument();
-
     expect(screen.queryByRole('navigation', { name: 'Filtros de ranking' })).not.toBeInTheDocument();
-    const contexto = screen.getByLabelText('Contexto do ranking');
-    expect(contexto).toHaveValue('geral');
-    expect(within(contexto).getByRole('option', { name: 'Grupos' })).toBeInTheDocument();
-    expect(within(contexto).getByRole('option', { name: 'Competições' })).toBeInTheDocument();
-    expect(within(contexto).getByRole('option', { name: 'Região' })).toBeInTheDocument();
+    expect(screen.queryByLabelText('Contexto do ranking')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Visão do ranking')).not.toBeInTheDocument();
 
     const filtrosAtivos = screen.getByLabelText('Filtros ativos');
     expect(within(filtrosAtivos).getByText('Visão')).toBeInTheDocument();
@@ -310,6 +302,12 @@ describe('PaginaRanking redesenhada', () => {
     await usuario.click(screen.getByRole('button', { name: /Abrir filtros do ranking: Todos os atletas/i }));
     const painelFiltros = screen.getByRole('dialog', { name: 'Filtros' });
     expect(within(painelFiltros).getByText('Ao alterar um campo, o ranking atualiza automaticamente.')).toBeInTheDocument();
+    expect(within(painelFiltros).getByLabelText('Visão do ranking')).toHaveValue('atletas');
+    const contexto = within(painelFiltros).getByLabelText('Contexto do ranking');
+    expect(contexto).toHaveValue('geral');
+    expect(within(contexto).getByRole('option', { name: 'Grupos' })).toBeInTheDocument();
+    expect(within(contexto).getByRole('option', { name: 'Competições' })).toBeInTheDocument();
+    expect(within(contexto).getByRole('option', { name: 'Região' })).toBeInTheDocument();
     expect(within(painelFiltros).getByText('Ranking consolidado de todas as partidas registradas.')).toBeInTheDocument();
     expect(within(painelFiltros).getByRole('button', { name: 'Limpar filtros' })).toBeInTheDocument();
     await usuario.click(within(painelFiltros).getByRole('button', { name: 'Fechar' }));
@@ -329,8 +327,10 @@ describe('PaginaRanking redesenhada', () => {
     renderizarPagina();
     await screen.findByText('Destaques');
 
-    const visoes = screen.getByRole('navigation', { name: 'Visões do ranking' });
-    await usuario.click(within(visoes).getByRole('button', { name: /Duplas/i }));
+    await usuario.click(screen.getByRole('button', { name: /Abrir filtros do ranking: Todos os atletas/i }));
+    const painelFiltros = screen.getByRole('dialog', { name: 'Filtros' });
+    await usuario.selectOptions(within(painelFiltros).getByLabelText('Visão do ranking'), 'duplas');
+    await usuario.click(within(painelFiltros).getByRole('button', { name: 'Fechar' }));
 
     expect(screen.getByRole('button', { name: /Todas as duplas/i })).toBeInTheDocument();
     expect(await screen.findByText('Gustavo / João')).toBeInTheDocument();
@@ -360,8 +360,10 @@ describe('PaginaRanking redesenhada', () => {
     renderizarPagina();
     await screen.findByText('Destaques');
 
-    const visoes = screen.getByRole('navigation', { name: 'Visões do ranking' });
-    await usuario.click(within(visoes).getByRole('button', { name: /Grupos/i }));
+    await usuario.click(screen.getByRole('button', { name: /Abrir filtros do ranking: Todos os atletas/i }));
+    const painelFiltros = screen.getByRole('dialog', { name: 'Filtros' });
+    await usuario.selectOptions(within(painelFiltros).getByLabelText('Visão do ranking'), 'grupos');
+    await usuario.click(within(painelFiltros).getByRole('button', { name: 'Fechar' }));
 
     expect(await screen.findByText('Long Beach')).toBeInTheDocument();
     expect(screen.getByText('124 partidas • 42 atletas • 18 ativos')).toBeInTheDocument();
@@ -387,16 +389,17 @@ describe('PaginaRanking redesenhada', () => {
     renderizarPagina();
     await screen.findByText('Destaques');
 
-    await usuario.selectOptions(screen.getByLabelText('Contexto do ranking'), 'grupos');
+    await usuario.click(screen.getByRole('button', { name: /Abrir filtros do ranking: Todos os atletas/i }));
+    const painelFiltros = screen.getByRole('dialog', { name: 'Filtros' });
+    await usuario.selectOptions(within(painelFiltros).getByLabelText('Contexto do ranking'), 'grupos');
 
     await waitFor(() => {
       expect(rankingServico.listarAtletasPorGrupo).toHaveBeenCalledWith('grupo-1');
     });
-    expect(screen.getByLabelText('Contexto do ranking')).toHaveValue('grupos');
+    expect(within(painelFiltros).getByLabelText('Contexto do ranking')).toHaveValue('grupos');
     expect((await screen.findAllByText('Fechadinho de Quinta')).length).toBeGreaterThan(0);
     expect(screen.getByText('Ranking do grupo')).toBeInTheDocument();
 
-    await usuario.click(screen.getByRole('button', { name: /Abrir filtros do ranking: Fechadinho de Quinta/i }));
     expect(screen.getByRole('dialog', { name: 'Filtros' })).toBeInTheDocument();
     expect(screen.getByLabelText('Grupo')).toHaveValue('grupo-1');
   });
