@@ -358,10 +358,10 @@ export function PaginaRanking() {
   const visaoAtual = VISOES_RANKING.find((visao) => visao.valor === visaoRanking) || VISOES_RANKING[0];
   const filtroPrincipal = obterRotuloEscopo(visaoRanking, abaRanking, resumoFiltro);
   const periodoSelecionado = PERIODOS_RANKING.find((periodo) => periodo.valor === periodoRanking) || PERIODOS_RANKING[0];
+  const exibirPeriodoRanking = visaoRanking !== 'atletas';
   const filtrosResumo = [
-    { rotulo: 'Visão', valor: visaoAtual.rotulo },
     { rotulo: 'Contexto', valor: filtroPrincipal },
-    { rotulo: 'Período', valor: periodoSelecionado.rotulo }
+    ...(exibirPeriodoRanking ? [{ rotulo: 'Período', valor: periodoSelecionado.rotulo }] : [])
   ];
   const autenticado = Boolean(token);
   const opcoesContexto = visaoRanking === 'atletas' ? ABAS_RANKING : ABAS_RANKING_ENTIDADES;
@@ -547,6 +547,9 @@ export function PaginaRanking() {
   function selecionarVisao(valor) {
     setVisaoRanking(valor);
     setDetalheRanking(null);
+    if (valor === 'atletas') {
+      setPeriodoRanking('');
+    }
     if (valor !== 'atletas' && !ABAS_RANKING_ENTIDADES.some((aba) => aba.valor === abaRanking)) {
       setAbaRanking('geral');
       atualizarParametros('geral', grupoId, competicaoId, estadoRegiao, cidadeRegiao, bairroRegiao, '');
@@ -676,6 +679,22 @@ export function PaginaRanking() {
         variant="page"
       />
 
+      <nav className="ranking-visao-tabs" aria-label="Tipos de ranking">
+        {VISOES_RANKING.map(({ valor, rotulo, descricao, Icone, disponivel }) => (
+          <button
+            key={valor}
+            type="button"
+            className={visaoRanking === valor ? 'ativo' : ''}
+            onClick={() => selecionarVisao(valor)}
+            aria-pressed={visaoRanking === valor}
+          >
+            <Icone aria-hidden="true" />
+            <span>{rotulo}</span>
+            <small>{disponivel ? descricao : 'Em breve'}</small>
+          </button>
+        ))}
+      </nav>
+
       <section className="ranking-filtros-shell">
         <div className="ranking-filtros-unificado">
           <div className="ranking-filtros-ativos" aria-label="Filtros ativos">
@@ -691,9 +710,9 @@ export function PaginaRanking() {
             className="botao-secundario botao-compacto"
             onClick={() => setFiltrosAbertos(true)}
             aria-expanded={filtrosAbertos}
-            aria-label={`Abrir filtros do ranking: ${filtroPrincipal}`}
+            aria-label={`Abrir refinamento do ranking: ${filtroPrincipal}`}
           >
-            <FaFilter aria-hidden="true" /> Filtros
+            <FaFilter aria-hidden="true" /> Refinar
           </button>
         </div>
 
@@ -709,7 +728,7 @@ export function PaginaRanking() {
               <div className="ranking-filtros-topo">
                 <div>
                   <span>{visaoAtual.rotulo}</span>
-                  <h2 id="ranking-filtros-titulo">Filtros</h2>
+                  <h2 id="ranking-filtros-titulo">Refinar ranking</h2>
                 </div>
                 <button
                   type="button"
@@ -721,21 +740,8 @@ export function PaginaRanking() {
                 </button>
               </div>
               <p className="ranking-filtros-nota">
-                Ao alterar um campo, o ranking atualiza automaticamente.
+                Ajuste o recorte do ranking. As mudanças atualizam a lista automaticamente.
               </p>
-
-              <label>
-                Visão
-                <select
-                  aria-label="Visão do ranking"
-                  value={visaoRanking}
-                  onChange={(evento) => selecionarVisao(evento.target.value)}
-                >
-                  {VISOES_RANKING.map((visao) => (
-                    <option key={visao.valor} value={visao.valor}>{visao.rotulo}</option>
-                  ))}
-                </select>
-              </label>
 
               <label>
                 Contexto
@@ -824,14 +830,16 @@ export function PaginaRanking() {
                 <p className="texto-ajuda">Ranking consolidado de todas as partidas registradas.</p>
               )}
 
-              <label>
-                Período
-                <select value={periodoRanking} onChange={(evento) => selecionarPeriodo(evento.target.value)}>
-                  {PERIODOS_RANKING.map((periodo) => (
-                    <option key={periodo.valor || 'todos'} value={periodo.valor}>{periodo.rotulo}</option>
-                  ))}
-                </select>
-              </label>
+              {exibirPeriodoRanking && (
+                <label>
+                  Período
+                  <select value={periodoRanking} onChange={(evento) => selecionarPeriodo(evento.target.value)}>
+                    {PERIODOS_RANKING.map((periodo) => (
+                      <option key={periodo.valor || 'todos'} value={periodo.valor}>{periodo.rotulo}</option>
+                    ))}
+                  </select>
+                </label>
+              )}
 
               <div className="ranking-filtros-acoes">
                 <button type="button" className="botao-secundario" onClick={limparFiltrosAvancados}>

@@ -16684,6 +16684,61 @@ a.botao-terciario:active {
   color: currentColor;
 }
 
+.ranking-visao-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.46rem;
+  padding: 0.42rem;
+  border: 1px solid var(--qn-border-soft);
+  border-radius: 18px;
+  background: rgba(8, 9, 11, 0.74);
+}
+
+.ranking-visao-tabs button {
+  min-width: 0;
+  display: grid;
+  justify-items: center;
+  gap: 0.24rem;
+  min-height: 4.65rem;
+  padding: 0.62rem 0.42rem;
+  border: 1px solid var(--qn-border-soft);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.045);
+  color: var(--qn-text-secondary);
+  font-weight: 900;
+  line-height: 1.05;
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, color 160ms ease, box-shadow 160ms ease;
+}
+
+.ranking-visao-tabs button svg {
+  width: 1.35rem;
+  height: 1.35rem;
+}
+
+.ranking-visao-tabs button span,
+.ranking-visao-tabs button small {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ranking-visao-tabs button small {
+  color: inherit;
+  font-size: 0.7rem;
+  opacity: 0.72;
+}
+
+.ranking-visao-tabs button:hover,
+.ranking-visao-tabs button:focus-visible,
+.ranking-visao-tabs button.ativo {
+  transform: translateY(-1px);
+  border-color: rgba(255, 179, 0, 0.55);
+  background: rgba(255, 179, 0, 0.14);
+  color: var(--qn-gold);
+  box-shadow: 0 0 20px rgba(255, 179, 0, 0.1);
+}
+
 .ranking-app .ranking-filtros-shell {
   gap: 0.5rem;
 }
@@ -17220,6 +17275,14 @@ a.botao-terciario:active {
   .ranking-hero-arte svg {
     width: 1.9rem;
     height: 1.9rem;
+  }
+
+  .ranking-visao-tabs button {
+    min-height: 4.2rem;
+  }
+
+  .ranking-visao-tabs button small {
+    display: none;
   }
 
   .ranking-app .ranking-podio-premium {
