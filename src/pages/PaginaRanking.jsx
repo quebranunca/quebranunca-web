@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
   FaChevronRight,
-  FaFilter,
   FaTimes,
   FaUser,
   FaUserFriends,
@@ -52,13 +51,6 @@ const VISOES_RANKING = [
 ];
 
 const ABAS_RANKING_ENTIDADES = ABAS_RANKING.filter((aba) => ['geral', 'grupos'].includes(aba.valor));
-
-const PERIODOS_RANKING = [
-  { valor: '', rotulo: 'Todos os períodos' },
-  { valor: '30d', rotulo: 'Últimos 30 dias' },
-  { valor: '90d', rotulo: 'Últimos 90 dias' },
-  { valor: 'ano', rotulo: 'Ano atual' }
-];
 
 const TIPOS_COMPETICAO = {
   grupo: 3
@@ -276,10 +268,8 @@ export function PaginaRanking() {
   const [ranking, setRanking] = useState([]);
   const [rankingEntidade, setRankingEntidade] = useState([]);
   const [totalEntidade, setTotalEntidade] = useState(0);
-  const [periodoRanking, setPeriodoRanking] = useState('');
   const [detalheRanking, setDetalheRanking] = useState(null);
   const [carregandoDetalhe, setCarregandoDetalhe] = useState(false);
-  const [filtrosAbertos, setFiltrosAbertos] = useState(false);
   const [carregandoBase, setCarregandoBase] = useState(true);
   const [baseInicializada, setBaseInicializada] = useState(false);
   const [carregandoRanking, setCarregandoRanking] = useState(false);
@@ -355,16 +345,7 @@ export function PaginaRanking() {
     cidadeRegiao,
     bairroRegiao
   });
-  const visaoAtual = VISOES_RANKING.find((visao) => visao.valor === visaoRanking) || VISOES_RANKING[0];
-  const filtroPrincipal = obterRotuloEscopo(visaoRanking, abaRanking, resumoFiltro);
-  const periodoSelecionado = PERIODOS_RANKING.find((periodo) => periodo.valor === periodoRanking) || PERIODOS_RANKING[0];
-  const exibirPeriodoRanking = visaoRanking !== 'atletas';
-  const filtrosResumo = [
-    { rotulo: 'Contexto', valor: filtroPrincipal },
-    ...(exibirPeriodoRanking ? [{ rotulo: 'Período', valor: periodoSelecionado.rotulo }] : [])
-  ];
   const autenticado = Boolean(token);
-  const opcoesContexto = visaoRanking === 'atletas' ? ABAS_RANKING : ABAS_RANKING_ENTIDADES;
   const rankingCompartilhavel = visaoRanking === 'atletas' ? rankingComAtletas : [];
 
   useEffect(() => {
@@ -388,7 +369,7 @@ export function PaginaRanking() {
     }
 
     carregarRanking();
-  }, [baseInicializada, visaoRanking, abaRanking, grupoId, competicaoId, estadoRegiao, cidadeRegiao, bairroRegiao, periodoRanking]);
+  }, [baseInicializada, visaoRanking, abaRanking, grupoId, competicaoId, estadoRegiao, cidadeRegiao, bairroRegiao]);
 
   useEffect(() => {
     if (!categoriaId || categoriasRanking.length === 0) {
@@ -397,9 +378,10 @@ export function PaginaRanking() {
 
     const categoriaExiste = categoriasRanking.some((categoria) => categoria.id === categoriaId);
     if (!categoriaExiste) {
-      selecionarCategoria('');
+      setCategoriaId('');
+      atualizarParametros(abaRanking, grupoId, competicaoId, estadoRegiao, cidadeRegiao, bairroRegiao, '');
     }
-  }, [categoriaId, categoriasRanking]);
+  }, [abaRanking, bairroRegiao, categoriaId, categoriasRanking, cidadeRegiao, competicaoId, estadoRegiao, grupoId]);
 
   async function carregarBase() {
     setCarregandoBase(true);
@@ -460,7 +442,7 @@ export function PaginaRanking() {
       if (visaoRanking === 'duplas') {
         const resposta = await rankingServico.listarDuplas({
           grupoId: abaRanking === 'grupos' ? grupoId : '',
-          periodo: periodoRanking,
+          periodo: '',
           pagina: 1,
           tamanhoPagina: 50
         });
@@ -475,7 +457,7 @@ export function PaginaRanking() {
       if (visaoRanking === 'grupos') {
         const resposta = await rankingServico.listarGruposRanking({
           grupoId: abaRanking === 'grupos' ? grupoId : '',
-          periodo: periodoRanking,
+          periodo: '',
           pagina: 1,
           tamanhoPagina: 50
         });
@@ -547,78 +529,12 @@ export function PaginaRanking() {
   function selecionarVisao(valor) {
     setVisaoRanking(valor);
     setDetalheRanking(null);
-    if (valor === 'atletas') {
-      setPeriodoRanking('');
-    }
-    if (valor !== 'atletas' && !ABAS_RANKING_ENTIDADES.some((aba) => aba.valor === abaRanking)) {
-      setAbaRanking('geral');
-      atualizarParametros('geral', grupoId, competicaoId, estadoRegiao, cidadeRegiao, bairroRegiao, '');
-    }
-  }
-
-  function selecionarAba(valor) {
-    setAbaRanking(valor);
     setCategoriaId('');
-    setDetalheRanking(null);
-    atualizarParametros(valor, grupoId, competicaoId, estadoRegiao, cidadeRegiao, bairroRegiao, '');
-  }
-
-  function selecionarPeriodo(valor) {
-    setPeriodoRanking(valor);
-    setDetalheRanking(null);
-  }
-
-  function selecionarGrupo(valor) {
-    setGrupoId(valor);
-    atualizarParametros(abaRanking, valor, competicaoId, estadoRegiao, cidadeRegiao, bairroRegiao, categoriaId);
-  }
-
-  function selecionarCompeticao(valor) {
-    setCompeticaoId(valor);
-    setCategoriaId('');
-    atualizarParametros(abaRanking, grupoId, valor, estadoRegiao, cidadeRegiao, bairroRegiao, '');
-  }
-
-  function selecionarEstadoRegiao(valor) {
-    setEstadoRegiao(valor);
+    setAbaRanking('geral');
     setCidadeRegiao('');
     setBairroRegiao('');
-    atualizarParametros(abaRanking, grupoId, competicaoId, valor, '', '', categoriaId);
-  }
-
-  function selecionarCidadeRegiao(valor) {
-    setCidadeRegiao(valor);
-    setBairroRegiao('');
-    atualizarParametros(abaRanking, grupoId, competicaoId, estadoRegiao, valor, '', categoriaId);
-  }
-
-  function selecionarBairroRegiao(valor) {
-    setBairroRegiao(valor);
-    atualizarParametros(abaRanking, grupoId, competicaoId, estadoRegiao, cidadeRegiao, valor, categoriaId);
-  }
-
-  function selecionarCategoria(valor) {
-    setCategoriaId(valor);
-    atualizarParametros(abaRanking, grupoId, competicaoId, estadoRegiao, cidadeRegiao, bairroRegiao, valor);
-  }
-
-  function limparFiltrosAvancados() {
-    setPeriodoRanking('');
-    setCategoriaId('');
-
-    if (abaRanking === 'regiao') {
-      setEstadoRegiao('');
-      setCidadeRegiao('');
-      setBairroRegiao('');
-      atualizarParametros(abaRanking, grupoId, competicaoId, '', '', '', '');
-      return;
-    }
-
-    atualizarParametros(abaRanking, grupoId, competicaoId, estadoRegiao, cidadeRegiao, bairroRegiao, '');
-  }
-
-  function fecharFiltros() {
-    setFiltrosAbertos(false);
+    setEstadoRegiao('');
+    atualizarParametros('geral', grupoId, competicaoId, '', '', '', '');
   }
 
   function abrirAtleta(item, grupo) {
@@ -636,7 +552,7 @@ export function PaginaRanking() {
     try {
       const detalhe = await rankingServico.obterDupla(item.id, {
         grupoId: abaRanking === 'grupos' ? grupoId : '',
-        periodo: periodoRanking
+        periodo: ''
       });
       setDetalheRanking({ tipo: 'dupla', dados: detalhe });
     } catch (error) {
@@ -651,7 +567,7 @@ export function PaginaRanking() {
     setErro('');
     try {
       const detalhe = await rankingServico.obterGrupoRanking(item.grupoId, {
-        periodo: periodoRanking
+        periodo: ''
       });
       setDetalheRanking({ tipo: 'grupo', dados: detalhe });
     } catch (error) {
@@ -694,165 +610,6 @@ export function PaginaRanking() {
           </button>
         ))}
       </nav>
-
-      <section className="ranking-filtros-shell">
-        <div className="ranking-filtros-unificado">
-          <div className="ranking-filtros-ativos" aria-label="Filtros ativos">
-            {filtrosResumo.map((filtro) => (
-              <span key={filtro.rotulo} className="ranking-filtro-chip">
-                <small>{filtro.rotulo}</small>
-                <strong>{filtro.valor}</strong>
-              </span>
-            ))}
-          </div>
-          <button
-            type="button"
-            className="botao-secundario botao-compacto"
-            onClick={() => setFiltrosAbertos(true)}
-            aria-expanded={filtrosAbertos}
-            aria-label={`Abrir refinamento do ranking: ${filtroPrincipal}`}
-          >
-            <FaFilter aria-hidden="true" /> Refinar
-          </button>
-        </div>
-
-        {filtrosAbertos && (
-          <div className="ranking-filtros-backdrop" onClick={() => setFiltrosAbertos(false)}>
-            <section
-              className="ranking-filtros ranking-filtros-painel"
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="ranking-filtros-titulo"
-              onClick={(evento) => evento.stopPropagation()}
-            >
-              <div className="ranking-filtros-topo">
-                <div>
-                  <span>{visaoAtual.rotulo}</span>
-                  <h2 id="ranking-filtros-titulo">Refinar ranking</h2>
-                </div>
-                <button
-                  type="button"
-                  className="botao-terciario botao-compacto"
-                  onClick={() => setFiltrosAbertos(false)}
-                  aria-label="Fechar filtros"
-                >
-                  <FaTimes aria-hidden="true" />
-                </button>
-              </div>
-              <p className="ranking-filtros-nota">
-                Ajuste o recorte do ranking. As mudanças atualizam a lista automaticamente.
-              </p>
-
-              <label>
-                Contexto
-                <select
-                  aria-label="Contexto do ranking"
-                  value={abaRanking}
-                  onChange={(evento) => selecionarAba(evento.target.value)}
-                >
-                  {opcoesContexto.map((aba) => (
-                    <option key={aba.valor} value={aba.valor}>{aba.rotulo}</option>
-                  ))}
-                </select>
-              </label>
-
-              {abaRanking === 'grupos' && (
-                <label>
-                  Grupo
-                  <select value={grupoId} onChange={(evento) => selecionarGrupo(evento.target.value)}>
-                    <option value="">Selecione</option>
-                    {grupos.map((grupo) => (
-                      <option key={grupo.id} value={grupo.id}>{grupo.nome}</option>
-                    ))}
-                  </select>
-                </label>
-              )}
-
-              {abaRanking === 'competicoes' && (
-                <>
-                  <label>
-                    Competição
-                    <select value={competicaoId} onChange={(evento) => selecionarCompeticao(evento.target.value)}>
-                      <option value="">Selecione</option>
-                      {competicoes.map((competicao) => (
-                        <option key={competicao.id} value={competicao.id}>{competicao.nome}</option>
-                      ))}
-                    </select>
-                  </label>
-
-                  {categoriasRanking.length > 0 && (
-                    <label>
-                      Categoria
-                      <select value={categoriaId} onChange={(evento) => selecionarCategoria(evento.target.value)}>
-                        <option value="">Todas as categorias</option>
-                        {categoriasRanking.map((categoria) => (
-                          <option key={categoria.id} value={categoria.id}>{categoria.nome}</option>
-                        ))}
-                      </select>
-                    </label>
-                  )}
-                </>
-              )}
-
-              {abaRanking === 'regiao' && (
-                <div className="ranking-regiao-grid">
-                  <label>
-                    Estado
-                    <select value={estadoRegiao} onChange={(evento) => selecionarEstadoRegiao(evento.target.value)}>
-                      <option value="">Todos</option>
-                      {(regioes.estados || []).map((estado) => (
-                        <option key={estado} value={estado}>{estado}</option>
-                      ))}
-                    </select>
-                  </label>
-                  <label>
-                    Cidade
-                    <select value={cidadeRegiao} onChange={(evento) => selecionarCidadeRegiao(evento.target.value)}>
-                      <option value="">Todas</option>
-                      {cidadesRegiao.map((cidade) => (
-                        <option key={cidade} value={cidade}>{cidade}</option>
-                      ))}
-                    </select>
-                  </label>
-                  <label>
-                    Bairro
-                    <select value={bairroRegiao} onChange={(evento) => selecionarBairroRegiao(evento.target.value)}>
-                      <option value="">Todos</option>
-                      {bairrosRegiao.map((bairro) => (
-                        <option key={bairro} value={bairro}>{bairro}</option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-              )}
-
-              {abaRanking === 'geral' && (
-                <p className="texto-ajuda">Ranking consolidado de todas as partidas registradas.</p>
-              )}
-
-              {exibirPeriodoRanking && (
-                <label>
-                  Período
-                  <select value={periodoRanking} onChange={(evento) => selecionarPeriodo(evento.target.value)}>
-                    {PERIODOS_RANKING.map((periodo) => (
-                      <option key={periodo.valor || 'todos'} value={periodo.valor}>{periodo.rotulo}</option>
-                    ))}
-                  </select>
-                </label>
-              )}
-
-              <div className="ranking-filtros-acoes">
-                <button type="button" className="botao-secundario" onClick={limparFiltrosAvancados}>
-                  Limpar filtros
-                </button>
-                <button type="button" className="botao-primario" onClick={fecharFiltros}>
-                  Fechar
-                </button>
-              </div>
-            </section>
-          </div>
-        )}
-      </section>
 
       {carregandoBase || carregandoRanking ? (
         <div className="ranking-estado">Carregando ranking...</div>
