@@ -90,6 +90,7 @@ function renderizarPagina() {
         <Route path="/grupos" element={<LocalizacaoAtual />} />
         <Route path="/grupos/:grupoId" element={<><PaginaGrupoDashboard /><LocalizacaoAtual /></>} />
         <Route path="/grupos/:grupoId/configuracoes" element={<LocalizacaoAtual />} />
+        <Route path="/app/partidas/:partidaId" element={<LocalizacaoAtual />} />
         <Route path="/partidas/registrar" element={<LocalizacaoAtual />} />
       </Routes>
     </MemoryRouter>
@@ -247,5 +248,50 @@ describe('PaginaGrupoDashboard', () => {
     expect(await screen.findByRole('heading', { name: 'Serie C' })).toBeInTheDocument();
     expect(screen.getByText(/Gustavo \+ João contra Rafa \+ Teteu/i)).toBeInTheDocument();
     expect(screen.getByText(/Gustavo \+ João venceu Rafa \+ Teteu/i)).toBeInTheDocument();
+  });
+
+  it('mostra partidas lançadas hoje e abre detalhes ao clicar', async () => {
+    const usuario = userEvent.setup();
+    const hoje = new Date();
+    hoje.setHours(10, 15, 0, 0);
+
+    gruposServico.obterDashboardGrupo.mockResolvedValue({
+      ...criarDashboard(),
+      ultimasPartidas: [
+        {
+          id: 'partida-hoje',
+          data: hoje.toISOString(),
+          dupla1: ['Gustavo', 'João'],
+          dupla2: ['Rafa', 'Teteu'],
+          duplaVencedora: 1,
+          placarDupla1: 18,
+          placarDupla2: 14,
+          possuiPlacarDetalhado: true,
+          status: 'Confirmada'
+        },
+        {
+          id: 'partida-antiga',
+          data: '2026-07-01T12:00:00Z',
+          dupla1: ['Primo', 'Dente'],
+          dupla2: ['Jeff', 'Biro'],
+          duplaVencedora: 2,
+          possuiPlacarDetalhado: false,
+          status: 'Confirmada'
+        }
+      ]
+    });
+    pendenciasServico.listar.mockResolvedValue([]);
+
+    renderizarPagina();
+
+    const cardHoje = await screen.findByLabelText('Partidas lançadas hoje');
+    expect(within(cardHoje).getByRole('heading', { name: 'Partidas lançadas no dia' })).toBeInTheDocument();
+    expect(within(cardHoje).getByText('1')).toBeInTheDocument();
+    expect(within(cardHoje).getByRole('button', { name: /Gustavo \+ João x Rafa \+ Teteu/i })).toBeInTheDocument();
+    expect(within(cardHoje).queryByText(/Primo \+ Dente/i)).not.toBeInTheDocument();
+
+    await usuario.click(within(cardHoje).getByRole('button', { name: /Gustavo \+ João x Rafa \+ Teteu/i }));
+
+    expect(screen.getByTestId('rota-atual')).toHaveTextContent('/app/partidas/partida-hoje');
   });
 });

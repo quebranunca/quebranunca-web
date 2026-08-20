@@ -24,7 +24,7 @@ import { pendenciasServico } from '../services/pendenciasServico';
 import { obterNomeExibicaoAtleta } from '../utils/atletaUtils';
 import { extrairMensagemErro } from '../utils/erros';
 import { formatarData, formatarDataHora, formatarHora } from '../utils/formatacao';
-import { criarNavegacaoRegistroPartida } from '../utils/partidaRotas';
+import { criarNavegacaoRegistroPartida, obterRotaDetalhePartida } from '../utils/partidaRotas';
 
 const TIPOS_PENDENCIA = {
   aprovarPartida: 1,
@@ -187,6 +187,26 @@ function formatarDiaAtividade(data) {
   return formatarData(data);
 }
 
+function obterDataReferenciaPartida(partida) {
+  return partida?.dataPartida || partida?.data || partida?.dataCriacao || partida?.criadoEm || partida?.createdAt;
+}
+
+function ehDataDeHoje(data) {
+  if (!data) {
+    return false;
+  }
+
+  const dataReferencia = new Date(data);
+  if (Number.isNaN(dataReferencia.getTime())) {
+    return false;
+  }
+
+  const hoje = new Date();
+  return hoje.getFullYear() === dataReferencia.getFullYear() &&
+    hoje.getMonth() === dataReferencia.getMonth() &&
+    hoje.getDate() === dataReferencia.getDate();
+}
+
 function obterPrivacidadeGrupo(privacidade) {
   const texto = String(privacidade || '').trim();
   const normalizado = texto.toLowerCase();
@@ -325,6 +345,9 @@ export function PaginaGrupoDashboard() {
   const rankingTop3 = useMemo(() => listaSegura(dashboard?.ranking).slice(0, 3), [dashboard?.ranking]);
   const membrosMaisAtivos = useMemo(() => listaSegura(dashboard?.membrosMaisAtivos).slice(0, 5), [dashboard?.membrosMaisAtivos]);
   const ultimasPartidas = listaSegura(dashboard?.ultimasPartidas);
+  const partidasHoje = useMemo(() => (
+    ultimasPartidas.filter((partida) => ehDataDeHoje(obterDataReferenciaPartida(partida)))
+  ), [ultimasPartidas]);
   const possuiPartidas = (resumo?.totalPartidas || grupo?.totalPartidas || ultimasPartidas.length || 0) > 0;
   const membrosPreview = useMemo(() => montarAtletasPreview(dashboard), [dashboard]);
   const membrosDestaque = useMemo(() => membrosPreview.slice(0, 3), [membrosPreview]);
@@ -396,6 +419,10 @@ export function PaginaGrupoDashboard() {
     });
 
     navegar(navegacaoRegistro.to, { state: navegacaoRegistro.state });
+  }
+
+  function abrirDetalhePartida(partida) {
+    navegar(obterRotaDetalhePartida(partida));
   }
 
   function abrirConfiguracoes() {
@@ -629,6 +656,46 @@ export function PaginaGrupoDashboard() {
               <button type="button" className="botao-secundario" onClick={() => navegar(`/grupos/${grupo.id}/atletas`)}>Adicionar membros</button>
             )}
           </div>
+        </article>
+      )}
+
+      {possuiPartidas && (
+        <article className="grupo-dashboard-bloco grupo-dashboard-partidas-hoje" aria-label="Partidas lançadas hoje">
+          <div className="grupo-dashboard-bloco-topo">
+            <div>
+              <span className="grupo-dashboard-eyebrow"><FaVolleyballBall aria-hidden="true" /> Hoje</span>
+              <h3>Partidas lançadas no dia</h3>
+            </div>
+            <strong>{partidasHoje.length}</strong>
+          </div>
+
+          {partidasHoje.length > 0 ? (
+            <div className="grupo-dashboard-partidas-hoje-lista">
+              {partidasHoje.map((partida) => {
+                const statusPartida = obterStatusPartidaGrupo(partida);
+                const dataPartida = obterDataReferenciaPartida(partida);
+
+                return (
+                  <button
+                    key={partida.id || partida.partidaId}
+                    type="button"
+                    className="grupo-dashboard-partida-hoje"
+                    onClick={() => abrirDetalhePartida(partida)}
+                  >
+                    <span>{dataPartida ? formatarHora(dataPartida) : 'Sem hora'}</span>
+                    <div>
+                      <strong>{nomeDupla(partida.dupla1)} x {nomeDupla(partida.dupla2)}</strong>
+                      <small>{formatarResultadoTexto(partida)}</small>
+                    </div>
+                    <em className={`grupo-dashboard-status ${statusPartida.classe}`}>{statusPartida.texto}</em>
+                    <FaChevronRight aria-hidden="true" />
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="grupo-dashboard-vazio">Nenhuma partida lançada hoje neste grupo.</p>
+          )}
         </article>
       )}
 

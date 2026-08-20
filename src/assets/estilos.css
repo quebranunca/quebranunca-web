@@ -800,6 +800,81 @@ textarea {
   border-color: rgba(255, 179, 0, 0.32);
 }
 
+.grupo-dashboard-partidas-hoje {
+  border-color: rgba(255, 179, 0, 0.36);
+  background:
+    radial-gradient(circle at 100% 0, rgba(255, 179, 0, 0.13), transparent 40%),
+    var(--color-card-secondary);
+}
+
+.grupo-dashboard-partidas-hoje .grupo-dashboard-bloco-topo > strong {
+  display: inline-grid;
+  place-items: center;
+  min-width: 2.35rem;
+  height: 2.35rem;
+  padding: 0 0.55rem;
+  border: 1px solid rgba(255, 179, 0, 0.28);
+  border-radius: 999px;
+  background: rgba(255, 179, 0, 0.14);
+  color: var(--color-primary);
+  font-size: 1rem;
+}
+
+.grupo-dashboard-partidas-hoje-lista {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.grupo-dashboard-partida-hoje {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  padding: 0.72rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--raio-md);
+  background: rgba(255, 255, 255, 0.035);
+  color: var(--color-text);
+  text-align: left;
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.grupo-dashboard-partida-hoje:hover,
+.grupo-dashboard-partida-hoje:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(255, 179, 0, 0.42);
+  background: rgba(255, 179, 0, 0.08);
+  outline: none;
+}
+
+.grupo-dashboard-partida-hoje > span {
+  min-width: 3.35rem;
+  color: var(--color-primary);
+  font-weight: 900;
+}
+
+.grupo-dashboard-partida-hoje > div {
+  display: grid;
+  gap: 0.14rem;
+  min-width: 0;
+}
+
+.grupo-dashboard-partida-hoje strong,
+.grupo-dashboard-partida-hoje small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.grupo-dashboard-partida-hoje small {
+  color: var(--color-text-secondary);
+}
+
+.grupo-dashboard-partida-hoje > svg {
+  color: var(--color-primary);
+}
+
 .grupo-dashboard-ranking-lista .ranking-linha-compacta:first-child {
   border-color: rgba(255, 179, 0, 0.55);
   background:
@@ -1117,16 +1192,21 @@ textarea {
   }
 
   .grupo-dashboard-atividade-item,
+  .grupo-dashboard-partida-hoje,
   .grupo-dashboard-partida-placar {
     grid-template-columns: 1fr;
   }
 
-  .grupo-dashboard-atividade-item span {
+  .grupo-dashboard-atividade-item span,
+  .grupo-dashboard-partida-hoje > span {
     grid-row: auto;
+    min-width: 0;
   }
 
   .grupo-dashboard-atividade-item strong,
   .grupo-dashboard-atividade-item small,
+  .grupo-dashboard-partida-hoje strong,
+  .grupo-dashboard-partida-hoje small,
   .grupo-dashboard-partida-placar strong,
   .grupo-dashboard-partida-placar strong:last-child {
     text-align: left;
