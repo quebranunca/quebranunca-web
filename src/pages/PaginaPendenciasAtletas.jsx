@@ -69,11 +69,11 @@ function pendenciaAindaVisivel(item) {
     !item.atletaPossuiUsuarioVinculado;
 }
 
-function criarEstadoEmails(lista) {
+function criarEstadoContatos(lista) {
   const proximo = {};
   (lista || []).forEach((item) => {
     if (pendenciaAindaVisivel(item) && item.tipo === TIPOS_PENDENCIA.completarContato) {
-      proximo[item.id] = item.emailAtleta || '';
+      proximo[item.id] = item.telefoneAtleta || item.emailAtleta || '';
     }
   });
   return proximo;
@@ -420,7 +420,7 @@ function PendenciaCancelamentoPartidaCard({ item, expandida, onExpandir, process
   );
 }
 
-function PendenciaVinculoCard({ item, expandida, onExpandir, email, onEmailChange, onSalvar, processando }) {
+function PendenciaVinculoCard({ item, expandida, onExpandir, contato, onContatoChange, onSalvar, processando }) {
   const nomeAtleta = obterNomeExibicaoAtleta(item) || 'Atleta pendente';
   const prioridade = obterApresentacaoPrioridade(item);
   const emailRef = useRef(null);
@@ -465,7 +465,7 @@ function PendenciaVinculoCard({ item, expandida, onExpandir, email, onEmailChang
 
   function selecionarAtleta(atleta) {
     setAtletaSelecionado(atleta);
-    onEmailChange(item.id, '');
+    onContatoChange(item.id, '');
   }
 
   function limparAtletaSelecionado() {
@@ -478,7 +478,8 @@ function PendenciaVinculoCard({ item, expandida, onExpandir, email, onEmailChang
       return;
     }
 
-    onSalvar(item.id, { email: email || '' });
+    const valor = contato?.trim() || '';
+    onSalvar(item.id, valor.includes('@') ? { email: valor } : { telefone: valor });
   }
 
   return (
@@ -564,26 +565,26 @@ function PendenciaVinculoCard({ item, expandida, onExpandir, email, onEmailChang
           </div>
 
           <label className="pendencia-campo-email">
-            Ou informar e-mail
+            Informar WhatsApp ou e-mail
             <input
               ref={emailRef}
-              type="email"
-              inputMode="email"
-              autoComplete="email"
+              type="text"
+              inputMode={contato?.includes('@') ? 'email' : 'tel'}
+              autoComplete="tel"
               enterKeyHint="done"
-              value={email || ''}
-              onChange={(evento) => onEmailChange(item.id, evento.target.value)}
+              value={contato || ''}
+              onChange={(evento) => onContatoChange(item.id, evento.target.value)}
               onFocus={scrollFocusedInputIntoView}
-              placeholder="atleta@exemplo.com"
+              placeholder="(11) 99999-9999"
               disabled={processando || Boolean(atletaSelecionado)}
             />
-            <EmailDomainSuggestions
-              valor={email}
-              onChange={(valor) => onEmailChange(item.id, valor)}
+            {contato?.includes('@') && <EmailDomainSuggestions
+              valor={contato}
+              onChange={(valor) => onContatoChange(item.id, valor)}
               inputRef={emailRef}
-            />
+            />}
             <small>
-              Se não houver cadastro ativo para este e-mail, a pendência ficará aguardando cadastro.
+              Prefira o WhatsApp com DDD. Se necessário, você também pode informar o e-mail.
             </small>
           </label>
 
@@ -592,7 +593,7 @@ function PendenciaVinculoCard({ item, expandida, onExpandir, email, onEmailChang
               type="button"
               className="botao-primario"
               onClick={salvar}
-              disabled={processando || (!atletaSelecionado && !email?.trim())}
+              disabled={processando || (!atletaSelecionado && !contato?.trim())}
             >
               {processando ? 'Salvando...' : 'Confirmar vínculo'}
             </button>
@@ -658,7 +659,7 @@ export function PaginaPendenciasAtletas() {
   const [pendencias, setPendencias] = useState([]);
   const [pendenciasResolvidas, setPendenciasResolvidas] = useState([]);
   const [atletaPerfil, setAtletaPerfil] = useState(null);
-  const [emails, setEmails] = useState({});
+  const [contatos, setContatos] = useState({});
   const [filtroAtivo, setFiltroAtivo] = useState('todas');
   const [carregando, setCarregando] = useState(true);
   const [erroCarregamento, setErroCarregamento] = useState('');
@@ -736,7 +737,7 @@ export function PaginaPendenciasAtletas() {
       const lista = await pendenciasServico.listar();
       const pendenciasVisiveis = (lista || []).filter(pendenciaAindaVisivel);
       setPendencias(pendenciasVisiveis);
-      setEmails(criarEstadoEmails(pendenciasVisiveis));
+      setContatos(criarEstadoContatos(pendenciasVisiveis));
 
       if (usuario?.atletaId) {
         setAtletaPerfil(await atletasServico.obterMeu());
@@ -770,10 +771,10 @@ export function PaginaPendenciasAtletas() {
     ]);
   }
 
-  function atualizarEmail(pendenciaId, email) {
-    setEmails((anterior) => ({
+  function atualizarContato(pendenciaId, contato) {
+    setContatos((anterior) => ({
       ...anterior,
-      [pendenciaId]: email
+      [pendenciaId]: contato
     }));
   }
 
@@ -786,13 +787,13 @@ export function PaginaPendenciasAtletas() {
     setPendenciaExpandidaId((idAtual) => idAtual === pendenciaId ? null : pendenciaId);
   }
 
-  async function salvarEmail(pendenciaId, dadosResolucao = null) {
+  async function salvarContato(pendenciaId, dadosResolucao = null) {
     setProcessandoId(pendenciaId);
 
     try {
       const resultado = await pendenciasServico.completarContato(
         pendenciaId,
-        dadosResolucao || { email: emails[pendenciaId] || '' }
+        dadosResolucao || { telefone: contatos[pendenciaId] || '' }
       );
       if (resultado?.usuarioJaCadastrado && resultado?.usuarioEncontrado) {
         mostrarConfirmacaoVinculoAtleta(pendenciaId, resultado.usuarioEncontrado);
@@ -819,7 +820,7 @@ export function PaginaPendenciasAtletas() {
 
       showNotification({
         type: 'success',
-        title: pendenciaAtualizada?.status === STATUS_PENDENCIA.aguardandoCadastro ? 'E-mail registrado' : 'Pendência resolvida',
+        title: pendenciaAtualizada?.status === STATUS_PENDENCIA.aguardandoCadastro ? 'Contato registrado' : 'Pendência resolvida',
         message: pendenciaAtualizada?.status === STATUS_PENDENCIA.aguardandoCadastro
           ? 'A pendência ficou aguardando cadastro ativo do atleta.'
           : 'A participação foi vinculada ao atleta cadastrado.'
@@ -1042,9 +1043,9 @@ export function PaginaPendenciasAtletas() {
                     item={item}
                     expandida={pendenciaExpandidaId === item.id}
                     onExpandir={alternarExpansao}
-                    email={emails[item.id]}
-                    onEmailChange={atualizarEmail}
-                    onSalvar={salvarEmail}
+                    contato={contatos[item.id]}
+                    onContatoChange={atualizarContato}
+                    onSalvar={salvarContato}
                     processando={processandoId === item.id}
                   />
                 ) : ehPendenciaCancelamentoPartida(item) ? (
@@ -1077,9 +1078,9 @@ export function PaginaPendenciasAtletas() {
                       item={item}
                       expandida={pendenciaExpandidaId === item.id}
                       onExpandir={alternarExpansao}
-                      email={emails[item.id]}
-                      onEmailChange={atualizarEmail}
-                      onSalvar={salvarEmail}
+                      contato={contatos[item.id]}
+                      onContatoChange={atualizarContato}
+                      onSalvar={salvarContato}
                       processando={processandoId === item.id}
                     />
                   ))}
