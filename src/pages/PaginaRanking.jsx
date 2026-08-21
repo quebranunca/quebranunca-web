@@ -562,19 +562,20 @@ export function PaginaRanking() {
     }
   }
 
-  async function abrirGrupo(item) {
-    setCarregandoDetalhe(true);
-    setErro('');
-    try {
-      const detalhe = await rankingServico.obterGrupoRanking(item.grupoId, {
-        periodo: ''
-      });
-      setDetalheRanking({ tipo: 'grupo', dados: detalhe });
-    } catch (error) {
-      setErro(extrairMensagemErro(error));
-    } finally {
-      setCarregandoDetalhe(false);
+  function abrirGrupo(item) {
+    if (!item.grupoId) {
+      return;
     }
+
+    setDetalheRanking(null);
+    setVisaoRanking('atletas');
+    setAbaRanking('grupos');
+    setGrupoId(item.grupoId);
+    setCategoriaId('');
+    setEstadoRegiao('');
+    setCidadeRegiao('');
+    setBairroRegiao('');
+    atualizarParametros('grupos', item.grupoId, competicaoId, '', '', '', '');
   }
 
   return (
@@ -819,7 +820,7 @@ function GrupoRankingLinha({ item, onClick }) {
       type="button"
       className="ranking-linha-compacta ranking-linha-grupo"
       onClick={onClick}
-      aria-label={`Abrir detalhes do grupo ${item.nome}`}
+      aria-label={`Abrir ranking do grupo ${item.nome}`}
     >
       <span className="ranking-linha-posicao">#{item.posicao}</span>
       <AvatarUsuario

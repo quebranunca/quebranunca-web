@@ -337,7 +337,7 @@ describe('PaginaRanking redesenhada', () => {
     });
   });
 
-  it('renderiza ranking de grupos real e abre detalhe', async () => {
+  it('renderiza ranking de grupos e abre o ranking do grupo selecionado', async () => {
     const usuario = userEvent.setup();
 
     renderizarPagina();
@@ -355,13 +355,14 @@ describe('PaginaRanking redesenhada', () => {
       tamanhoPagina: 50
     });
 
-    await usuario.click(screen.getByRole('button', { name: /Abrir detalhes do grupo Long Beach/i }));
+    await usuario.click(screen.getByRole('button', { name: /Abrir ranking do grupo Long Beach/i }));
 
-    expect(await screen.findByRole('dialog', { name: 'Long Beach' })).toBeInTheDocument();
-    expect(screen.getByText('Top duplas')).toBeInTheDocument();
-    expect(rankingServico.obterGrupoRanking).toHaveBeenCalledWith('grupo-1', {
-      periodo: ''
+    await waitFor(() => {
+      expect(rankingServico.listarAtletasPorGrupo).toHaveBeenCalledWith('grupo-1');
     });
+    expect(await screen.findByText('Ranking do grupo')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Atletas/i })).toHaveClass('ativo');
+    expect(rankingServico.obterGrupoRanking).not.toHaveBeenCalled();
   });
 
   it('ao selecionar Grupos remove contexto anterior e lista todos os grupos', async () => {
