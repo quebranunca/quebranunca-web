@@ -45,7 +45,7 @@ function renderizar() {
 
 async function preencherEmailEContinuar(email = 'novo@example.com') {
   const usuario = userEvent.setup();
-  await usuario.type(screen.getByLabelText(/^E-mail$/i), email);
+  await usuario.type(screen.getByLabelText(/^E-mail ou WhatsApp$/i), email);
   await usuario.click(screen.getByRole('button', { name: /Continuar/i }));
   return usuario;
 }
@@ -96,8 +96,8 @@ describe('PaginaLogin - entrar ou criar conta', () => {
     renderizar();
 
     expect(screen.getByRole('heading', { name: /Entrar no QuebraNunca/i })).toBeInTheDocument();
-    expect(screen.getByText(/Use seu e-mail para entrar ou criar sua conta/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/^E-mail$/i)).toBeInTheDocument();
+    expect(screen.getByText(/Use seu e-mail ou WhatsApp para entrar/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^E-mail ou WhatsApp$/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Continuar/i })).toBeInTheDocument();
     expect(screen.queryByText(/convite/i)).not.toBeInTheDocument();
   });
@@ -121,11 +121,26 @@ describe('PaginaLogin - entrar ou criar conta', () => {
     renderizar();
 
     const usuario = userEvent.setup();
-    await usuario.type(screen.getByLabelText(/^E-mail$/i), 'email-invalido');
+    await usuario.type(screen.getByLabelText(/^E-mail ou WhatsApp$/i), 'email-invalido');
     fireEvent.submit(screen.getByRole('button', { name: /Continuar/i }).closest('form'));
 
-    expect(await screen.findByText(/Informe um e-mail válido/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Informe um e-mail ou telefone válido/i)).toBeInTheDocument();
     expect(mocks.iniciarAcesso).not.toHaveBeenCalled();
+  });
+
+  it('aceita telefone brasileiro como identificador de acesso', async () => {
+    mocks.iniciarAcesso.mockResolvedValue({
+      status: 'EntrarComSenha',
+      mensagem: 'Digite sua senha para entrar.',
+      podeEntrarComSenha: true,
+      cadastroNovo: false
+    });
+
+    renderizar();
+    await preencherEmailEContinuar('(48) 99999-9999');
+
+    expect(mocks.iniciarAcesso).toHaveBeenCalledWith('(48) 99999-9999');
+    expect(await screen.findByLabelText(/^Senha$/i)).toBeInTheDocument();
   });
 
   it('e-mail novo conduz ao cadastro direto com senha e confirmação sem código', async () => {

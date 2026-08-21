@@ -28,6 +28,7 @@ export const modelosImportacao = [
       'Nível: 1=Iniciante, 2=Intermediário, 3=Amador, 4=Profissional.',
       'CadastroPendente: true ou false.',
       'Data de nascimento no formato AAAA-MM-DD.',
+      'Telefone deve ser um número brasileiro com DDD; números repetidos serão rejeitados.',
       'Se CadastroPendente for false, informe ao menos um identificador.'
     ],
     csv: gerarCsv(

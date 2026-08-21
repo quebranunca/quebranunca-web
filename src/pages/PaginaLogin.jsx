@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { FaEnvelope, FaKey, FaLock, FaUser } from 'react-icons/fa';
+import { FaEnvelope, FaKey, FaLock, FaUser, FaWhatsapp } from 'react-icons/fa';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { EmailDomainSuggestions } from '../components/formularios/EmailDomainSuggestions';
 import { useAutenticacao } from '../hooks/useAutenticacao';
@@ -26,6 +26,18 @@ const TERMOS_PADRAO = {
 
 function emailPareceValido(valor) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(valor || '').trim());
+}
+
+function telefonePareceValido(valor) {
+  let digitos = String(valor || '').replace(/\D/g, '');
+  if ((digitos.length === 12 || digitos.length === 13) && digitos.startsWith('55')) {
+    digitos = digitos.slice(2);
+  }
+  return digitos.length === 10 || digitos.length === 11;
+}
+
+function identificadorPareceValido(valor) {
+  return emailPareceValido(valor) || telefonePareceValido(valor);
 }
 
 function obterDestinoAposLogin(origem, fallback) {
@@ -168,8 +180,8 @@ export function PaginaLogin() {
     setErro('');
     setMensagem('');
 
-    if (!emailPareceValido(email)) {
-      setErro('Informe um e-mail válido.');
+    if (!identificadorPareceValido(email)) {
+      setErro('Informe um e-mail ou telefone válido.');
       return;
     }
 
@@ -485,23 +497,25 @@ export function PaginaLogin() {
     return (
       <form onSubmit={aoContinuarEmail} className="formulario-grid unico">
         <label className="campo-login-icone">
-          E-mail
+          E-mail ou WhatsApp
           <span>
-            <FaEnvelope aria-hidden="true" />
+            {email.includes('@') ? <FaEnvelope aria-hidden="true" /> : <FaWhatsapp aria-hidden="true" />}
             <input
               ref={emailRef}
-              type="email"
-              inputMode="email"
-              autoComplete="email"
+              type="text"
+              inputMode={email.includes('@') ? 'email' : 'text'}
+              autoComplete="username"
               enterKeyHint="done"
               value={email}
               onChange={(evento) => setEmail(evento.target.value)}
               onFocus={scrollFocusedInputIntoView}
-              placeholder="voce@email.com"
+              placeholder="voce@email.com ou (48) 99999-9999"
               required
             />
           </span>
-          <EmailDomainSuggestions valor={email} onChange={setEmail} inputRef={emailRef} proximoRef={emailRef} />
+          {email.includes('@') && (
+            <EmailDomainSuggestions valor={email} onChange={setEmail} inputRef={emailRef} proximoRef={emailRef} />
+          )}
         </label>
 
         {erro && <p className="texto-erro">{erro}</p>}
@@ -531,7 +545,7 @@ export function PaginaLogin() {
     return (
       <form onSubmit={aoEntrarComSenha} className="formulario-grid unico">
         <p className="login-email-informado">
-          <span>E-mail</span>
+          <span>E-mail ou WhatsApp</span>
           <strong>{email}</strong>
         </p>
 
@@ -1003,7 +1017,7 @@ export function PaginaLogin() {
           ? 'Você usará essa senha para acessar o QuebraNunca nas próximas vezes.'
           : emRecuperacao
             ? 'Redefina sua senha com o código recebido por e-mail.'
-            : 'Use seu e-mail para entrar ou criar sua conta.';
+            : 'Use seu e-mail ou WhatsApp para entrar. Contas novas continuam sendo criadas por e-mail.';
 
   return (
     <section className="pagina-login">

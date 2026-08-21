@@ -41,6 +41,7 @@ Este é um projeto existente; não tratar como app novo. Reutilizar padrões atu
 - Partidas e treinos podem indicar Arena, mantendo válido o registro de partida avulsa sem Arena
 - `Inscrições` aceita dupla existente ou criação no fluxo a partir de `Jogador 1` e `Jogador 2`
 - `Meu Perfil` existe para qualquer usuário e concentra vínculo `Usuario` ↔ `Atleta`
+- Para atleta, `Meu Perfil` exige WhatsApp brasileiro com DDD na criação/conclusão do perfil, pois o número também é identificador alternativo de login; cadastro inicial e recuperação continuam por e-mail nesta fase.
 - `Meu Perfil` deve manter Perfil Esportivo separado de Medidas e Uniformes; arena principal deve usar seleção de Arena cadastrada, sem texto livre.
 - Medidas e Uniformes devem exibir apenas campos compatíveis com o sexo/gênero do atleta, usando selects e mantendo preenchimento opcional.
 - `Meu Perfil` também concentra preferências de privacidade; e-mail público, localização e imagem/foto devem respeitar as preferências retornadas pela API

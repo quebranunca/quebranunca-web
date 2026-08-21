@@ -1108,6 +1108,16 @@ export function PaginaMeuPerfil() {
   async function salvarAtleta(evento) {
     evento?.preventDefault();
 
+    const telefoneNormalizado = limparTelefone(formularioAtleta.telefone);
+    if (telefoneNormalizado.length !== 11) {
+      showNotification({
+        type: 'warning',
+        title: 'WhatsApp obrigatório',
+        message: 'Informe um celular brasileiro válido com DDD. Esse número também poderá ser usado no login.'
+      });
+      return;
+    }
+
     const erroDataNascimento = validarDataNascimento(formularioAtleta.dataNascimento);
     if (erroDataNascimento) {
       showNotification({
@@ -1551,6 +1561,20 @@ export function PaginaMeuPerfil() {
               />
             </CampoEdicao>
 
+            <CampoEdicao label="WhatsApp" largo>
+              <input
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                enterKeyHint="next"
+                value={formularioAtleta.telefone}
+                onChange={(evento) => atualizarCampoAtleta('telefone', evento.target.value)}
+                onFocus={scrollFocusedInputIntoView}
+                placeholder="(48) 99999-9999"
+                required
+              />
+            </CampoEdicao>
+
             <CampoEdicao label="Nível (opcional)" largo>
               <select
                 value={formularioAtleta.nivel}
@@ -1577,7 +1601,7 @@ export function PaginaMeuPerfil() {
           </form>
 
           <p className="perfil-onboarding-nota">
-            Depois você pode adicionar contato, preferências de jogo, localização e medidas — tudo no seu tempo.
+            Seu WhatsApp também poderá ser usado para entrar. Preferências de jogo, localização e medidas podem ser adicionadas depois.
           </p>
         </article>
       </section>
@@ -2109,7 +2133,7 @@ export function PaginaMeuPerfil() {
               </div>
             ) : (
               <div className="perfil-edicao-grid">
-                <CampoEdicao label="Telefone">
+                <CampoEdicao label="WhatsApp (usado também no login)">
                   <input
                     type="tel"
                     inputMode="tel"
@@ -2118,6 +2142,7 @@ export function PaginaMeuPerfil() {
                     value={formularioAtleta.telefone}
                     onChange={(evento) => atualizarCampoAtleta('telefone', evento.target.value)}
                     onFocus={scrollFocusedInputIntoView}
+                    required
                   />
                 </CampoEdicao>
 

@@ -232,6 +232,7 @@ describe('PaginaMeuPerfil - conta sem atleta', () => {
     expect(await screen.findByRole('heading', { name: 'Comece com o essencial' })).toBeInTheDocument();
     expect(screen.getByLabelText('Nome de exibição')).toHaveValue('');
     expect(screen.getByLabelText('Apelido (opcional)')).toBeInTheDocument();
+    expect(screen.getByLabelText('WhatsApp')).toBeRequired();
     expect(screen.getByLabelText('Nível (opcional)')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Criar meu perfil' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Agora não' })).toBeInTheDocument();
@@ -241,7 +242,7 @@ describe('PaginaMeuPerfil - conta sem atleta', () => {
     expect(dashboardServico.obterDashboardAtleta).not.toHaveBeenCalled();
   });
 
-  it('cria o perfil sem exigir dados complementares', async () => {
+  it('cria o perfil exigindo somente os dados essenciais e WhatsApp', async () => {
     const usuario = userEvent.setup();
     mocks.usuario = {
       id: 'usuario-novo',
@@ -262,12 +263,14 @@ describe('PaginaMeuPerfil - conta sem atleta', () => {
     renderizarPagina();
 
     await usuario.type(await screen.findByLabelText('Nome de exibição'), 'Gustavo');
+    await usuario.type(screen.getByLabelText('WhatsApp'), '48999999999');
     await usuario.click(screen.getByRole('button', { name: 'Criar meu perfil' }));
 
     await waitFor(() => {
       expect(atletasServico.salvarMeu).toHaveBeenCalledWith(expect.objectContaining({
         nome: 'Gustavo',
         email: 'novo@example.test',
+        telefone: '48999999999',
         apelido: null,
         nivel: null,
         peDominante: null,
